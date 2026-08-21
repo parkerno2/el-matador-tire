@@ -18,7 +18,7 @@ self.addEventListener('fetch', e => {
   // app shell: always try the network first so deploys show up immediately
   if (e.request.mode === 'navigate' || (url.origin === location.origin && url.pathname.endsWith('index.html'))) {
     e.respondWith(
-      fetch(e.request).then(r => {
+      fetch(e.request, { cache: 'no-cache' }).then(r => {
         const copy = r.clone();
         caches.open(VERSION).then(c => c.put('./index.html', copy));
         return r;
