@@ -605,9 +605,13 @@ function rowsFor(xi,mirror){
     return g.length?'<div class="prow">'+g.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>':'';
   }).join('');
 }
+function seasonTot(p){
+  // during GW1 the API's season totals can still hold last season's numbers
+  return D.gwsDone===0?Math.round(num(p['GW pts'])):Math.round(num(p['Season pts']));
+}
 function avgOf(p){
   if(!D.started)return'—';
-  return(num(p['Season pts'])/Math.max(1,D.gwsDone)).toFixed(1);
+  return(seasonTot(p)/Math.max(1,D.gwsDone||1)).toFixed(1);
 }
 function nextFixture(club){
   const f=D.cf.find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club));
@@ -941,7 +945,7 @@ function openSheet(p){
    +('isud'.indexOf(p.Status)>-1?'<span class="chip red">'+(p.News?esc(String(p.News).split(' - ')[0]):'Unavailable')+'</span>':'<span class="chip grn">Fit</span>')
    +'</div>'
    +(D.started?'<div class="srow"><span>Gameweek '+D.gw+'</span><b>'+Math.round(num(p['GW pts']))+' pts · '+Math.round(num(p['GW mins']))+' mins</b></div>':'')
-   +'<div class="srow"><span>'+(D.started?'Season total':'Last season')+'</span><b>'+Math.round(num(p['Season pts']))+'</b></div>'
+   +'<div class="srow"><span>'+(D.started?'Season total':'Last season')+'</span><b>'+seasonTot(p)+'</b></div>'
    +'<div class="srow"><span>Average per GW</span><b>'+avgOf(p)+'</b></div>'
    +'<div class="srow"><span>Next fixture</span><b>'+esc(nextFixture(p.Club))+'</b></div>'
    +'<p class="sh-note">'+tierExplain(t,p)+'</p>'
@@ -972,7 +976,9 @@ Promise.all([
   const cur=mw.find(w=>!fin(w.Finished))||mw[mw.length-1];
   D.gw=cur?num(cur.GW):1;
   D.gwsDone=mw.filter(w=>fin(w.Finished)).length;
-  D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished));
+  const curDl=cur?dt(cur['Deadline (UTC)']):null;
+  const anyLivePts=ro.some(r=>num(r['GW pts'])>0||num(r['GW mins'])>0);
+  D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||(curDl&&Date.now()>curDl.getTime());
   const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished)&&num(f['Home pts'])+num(f['Away pts'])>0);
   const pill=document.getElementById('gwpill');
   pill.textContent='GW'+D.gw+(liveNow?' · LIVE':'');
