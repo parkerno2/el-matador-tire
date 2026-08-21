@@ -605,6 +605,7 @@ function rowsFor(xi,mirror){
     return g.length?'<div class="prow">'+g.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>':'';
   }).join('');
 }
+function liveScoreOf(team){return xiOf(team).reduce((s,p)=>s+num(p['GW pts']),0)}
 function seasonTot(p){
   // during GW1 the API's season totals can still hold last season's numbers
   return D.gwsDone===0?Math.round(num(p['GW pts'])):Math.round(num(p['Season pts']));
@@ -626,12 +627,14 @@ function renderGW(){
   const rows=D.fx.filter(f=>num(f.GW)===D.gw);
   if(!rows.length){document.getElementById('gwbody').innerHTML='<p class="state">No fixtures found for this gameweek.</p>';return}
   const f=rows[Math.min(GWSEL,rows.length-1)];
-  const done=fin(f.Finished),liveNow=!done&&(num(f['Home pts'])+num(f['Away pts'])>0);
+  const hp=num(f['Home pts']),ap=num(f['Away pts']);
+  const done=fin(f.Finished),liveNow=!done&&(hp+ap>0||D.dlPassed);
   const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
   const w=D.mw.find(x=>num(x.GW)===D.gw)||{};
   const dl=dt(w['Deadline (UTC)']);
   const hXI=xiOf(f.Home),aXI=xiOf(f.Away);
-  const score=(done||liveNow)?(f['Home pts']+' – '+f['Away pts']):'vs';
+  const hs=done?hp:Math.max(hp,liveScoreOf(f.Home)),as2=done?ap:Math.max(ap,liveScoreOf(f.Away));
+  const score=(done||liveNow)?(hs+' – '+as2):'vs';
   const sub=done?'FULL TIME':liveNow?'● LIVE':(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
   document.getElementById('gwbody').innerHTML=
    '<div class="stage" style="margin-top:14px">'
@@ -835,8 +838,10 @@ function renderFix(){
    +(perOf(gw)?' · '+esc(perOf(gw))+' MOTM':'')+'</div>'
    +(noteOf(gw)?'<div class="gwlab" style="color:var(--gold)">'+esc(noteOf(gw))+'</div>':'')
    +rows.map(f=>{
-     const done=fin(f.Finished),liveNow=!done&&(num(f['Home pts'])+num(f['Away pts'])>0);
-     const score=(done||anyScore)?(f['Home pts']+' – '+f['Away pts']):'vs';
+     const hp=num(f['Home pts']),ap=num(f['Away pts']);
+     const done=fin(f.Finished),liveNow=!done&&(hp+ap>0||D.dlPassed);
+     const hs=done?hp:Math.max(hp,liveScoreOf(f.Home)),as2=done?ap:Math.max(ap,liveScoreOf(f.Away));
+     const score=(done||liveNow)?(hs+' – '+as2):'vs';
      const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
      return'<div class="m">'+(nm?'<div class="mname">'+esc(nm)+'</div>':'')
       +mg(f.Home)+'<span class="t">'+esc(f.Home)+'<em>'+esc(TEAMS[f.Home]?.mgr||'')+'</em></span>'
@@ -978,8 +983,9 @@ Promise.all([
   D.gwsDone=mw.filter(w=>fin(w.Finished)).length;
   const curDl=cur?dt(cur['Deadline (UTC)']):null;
   const anyLivePts=ro.some(r=>num(r['GW pts'])>0||num(r['GW mins'])>0);
-  D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||(curDl&&Date.now()>curDl.getTime());
-  const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished)&&num(f['Home pts'])+num(f['Away pts'])>0);
+  D.dlPassed=!!(curDl&&Date.now()>curDl.getTime());
+  D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||D.dlPassed;
+  const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&(D.dlPassed||anyLivePts);
   const pill=document.getElementById('gwpill');
   pill.textContent='GW'+D.gw+(liveNow?' · LIVE':'');
   pill.classList.toggle('live',liveNow);
