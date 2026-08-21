@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>FPL Companion · El Matador Tire</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#37003C">
@@ -16,6 +16,8 @@
 --ink:#1B1420;--mid:#6B6076;--line:#E4DEE9;--good:#0E8A5F;--bad:#C62828;--cyan:#04F5FF;--goldd:#B8860B;
 --navh:62px;--railw:0px}
 *{box-sizing:border-box}
+html{touch-action:manipulation}
+button,select,a{touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:'Chakra Petch',system-ui,sans-serif;
 line-height:1.45;-webkit-text-size-adjust:100%;font-size:15px;padding-left:var(--railw)}
 body{background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed}
@@ -407,7 +409,7 @@ padding:3px 9px;border-radius:20px}
     <p>The cards, the ratings, the money — everything the league argues about, explained.</p></div>
     <div id="faqbody"></div>
   </section>
-  <p class="foot">El Matador Tire · 2026/27 · updates hourly from the FPL API</p>
+  <p class="foot">El Matador Tire · 2026/27 · live from the FPL API</p>
 </div>
 
 <nav id="nav"></nav>
@@ -920,7 +922,7 @@ function renderFAQ(){
    +'<div class="faqsec"><h3>Special cards</h3><p>A player in FPL’s official Team of the Week wears black &amp; gold until the next dream team drops. The claret Player of the Month card follows the real Premier League award. If a player qualifies for more than one card, POTM beats TOTW beats the draft special.</p></div>'
    +'<div class="faqsec"><h3>The money — $1,200</h3><p>$600 for first, $180 for second, $60 for third. The leader after GW19 banks $90. Nine Manager of the Month prizes at $30 each — most points in the period, August folds into September. Buy-in was $150.</p></div>'
    +'<div class="faqsec"><h3>League rules</h3><p>Head-to-head, 3/1/0 scoring across 38 gameweeks. Waivers open all season, no transfer or injury restrictions. Points-for is the tiebreaker.</p></div>'
-   +'<div class="faqsec"><h3>The data</h3><p>Everything refreshes hourly from the FPL Draft API. During live matches the app can lag the TV by up to an hour — if you got a red card two minutes ago, the card doesn’t know yet.</p></div>';
+   +'<div class="faqsec"><h3>The data</h3><p>Scores and lineups flow from the FPL Draft API on a rolling refresh — the app re-pulls whenever you open it and every few minutes while it’s on screen. During live matches it can trail the TV by a few minutes; if you got a red card thirty seconds ago, the card doesn’t know yet.</p></div>';
 }
 
 /* ================= player sheet ================= */
@@ -969,28 +971,41 @@ document.body.addEventListener('click',e=>{
 /* ================= boot ================= */
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 buildNav();route();renderFAQ();
-Promise.all([
-  readTab('Rosters'),readTab('Standings'),readTab('H2H Fixtures'),readTab('Matchweeks'),
-  readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[])
-]).then(([ro,st,fx,mw,cf,clubs,sp])=>{
-  D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;
-  clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
-  const potmRow=sp.find(r=>r.Setting==='POTM player');
-  D.potm=potmRow&&potmRow.Value?normN(potmRow.Value):'';
-  mw.sort((a,b)=>num(a.GW)-num(b.GW));
-  const cur=mw.find(w=>!fin(w.Finished))||mw[mw.length-1];
-  D.gw=cur?num(cur.GW):1;
-  D.gwsDone=mw.filter(w=>fin(w.Finished)).length;
-  const curDl=cur?dt(cur['Deadline (UTC)']):null;
-  const anyLivePts=ro.some(r=>num(r['GW pts'])>0||num(r['GW mins'])>0);
-  D.dlPassed=!!(curDl&&Date.now()>curDl.getTime());
-  D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||D.dlPassed;
-  const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&(D.dlPassed||anyLivePts);
-  const pill=document.getElementById('gwpill');
-  pill.textContent='GW'+D.gw+(liveNow?' · LIVE':'');
-  pill.classList.toggle('live',liveNow);
-  renderGW();renderTable();renderXIs();renderFix();
-}).catch(e=>{
-  document.querySelectorAll('.view>div[id]').forEach(d=>d.innerHTML='<p class="state">Couldn’t reach the sheet ('+esc(e.message)+'). Check link-sharing: Anyone with the link · Viewer.</p>');
+let LOADED=0;
+function loadAll(quiet){
+  return Promise.all([
+    readTab('Rosters'),readTab('Standings'),readTab('H2H Fixtures'),readTab('Matchweeks'),
+    readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[])
+  ]).then(([ro,st,fx,mw,cf,clubs,sp])=>{
+    D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;D.clubs={};
+    clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
+    const potmRow=sp.find(r=>r.Setting==='POTM player');
+    D.potm=potmRow&&potmRow.Value?normN(potmRow.Value):'';
+    mw.sort((a,b)=>num(a.GW)-num(b.GW));
+    const cur=mw.find(w=>!fin(w.Finished))||mw[mw.length-1];
+    D.gw=cur?num(cur.GW):1;
+    D.gwsDone=mw.filter(w=>fin(w.Finished)).length;
+    const curDl=cur?dt(cur['Deadline (UTC)']):null;
+    const anyLivePts=ro.some(r=>num(r['GW pts'])>0||num(r['GW mins'])>0);
+    D.dlPassed=!!(curDl&&Date.now()>curDl.getTime());
+    D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||D.dlPassed;
+    const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&(D.dlPassed||anyLivePts);
+    const pill=document.getElementById('gwpill');
+    pill.textContent='GW'+D.gw+(liveNow?' · LIVE':'');
+    pill.classList.toggle('live',liveNow);
+    LOADED=Date.now();
+    renderGW();renderTable();renderXIs();renderFix();
+  }).catch(e=>{
+    if(quiet&&D.ro.length)return; // background refresh failed: keep showing what we have
+    document.querySelectorAll('.view>div[id]').forEach(d=>d.innerHTML='<p class="state">Couldn’t reach the sheet ('+esc(e.message)+'). Check link-sharing: Anyone with the link · Viewer.</p>');
+  });
+}
+loadAll();
+/* iOS resumes the app frozen — refetch when it comes back into view, and every few minutes while open */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&Date.now()-LOADED>120000)loadAll(true);
 });
+setInterval(()=>{
+  if(document.visibilityState==='visible'&&Date.now()-LOADED>300000)loadAll(true);
+},60000);
 </script></body></html>
