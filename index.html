@@ -1008,18 +1008,19 @@ function upAcc(){
 }
 
 /* ================= FAQ (with card gallery) ================= *//* ================= FAQ (with card gallery) ================= */
-function demoCard(tier,ovr,pos,name,tag,desc){
+function demoCard(tier,ovr,pos,name,tag,desc,file){
   const bust='<svg viewBox="0 0 100 100" style="width:100%;height:100%;border-radius:9cqw;background:rgba(0,0,0,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)" aria-hidden="true">'
    +'<circle cx="50" cy="38" r="17" fill="rgba(255,255,255,.55)"/>'
    +'<path d="M18 92 Q24 60 50 64 Q76 60 82 92 Z" fill="rgba(255,255,255,.55)"/></svg>';
   const fakeflag='<svg viewBox="0 0 18 12" style="width:12%;border-radius:2px" aria-hidden="true"><rect width="18" height="12" fill="#2E5BFF"/><rect x="6" width="6" height="12" fill="#F4F1F6"/></svg>';
   const fakeclub='<svg viewBox="0 0 18 19" style="width:12%" aria-hidden="true"><path d="M9 0 L18 3 L18 10 Q18 16 9 19 Q0 16 0 10 L0 3 Z" fill="#37003C"/><path d="M9 3 L15 5 L15 10 Q15 13.5 9 16 Q3 13.5 3 10 L3 5 Z" fill="#FFD23F"/></svg>';
+  const face=file?'<img src="faces/'+file+'" alt="" onerror="this.style.display=\'none\'">':bust;
   return'<div class="gitem"><div class="fc '+tier+'" style="display:block;width:100%">'
    +cardBg(tier)
    +(tag?'<span class="tag">'+tag+'</span>':'')
    +'<span class="rt"><b>'+ovr+'</b><span>'+pos+'</span></span>'
    +'<span class="pts"><b>0</b><i>PTS</i></span>'
-   +'<span class="face">'+bust+'</span>'
+   +'<span class="face">'+face+'</span>'
    +'<span class="nm">'+name+'</span>'
    +'<span class="meta">'+fakeclub+'<span class="sep"></span>'+fakeflag+'</span>'
    +'</div><p>'+desc+'</p></div>';
@@ -1027,12 +1028,14 @@ function demoCard(tier,ovr,pos,name,tag,desc){
 function renderFAQ(){
   document.getElementById('faqbody').innerHTML=
    '<h2>The cards</h2><div class="gallery">'
-   +demoCard('silver',74,'MID','GRAHN','','<b>Silver</b> — rated under 78')
-   +demoCard('gold',81,'DEF','TAUNT','','<b>Gold</b> — rated 78–84')
-   +demoCard('elite',88,'MID','GOULD','','<b>Elite</b> — 85+, commissioner’s list')
-   +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b> — round 1–2 picks, league colours all season')
-   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b> — FPL’s official dream team, lasts one week')
-   +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b> — the league’s monthly pick')
+   +demoCard('silver',74,'MID','GRAHN','','<b>Silver</b> — rated under 78','487838.png')
+   +demoCard('gold',81,'DEF','TAUNT','','<b>Gold</b> — rated 78–84','492777.png')
+   +demoCard('elite',88,'GKP','GOULD','','<b>Elite</b> — rated 85+, earned not given','111234.png')
+   +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b> — round 1–2 picks, league colours all season','mgr-nolan.png')
+   +demoCard('spec',91,'MID','SCANTLEBURY','R2','<b>Round 2 vintage</b> — same colours, later letter','215413.png')
+   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b> — FPL’s official dream team, lasts one week','mgr-baha.png')
+   +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b> — the league’s monthly pick','231416.png')
+   +demoCard('gold',82,'MID','PJ NOLAN','','<b>Gold</b> — the league’s broad middle class','493105.png')
    +'</div>'
    +'<h2>The pot — $1,200</h2><div class="card"><div class="pot">'
    +'<div><b>$600</b><span>1st place</span></div><div><b>$180</b><span>2nd place</span></div>'
