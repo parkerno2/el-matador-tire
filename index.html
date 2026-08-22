@@ -164,12 +164,14 @@ padding:0;cursor:pointer;flex:none;container-type:inline-size;transition:transfo
 .fc .rt{position:absolute;top:7%;left:12%;z-index:2;text-align:center;line-height:.9}
 .fc .rt b{font-family:'Saira Condensed';font-weight:700;font-size:15.5cqw;color:var(--tx);display:block}
 .fc .rt span{font-size:6.4cqw;font-weight:700;letter-spacing:.08em;color:var(--sub)}
+.fc .rt .fdar{display:block;font-size:5.6cqw;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.fc .rt .fdar.up{color:#2FBF71}.fc .rt .fdar.dn{color:#E5484D}
 .fc .tag{position:absolute;top:4%;left:50%;transform:translateX(-50%);z-index:3;background:var(--gold);color:var(--p1);
 font-size:5.8cqw;font-weight:700;letter-spacing:.12em;padding:1.4% 5.5%;border-radius:9cqw;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap}
 .fc .pts{position:absolute;top:4.5%;right:7.5%;z-index:2;text-align:center;line-height:.85;font-family:'Saira Condensed';font-weight:600;
 background:var(--bub);border:1px solid var(--ln1);border-radius:12cqw;padding:3.5% 5.5% 3%;min-width:17%;box-shadow:0 2px 5px rgba(20,10,25,.25)}
-.fc .pts b{display:block;font-size:11.5cqw;color:var(--bubn)}
-.fc .pts i{font-style:normal;font-size:4.6cqw;letter-spacing:.2em;opacity:.8;color:var(--bubn)}
+.fc .pts b{display:block;font-size:13.5cqw;color:var(--bubn)}
+.fc .pts i{font-style:normal;font-size:5.4cqw;letter-spacing:.14em;opacity:.85;color:var(--bubn)}
 .fc .face{position:absolute;top:6%;left:8%;right:8%;height:61%;z-index:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
 .fc .face img{width:96%;height:96%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.38))}
 .fc .face:has(.noface){align-items:center;overflow:visible}
@@ -488,6 +490,62 @@ padding:3px 9px;border-radius:20px}
 .lucks .lbar{height:6px;border-radius:99px;background:#F1EEF7;flex:0 0 84px;overflow:hidden;position:relative}
 .lucks .lbar:before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#D9CFE2}
 .lucks .lbar i{position:absolute;top:0;bottom:0;border-radius:99px}
+/* THE LAB */
+.labcard{padding:0;overflow:hidden}
+.labhead{background:linear-gradient(115deg,#2E5BFF -20%,#5B1A66 50%,#37003C 110%);color:#fff;padding:12px 16px;display:flex;align-items:baseline;gap:10px}
+.labhead b{font-size:.86rem;letter-spacing:.22em}
+.labhead span{font-size:.62rem;color:#B9CFF5}
+.presets{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 2px;-webkit-overflow-scrolling:touch}
+.presets button{flex:none;background:linear-gradient(160deg,#FDF9EC,#F7EFD4);border:1px solid #EDDFB2;color:#7A5E14;font-family:inherit;font-size:.62rem;font-weight:700;padding:6px 12px;border-radius:16px;cursor:pointer;white-space:nowrap}
+#labctl{padding:10px 14px 0}
+.labseg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
+.labseg button{flex:1;background:#fff;border:none;font-family:inherit;font-size:.64rem;font-weight:700;letter-spacing:.08em;padding:10px 4px;color:var(--mid);cursor:pointer}
+.labseg button.on{background:var(--p1);color:#fff}
+.labsub{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
+.labmono{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid var(--tc);background:#fff;color:var(--tc);font-family:inherit;font-weight:700;font-size:.66rem;cursor:pointer}
+.labmono.on{background:var(--tc);color:#fff}
+.labclear{border:none;background:#F1ECF5;color:var(--p2);font-family:inherit;font-size:.6rem;font-weight:700;padding:6px 10px;border-radius:14px;cursor:pointer}
+.labsub input{flex:1;min-width:140px;font-family:inherit;font-size:.8rem;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.labpill{border:none;background:var(--p1);color:#fff;font-family:inherit;font-size:.62rem;font-weight:700;padding:7px 10px;border-radius:14px;cursor:pointer;white-space:nowrap}
+#labres .labhit{display:block;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid #F1EEF7;font-family:inherit;font-size:.76rem;font-weight:700;padding:8px 4px;cursor:pointer}
+#labres .labhit span{color:var(--mid);font-weight:500;font-size:.64rem}
+.labmets{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.labmet{flex:none;border:1px solid var(--line);background:#fff;color:var(--mid);font-family:inherit;font-size:.64rem;font-weight:700;padding:7px 12px;border-radius:17px;cursor:pointer;white-space:nowrap}
+.labmet.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.labviews{display:flex;gap:6px;padding-bottom:6px}
+.labview{border:1px solid var(--line);background:#fff;color:var(--mid);font-family:inherit;font-size:.62rem;font-weight:700;padding:6px 12px;border-radius:14px;cursor:pointer}
+.labview.on{background:var(--p3);color:#fff;border-color:var(--p3)}
+#labviz{padding:6px 14px 14px}
+.labfoot{font-size:.62rem;color:var(--mid);margin-top:6px;line-height:1.5}
+.lbrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #F1EEF7;font-size:.76rem;font-weight:700;cursor:pointer}
+.lbrow:last-child{border-bottom:none}
+.lbrow .lbl2{flex:0 0 32%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbrow .lbl2 em{display:block;font-style:normal;font-size:.58rem;color:var(--mid);font-weight:600}
+.lbrow .lbtrack{flex:1;height:8px;border-radius:5px;background:#F1EEF7;overflow:hidden}
+.lbrow .lbtrack i{display:block;height:100%;border-radius:5px}
+.lbrow .lbv{font-family:'Saira Condensed';font-size:.92rem;min-width:36px;text-align:right}
+/* pull-to-refresh */
+#ptr{position:fixed;top:-46px;left:50%;transform:translateX(-50%);z-index:70;background:var(--p1);color:#fff;
+font-size:.62rem;font-weight:700;letter-spacing:.08em;padding:9px 18px;border-radius:20px;box-shadow:0 6px 16px rgba(55,0,60,.35);
+transition:top .18s ease;pointer-events:none;white-space:nowrap}
+#ptr.show{top:calc(env(safe-area-inset-top) + 52px)}
+#ptr.spin{background:var(--p3)}
+/* analysis: 8 manager hero cards, 3-3-2 */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0 4px}
+.mgrid .mt{position:relative;overflow:hidden;border:none;border-radius:14px;text-align:left;cursor:pointer;
+padding:12px 13px 11px;color:#fff;font-family:inherit;
+background:linear-gradient(150deg,var(--tc) -35%,#241329 130%);
+box-shadow:0 4px 14px rgba(27,20,32,.28);transition:transform .15s ease}
+.mgrid .mt:active{transform:scale(.98)}
+.mgrid .mt:before{content:"";position:absolute;top:-45%;left:-18%;width:52%;height:190%;
+background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
+.mtn{display:block;font-size:.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtm{display:block;font-style:normal;font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px}
+.mtrow{display:flex;justify-content:space-between;max-width:340px;margin-top:12px;gap:10px}
+.mtrow b{font-family:'Saira Condensed';font-size:1.55rem;display:block;line-height:1}
+.mtrow i{font-style:normal;font-size:.54rem;letter-spacing:.08em;color:rgba(255,255,255,.65);font-weight:700;text-transform:uppercase}
+.mtstar{display:block;margin-top:11px;font-size:.72rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtstar i{font-style:normal;font-size:.54rem;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-right:6px}
 /* gradient matchup cards — one per derby, 5th for the preview button */
 .mcard.g1{background:linear-gradient(115deg,#2A0030 0%,#4A0E56 55%,#2E5BFF 160%)}
 .mcard.g2{background:linear-gradient(115deg,#37003C 0%,#5B1A66 55%,#0AA9C9 170%)}
@@ -568,6 +626,7 @@ padding:3px 9px;border-radius:20px}
   <p class="foot">El Matador Tire · 2026/27 · live from the FPL API</p>
 </div>
 
+<div id="ptr">↓ Pull to refresh</div>
 <nav id="nav"></nav>
 <div class="ov" id="ov"></div>
 <div class="sheet" id="sheet"></div>
@@ -619,7 +678,14 @@ const PERIODS=[['Aug & Sep',1,5],['October',6,9],['November',10,12],['December',
 /* ================= data layer ================= */
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fin=v=>v===true||v==='TRUE';
-const normN=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
+const normN=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
+ .replace(/ø/g,'o').replace(/æ/g,'ae').replace(/ð/g,'d').replace(/þ/g,'th')
+ .replace(/đ/g,'d').replace(/ł/g,'l').replace(/ß/g,'ss').replace(/[^a-z]/g,'');
+/* full-name search: every word the user types must appear somewhere in the
+   player's web name + full name (accents/hyphens ignored) — so
+   "morgan gibbs white" finds Gibbs-White even though FPL shows only the surname */
+const nameMatch=(p,q)=>{const hay=normN(String(p.Player)+' '+String(p['Full name']||''));
+  return String(q).split(/\s+/).map(w=>normN(w)).filter(Boolean).every(w=>hay.includes(w))};
 let __gvn=0;
 function readTab(name){
   return new Promise((resolve,reject)=>{
@@ -726,6 +792,43 @@ function xpBlendOf(p){ // Expected view: played → xP (deserved), not yet playe
   if(fxStarted(p.Club))return xpOf(gwsRow(p.Code));
   const e=epOf(p.Code);return e===null?0:e;
 }
+function fxFinished(club){const f=(D.cf||[]).find(x=>num(x.GW)===D.gw&&(x.Home===club||x.Away===club));return !!(f&&fin(f.Finished))}
+
+/* ---- house TOTW: a 10+ point haul, live at full time (bonus counts when it lands),
+   worn until the player's NEXT match finishes — i.e., it lasts one week ---- */
+const TOTW_HAUL=10;
+function haulTOTW(p){
+  const cur=gwsRow(p.Code);
+  if(cur&&cur.Pts>=TOTW_HAUL&&fxFinished(p.Club))return true;
+  if(!fxFinished(p.Club)){
+    const pr=(D.gwsByGw[D.gw-1]||{})[String(p.Code)];
+    if(pr&&pr.Pts>=TOTW_HAUL)return true;
+  }
+  return false;
+}
+
+/* ---- dynamic form rating: base OVR ± form, from ACTUAL points over the last
+   4 completed performances vs what the base rating implies. Real points, not xP —
+   consistent overperformance of xG is skill (Haaland finishing low-xG chances),
+   and the base curve was calibrated on actual points anyway. Shrunk hard on
+   small samples (needs 2+ games), clamped to −3…+5 so the base economy holds. ---- */
+function formDelta(p){
+  const base=ovrOf(p);
+  const xs=[];
+  for(let g=D.gw;g>=1&&xs.length<4;g--){
+    const r=(D.gwsByGw[g]||{})[String(p.Code)];
+    if(!r||!r.Mins)continue;
+    if(g===D.gw&&!fxFinished(p.Club))continue; // only finished performances count
+    xs.push(r.Pts);
+  }
+  if(xs.length<2)return 0;
+  const formPts=xs.reduce((a,b)=>a+b,0)/xs.length;
+  const basePts=(base-62)*170/22/38;          // invert the base rating curve → implied pts/GW
+  const w=xs.length/(xs.length+2);            // shrink toward 0 on thin samples
+  return Math.max(-3,Math.min(5,Math.round(2*w*(formPts-basePts))));
+}
+const dynOvr=p=>ovrOf(p)+formDelta(p);
+
 function teamProj(team){return xiOf(team).reduce((s,p)=>s+projOf(p),0)}
 function teamXP(team){return xiOf(team).reduce((s,p)=>s+xpOf(gwsRow(p.Code)),0)}
 function teamXPBlend(team){return xiOf(team).reduce((s,p)=>s+xpBlendOf(p),0)}
@@ -738,9 +841,9 @@ function ovrOf(p){
 }
 function tierOf(p){
   if(D.potm&&normN(p.Player)===D.potm)return'potm';
-  if(p.TOTW==='TOTW')return'totw';
+  if(haulTOTW(p))return'totw'; // house rule: 10+ pt haul, live at FT, lasts one week
   if(/^R[12]\./.test(p.Drafted||''))return'spec';
-  const o=ovrOf(p);
+  const o=dynOvr(p); // form moves tiers — a Silver can play his way into Gold art
   return o>=85?'elite':o>=78?'gold':'silver';
 }
 const FILL={gold:'url(#gGold)',silver:'url(#gSilver)',spec:'url(#gSpec)',elite:'url(#gElite)',totw:'url(#gTotw)',potm:'url(#gPotm)'};
@@ -796,13 +899,14 @@ function faceImgHTML(p){
  return '<img loading="lazy" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
 function card(p,i){
-  const t=tierOf(p),o=ovrOf(p);
+  const t=tierOf(p),o=dynOvr(p),fd=formDelta(p);
   const tag=t==='potm'?'POTM':t==='totw'?'TOTW':t==='spec'?(p.Drafted||'').split('.')[0]:'';
   return '<button class="fc '+t+'" data-i="'+i+'" aria-label="'+esc(p.Player)+'">'
    +cardBg(t)
    +(tag?'<span class="tag">'+tag+'</span>':'')
    +('isud'.indexOf(p.Status)>-1?'<span class="inj">INJ</span>':'')
-   +'<span class="rt"><b>'+o+'</b><span>'+String(p.Pos).slice(0,3)+'</span></span>'
+   +'<span class="rt"><b>'+o+'</b><span>'+String(p.Pos).slice(0,3)+'</span>'
+   +(fd?'<span class="fdar '+(fd>0?'up':'dn')+'">'+(fd>0?'▲':'▼')+Math.abs(fd)+'</span>':'')+'</span>'
    +(D.xpview
      ?(fxStarted(p.Club)
        ?'<span class="pts"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
@@ -1048,23 +1152,25 @@ function openProfile(team){
   D.fx.forEach(f=>{
     [[f.Home,num(f['Home pts'])],[f.Away,num(f['Away pts'])]].forEach(([n,pt])=>{
       if(n===team&&(fin(f.Finished)||pt>0)&&(!best||pt>best.p))best={p:pt,g:num(f.GW),fin:fin(f.Finished)};});});
-  const col=TEAMS[team]?.col||'#5B1A66';
-  /* line chart: actual (solid, team colour) vs xP (dashed green) */
+  const col='#2E5BFF',colX='#5B1A66'; // brand blue = actual, brand purple = expected
+  /* line chart: actual (solid blue) vs xP (dashed purple) */
   const W=440,PX=30,PY=26,n=gws.length,H=n<2?112:150;
   const maxv=Math.max(...gws.map(g=>Math.max(agg.gws[g].act,agg.gws[g].x)),10);
   const px=i=>n<2?W/2:PX+i*((W-PX*2)/(n-1)),py=v=>H-PY-(v/maxv)*(H-PY*2);
   const line=key=>gws.map((g,i)=>px(i)+','+py(agg.gws[g][key])).join(' ');
-  const dots=key=>gws.map((g,i)=>{const v=agg.gws[g][key],c=key==='act'?col:'#0E8A5F';
-    return '<circle cx="'+px(i)+'" cy="'+py(v)+'" r="3.6" fill="'+c+'"/>'
-     +'<text x="'+px(i)+'" y="'+(py(v)+(key==='act'?-8:14))+'" font-size="9" text-anchor="middle" fill="'+c+'" font-weight="700">'+fmt1(v)+'</text>';}).join('');
+  const dots=key=>gws.map((g,i)=>{const v=agg.gws[g][key],c=key==='act'?col:colX;
+    return '<circle cx="'+px(i)+'" cy="'+py(v)+'" r="4" fill="'+c+'"/>'
+     +'<text x="'+px(i)+'" y="'+(py(v)+(key==='act'?-10:18))+'" font-size="10.5" text-anchor="middle" fill="'+c+'" font-weight="700">'+fmt1(v)+'</text>';}).join('');
   const axis=gws.map((g,i)=>'<text x="'+px(i)+'" y="'+(H-5)+'" font-size="8.5" text-anchor="middle" fill="#6B6076" font-weight="700">GW'+g+'</text>').join('');
   const chart=n?'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:260px">'
    +[0.5,1].map(f2=>'<line x1="'+PX+'" y1="'+py(maxv*f2)+'" x2="'+(W-PX)+'" y2="'+py(maxv*f2)+'" stroke="#EEE8F2" stroke-dasharray="3 4"/>').join('')
    +(n>1?'<polyline points="'+line('act')+'" fill="none" stroke="'+col+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
-     +'<polyline points="'+line('x')+'" fill="none" stroke="#0E8A5F" stroke-width="2.4" stroke-dasharray="5 4" opacity=".85" stroke-linecap="round" stroke-linejoin="round"/>':'')
+     +'<polyline points="'+line('x')+'" fill="none" stroke="'+colX+'" stroke-width="2.4" stroke-dasharray="5 4" opacity=".85" stroke-linecap="round" stroke-linejoin="round"/>':'')
    +dots('act')+dots('x')+axis+'</svg>':'<p class="mnote">The graph draws itself once gameweek stats accrue.</p>';
-  /* hero = the squad's top scorer this season */
-  const sq=squadOf(team).slice().sort((a,b)=>seasonTot(b)-seasonTot(a)||ovrOf(b)-ovrOf(a));
+  /* hero = the squad's top scorer counting ONLY weeks he was started (benched hauls don't count) */
+  const xm=xiPtsMap();
+  const xiOfP=p=>((xm[String(p.Code)]||{}).xi||0);
+  const sq=squadOf(team).slice().sort((a,b)=>xiOfP(b)-xiOfP(a)||ovrOf(b)-ovrOf(a));
   const hero=sq[0];
   /* average points per gameweek actually played (live GW counts once scores exist) */
   let g=0,pf=0;
@@ -1074,16 +1180,15 @@ function openProfile(team){
   sheet.innerHTML='<div class="sh-right" style="padding:16px 18px"><button class="sh-x" aria-label="Close">×</button>'
    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+mg(team)+'<div><h3 style="margin:0">'+esc(team)+'</h3>'
    +'<div class="sub" style="margin:0">'+esc(TEAMS[team]?.mgr||'')+'</div></div></div>'
-   +'<div style="display:flex;gap:16px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'
-   +(hero?'<div class="profcard" style="flex:1 1 46%;max-width:240px;min-width:170px"><div style="text-align:center;font-size:.54rem;font-weight:700;letter-spacing:.18em;color:var(--goldd);margin-bottom:5px">TOP SCORER · '+seasonTot(hero)+' PTS</div>'+card(hero,D.ro.indexOf(hero))+'</div>':'')
-   +'<div class="profstats" style="flex:1 1 46%;min-width:150px;grid-template-columns:1fr;margin:0;gap:10px">'
-   +'<div><b style="font-size:1.7rem;color:var(--p2)">'+avg.toFixed(1)+'</b><span>Avg pts / GW</span></div>'
-   +'<div><b style="font-size:1.35rem">'+(best?best.p:'—')+'</b><span>Best GW'+(best?(' · GW'+best.g+(best.fin?'':' live')):'')+'</span></div>'
-   +'<div><b style="font-size:1.35rem">'+(st.W!==undefined?st.W+' – '+st.D+' – '+st.L:'—')+'</b><span>W – D – L</span></div>'
-   +'</div></div>'
+   +'<div class="profstats" style="grid-template-columns:repeat(3,1fr);margin:0 0 12px;gap:8px">'
+   +'<div><b style="font-size:1.9rem;color:var(--p2)">'+avg.toFixed(1)+'</b><span>Avg pts / GW</span></div>'
+   +'<div><b style="font-size:1.9rem">'+(best?best.p:'—')+'</b><span>Best GW'+(best?(' · GW'+best.g+(best.fin?'':' live')):'')+'</span></div>'
+   +'<div><b style="font-size:1.45rem;line-height:1.5">'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'—')+'</b><span>W – D – L</span></div>'
+   +'</div>'
    +'<div class="posh2">Actual vs expected, week by week'+(gws.length<2?' · one gameweek so far':'')+'</div>'
    +'<div style="overflow-x:auto">'+chart+'</div>'
-   +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:#0E8A5F;font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.</p>'
+   +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:'+colX+';font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.</p>'
+   +(hero?'<div class="profcard" style="max-width:200px;margin:14px auto 0"><div style="text-align:center;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:var(--goldd);margin-bottom:6px">TOP SCORER · '+xiOfP(hero)+' PTS STARTED</div>'+card(hero,D.ro.indexOf(hero))+'</div>':'')
    +'</div>';
   ov.classList.add('on');sheet.classList.add('on');
   sheet.querySelector('.sh-x').onclick=closeSheet;
@@ -1093,15 +1198,315 @@ document.body.addEventListener('click',e=>{
   if(pr){e.stopPropagation();openProfile(pr.dataset.prof)}
 });
 
-/* ================= analysis tab ================= */
+/* ================= analysis tab — THE LAB ================= */
+/* Data-first explorer: WHO (scope) · WHAT (metric) · HOW (view). Cards live on
+   other tabs; here the chart is the hero. All series derive from data already
+   in memory — zero new fetches. */
+let LAB={scope:'mgr',sel:[],metric:'pts',view:'bars'};
+const LABMETS={
+ mgr:[['pts','Points'],['luck','Luck'],['margin','Win margin'],['pa','Points against'],['bench','Bench waste']],
+ league:[['wins','Wins race'],['spread','Spread']],
+ plr:[['pts','Points']] /* players scope retired — player stats live in the player sheet */
+};
+function anaOrder(){
+  const o=D.st.slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For'])).map(t=>t.Team).filter(t=>TEAMS[t]);
+  return o.length===8?o:Object.keys(TEAMS);
+}
+/* ---- assemblers ---- */
+function mgrSeries(team){
+  const out=[];
+  D.fx.forEach(fx2=>{
+    if(fx2.Home!==team&&fx2.Away!==team)return;
+    const hp=num(fx2['Home pts']),ap=num(fx2['Away pts']);
+    if(!(fin(fx2.Finished)||hp+ap>0))return;
+    const me=fx2.Home===team?hp:ap,opp=fx2.Home===team?ap:hp;
+    out.push({gw:num(fx2.GW),pts:me,pa:opp,margin:me-opp,live:!fin(fx2.Finished)});
+  });
+  return out.sort((a,b)=>a.gw-b.gw);
+}
+function benchByGw(team){
+  const m={};
+  (D.gl||[]).forEach(r=>{if(r.Team!==team||r.Started!=='BEN')return;
+    const g=num(r.GW);m[g]=(m[g]||0)+num(r['GW pts']);});
+  let live=0;
+  D.ro.forEach(p=>{if(p.Team!==team)return;
+    const s=num(p.Slot);
+    if(s>=12||(!s&&p['Best XI']!=='XI'))live+=num(p['GW pts']);});
+  if(live&&!m[D.gw])m[D.gw]=live;
+  return m;
+}
+function xiPtsMap(){
+  /* XI attribution: points count for a manager only from weeks the player was
+     actually started (GW Log for finished GWs, Rosters slot for the live one). */
+  const m={};
+  (D.gl||[]).forEach(r=>{
+    if(num(r.GW)>=D.gw&&!D.demo)return;
+    const k=String(r.Code);
+    const o=m[k]=m[k]||{xi:0,bench:0,name:r.Player,owner:r.Team,pos:r.Pos,club:r.Club,byGw:{}};
+    const p2=num(r['GW pts']);
+    if(r.Started==='XI'){o.xi+=p2;o.byGw[num(r.GW)]=p2;}else o.bench+=p2;
+  });
+  D.ro.forEach(p=>{
+    const k=String(p.Code);
+    const o=m[k]=m[k]||{xi:0,bench:0,name:p.Player,owner:p.Team,pos:p.Pos,club:p.Club,byGw:{}};
+    o.owner=p.Team;
+    const s=num(p.Slot);
+    const inXI=(s>=1&&s<=11)||(!s&&p['Best XI']==='XI');
+    const pts=num(p['GW pts']);
+    if(inXI){o.xi+=pts;o.byGw[D.gw]=(o.byGw[D.gw]||0)+pts;}else o.bench+=pts;
+  });
+  return m;
+}
+function plrSeriesOf(code,fn){
+  const out=[];
+  for(let g=1;g<=D.gw;g++){
+    const r=(D.gwsByGw[g]||{})[String(code)];
+    if(!r){out.push({gw:g,v:0,hollow:true});continue;}
+    if(g===D.gw&&!fxStarted(r.Club))continue;
+    out.push({gw:g,v:fn(r),hollow:!r.Mins,live:g===D.gw&&!fxFinished(r.Club)});
+  }
+  return out;
+}
+const cumulate=vals=>{let s=0;return vals.map(v=>({...v,v:(s+=v.v)}))};
+/* ---- renderers ---- */
+function svgLine(series,opts){
+  opts=opts||{};
+  const H=opts.h||180,W=440,PX=32,PY=26;
+  series=series.filter(s=>s.vals.length);
+  const gws=[...new Set(series.flatMap(s=>s.vals.map(v=>v.gw)))].sort((a,b)=>a-b);
+  if(!gws.length)return'<p class="state">Draws itself once the data lands.</p>';
+  const allv=series.flatMap(s=>s.vals.map(v=>v.v));
+  let mx=Math.max(...allv,1),mn=Math.min(...allv,0);
+  mx=Math.ceil(mx/10)*10||10;mn=mn<0?Math.floor(mn/10)*10:0;
+  const px=g=>{const i=gws.indexOf(g);return gws.length<2?W/2:PX+i*((W-PX*2)/(gws.length-1))};
+  const py=v=>H-PY-((v-mn)/((mx-mn)||1))*(H-PY*2);
+  let out='';
+  [0,.5,1].forEach(f2=>{const v=mn+(mx-mn)*f2;
+    out+='<line x1="'+PX+'" y1="'+py(v)+'" x2="'+(W-PX)+'" y2="'+py(v)+'" stroke="#EEE8F2" stroke-dasharray="3 4"/>'
+     +'<text x="'+(PX-5)+'" y="'+(py(v)+3)+'" font-size="8" text-anchor="end" fill="#B3A6B8">'+Math.round(v)+'</text>';});
+  if(mn<0)out+='<line x1="'+PX+'" y1="'+py(0)+'" x2="'+(W-PX)+'" y2="'+py(0)+'" stroke="#D9CFE2"/>';
+  const step=Math.max(1,Math.ceil(gws.length/9));
+  gws.forEach((g,i)=>{if(i%step)return;
+    out+='<text x="'+px(g)+'" y="'+(H-6)+'" font-size="8.5" font-weight="700" text-anchor="middle" fill="#6B6076">GW'+g+'</text>';});
+  const thin=series.length>4;
+  series.forEach((s,si)=>{
+    const solid=s.vals.filter(v=>!v.hollow);
+    if(solid.length>1)out+='<polyline points="'+solid.map(v=>px(v.gw)+','+py(v.v)).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(thin?1.6:2.4)+'"'+(s.dash?' stroke-dasharray="5 4" opacity=".85"':'')+(thin&&!s.top?' opacity=".4"':'')+' stroke-linecap="round" stroke-linejoin="round"/>';
+    if(!thin||s.top)s.vals.forEach(v=>{
+      out+='<circle cx="'+px(v.gw)+'" cy="'+py(v.v)+'" r="'+(v.hollow?3:3.4)+'" fill="'+(v.hollow?'#F4F1F6':s.color)+'"'+(v.hollow?' stroke="'+s.color+'"':'')+'/>'
+       +(v.live?'<circle cx="'+px(v.gw)+'" cy="'+py(v.v)+'" r="6.2" fill="none" stroke="#0AA9C9" stroke-width="1.4"/>':'');
+      /* first series labels above its dots, second below — no collisions when lines cross */
+      if(series.length<=2&&!v.hollow)out+='<text x="'+px(v.gw)+'" y="'+(py(v.v)+(si===0?-9:17))+'" font-size="10" font-weight="700" text-anchor="middle" fill="'+s.color+'">'+(Math.round(v.v*10)/10)+'</text>';
+    });
+    if(opts.endLabels&&solid.length&&(!thin||s.top)){
+      const l=solid[solid.length-1];
+      out+='<text x="'+Math.min(px(l.gw)+6,W-2)+'" y="'+(py(l.v)+3)+'" font-size="8.5" font-weight="700" fill="'+s.color+'">'+esc(s.name)+'</text>';}
+  });
+  return '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:300px">'+out+'</svg></div>';
+}
+function rankBars(rows,opts){
+  opts=opts||{};
+  const mx=Math.max(...rows.map(r=>Math.abs(r.v)),0.001);
+  return rows.map(r=>'<div class="lbrow"'+(r.tap?' data-lab="'+esc(r.tap)+'"':'')+'>'
+    +(r.team?mg(r.team,1):(r.thumb||''))
+    +'<span class="lbl2">'+esc(r.label)+(r.sub?'<em>'+r.sub+'</em>':'')+'</span>'
+    +'<span class="lbtrack"><i style="width:'+Math.max(2,Math.abs(r.v)/mx*100)+'%;background:'+(r.barColor||'var(--p2)')+'"></i></span>'
+    +'<b class="lbv"'+(r.vColor?' style="color:'+r.vColor+'"':'')+'>'+(opts.fmt?opts.fmt(r.v):Math.round(r.v*10)/10)+'</b></div>').join('');
+}
+/* ---- the lab ---- */
+function labValidViews(){
+  const multiGw=Object.keys(D.gwsByGw||{}).length>=2;
+  if(LAB.scope==='league')return LAB.metric==='wins'?['race']:['spread'];
+  if(LAB.scope==='plr')return multiGw?['trend','race']:['trend'];
+  if(!LAB.sel.length)return multiGw?['bars','race']:['bars'];
+  return multiGw?['trend','bars','race']:['bars','trend'];
+}
+function labSet(patch){
+  Object.assign(LAB,patch);
+  const mets=LABMETS[LAB.scope].map(m=>m[0]);
+  if(!mets.includes(LAB.metric))LAB.metric=mets[0];
+  const vv=labValidViews();
+  if(!vv.includes(LAB.view))LAB.view=vv[0];
+  renderLab();
+}
+function labChart(){
+  const S=LAB,agg=luckAgg();
+  const foot=t2=>'<div class="labfoot">'+t2+'</div>';
+  if(S.scope==='mgr'){
+    const teams=S.sel.length?S.sel:anaOrder();
+    const serOf=t=>{
+      const ms=mgrSeries(t),a=(agg[t]||{gws:{}}).gws;
+      switch(S.metric){
+        case'pts':return ms.map(m=>({gw:m.gw,v:m.pts,live:m.live}));
+        case'pa':return ms.map(m=>({gw:m.gw,v:m.pa,live:m.live}));
+        case'margin':return ms.map(m=>({gw:m.gw,v:m.margin,live:m.live}));
+        case'vsx':return Object.keys(a).map(g=>({gw:num(g),v:a[g].act})).sort((x,y)=>x.gw-y.gw);
+        case'luck':return Object.keys(a).map(g=>({gw:num(g),v:a[g].act-a[g].x})).sort((x,y)=>x.gw-y.gw);
+        case'bench':{const b=benchByGw(t);return Object.keys(b).map(g=>({gw:num(g),v:b[g]})).sort((x,y)=>x.gw-y.gw);}
+      }return[];
+    };
+    if(S.view==='bars'){
+      const perGw=S.metric==='pts'||S.metric==='pa';
+      const rows=teams.map(t=>{
+        const vals=serOf(t),sum=vals.reduce((s2,v)=>s2+v.v,0);
+        const v=perGw&&vals.length?sum/vals.length:sum;
+        return{label:t,team:t,v,tap:t,
+          barColor:S.metric==='luck'?(v>=0?'var(--bad)':'#0B3E9E'):S.metric==='bench'?'var(--bad)':TEAMS[t].col,
+          vColor:S.metric==='luck'?(v>=0?'var(--bad)':'#0B3E9E'):'',
+          sub:perGw?'avg / GW':''};
+      }).sort((a2,b2)=>b2.v-a2.v);
+      return rankBars(rows,{fmt:v=>((S.metric==='luck'||S.metric==='margin')&&v>0?'+':'')+(Math.round(v*10)/10)})
+        +foot(S.metric==='luck'?'Actual − expected, bonus excluded both sides. Red = running hot.':S.metric==='bench'?'Points scored by benched players.':S.metric==='margin'?'Season sum of winning/losing margins — positive = won by more than you lost by.':'Tap a bar to focus that manager.');
+    }
+    const series=teams.slice(0,4).map(t=>({name:TEAMS[t].ini,color:TEAMS[t].col,vals:S.view==='race'?cumulate(serOf(t)):serOf(t),top:true}));
+    /* trending one manager's Points? the expected (xP) line rides along automatically */
+    if(S.metric==='pts'&&teams.length===1){
+      /* single-manager actual-vs-expected wears the brand colors: blue actual, purple expected */
+      series[0].color='#2E5BFF';
+      const a=(agg[teams[0]]||{gws:{}}).gws;
+      const xv=Object.keys(a).map(g=>({gw:num(g),v:a[g].x})).sort((x,y)=>x.gw-y.gw);
+      series.push({name:'expected',color:'#5B1A66',dash:true,vals:S.view==='race'?cumulate(xv):xv,top:true});
+    }
+    return svgLine(series,{endLabels:S.view==='race'})
+      +foot(S.metric==='pts'&&teams.length===1?'<span style="color:#2E5BFF;font-weight:700">—</span> actual score · <span style="color:#5B1A66;font-weight:700">- -</span> what the performances deserved (expected, bonus excluded).':S.view==='race'?'Cumulative season totals.':'Per-gameweek. Cyan ring = live.');
+  }
+  if(S.scope==='league'){
+    if(S.metric==='wins'){
+      const series=anaOrder().map(t=>({name:TEAMS[t].ini,color:TEAMS[t].col,top:true,
+        vals:cumulate(mgrSeries(t).filter(m=>!m.live).map(m=>({gw:m.gw,v:m.pts>m.pa?1:0})))}));
+      return svgLine(series,{endLabels:true,h:200})+foot('Cumulative wins, one line per manager. Draws move nobody.');
+    }
+    const gws=Object.keys(D.gwsByGw).map(Number).sort((a2,b2)=>a2-b2);
+    const rows=gws.map(g=>{
+      const pts=anaOrder().map(t=>{const m=mgrSeries(t).find(x=>x.gw===g);return m?{t,v:m.pts}:null}).filter(Boolean);
+      return{g,pts};
+    }).filter(r=>r.pts.length);
+    if(!rows.length)return'<p class="state">Draws itself once scores land.</p>';
+    const mx=Math.max(...rows.flatMap(r=>r.pts.map(p2=>p2.v)),10);
+    const W=440,rh=30,H=rows.length*rh+26;
+    let out='';
+    rows.forEach((r,i)=>{
+      const y=16+i*rh;
+      const xs=r.pts.map(p2=>60+(p2.v/mx)*(W-90));
+      out+='<text x="4" y="'+(y+4)+'" font-size="9" font-weight="700" fill="#6B6076">GW'+r.g+'</text>'
+       +'<line x1="'+Math.min(...xs)+'" y1="'+y+'" x2="'+Math.max(...xs)+'" y2="'+y+'" stroke="#D9CFE2" stroke-width="2"/>'
+       +r.pts.map((p2,j)=>'<circle cx="'+xs[j]+'" cy="'+y+'" r="4.5" fill="'+TEAMS[p2.t].col+'" opacity=".9"/>').join('');
+    });
+    return '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:300px">'+out+'</svg></div>'
+      +'<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:6px">'+anaOrder().map(t=>'<span style="display:inline-flex;align-items:center;gap:3px;font-size:.56rem;font-weight:700;color:var(--mid)">'+mg(t,1)+'</span>').join('')+'</div>'
+      +foot('Every manager’s score, one row per gameweek — how bunched is the league?');
+  }
+  const picks=S.sel.slice(0,2);
+  if(!picks.length)return'<p class="state">Search a player above to draw his season.</p>';
+  const FNS={pts:[r=>r.Pts,null],vsx:[r=>r.Pts,r=>xpOf(r)],mins:[r=>r.Mins,null],gxg:[r=>r.G,r=>r.xG],axa:[r=>r.A,r=>r.xA]};
+  const pair=FNS[S.metric]||FNS.pts,fa=pair[0],fb=pair[1];
+  const series=[];
+  picks.forEach(code=>{
+    const pl=D.plr.find(p2=>String(p2.Code)===String(code));if(!pl)return;
+    const col=pl.Owner&&pl.Owner!=='FREE'?(TEAMS[pl.Owner]||{}).col||'#999':'#6B6076';
+    let va=plrSeriesOf(code,fa);if(S.view==='race')va=cumulate(va);
+    series.push({name:pl.Player,color:col,vals:va,top:true});
+    if(fb&&picks.length===1){let vb=plrSeriesOf(code,fb);if(S.view==='race')vb=cumulate(vb);
+      series.push({name:S.metric==='vsx'?'xP':'expected',color:'#0E8A5F',dash:true,vals:vb,top:true});}
+  });
+  return svgLine(series,{endLabels:S.view==='race'})
+    +foot((fb?'Dashed green = the expected version of the stat. ':'')+'Hollow dots = didn’t play.');
+}
+function renderLab(){
+  const ctl=document.getElementById('labctl'),viz=document.getElementById('labviz');
+  if(!ctl)return;
+  const segs=[['mgr','MANAGERS'],['league','LEAGUE']];
+  let sub='';
+  if(LAB.scope==='mgr'){
+    sub='<div class="labsub">'+anaOrder().map(t=>'<button class="labmono'+(LAB.sel.includes(t)?' on':'')+'" data-t="'+esc(t)+'" style="--tc:'+TEAMS[t].col+'">'+TEAMS[t].ini+'</button>').join('')
+      +(LAB.sel.length?'<button class="labclear" data-clear>ALL</button>':'')+'</div>';
+  }else if(LAB.scope==='plr'){
+    sub='<div class="labsub"><input id="labq" type="search" placeholder="Search a player… (up to 2)">'
+      +LAB.sel.map(c=>{const p2=D.plr.find(x=>String(x.Code)===String(c));return p2?'<button class="labpill" data-rm="'+c+'">'+esc(p2.Player)+' ×</button>':''}).join('')+'</div>'
+      +'<div id="labres"></div>';
+  }
+  const mets='<div class="labmets">'+LABMETS[LAB.scope].map(m=>'<button class="labmet'+(LAB.metric===m[0]?' on':'')+'" data-m="'+m[0]+'">'+m[1]+'</button>').join('')+'</div>';
+  const vv=labValidViews();
+  const VN={trend:'〰 Trend',bars:'▮ Bars',race:'⛰ Race',spread:'⣿ Spread'};
+  const views='<div class="labviews">'+(vv.length>1?vv.map(v=>'<button class="labview'+(LAB.view===v?' on':'')+'" data-v="'+v+'">'+VN[v]+'</button>').join(''):'')
+    +'<button class="labview" data-reset style="margin-left:auto">↺ Reset</button></div>';
+  ctl.innerHTML='<div class="labseg">'+segs.map(s2=>'<button class="'+(LAB.scope===s2[0]?'on':'')+'" data-s="'+s2[0]+'">'+s2[1]+'</button>').join('')+'</div>'+sub+mets+views;
+  viz.innerHTML=labChart();
+  ctl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>labSet({scope:b.dataset.s,sel:[]}));
+  ctl.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
+    const t=b.dataset.t,i=LAB.sel.indexOf(t);
+    if(i>=0)LAB.sel.splice(i,1);else if(LAB.sel.length<4)LAB.sel.push(t);
+    labSet({});});
+  ctl.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>labSet({sel:[]}));
+  ctl.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>labSet({metric:b.dataset.m}));
+  ctl.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>labSet({view:b.dataset.v}));
+  ctl.querySelectorAll('[data-reset]').forEach(b=>b.onclick=()=>{LAB={scope:'mgr',sel:[],metric:'pts',view:'bars'};labSet({});});
+  ctl.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{LAB.sel=LAB.sel.filter(c=>String(c)!==String(b.dataset.rm));labSet({});});
+  const q=document.getElementById('labq');
+  if(q)q.oninput=()=>{
+    const res=document.getElementById('labres'),s2=q.value.toLowerCase();
+    if(!s2){res.innerHTML='';return}
+    res.innerHTML=D.plr.filter(p2=>String(p2.Player).toLowerCase().includes(s2)).sort((a2,b2)=>num(b2['Season pts'])-num(a2['Season pts'])).slice(0,5)
+      .map(p2=>'<button class="labhit" data-add="'+p2.Code+'">'+esc(p2.Player)+' <span>'+esc(p2.Pos)+' · '+esc(p2.Club)+'</span></button>').join('');
+    res.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
+      if(LAB.sel.length<2&&!LAB.sel.includes(b.dataset.add))LAB.sel.push(b.dataset.add);
+      labSet({});});
+  };
+  viz.querySelectorAll('[data-lab]').forEach(r=>r.onclick=()=>labSet({scope:'mgr',sel:[r.dataset.lab],metric:LAB.metric==='bench'?'bench':'vsx',view:Object.keys(D.gwsByGw).length>=2?'trend':'bars'}));
+}
+function goldenBoot(){
+  const xm=xiPtsMap();
+  const rows=Object.keys(xm).map(k=>({k,...xm[k]})).filter(p2=>p2.owner&&p2.xi>0)
+    .sort((a2,b2)=>b2.xi-a2.xi).slice(0,8);
+  if(!rows.length)return'';
+  return '<h2>Golden Boot <small>started points only</small></h2><div class="card lucks">'
+    +rankBars(rows.map(p2=>({label:p2.name,team:p2.owner,v:p2.xi,tap:p2.owner,
+      barColor:TEAMS[p2.owner]?TEAMS[p2.owner].col:'#999',
+      sub:p2.bench?('+'+p2.bench+' rotting on the bench'):''})),{fmt:v=>Math.round(v)})
+    +'<p class="mnote">Only weeks a player was actually started count — a benched haul is a crime, not a credit.</p></div>';
+}
+const PRESETS=[
+ ['Who’s running hot?',{scope:'mgr',sel:[],metric:'luck',view:'bars'}],
+ ['Jacob’s trend',{scope:'mgr',sel:['Team Jacob'],metric:'vsx',view:'trend'}],
+ ['Best value picks',{scope:'league',sel:[],metric:'value',view:'bars'}],
+ ['Title race',{scope:'mgr',sel:[],metric:'pts',view:'race'}],
+ ['Bench crimes',{scope:'mgr',sel:[],metric:'bench',view:'bars'}]];
+function mgrTiles(){
+  /* gradient identity tiles — no cards, no ambiguity: the whole tile opens the
+     profile. Team-color gradient with a card-style sheen, stats up front. */
+  const xm=xiPtsMap();
+  return '<div class="mgrid">'+anaOrder().map(t=>{
+    const xiOfP=p2=>((xm[String(p2.Code)]||{}).xi||0);
+    const sq=squadOf(t).slice().sort((a2,b2)=>xiOfP(b2)-xiOfP(a2)||ovrOf(b2)-ovrOf(a2));
+    const star=sq[0];
+    let g=0,pf=0;
+    D.fx.forEach(fx2=>{[[fx2.Home,num(fx2['Home pts'])],[fx2.Away,num(fx2['Away pts'])]].forEach(([n,pt])=>{
+      if(n===t&&(fin(fx2.Finished)||pt>0)){g++;pf+=pt}});});
+    const st=D.st.find(s2=>s2.Team===t)||{};
+    let best=0;D.fx.forEach(fx2=>{[[fx2.Home,num(fx2['Home pts'])],[fx2.Away,num(fx2['Away pts'])]].forEach(([n,pt])=>{if(n===t&&pt>best)best=pt;});});
+    return '<button class="mt" data-prof="'+esc(t)+'" style="--tc:'+TEAMS[t].col+'">'
+     +'<b class="mtn">'+esc(t)+'</b><em class="mtm">'+esc(TEAMS[t].mgr||'')+'</em>'
+     +'<span class="mtrow">'
+     +'<span><b>'+(g?(pf/g).toFixed(1):'—')+'</b><i>pts / gw</i></span>'
+     +'<span><b>'+(best||'—')+'</b><i>best gw</i></span>'
+     +'<span><b>'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'—')+'</b><i>w · d · l</i></span></span>'
+     +(star?'<span class="mtstar"><i>STAR MAN</i>'+esc(star.Player)+' · '+xiOfP(star)+' pts</span>':'')
+     +'</button>';
+  }).join('')+'</div>';
+}
 function renderAna(){
   const body=document.getElementById('anabody');if(!body)return;
-  const lc=luckCard();
-  body.innerHTML=(lc||'<p class="state">The luck index draws itself once gameweek stats accrue.</p>')
+  body.innerHTML=
+   '<div class="card labcard"><div class="labhead"><b>THE LAB</b><span>pick who · pick what · the chart answers</span></div>'
+   +'<div id="labctl"></div><div id="labviz"></div></div>'
+   +'<h2>The managers <small>tap a name for the full profile</small></h2>'
+   +mgrTiles()
+   +(luckCard()||'')
    +'<div class="faqsec" style="margin-top:14px"><h3>How to read this</h3>'
-   +'<p><b>Predicted / projected</b> = what a player is forecast to score before his match, frozen at the deadline. '
-   +'<b>Expected (xP)</b> = what his performance deserved once he’s played — goals become xG, assists xA, clean sheets e<sup>−xGC</sup>, defensive contribution his prior hit-rate. '
-   +'Actual − xP over the season is the luck index above: positive means the ball keeps bouncing your way. Tap any manager for their full profile — hero player, best gameweek, and the week-by-week graph.</p></div>';
+   +'<p><b>Projected</b> = forecast before a match, frozen at the deadline. <b>Expected (xP)</b> = what a performance deserved once played — goals→xG, assists→xA, clean sheets→e<sup>−xGC</sup>. '
+   +'Actual − xP is the luck index: positive means the ball keeps bouncing your way (bonus excluded from both sides). '
+   +'Manager scoring here counts <b>started players only</b>.</p></div>';
+  renderLab();
 }
 
 /* ================= table (+ odds & honours) ================= */
@@ -1260,7 +1665,7 @@ function renderXIs(){
     let res='';
     if(PQUERY){
       const q=PQUERY.toLowerCase();
-      const rows=D.plr.filter(p=>String(p.Player).toLowerCase().includes(q))
+      const rows=D.plr.filter(p=>nameMatch(p,q))
         .sort((a,b)=>num(b['Season pts'])-num(a['Season pts'])).slice(0,15);
       res=rows.length?rows.map(plrRow).join(''):'<p class="state">No player matches “'+esc(PQUERY)+'”.</p>';
     }
@@ -1482,9 +1887,9 @@ function renderFAQ(){
    +'<div><b>9 × $30</b><span>Manager of the Month</span></div><div><b>$150</b><span>Buy-in × 8</span></div>'
    +'</div></div>'
    +'<h2>The details</h2>'
-   +'<div class="faqsec"><h3>Ratings</h3><p>Every owned player carries an OVR. Ratings blend career profile with the projection model, then lock — they don’t swing week to week. The 85+ elite list is curated by the commissioner; waiver pickups get rated when they join. Complaints are welcome and will be enjoyed.</p></div>'
+   +'<div class="faqsec"><h3>Ratings</h3><p>Every owned player carries a <b>base OVR</b> — career profile blended with the projection model, curated by the commissioner. On top of that, ratings now <b>breathe with form</b>: the last four performances, measured on real points scored, move the card by up to −3 or +5. A green ▲ means he’s outplaying his rating; a red ▼ means he’s coasting on reputation. Form can promote a Silver into Gold art — or relegate a Gold. The base never moves without the commissioner. Complaints are welcome and will be enjoyed.</p></div>'
    +'<div class="faqsec"><h3>Points on cards</h3><p>Cards show live gameweek points from kickoff, updating hourly. Before the deadline you see each manager’s projected best XI; once the deadline passes, the real submitted lineup takes over.</p></div>'
-   +'<div class="faqsec"><h3>Special cards</h3><p>A player in FPL’s official Team of the Week wears black &amp; gold until the next dream team drops. The claret Player of the Month card follows the real Premier League award. If a player qualifies for more than one card, POTM beats TOTW beats the draft special.</p></div>'
+   +'<div class="faqsec"><h3>Special cards</h3><p><b>Team of the Week is earned, not imported:</b> haul 10+ points in a gameweek and the black &amp; gold appears the moment your match goes full time (bonus counts when it lands). It lasts one week — until your next match finishes, where you keep it with another haul or hand it back. The claret Player of the Month card follows the real Premier League award. If a player qualifies for more than one card, POTM beats TOTW beats the draft special.</p></div>'
    +'<div class="faqsec"><h3>The money — $1,200</h3><p>$600 for first, $180 for second, $60 for third. The leader after GW19 banks $90. Nine Manager of the Month prizes at $30 each — most points in the period, August folds into September. Buy-in was $150.</p></div>'
    +'<div class="faqsec"><h3>League rules</h3><p>Head-to-head, 3/1/0 scoring across 38 gameweeks. Waivers open all season, no transfer or injury restrictions. Points-for is the tiebreaker.</p></div>'
    +'<div class="faqsec"><h3>Projected vs expected</h3><p>Before a player’s match kicks off you see his <b>projected</b> points — FPL’s forecast, frozen at the deadline. Once he’s played, that flips to <b>expected (xP)</b> — what his performance deserved: goals are scored as xG, assists as xA, clean sheets as the odds of one given the chances faced. The matchup scoreline does the same: a projected final while games are in play, then the xP scoreline when the gameweek closes — so “won 41–38 but deserved to lose 33–45” is now a thing your rivals can prove. Bonus points are left out of xP, on purpose.</p></div>'
@@ -1504,7 +1909,7 @@ function tierExplain(t,p){
   }
 }
 function openSheet(p){
-  const t=tierOf(p),o=ovrOf(p);
+  const t=tierOf(p),o=dynOvr(p),fd=formDelta(p);
   const st=D.fc27&&D.fc27[String(p.Code)];
   const gk=p.Pos==='GKP';
   const labs=gk?['DIV','HAN','KIC','REF','SPD','POS']:['PAC','SHO','PAS','DRI','DEF','PHY'];
@@ -1552,7 +1957,7 @@ function openSheet(p){
    +'<div class="sh-right"><button class="sh-x" aria-label="Close">×</button>'
    +'<h3>'+esc(p.Player)+'</h3>'
    +'<div class="sub">'+badgeImg(p.Club,14)+esc(p.Club)+' · '+flagImg(p.Nation,13)+esc(NAT[p.Nation]||p.Nation||'')+' · '+esc(p.Team)+'</div>'
-   +'<div class="chiprow"><span class="chip gold">OVR '+o+'</span><span class="chip">'+esc(p.Pos)+'</span>'
+   +'<div class="chiprow"><span class="chip gold">OVR '+o+(fd?' <span style="color:'+(fd>0?'#0E8A5F':'#C62828')+'">('+(fd>0?'▲+':'▼−')+Math.abs(fd)+' form, base '+ovrOf(p)+')</span>':'')+'</span><span class="chip">'+esc(p.Pos)+'</span>'
    +'<span class="chip">'+(p.Drafted==='FA'?'Free agent':p.Drafted==='WV'?'Waiver add':'Drafted '+esc(p.Drafted))+'</span>'
    +(t==='totw'?'<span class="chip dark">TOTW</span>':'')
    +(t==='potm'?'<span class="chip rose">POTM</span>':'')
@@ -1587,8 +1992,10 @@ function loadAll(quiet){
   return Promise.all([
     readTab('Rosters'),readTab('Standings'),readTab('H2H Fixtures'),readTab('Matchweeks'),
     readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('EA Map').catch(()=>[]),readTab('FC27').catch(()=>[]),readTab('Transactions').catch(()=>[]),
-    readTab('Predictions').catch(()=>[]),readTab('GW Stats').catch(()=>[]),readTab('Players').catch(()=>[])
-  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea,f27,tx,pred,gws,plr])=>{
+    readTab('Predictions').catch(()=>[]),readTab('GW Stats').catch(()=>[]),readTab('Players').catch(()=>[]),
+    readTab('GW Log').catch(()=>[])
+  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea,f27,tx,pred,gws,plr,gl])=>{
+    D.gl=gl||[];
     D.tx=tx||[];
     /* --- Predictions: GW → {code: EP} --- */
     D.predByGw={};(pred||[]).forEach(r=>{
@@ -1643,6 +2050,31 @@ function loadAll(quiet){
   });
 }
 loadAll();
+/* pull-to-refresh: drag down from the very top of any tab to re-pull the sheet.
+   Passive listeners so scrolling stays 60fps; only arms when the page is at scrollY 0. */
+(function(){
+  const el=document.getElementById('ptr');
+  let y0=null,armed=false;
+  document.addEventListener('touchstart',e=>{
+    y0=(window.scrollY<=0)?e.touches[0].clientY:null;armed=false;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(y0===null)return;
+    const d=e.touches[0].clientY-y0;
+    if(d>34&&window.scrollY<=0){
+      el.classList.add('show');
+      armed=d>90;
+      el.textContent=armed?'↻ Release to refresh':'↓ Pull to refresh';
+    }else{el.classList.remove('show');armed=false;}
+  },{passive:true});
+  document.addEventListener('touchend',()=>{
+    if(armed&&!D.demo){
+      el.textContent='Refreshing…';el.classList.add('spin');
+      loadAll(true).finally(()=>{el.classList.remove('show','spin');});
+    }else el.classList.remove('show');
+    y0=null;armed=false;
+  },{passive:true});
+})();
 /* iOS resumes the app frozen — refetch when it comes back into view, and every few minutes while open */
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Date.now()-LOADED>120000)loadAll(true);
