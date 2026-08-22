@@ -24,7 +24,7 @@ body{background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) 
 body[data-view="gw"]{background:linear-gradient(180deg,#DFD4F2 0,#ECE5F6 460px,#F0EBF7 100%) fixed}
 body[data-view="table"]{background:linear-gradient(180deg,#D6E6F0 0,#E6EDF5 460px,#EFEFF6 100%) fixed}
 body[data-view="xis"]{background:linear-gradient(180deg,#E8D6EF 0,#EFE4F4 460px,#F1EBF6 100%) fixed}
-body[data-view="fix"]{background:linear-gradient(180deg,#D9DFF6 0,#E7E9F7 460px,#F0EEF7 100%) fixed}
+body[data-view="act"]{background:linear-gradient(180deg,#D9DFF6 0,#E7E9F7 460px,#F0EEF7 100%) fixed}
 body[data-view="faq"]{background:linear-gradient(180deg,#D5E2EE 0,#E5EAF3 460px,#EFEFF6 100%) fixed}
 .num{font-family:'Saira Condensed',sans-serif;font-variant-numeric:tabular-nums}
 button{font-family:inherit}
@@ -49,7 +49,7 @@ padding:11px 18px 10px;display:flex;align-items:baseline;gap:12px}
 #v-gw .hero{background:linear-gradient(115deg,#2A0030 0%,#4A0E56 55%,#2E5BFF 160%)}
 #v-table .hero{background:linear-gradient(115deg,#37003C 0%,#5B1A66 55%,#0AA9C9 170%)}
 #v-xis .hero{background:linear-gradient(115deg,#54105E 0%,#7A1F8C 55%,#2E5BFF 170%)}
-#v-fix .hero{background:linear-gradient(115deg,#1D3FCC 0%,#3A2BB0 55%,#37003C 160%)}
+#v-act .hero{background:linear-gradient(115deg,#1D3FCC 0%,#3A2BB0 55%,#37003C 160%)}
 #v-faq .hero{background:linear-gradient(115deg,#07304F 0%,#12557E 55%,#5B1A66 170%)}
 .trophy{display:none}
 /* spotlight card overlapping hero (table) */
@@ -90,7 +90,7 @@ nav button .bar{display:none}
 @media(max-width:699px){
  .wrap{padding-left:8px;padding-right:8px}
  .hero{margin:0 -8px}
- #v-gw .stage{margin-left:-8px;margin-right:-8px;border-radius:0;padding:14px 8px}
+ #v-gw .stage,#v-xis .stage{margin-left:-8px;margin-right:-8px;border-radius:0;padding:14px 8px}
  .duel{padding:12px 2px;border-radius:10px}
 }
 /* ---------- shared ---------- */
@@ -152,7 +152,7 @@ text-shadow:0 1px 3px rgba(0,0,0,.5);margin:2px 0 8px}
 .teamtag .md{width:15px;height:15px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .prow{position:relative;z-index:2;display:flex;justify-content:center;gap:2%;margin:0 0 10px}
 /* ---------- FUT card (Plate) ---------- */
-.fc{position:relative;display:block;width:22%;max-width:126px;min-width:54px;aspect-ratio:150/210;border:none;background:none;
+.fc{position:relative;display:block;width:23.5%;max-width:132px;min-width:54px;aspect-ratio:150/210;border:none;background:none;
 padding:0;cursor:pointer;flex:none;container-type:inline-size;transition:transform .16s ease;-webkit-tap-highlight-color:transparent}
 .prow{gap:1.6%}
 .prow:has(.fc:nth-child(5)){gap:0}
@@ -377,6 +377,41 @@ padding:3px 9px;border-radius:20px}
 .statgrid .sg b{display:block;font-family:'Saira Condensed';font-size:1.05rem;color:#241329;font-weight:700;line-height:1}
 .statgrid .bar{height:3px;border-radius:2px;background:#EEE8F2;margin-top:3px;overflow:hidden}
 .statgrid .bar i{display:block;height:100%;border-radius:2px}
+.prow.split{margin:0 0 4px}
+/* ---------- PL scores strip ---------- */
+.plrow{display:flex;align-items:center;gap:7px;padding:7px 2px;border-bottom:1px solid #F0EAF4;font-size:.74rem;font-weight:700}
+.plrow:last-child{border-bottom:none}
+.plrow .cl{width:38px}
+.plrow .cl.a{text-align:right}
+.plrow .mid2{flex:1;text-align:center;font-family:'Saira Condensed';font-size:.92rem}
+.plrow .pst{width:32px;text-align:right;font-size:.56rem;letter-spacing:.08em;color:var(--mid);font-weight:700}
+.plrow .pst.live{color:#0E8A5F}
+/* ---------- MOTM race ---------- */
+.race{padding:14px 16px 12px;margin:16px 0 4px;border-top:4px solid var(--gold)}
+.race .lb2{font-size:.56rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--p2)}
+.race h3{margin:2px 0 10px;font-size:.92rem;font-weight:700}
+.rrow{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.72rem;font-weight:700}
+.rrow .rn{width:32%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rrow .rbar{flex:1;height:8px;border-radius:4px;background:#F1EEF7;overflow:hidden}
+.rrow .rbar i{display:block;height:100%;border-radius:4px}
+.rrow b{font-family:'Saira Condensed';width:26px;text-align:right}
+.rrow.lead .rn{color:var(--p2)}
+/* ---------- upcoming accordion ---------- */
+.acc{background:var(--card);border-radius:14px;box-shadow:0 4px 14px rgba(55,0,60,.08);margin:16px 0;padding:2px 14px 6px}
+.acc summary{cursor:pointer;font-weight:700;font-size:.78rem;padding:11px 0;letter-spacing:.02em}
+.gwblk2{padding:8px 0;border-top:1px solid #F0EAF4;font-size:.7rem}
+.gwblk2 b{margin-right:8px}
+.gwblk2 em{color:var(--mid);font-style:normal;margin-right:8px}
+.gwblk2 .upfx{display:inline-block;background:#F4F0F7;border-radius:12px;padding:2px 8px;margin:2px 4px 0 0;font-weight:600}
+/* ---------- activity feed ---------- */
+.txrow{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:12px;box-shadow:0 3px 10px rgba(55,0,60,.07);padding:10px 12px;margin:8px 0}
+.txrow.dim{opacity:.55}
+.txmain{flex:1;min-width:0}
+.txmain b{font-size:.78rem}
+.txmain em{display:block;font-style:normal;font-size:.6rem;color:var(--mid)}
+.txmove{text-align:right;font-size:.7rem;font-weight:700}
+.txmove .in{display:block;color:#0E8A5F}
+.txmove .out{display:block;color:#B04A5A}
 .srow{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid #F1EEF7;font-size:.78rem}
 .srow:last-child{border-bottom:none}
 .srow span{color:var(--mid)}
@@ -413,10 +448,10 @@ padding:3px 9px;border-radius:20px}
     <p>Every squad, card by card — lineups flip from projected to actual at each deadline.</p></div>
     <div id="xisbody"><p class="state">Loading squads…</p></div>
   </section>
-  <section class="view" id="v-fix">
-    <div class="hero"><span class="kick">The schedule</span><h1>Fixtures</h1>
-    <p>Matchups, deadlines and the Manager of the Month race — rolls forward every gameweek.</p></div>
-    <div id="fixbody"><p class="state">Loading fixtures…</p></div>
+  <section class="view" id="v-act">
+    <div class="hero"><span class="kick">The wire</span><h1>Trades &amp; Waivers</h1>
+    <p></p></div>
+    <div id="actbody"><p class="state">Loading activity…</p></div>
   </section>
   <section class="view" id="v-faq">
     <div class="hero"><span class="kick">The manual</span><h1>How it works</h1>
@@ -598,9 +633,9 @@ function card(p,i){
 
 /* ================= routing ================= */
 const VIEWS=[['gw','Gameweek','M13 2 3 14h7l-1 8 10-12h-7l1-8z'],
-['xis','Manager XIs','M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a7 7 0 0 1 14 0v1M17 8a3 3 0 1 0 3-3M22 21v-1a5 5 0 0 0-4-4.9'],
 ['table','Table','M6 3h12v4a6 6 0 0 1-12 0V3zM3 5h3M18 5h3M9 21h6M12 13v8'],
-['fix','Fixtures','M8 2v4M16 2v4M3 8h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'],
+['xis','Squads','M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a7 7 0 0 1 14 0v1M17 8a3 3 0 1 0 3-3M22 21v-1a5 5 0 0 0-4-4.9'],
+['act','Activity','M4 7h13M13 3l4 4-4 4M20 17H7M11 21l-4-4 4-4'],
 ['faq','FAQ','M9 9a3 3 0 1 1 5.2 2c-.9.8-2.2 1.3-2.2 2.5M12 17.5h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z']];
 function buildNav(){
   document.getElementById('nav').innerHTML=VIEWS.map(v=>
@@ -665,7 +700,10 @@ function rowsFor(xi,mirror){
   const order=mirror?['FWD','MID','DEF','GKP']:['GKP','DEF','MID','FWD'];
   return order.map(pos=>{
     const g=xi.filter(p=>p.Pos===pos);
-    return g.length?'<div class="prow">'+g.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>':'';
+    if(!g.length)return'';
+    const chunks=g.length>4?[g.slice(0,Math.ceil(g.length/2)),g.slice(Math.ceil(g.length/2))]:[g];
+    return chunks.map((c,ci)=>'<div class="prow'+(chunks.length>1&&ci===0?' split':'')+'">'
+      +c.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>').join('');
   }).join('');
 }
 function liveScoreOf(team){return xiOf(team).reduce((s,p)=>s+num(p['GW pts']),0)}
@@ -716,7 +754,7 @@ function renderScoreboard(rows,dl){
       +'<div class="st'+(s.liveNow?' live':'')+'">'+(s.done?'FULL TIME':s.liveNow?'● LIVE':'TAP FOR LINEUPS')+'</div>'
       +(sr?'<div class="msr">All-time: '+esc(sr)+'</div>':'')
       +'</div>';
-   }).join('');
+   }).join('')+plStrip();
   document.getElementById('gwbody').onclick=e=>{const c=e.target.closest('.mcard');if(c)location.hash='gw/'+c.dataset.mi};
 }
 function renderMatch(f,dl){
@@ -803,11 +841,7 @@ const heat=v=>'hsl('+Math.max(0,120-120*(v/100))+' 72% 42%)';
 function renderTable(){
   const st=D.st.slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For']));
   const lead=st[0];
-  const spotEl=document.getElementById('spot');
-  if(D.started&&lead){
-    spotEl.hidden=false;
-    spotEl.innerHTML='<span class="lb">Top of the league</span><h3>'+esc(lead.Team)+'</h3><p>'+esc(lead.Manager)+' · '+lead.W+'–'+lead.D+'–'+lead.L+' · '+lead['Pts For']+' points for</p>';
-  }else{spotEl.hidden=true;spotEl.innerHTML='';}
+  document.getElementById('spot').hidden=true;
   const sim=simulate();
   let recs='';
   let hi=null,lo=null;
@@ -821,8 +855,20 @@ function renderTable(){
   const done={};D.mw.forEach(w=>{done[num(w.GW)]=fin(w.Finished)});
   const tot=per=>{const t={};D.fx.forEach(f=>{if(num(f.GW)<per[1]||num(f.GW)>per[2]||!fin(f.Finished))return;
     t[f.Home]=(t[f.Home]||0)+num(f['Home pts']);t[f.Away]=(t[f.Away]||0)+num(f['Away pts']);});return t};
+  const curPer=PERIODS.find(p=>D.gw>=p[1]&&D.gw<=p[2]);
+  let race='';
+  if(curPer){
+    const rt=tot(curPer);
+    const ent=Object.entries(rt).sort((a,b)=>b[1]-a[1]);
+    const mx=Math.max(1,ent.length?ent[0][1]:1);
+    race='<div class="card race"><span class="lb2">Manager of the Month</span><h3>'+curPer[0]+' · GW'+curPer[1]+'–'+curPer[2]+' · $30</h3>'
+     +(ent.length?ent.map(([n,v],i)=>'<div class="rrow'+(i===0?' lead':'')+'">'+mg(n,1)
+       +'<span class="rn">'+esc(n)+'</span><span class="rbar"><i style="width:'+Math.max(2,100*v/mx)+'%;background:'+(TEAMS[n]?.col||'#5B1A66')+'"></i></span><b>'+v+'</b>'+(i===0?'<span class="money">$30</span>':'')+'</div>').join('')
+       :'<p class="mnote" style="margin:4px 0 2px">Race starts when the first scores land.</p>')
+     +'</div>';
+  }
   document.getElementById('tablebody').innerHTML=
-   '<h2>Standings</h2><div class="card" style="padding:6px 8px">'
+   race+'<h2>Standings</h2><div class="card" style="padding:6px 8px">'
    +st.map((s,i)=>{const v=sim.title[s.Team]||0,tc=TEAMS[s.Team]?.col||'#5B1A66';
     return'<div class="trow'+(i===0&&D.started?' lead':'')+'">'
     +'<span class="rk">'+(i+1)+'</span>'+mg(s.Team)
@@ -837,7 +883,7 @@ function renderTable(){
    +'<div class="dial" style="background:conic-gradient('+col+' '+(bv*3.6)+'deg,#F1EEF7 0)"><div class="in2"><b style="color:'+col+'">'+pctTxt(bv)+'</b><span>chance</span></div></div>'
    +'<div><p>Probability Kobbie Mainoo Fan takes last place, priced from 10,000 simulated seasons. Resolves GW38.</p>'
    +'<span style="font-size:.7rem;font-weight:700;color:'+col+'">'+(bv>=50?'Trending wooden spoon':bv>=25?'Genuinely in danger':'Safe… for now')+'</span></div></div></div></div>'
-   +'<h2>Manager of the Month</h2><div class="card">'
+   +'<h2>MOTM history</h2><div class="card">'
    +PERIODS.map(per=>{
      const complete=(()=>{for(let g=per[1];g<=per[2];g++)if(!done[g])return false;return true})();
      const t=tot(per);
@@ -848,11 +894,11 @@ function renderTable(){
        else tag='<span class="tag lead">Leading</span>';}
      return'<div class="mrow"><span class="per2">'+per[0]+'<em>GW'+per[1]+'–'+per[2]+'</em></span>'
       +(money||'<span></span>')+who+tag+'</div>';
-   }).join('')+'</div>';
+   }).join('')+'</div>'+upAcc();
 }
 
 /* ================= manager XIs ================= */
-let TEAMSEL=null;
+let TEAMSEL=null,BENCH2=false;
 function grassSVG(){
   // half pitch: goal at the top, halfway line along the bottom
   return '<svg class="grass" viewBox="0 0 700 400" preserveAspectRatio="none" aria-hidden="true">'
@@ -895,85 +941,67 @@ function renderXIs(){
    +'<div><span>Best gameweek</span><b>'+(bestGW!==null?bestGW:'—')+'</b></div>'
    +'<div><span>Squad OVR avg</span><b>'+(sq.length?Math.round(sq.reduce((a,p)=>a+ovrOf(p),0)/sq.length):'—')+'</b></div>'
    +'</div></div>'
-   +'<div class="stage"><div class="pitch3d">'
-   +'<div class="boards"><span>EL MATADOR TIRE</span><span>EL MATADOR TIRE</span></div>'
-   +'<div class="turf">'+grassSVG()
-   +'<div class="turfrows">'
-   +['GKP','DEF','MID','FWD'].map(pos=>{
-     const g=xi.filter(p=>p.Pos===pos);
-     return g.length?'<div class="prow">'+g.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>':'';
-   }).join('')
-   +'</div>'
-   +'<span class="fbadge">'+formation(xi)+'</span>'
-   +'</div>'
-   +'<div class="subs"><h4>Substitutes</h4><div class="prow">'+bench.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div></div>'
-   +'</div></div>';
+   +'<div class="stage">'
+   +'<div class="teamtag"><span class="md" style="background:'+(TEAMS[TEAMSEL]?.col||'#999')+'"></span>'+esc(TEAMSEL)+' · '+formation(xi)+'</div>'
+   +'<div class="duel"><div class="half"></div><div class="cc"></div>'
+   +'<div class="pbx t"></div><div class="pbx b"></div><div class="six t"></div><div class="six b"></div>'
+   +'<div class="goal t"></div><div class="goal b"></div>'
+   +'<div style="position:relative;z-index:2">'+rowsFor(xi,true)+'</div></div>'
+   +'<button class="btoggle" id="btog2">'+(BENCH2?'Hide substitutes':'Show substitutes')+'</button>'
+   +(BENCH2?'<div class="subs"><h4>Substitutes</h4><div class="prow">'+bench.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div></div>':'')
+   +'</div>';
   document.getElementById('teamsel').onchange=function(){TEAMSEL=names[this.selectedIndex];renderXIs()};
+  document.getElementById('btog2').onclick=()=>{BENCH2=!BENCH2;renderXIs()};
 }
 
-/* ================= fixtures ================= */
-function renderFix(){
-  buildH2H();
-  const gw=D.gw;
-  const rows=D.fx.filter(f=>num(f.GW)===gw);
-  const w=D.mw.find(x=>num(x.GW)===gw)||{};
-  const dl=dt(w['Deadline (UTC)']);
-  const perOf=g=>{const x=D.mw.find(y=>num(y.GW)===g);return x?x['MOTM period']:''};
-  const noteOf=g=>{const x=D.mw.find(y=>num(y.GW)===g);return x&&x.Notes?String(x.Notes):''};
-  const anyScore=rows.some(f=>fin(f.Finished)||num(f['Home pts'])+num(f['Away pts'])>0);
-  let h='<h2>This gameweek</h2><div class="stage">'
-   +'<div class="gwlab" style="margin-top:0">Gameweek '+gw
-   +(dl?' · deadline '+dl.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'')
-   +(perOf(gw)?' · '+esc(perOf(gw))+' MOTM':'')+'</div>'
-   +(noteOf(gw)?'<div class="gwlab" style="color:var(--gold)">'+esc(noteOf(gw))+'</div>':'')
-   +rows.map((f,ri)=>{
-     const hp=num(f['Home pts']),ap=num(f['Away pts']);
-     const done=fin(f.Finished),liveNow=!done&&(hp+ap>0||D.dlPassed);
-     const hs=done?hp:Math.max(hp,liveScoreOf(f.Home)),as2=done?ap:Math.max(ap,liveScoreOf(f.Away));
-     const score=(done||liveNow)?(hs+' – '+as2):'vs';
-     const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
-     return'<div class="m" data-mi="'+ri+'" style="cursor:pointer">'+(nm?'<div class="mname">'+esc(nm)+'</div>':'')
-      +mg(f.Home)+'<span class="t">'+esc(f.Home)+'<em>'+esc(TEAMS[f.Home]?.mgr||'')+'</em></span>'
-      +'<span class="s'+(done?' done':liveNow?' now':'')+'">'+score+'</span>'
-      +'<span class="t a">'+esc(f.Away)+'<em>'+esc(TEAMS[f.Away]?.mgr||'')+'</em></span>'+mg(f.Away)
-      +(sr?'<div class="mseries">'+esc(sr)+'</div>':'')+'</div>';
-   }).join('')+'</div>';
-  h+='<h2>Coming up</h2>';
-  const up=[];for(let g=gw+1;g<=Math.min(gw+5,38);g++)up.push(g);
-  h+=up.map(g=>{
-    const ww=D.mw.find(x=>num(x.GW)===g)||{};
-    const d=dt(ww['Deadline (UTC)']);
-    const money=/\$/.test(String(ww.Notes||''));
-    return'<div class="gwblk"><div class="bh"><b>GW'+g+'</b>'
-     +(d?'<span>'+d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</span>':'')
-     +(perOf(g)?'<span class="per'+(money?' money':'')+'">'+esc(perOf(g))+(money?' · $':'')+'</span>':'')+'</div>'
-     +D.fx.filter(f=>num(f.GW)===g).map(f=>{
-       const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
-       return'<div class="u">'+mg(f.Home,1)+'<span class="n">'+esc(f.Home)+'</span><span class="v">vs</span>'
-        +'<span class="n a">'+esc(f.Away)+'</span>'+mg(f.Away,1)
-        +'<div class="usub">'+(nm?'<span class="nm3">'+esc(nm)+'</span> · ':'')+esc(sr||'')+'</div></div>';
-     }).join('')+'</div>';
-  }).join('')||'<p class="state">Season complete.</p>';
-  const slate=D.cf.filter(f=>num(f.GW)===gw);
-  if(slate.length){
-    h+='<h2>Premier League · this week</h2>';
-    slate.sort((a,b)=>{const x=dt(a['Kickoff (UTC)']),y=dt(b['Kickoff (UTC)']);return(x&&y)?x-y:0});
-    let day='';
-    slate.forEach(f=>{
-      const k=dt(f['Kickoff (UTC)']);
-      const dlab=k?k.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'}):'TBC';
-      if(dlab!==day){day=dlab;h+='<div class="day">'+esc(dlab)+'</div>'}
-      const done=fin(f.Finished);
-      h+='<div class="pl"><span class="c">'+badgeImg(f.Home,16)+esc(f.Home)+'</span>'
-       +'<span class="k'+(done?' done':'')+'">'+(done?'FT':(k?k.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):''))+'</span>'
-       +'<span class="c a">'+esc(f.Away)+badgeImg(f.Away,16)+'</span></div>';
-    });
+/* ================= activity (trades & waivers) ================= */
+function renderAct(){
+  const tx=D.tx||[];
+  if(!tx.length){document.getElementById('actbody').innerHTML=
+    '<p class="state">No trades or waivers yet — once the first moves process, every pickup, drop and denied claim shows up here.</p>';return}
+  document.getElementById('actbody').innerHTML='<h2>League activity</h2>'
+   +tx.map(t=>{
+     const ok=/accept/i.test(t.Result||'');
+     const pend=/pending/i.test(t.Result||'');
+     return '<div class="txrow'+((ok||pend)?'':' dim')+'">'+mg(t.Team)
+      +'<span class="txmain"><b>'+esc(t.Team||'')+'</b><em>'+(t.GW?('GW'+t.GW+' · '):'')+esc(t.Type||'')+' · '+esc(t.Result||'')+'</em></span>'
+      +'<span class="txmove"><span class="in">↑ '+esc(t.In||'')+'</span><span class="out">↓ '+esc(t.Out||'')+'</span></span></div>';
+   }).join('');
+}
+/* premier league scores strip (gameweek page) */
+function plStrip(){
+  const rows=(D.cf||[]).filter(f=>num(f.GW)===D.gw);
+  if(!rows.length)return'';
+  const item=f=>{
+    const done=fin(f.Finished),started=fin(f.Started);
+    const hg=f['Home goals'];
+    const hasScore=hg!==''&&hg!==undefined&&hg!==null;
+    const ko=dt(f['Kickoff (UTC)']);
+    const mid=hasScore?('<b>'+num(hg)+' – '+num(f['Away goals'])+'</b>'):(ko?ko.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}):'');
+    const st=done?'FT':(started&&hasScore?'LIVE':'');
+    return '<div class="plrow">'+badgeImg(f.Home,16)+'<span class="cl">'+esc(f.Home)+'</span>'
+     +'<span class="mid2">'+mid+'</span>'
+     +'<span class="cl a">'+esc(f.Away)+'</span>'+badgeImg(f.Away,16)
+     +'<span class="pst'+(st==='LIVE'?' live':'')+'">'+st+'</span></div>';
+  };
+  return '<h2 style="margin-top:24px">Premier League</h2><div class="card" style="padding:8px 12px">'
+   +rows.slice().sort((a,b)=>String(a['Kickoff (UTC)']).localeCompare(String(b['Kickoff (UTC)']))).map(item).join('')+'</div>';
+}
+/* upcoming fixtures accordion (table page) */
+function upAcc(){
+  let out='';
+  for(let g=D.gw+1;g<=Math.min(D.gw+6,38);g++){
+    const fs=D.fx.filter(f=>num(f.GW)===g);
+    if(!fs.length)continue;
+    const w=D.mw.find(x=>num(x.GW)===g)||{};
+    const d=dt(w['Deadline (UTC)']);
+    out+='<div class="gwblk2"><b>GW'+g+'</b>'+(d?'<em>'+d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+'</em>':'')
+     +fs.map(f=>'<span class="upfx">'+esc(f.Home)+' v '+esc(f.Away)+'</span>').join('')+'</div>';
   }
-  document.getElementById('fixbody').innerHTML=h;
-  document.getElementById('fixbody').onclick=e=>{const c=e.target.closest('[data-mi]');if(c)location.hash='gw/'+c.dataset.mi};
+  return out?'<details class="acc"><summary>Upcoming fixtures</summary>'+out+'</details>':'';
 }
 
-/* ================= FAQ (with card gallery) ================= */
+/* ================= FAQ (with card gallery) ================= *//* ================= FAQ (with card gallery) ================= */
 function demoCard(tier,ovr,pos,name,tag,desc){
   const bust='<svg viewBox="0 0 100 100" style="width:100%;height:100%;border-radius:9cqw;background:rgba(0,0,0,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)" aria-hidden="true">'
    +'<circle cx="50" cy="38" r="17" fill="rgba(255,255,255,.55)"/>'
@@ -1074,8 +1102,9 @@ let LOADED=0;
 function loadAll(quiet){
   return Promise.all([
     readTab('Rosters'),readTab('Standings'),readTab('H2H Fixtures'),readTab('Matchweeks'),
-    readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('EA Map').catch(()=>[]),readTab('FC27').catch(()=>[])
-  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea,f27])=>{
+    readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('EA Map').catch(()=>[]),readTab('FC27').catch(()=>[]),readTab('Transactions').catch(()=>[])
+  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea,f27,tx])=>{
+    D.tx=tx||[];
     D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;D.clubs={};
     clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
     const potmRow=sp.find(r=>r.Setting==='POTM player');
@@ -1103,7 +1132,7 @@ function loadAll(quiet){
     pill.textContent='GW'+D.gw+(liveNow?' · LIVE':'');
     pill.classList.toggle('live',liveNow);
     LOADED=Date.now();
-    renderGW();renderTable();renderXIs();renderFix();
+    renderGW();renderTable();renderXIs();renderAct();
   }).catch(e=>{
     if(quiet&&D.ro.length)return; // background refresh failed: keep showing what we have
     document.querySelectorAll('.view>div[id]').forEach(d=>d.innerHTML='<p class="state">Couldn’t reach the sheet ('+esc(e.message)+'). Check link-sharing: Anyone with the link · Viewer.</p>');
