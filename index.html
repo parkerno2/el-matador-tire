@@ -701,7 +701,13 @@ function rowsFor(xi,mirror){
   return order.map(pos=>{
     const g=xi.filter(p=>p.Pos===pos);
     if(!g.length)return'';
-    const chunks=g.length>4?[g.slice(0,Math.ceil(g.length/2)),g.slice(Math.ceil(g.length/2))]:[g];
+    let chunks=[g];
+    if(g.length>4){
+      /* 5 in a line → 4 + 1, the best of them advanced (the CAM) toward the attack */
+      const best=g.slice().sort((a,b)=>ovrOf(b)-ovrOf(a)||num(b['Proj pts'])-num(a['Proj pts']))[0];
+      const rest=g.filter(p=>p!==best);
+      chunks=mirror?[[best],rest]:[rest,[best]];
+    }
     return chunks.map((c,ci)=>'<div class="prow'+(chunks.length>1&&ci===0?' split':'')+'">'
       +c.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>').join('');
   }).join('');
