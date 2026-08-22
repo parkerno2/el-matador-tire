@@ -38,32 +38,22 @@ box-shadow:0 3px 14px rgba(55,0,60,.3)}
 .gwpill{margin-left:auto;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
 letter-spacing:.06em;padding:3px 10px;border-radius:12px}
 .gwpill.live{background:#3DF59B;color:#063}
-/* ---------- page heroes ---------- */
-.hero{background:
- radial-gradient(120% 90% at 50% -15%, rgba(255,255,255,.14), transparent 60%),
- linear-gradient(160deg,#37003C 0%,#5B1A66 48%,#2E5BFF 130%);
-color:#fff;margin:0 -12px;padding:30px 18px 26px;text-align:center}
-.hero .kick{display:inline-flex;align-items:center;gap:10px;font-size:.6rem;font-weight:700;letter-spacing:.3em;color:var(--cyan);text-transform:uppercase}
-.hero .kick:before,.hero .kick:after{content:"";width:24px;height:1px;flex:none}
-.hero .kick:before{background:linear-gradient(90deg,transparent,rgba(255,210,63,.85))}
-.hero .kick:after{background:linear-gradient(270deg,transparent,rgba(255,210,63,.85))}
-.hero h1{margin:4px 0 6px;font-size:clamp(1.7rem,6vw,2.4rem);font-weight:700;letter-spacing:.03em;text-transform:uppercase;
-text-shadow:0 2px 14px rgba(0,0,0,.28)}
-.hero p{margin:0;font-size:.78rem;color:#D8CBE2}
-.hero.gold-rule{border-bottom:4px solid var(--gold)}
-#v-gw .hero{background:radial-gradient(120% 90% at 50% -15%,rgba(255,255,255,.14),transparent 60%),
- linear-gradient(160deg,#2A0030 0%,#4A0E56 45%,#2E5BFF 135%)}
-#v-table .hero{background:radial-gradient(120% 90% at 50% -15%,rgba(255,255,255,.14),transparent 60%),
- linear-gradient(160deg,#37003C 0%,#5B1A66 42%,#0AA9C9 140%)}
-#v-xis .hero{background:radial-gradient(120% 90% at 50% -15%,rgba(255,255,255,.14),transparent 60%),
- linear-gradient(160deg,#54105E 0%,#7A1F8C 46%,#2E5BFF 140%)}
-#v-fix .hero{background:radial-gradient(120% 90% at 50% -15%,rgba(255,255,255,.14),transparent 60%),
- linear-gradient(160deg,#1D3FCC 0%,#3A2BB0 48%,#37003C 135%)}
-#v-faq .hero{background:radial-gradient(120% 90% at 50% -15%,rgba(255,255,255,.14),transparent 60%),
- linear-gradient(160deg,#07304F 0%,#12557E 44%,#5B1A66 140%)}
-.trophy{width:72px;height:72px;margin:0 auto 8px;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
+/* ---------- page heroes (slim bars) ---------- */
+.hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;margin:0 -12px;
+padding:11px 18px 10px;display:flex;align-items:baseline;gap:12px}
+.hero .kick{font-size:.56rem;font-weight:700;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase;white-space:nowrap}
+.hero .kick:before,.hero .kick:after{display:none}
+.hero h1{margin:0;font-size:1.02rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-shadow:none}
+.hero p{display:none}
+.hero.gold-rule{border-bottom:3px solid var(--gold)}
+#v-gw .hero{background:linear-gradient(115deg,#2A0030 0%,#4A0E56 55%,#2E5BFF 160%)}
+#v-table .hero{background:linear-gradient(115deg,#37003C 0%,#5B1A66 55%,#0AA9C9 170%)}
+#v-xis .hero{background:linear-gradient(115deg,#54105E 0%,#7A1F8C 55%,#2E5BFF 170%)}
+#v-fix .hero{background:linear-gradient(115deg,#1D3FCC 0%,#3A2BB0 55%,#37003C 160%)}
+#v-faq .hero{background:linear-gradient(115deg,#07304F 0%,#12557E 55%,#5B1A66 170%)}
+.trophy{display:none}
 /* spotlight card overlapping hero (table) */
-.spot{background:var(--card);border-radius:16px;max-width:520px;margin:-18px auto 0;position:relative;z-index:2;
+.spot{background:var(--card);border-radius:16px;max-width:520px;margin:14px auto 0;position:relative;z-index:2;
 box-shadow:0 10px 30px rgba(55,0,60,.18);border-top:5px solid var(--gold);padding:16px 18px;text-align:center}
 .spot .lb{display:inline-block;background:var(--gold);color:var(--p1);font-size:.58rem;font-weight:700;
 letter-spacing:.16em;text-transform:uppercase;padding:3px 12px;border-radius:14px;margin-top:-28px;position:relative}
@@ -93,8 +83,8 @@ nav button .bar{display:none}
  nav button.on .bar{width:3px;height:18px;margin:0}
  .wrap{max-width:1020px;padding-left:22px;padding-right:22px}
  .top .in{max-width:1020px}
- .hero{margin:0;border-radius:0 0 20px 20px;padding:40px 22px 34px}
- .fc{max-width:126px}
+ .hero{margin:0;border-radius:0 0 14px 14px;padding:12px 22px 11px}
+ .fc{max-width:142px}
  .duel .cc{width:130px;height:130px}
 }
 /* ---------- shared ---------- */
@@ -155,46 +145,43 @@ font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;c
 text-shadow:0 1px 3px rgba(0,0,0,.5);margin:2px 0 8px}
 .teamtag .md{width:15px;height:15px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .prow{position:relative;z-index:2;display:flex;justify-content:center;gap:2%;margin:0 0 10px}
-/* ---------- FUT card ---------- */
-.fc{position:relative;display:block;width:17.6%;max-width:106px;min-width:50px;aspect-ratio:150/210;border:none;background:none;
+/* ---------- FUT card (Plate) ---------- */
+.fc{position:relative;display:block;width:21%;max-width:118px;min-width:54px;aspect-ratio:150/210;border:none;background:none;
 padding:0;cursor:pointer;flex:none;container-type:inline-size;transition:transform .16s ease;-webkit-tap-highlight-color:transparent}
+.prow{gap:0}
+.prow .fc+.fc{margin-left:-3.2%}
 .fc:hover,.fc:focus-visible{transform:translateY(-4px) scale(1.04);z-index:5;outline:none}
 .fc svg.bg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.fc .rail{position:absolute;top:9%;left:9.5%;width:24%;z-index:2;display:flex;flex-direction:column;align-items:center;gap:5%}
-.fc .rail b{font-family:'Saira Condensed';font-weight:700;font-size:20cqw;line-height:.95}
-.fc .rail .pos{font-size:7.6cqw;font-weight:700;letter-spacing:.05em;margin-top:-2%}
-.fc .rail img{width:64%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
-.fc .rail img+img{margin-top:9%}
-.fc .face{position:absolute;top:6%;left:28%;right:5%;height:55%;z-index:1;overflow:hidden}
-.fc .face img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;
-filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}
-.fc .face:has(.noface){display:flex;align-items:center;justify-content:center;overflow:visible}
+.fc .rt{position:absolute;top:7%;left:12%;z-index:2;text-align:center;line-height:.9}
+.fc .rt b{font-family:'Saira Condensed';font-weight:700;font-size:15.5cqw;color:var(--tx);display:block}
+.fc .rt span{font-size:6.4cqw;font-weight:700;letter-spacing:.08em;color:var(--sub)}
+.fc .tag{position:absolute;top:4%;left:50%;transform:translateX(-50%);z-index:3;background:var(--gold);color:var(--p1);
+font-size:5.8cqw;font-weight:700;letter-spacing:.12em;padding:1.4% 5.5%;border-radius:9cqw;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap}
+.fc .pts{position:absolute;top:4.5%;right:7.5%;z-index:2;text-align:center;line-height:.85;font-family:'Saira Condensed';font-weight:600;
+background:var(--bub);border:1px solid var(--ln1);border-radius:12cqw;padding:3.5% 5.5% 3%;min-width:17%;box-shadow:0 2px 5px rgba(20,10,25,.25)}
+.fc .pts b{display:block;font-size:11.5cqw;color:var(--bubn)}
+.fc .pts i{font-style:normal;font-size:4.6cqw;letter-spacing:.2em;opacity:.8;color:var(--bubn)}
+.fc .face{position:absolute;top:6%;left:8%;right:8%;height:61%;z-index:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.fc .face img{width:96%;height:96%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.38))}
+.fc .face:has(.noface){align-items:center;overflow:visible}
 .fc .noface{width:52%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
-font-weight:700;font-size:13cqw;background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
-.fc .tag2{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);z-index:3;background:var(--gold);color:var(--p1);
-font-size:7cqw;font-weight:700;letter-spacing:.12em;padding:1.4% 6%;border-radius:10cqw;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap}
-.fc .nm{position:absolute;left:8%;right:8%;top:61%;z-index:2;font-weight:700;text-align:center;
-font-size:9.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-padding:3.5% 2px;border-top:1px solid var(--ln1);border-bottom:1px solid var(--ln2)}
-.fc .pts{position:absolute;left:0;right:0;top:80%;z-index:2;font-family:'Saira Condensed';
-font-size:8.4cqw;letter-spacing:.05em;text-align:center;font-weight:600}
-.fc .pts b{font-size:12.5cqw;font-weight:700}
-.fc .inj{position:absolute;top:4%;right:7%;z-index:3;background:#D6001C;color:#fff;font-size:6.6cqw;
+font-weight:700;font-size:13cqw;background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);color:var(--tx)}
+.fc .nm{position:absolute;left:10%;right:10%;top:67%;z-index:2;font-weight:700;text-align:center;
+font-size:10.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+padding:2.8% 2px 2%;border-top:1px solid var(--ln1);color:var(--tx)}
+.fc .meta{position:absolute;left:0;right:0;top:80.5%;z-index:2;display:flex;align-items:center;justify-content:center;gap:5%}
+.fc .meta img,.fc .meta svg{width:12%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.fc .meta .sep{width:1px;height:9cqw;background:var(--ln2)}
+.fc .inj{position:absolute;top:13%;left:50%;transform:translateX(-50%);z-index:3;background:#D6001C;color:#fff;font-size:6cqw;
 font-weight:700;padding:1% 5%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0,0,.4)}
-.fc.gold  {--tx:#3A2B05;--sub:#7A5E14;--ln1:rgba(58,43,5,.45);--ln2:rgba(58,43,5,.22)}
-.fc.silver{--tx:#262A33;--sub:#575E6C;--ln1:rgba(38,42,51,.4);--ln2:rgba(38,42,51,.18)}
-.fc.spec  {--tx:#fff;--sub:#D8CBE2;--ln1:rgba(255,210,63,.6);--ln2:rgba(255,210,63,.3)}
-.fc.elite {--tx:#fff;--sub:#BFE9FF;--ln1:rgba(4,245,255,.65);--ln2:rgba(4,245,255,.3)}
-.fc.totw  {--tx:#FFD23F;--sub:#C8B36A;--ln1:rgba(255,210,63,.7);--ln2:rgba(255,210,63,.35)}
-.fc.potm  {--tx:#fff;--sub:#F0C9D8;--ln1:rgba(255,210,63,.65);--ln2:rgba(255,210,63,.3)}
-.fc .rail b,.fc .nm{color:var(--tx)}
-.fc .rail .pos,.fc .pts{color:var(--sub)}
-.fc .pts b{color:var(--tx)}
-.fc .noface{color:var(--tx)}
-.fc.spec .rail b,.fc.potm .rail b{color:var(--gold)}
-.fc.elite .rail b{color:var(--cyan)}
-.fc.spec .pts b{color:var(--cyan)}
-.fc.elite .pts b,.fc.totw .pts b,.fc.potm .pts b{color:var(--gold)}
+.fc.gold  {--tx:#3A2B05;--sub:#7A5E14;--ln1:rgba(58,43,5,.45);--ln2:rgba(58,43,5,.22);--bub:#8F681B;--bubn:#FBE9A6}
+.fc.silver{--tx:#262A33;--sub:#575E6C;--ln1:rgba(38,42,51,.4);--ln2:rgba(38,42,51,.18);--bub:#6E7686;--bubn:#FAFBFD}
+.fc.spec  {--tx:#fff;--sub:#D8CBE2;--ln1:rgba(255,210,63,.6);--ln2:rgba(255,210,63,.3);--bub:#26002A;--bubn:#fff}
+.fc.elite {--tx:#fff;--sub:#BFE9FF;--ln1:rgba(4,245,255,.65);--ln2:rgba(4,245,255,.3);--bub:#082B6F;--bubn:#fff}
+.fc.totw  {--tx:#FFD23F;--sub:#C8B36A;--ln1:rgba(255,210,63,.7);--ln2:rgba(255,210,63,.35);--bub:#0C0C10;--bubn:#FFD23F}
+.fc.potm  {--tx:#fff;--sub:#F0C9D8;--ln1:rgba(255,210,63,.65);--ln2:rgba(255,210,63,.3);--bub:#4E0C28;--bubn:#fff}
+.fc.spec .rt b,.fc.potm .rt b{color:var(--gold)}
+.fc.elite .rt b{color:var(--cyan)}
 /* ---------- manager XIs: perspective stage ---------- */
 .xhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 4px}
 .xstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:12px 0}
@@ -496,6 +483,7 @@ const badgeImg=(club,px)=>{
   return src?'<img class="crest"'+(px?' style="height:'+px+'px"':'')+' loading="lazy" src="'+src+'" alt="'+esc(club)+'" onerror="this.style.display=\'none\'">':'';
 };
 const face=c=>'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+c+'.png';
+const face250=c=>'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+c+'.png';
 const flagImg=(n,px)=>n?'<img loading="lazy" style="'+(px?'height:'+px+'px;':'')+'border-radius:2px" src="https://flagcdn.com/w80/'+String(n).toLowerCase()+'.png" alt="'+esc(NAT[n]||n)+'" onerror="this.style.display=\'none\'">':'';
 const mg=(name,sm)=>{const t=TEAMS[name];return t?'<span class="mg'+(sm?' sm':'')+'" style="background:'+t.col+'">'+t.ini+'</span>':''};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -516,26 +504,68 @@ function tierOf(p){
 }
 const FILL={gold:'url(#gGold)',silver:'url(#gSilver)',spec:'url(#gSpec)',elite:'url(#gElite)',totw:'url(#gTotw)',potm:'url(#gPotm)'};
 const EDGE={gold:'#8A6A1D',silver:'#767D8E',spec:'#FFD23F',elite:'#04F5FF',totw:'#FFD23F',potm:'#FFD23F'};
-const SHIELD='M10 16 Q75 6 140 16 L140 168 Q140 196 75 208 Q10 196 10 168 Z';
+const ACC={gold:'#6E4F0E',silver:'#454C5C',spec:'#FFD23F',elite:'#04F5FF',totw:'#FFD23F',potm:'#FFD23F'};
+const TIER_DROP={silver:'wave',gold:'wave',spec:'wave',elite:'splash',potm:'splash',totw:'cape'};
+const PLATE='M18 6 H106 L142 42 V196 L136 202 H14 L8 196 V16 Z';
+function bdWave(t,u){
+ const g='<defs><linearGradient id="wv'+u+'" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+ACC[t]+'" stop-opacity=".46"/><stop offset=".55" stop-color="'+ACC[t]+'" stop-opacity=".14"/><stop offset="1" stop-color="'+ACC[t]+'" stop-opacity="0"/></linearGradient></defs>';
+ return g
+  +'<path d="M-12 118 C36 102 70 58 152 12 L152 30 C76 72 34 108 -12 132 Z" fill="url(#wv'+u+')" opacity=".75"/>'
+  +'<path d="M-12 138 C30 118 52 74 152 34 L152 66 C72 98 40 132 -12 158 Z" fill="url(#wv'+u+')"/>'
+  +'<path d="M-12 156 C44 140 84 108 152 84 L152 100 C90 122 44 148 -12 170 Z" fill="url(#wv'+u+')" opacity=".55"/>'
+  +'<path d="M-12 128 C40 110 66 66 152 22" fill="none" stroke="'+ACC[t]+'" stroke-width="1" opacity=".3"/>';
+}
+function bdSplash(t,u){
+ const drops=[[34,84,2.6],[52,62,2],[74,44,2.8],[98,30,2],[118,20,2.6],[60,100,1.6],[88,58,1.5],[110,42,1.8],[128,12,1.4]];
+ return '<path d="M-8 148 C30 128 62 92 148 26" fill="none" stroke="'+ACC[t]+'" stroke-width="16" opacity=".12" stroke-linecap="round"/>'
+  +'<path d="M-8 132 C36 112 74 74 150 14" fill="none" stroke="'+ACC[t]+'" stroke-width="7" opacity=".2" stroke-linecap="round"/>'
+  +'<path d="M-8 162 C48 142 92 106 152 62" fill="none" stroke="'+ACC[t]+'" stroke-width="4" opacity=".14" stroke-linecap="round"/>'
+  +drops.map(d=>'<circle cx="'+d[0]+'" cy="'+d[1]+'" r="'+d[2]+'" fill="'+ACC[t]+'" opacity=".38"/>').join('');
+}
+function bdCape(t,u){
+ const g='<defs><linearGradient id="cp'+u+'" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="'+ACC[t]+'" stop-opacity="0"/><stop offset=".5" stop-color="'+ACC[t]+'" stop-opacity=".42"/><stop offset="1" stop-color="'+ACC[t]+'" stop-opacity=".06"/></linearGradient></defs>';
+ return g
+  +'<path d="M-24 128 C8 62 96 24 158 64" fill="none" stroke="url(#cp'+u+')" stroke-width="24" stroke-linecap="round"/>'
+  +'<path d="M-18 142 C24 88 108 52 160 84" fill="none" stroke="url(#cp'+u+')" stroke-width="10" opacity=".8" stroke-linecap="round"/>'
+  +'<path d="M-12 110 C22 58 92 22 150 42" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4" stroke-linecap="round"/>'
+  +[[38,52],[104,26],[128,58],[62,32]].map(p=>'<path d="M'+p[0]+' '+(p[1]-4)+' L'+(p[0]+2.6)+' '+p[1]+' L'+p[0]+' '+(p[1]+4)+' L'+(p[0]-2.6)+' '+p[1]+' Z" fill="'+ACC[t]+'" opacity=".55"/>').join('');
+}
+const DROPS={wave:bdWave,splash:bdSplash,cape:bdCape};
+let CARDUID=0;
 function cardBg(t){
+ const u=++CARDUID,art=DROPS[TIER_DROP[t]];
  return '<svg class="bg" viewBox="0 0 150 210" aria-hidden="true">'
-  +'<path d="'+SHIELD+'" transform="translate(0 9)" fill="rgba(20,10,25,.14)"/>'
-  +'<path d="'+SHIELD+'" transform="translate(0 4)" fill="rgba(20,10,25,.2)"/>'
-  +'<path d="'+SHIELD+'" fill="'+FILL[t]+'"/>'
-  +'<path d="'+SHIELD+'" fill="none" stroke="'+EDGE[t]+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
+  +'<defs><clipPath id="cs'+u+'"><path d="'+PLATE+'"/></clipPath>'
+  +'<clipPath id="ct'+u+'"><rect x="0" y="0" width="150" height="134"/></clipPath></defs>'
+  +'<path d="'+PLATE+'" transform="translate(0 8)" fill="rgba(20,10,25,.16)"/>'
+  +'<path d="'+PLATE+'" transform="translate(0 3.5)" fill="rgba(20,10,25,.22)"/>'
+  +'<path d="'+PLATE+'" fill="'+FILL[t]+'"/>'
+  +'<g clip-path="url(#cs'+u+')"><g clip-path="url(#ct'+u+')">'+(art?art(t,u):'')+'</g>'
+  +'<path d="M-30 0 L64 0 L14 210 L-80 210 Z" fill="rgba(255,255,255,.07)"/></g>'
+  +'<path d="'+PLATE+'" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".7" transform="translate(75 105) scale(.965) translate(-75 -105)"/>'
+  +'<path d="'+PLATE+'" fill="none" stroke="'+EDGE[t]+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
+}
+function faceImgHTML(p){
+ /* Cards need TRANSPARENT cutouts — PL photos are the only reliable source.
+    EA/futwiz/futbin "face" assets are opaque gray squares (verified 21 Aug 2026).
+    The EA Map instead powers the photographic portrait in the player sheet. */
+ const urls=[];
+ if(p.Code){urls.push(face250(p.Code));urls.push(face(p.Code));}
+ if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
+ return '<img loading="lazy" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
 function card(p,i){
   const t=tierOf(p),o=ovrOf(p);
   const tag=t==='potm'?'POTM':t==='totw'?'TOTW':t==='spec'?(p.Drafted||'').split('.')[0]:'';
   return '<button class="fc '+t+'" data-i="'+i+'" aria-label="'+esc(p.Player)+'">'
    +cardBg(t)
-   +(tag?'<span class="tag2">'+tag+'</span>':'')
+   +(tag?'<span class="tag">'+tag+'</span>':'')
    +('isud'.indexOf(p.Status)>-1?'<span class="inj">INJ</span>':'')
-   +'<span class="rail"><b>'+o+'</b><span class="pos">'+String(p.Pos).slice(0,3)+'</span>'
-   +badgeImg(p.Club,0)+flagImg(p.Nation,0)+'</span>'
-   +'<span class="face">'+(p.Code?'<img loading="lazy" src="'+face(p.Code)+'" alt="" onerror="this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'">':'<span class="noface">'+initials(p.Player)+'</span>')+'</span>'
+   +'<span class="rt"><b>'+o+'</b><span>'+String(p.Pos).slice(0,3)+'</span></span>'
+   +'<span class="pts"><b>'+(D.started?Math.round(num(p['GW pts'])):0)+'</b><i>PTS</i></span>'
+   +'<span class="face">'+faceImgHTML(p)+'</span>'
    +'<span class="nm">'+esc(p.Player)+'</span>'
-   +'<span class="pts">'+(D.started?('GW <b>'+Math.round(num(p['GW pts']))+'</b>'):'<b>0</b> PTS')+'</span>'
+   +'<span class="meta">'+badgeImg(p.Club,0)+'<span class="sep"></span>'+flagImg(p.Nation,0)+'</span>'
    +'</button>';
 }
 
@@ -890,15 +920,16 @@ function demoCard(tier,ovr,pos,name,tag,desc){
   const bust='<svg viewBox="0 0 100 100" style="width:100%;height:100%;border-radius:9cqw;background:rgba(0,0,0,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)" aria-hidden="true">'
    +'<circle cx="50" cy="38" r="17" fill="rgba(255,255,255,.55)"/>'
    +'<path d="M18 92 Q24 60 50 64 Q76 60 82 92 Z" fill="rgba(255,255,255,.55)"/></svg>';
-  const fakeflag='<svg viewBox="0 0 18 12" style="width:64%;border-radius:2px" aria-hidden="true"><rect width="18" height="12" fill="#2E5BFF"/><rect x="6" width="6" height="12" fill="#F4F1F6"/></svg>';
-  const fakeclub='<svg viewBox="0 0 18 19" style="width:64%" aria-hidden="true"><path d="M9 0 L18 3 L18 10 Q18 16 9 19 Q0 16 0 10 L0 3 Z" fill="#37003C"/><path d="M9 3 L15 5 L15 10 Q15 13.5 9 16 Q3 13.5 3 10 L3 5 Z" fill="#FFD23F"/></svg>';
+  const fakeflag='<svg viewBox="0 0 18 12" style="width:12%;border-radius:2px" aria-hidden="true"><rect width="18" height="12" fill="#2E5BFF"/><rect x="6" width="6" height="12" fill="#F4F1F6"/></svg>';
+  const fakeclub='<svg viewBox="0 0 18 19" style="width:12%" aria-hidden="true"><path d="M9 0 L18 3 L18 10 Q18 16 9 19 Q0 16 0 10 L0 3 Z" fill="#37003C"/><path d="M9 3 L15 5 L15 10 Q15 13.5 9 16 Q3 13.5 3 10 L3 5 Z" fill="#FFD23F"/></svg>';
   return'<div class="gitem"><div class="fc '+tier+'" style="display:block;width:100%">'
    +cardBg(tier)
-   +(tag?'<span class="tag2">'+tag+'</span>':'')
-   +'<span class="rail"><b>'+ovr+'</b><span class="pos">'+pos+'</span>'+fakeclub+fakeflag+'</span>'
+   +(tag?'<span class="tag">'+tag+'</span>':'')
+   +'<span class="rt"><b>'+ovr+'</b><span>'+pos+'</span></span>'
+   +'<span class="pts"><b>0</b><i>PTS</i></span>'
    +'<span class="face">'+bust+'</span>'
    +'<span class="nm">'+name+'</span>'
-   +'<span class="pts"><b>0</b> PTS</span>'
+   +'<span class="meta">'+fakeclub+'<span class="sep"></span>'+fakeflag+'</span>'
    +'</div><p>'+desc+'</p></div>';
 }
 function renderFAQ(){
@@ -940,7 +971,10 @@ function tierExplain(t,p){
 function openSheet(p){
   const t=tierOf(p),o=ovrOf(p);
   sheet.innerHTML='<div class="sh-grid">'
-   +'<div class="sh-left">'+(p.Code?'<img src="'+face(p.Code)+'" alt="" onerror="this.outerHTML=\'<span class=noface2>'+initials(p.Player)+'</span>\'">':'<span class="noface2">'+initials(p.Player)+'</span>')+'</div>'
+   +'<div class="sh-left">'+(function(){var ea=D.ea&&D.ea[normN(p.Player)];var u=[];
+     if(ea)u.push('https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p'+ea+'.png');
+     if(p.Code)u.push(face250(p.Code));
+     return u.length?'<img src="'+u[0]+'" data-alt="'+u.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface2>'+initials(p.Player)+'</span>\'}">':'<span class="noface2">'+initials(p.Player)+'</span>'})()+'</div>'
    +'<div class="sh-right"><button class="sh-x" aria-label="Close">×</button>'
    +'<h3>'+esc(p.Player)+'</h3>'
    +'<div class="sub">'+badgeImg(p.Club,14)+esc(p.Club)+' · '+flagImg(p.Nation,13)+esc(NAT[p.Nation]||p.Nation||'')+' · '+esc(p.Team)+'</div>'
@@ -975,12 +1009,13 @@ let LOADED=0;
 function loadAll(quiet){
   return Promise.all([
     readTab('Rosters'),readTab('Standings'),readTab('H2H Fixtures'),readTab('Matchweeks'),
-    readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[])
-  ]).then(([ro,st,fx,mw,cf,clubs,sp])=>{
+    readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('EA Map').catch(()=>[])
+  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea])=>{
     D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;D.clubs={};
     clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
     const potmRow=sp.find(r=>r.Setting==='POTM player');
     D.potm=potmRow&&potmRow.Value?normN(potmRow.Value):'';
+    D.ea={};ea.forEach(r=>{if(r.Player&&r['EA ID'])D.ea[normN(r.Player)]=String(r['EA ID']).replace(/\D/g,'')});
     mw.sort((a,b)=>num(a.GW)-num(b.GW));
     const cur=mw.find(w=>!fin(w.Finished))||mw[mw.length-1];
     D.gw=cur?num(cur.GW):1;
