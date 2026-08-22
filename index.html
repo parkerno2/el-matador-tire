@@ -971,7 +971,7 @@ function tierExplain(t,p){
 function openSheet(p){
   const t=tierOf(p),o=ovrOf(p);
   sheet.innerHTML='<div class="sh-grid">'
-   +'<div class="sh-left">'+(function(){var ea=D.ea&&D.ea[normN(p.Player)];var u=[];
+   +'<div class="sh-left">'+(function(){var ea=D.ea&&(D.ea[String(p.Code)]||D.ea['n:'+normN(p.Player)]);var u=[];
      if(ea)u.push('https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p'+ea+'.png');
      if(p.Code)u.push(face250(p.Code));
      return u.length?'<img src="'+u[0]+'" data-alt="'+u.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface2>'+initials(p.Player)+'</span>\'}">':'<span class="noface2">'+initials(p.Player)+'</span>'})()+'</div>'
@@ -1015,7 +1015,14 @@ function loadAll(quiet){
     clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
     const potmRow=sp.find(r=>r.Setting==='POTM player');
     D.potm=potmRow&&potmRow.Value?normN(potmRow.Value):'';
-    D.ea={};ea.forEach(r=>{if(r.Player&&r['EA ID'])D.ea[normN(r.Player)]=String(r['EA ID']).replace(/\D/g,'')});
+    /* EA Map tab = static paste of fpl_ea_crosswalk_2026_27.csv (keyed on fpl_code).
+       Also accepts the legacy Player|EA ID schema. */
+    D.ea={};ea.forEach(r=>{
+      const id=String(r.ea_player_id||r['EA ID']||'').replace(/\D/g,'');if(!id)return;
+      if(r.fpl_code)D.ea[String(r.fpl_code)]=id;
+      if(r.fpl_web_name)D.ea['n:'+normN(r.fpl_web_name)]=id;
+      if(r.Player)D.ea['n:'+normN(r.Player)]=id;
+    });
     mw.sort((a,b)=>num(a.GW)-num(b.GW));
     const cur=mw.find(w=>!fin(w.Finished))||mw[mw.length-1];
     D.gw=cur?num(cur.GW):1;
