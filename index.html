@@ -1039,6 +1039,12 @@ function rowsFor(xi,mirror){
   }).join('');
 }
 function liveScoreOf(team){return effXiOf(team).reduce((s,p)=>s+num(p['GW pts']),0)} // predicted auto-subs count once locked; FPL's own total is the floor via mscore's max()
+function effPtsOf(f,team){ // a fixture's score for one team, live-corrected exactly like the scoreboard (analysis must agree with it)
+  const raw=f.Home===team?num(f['Home pts']):num(f['Away pts']);
+  if(num(f.GW)===D.gw&&!fin(f.Finished)&&(D.dlPassed||raw>0))return Math.max(raw,liveScoreOf(team));
+  return raw;
+}
+function inEffXi(team,code){return effXiOf(team).some(p=>String(p.Code)===String(code))} // live-GW membership incl. predicted auto-subs
 function seasonTot(p){
   // during GW1 the API's season totals can still hold last season's numbers
   return D.gwsDone===0?Math.round(num(p['GW pts'])):Math.round(num(p['Season pts']));
@@ -1174,12 +1180,18 @@ function renderMatch(f,dl){
 /* ================= luck + manager profiles ================= */
 function luckAgg(){ /* per owner: per-GW actual (excl. bonus) vs xP, from GW Stats history */
   const out={};
+  /* started-only, same lens as the scoreboard: live GW = effective XI (predicted
+     auto-subs applied); finished GWs = GW Log Started==='XI' (skip the filter for
+     any GW the log missed rather than zero it out) */
+  const logXI={},logGws=new Set();
+  (D.gl||[]).forEach(r=>{const g2=num(r.GW);logGws.add(g2);
+    if(r.Started==='XI')logXI[g2+'|'+String(r.Code)+'|'+r.Team]=1;});
   Object.keys(D.gwsByGw||{}).forEach(g=>{
     const isCur=num(g)===D.gw;
     Object.keys(D.gwsByGw[g]).forEach(code=>{
       const r=D.gwsByGw[g][code];if(!r.Owner)return;
-      if(isCur){const ros=D.ro.find(x=>String(x.Code)===String(code)&&x.Team===r.Owner);
-        if(ros&&!(num(ros.Slot)>=1&&num(ros.Slot)<=11)&&ros['Best XI']!=='XI')return;}
+      if(isCur){if(!inEffXi(r.Owner,code))return;}
+      else if(logGws.has(num(g))&&!logXI[num(g)+'|'+String(code)+'|'+r.Owner])return;
       const t=out[r.Owner]=out[r.Owner]||{act:0,x:0,gws:{}};
       const a=r.Pts-r.Bonus,x=xpOf(r);
       t.act+=a;t.x+=x;
@@ -1207,8 +1219,9 @@ function openProfile(team){
   const gws=Object.keys(agg.gws).map(Number).sort((a,b)=>a-b);
   let best=null;
   D.fx.forEach(f=>{
-    [[f.Home,num(f['Home pts'])],[f.Away,num(f['Away pts'])]].forEach(([n,pt])=>{
-      if(n===team&&(fin(f.Finished)||pt>0)&&(!best||pt>best.p))best={p:pt,g:num(f.GW),fin:fin(f.Finished)};});});
+    if(f.Home!==team&&f.Away!==team)return;
+    const pt=effPtsOf(f,team);
+    if((fin(f.Finished)||pt>0)&&(!best||pt>best.p))best={p:pt,g:num(f.GW),fin:fin(f.Finished)};});
   const col='#2E5BFF',colX='#5B1A66'; // brand blue = actual, brand purple = expected
   /* line chart: actual (solid blue) vs xP (dashed purple) */
   const W=440,PX=30,PY=26,n=gws.length,H=n<2?112:150;
@@ -1234,8 +1247,9 @@ function openProfile(team){
   const hero=sq[0];
   /* average points per gameweek actually played (live GW counts once scores exist) */
   let g=0,pf=0;
-  D.fx.forEach(f=>{[[f.Home,num(f['Home pts'])],[f.Away,num(f['Away pts'])]].forEach(([n,pt])=>{
-    if(n===team&&(fin(f.Finished)||pt>0)){g++;pf+=pt}});});
+  D.fx.forEach(f=>{if(f.Home!==team&&f.Away!==team)return;
+    const pt=effPtsOf(f,team);
+    if(fin(f.Finished)||pt>0){g++;pf+=pt}});
   const avg=g?(pf/g):0;
   sheet.innerHTML='<div class="sh-right" style="padding:16px 18px"><button class="sh-x" aria-label="Close">×</button>'
    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+mg(team)+'<div><h3 style="margin:0">'+esc(team)+'</h3>'
@@ -1277,10 +1291,10 @@ function mgrSeries(team){
   const out=[];
   D.fx.forEach(fx2=>{
     if(fx2.Home!==team&&fx2.Away!==team)return;
-    const hp=num(fx2['Home pts']),ap=num(fx2['Away pts']);
-    if(!(fin(fx2.Finished)||hp+ap>0))return;
-    const me=fx2.Home===team?hp:ap,opp=fx2.Home===team?ap:hp;
-    out.push({gw:num(fx2.GW),pts:me,pa:opp,margin:me-opp,live:!fin(fx2.Finished)});
+    const opp=fx2.Home===team?fx2.Away:fx2.Home;
+    const me=effPtsOf(fx2,team),pa=effPtsOf(fx2,opp); // scoreboard-identical numbers, not the API's laggy totals
+    if(!(fin(fx2.Finished)||me+pa>0))return;
+    out.push({gw:num(fx2.GW),pts:me,pa:pa,margin:me-pa,live:!fin(fx2.Finished)});
   });
   return out.sort((a,b)=>a.gw-b.gw);
 }
@@ -1290,8 +1304,7 @@ function benchByGw(team){
     const g=num(r.GW);m[g]=(m[g]||0)+num(r['GW pts']);});
   let live=0;
   D.ro.forEach(p=>{if(p.Team!==team)return;
-    const s=num(p.Slot);
-    if(s>=12||(!s&&p['Best XI']!=='XI'))live+=num(p['GW pts']);});
+    if(!inEffXi(team,p.Code))live+=num(p['GW pts']);}); // a predicted sub-in is no longer bench waste
   if(live&&!m[D.gw])m[D.gw]=live;
   return m;
 }
@@ -1310,8 +1323,7 @@ function xiPtsMap(){
     const k=String(p.Code);
     const o=m[k]=m[k]||{xi:0,bench:0,name:p.Player,owner:p.Team,pos:p.Pos,club:p.Club,byGw:{}};
     o.owner=p.Team;
-    const s=num(p.Slot);
-    const inXI=(s>=1&&s<=11)||(!s&&p['Best XI']==='XI');
+    const inXI=inEffXi(p.Team,p.Code); // predicted auto-subs credit the sub-in, not the 0-min starter
     const pts=num(p['GW pts']);
     if(inXI){o.xi+=pts;o.byGw[D.gw]=(o.byGw[D.gw]||0)+pts;}else o.bench+=pts;
   });
@@ -1539,11 +1551,12 @@ function mgrTiles(){
     const xiOfP=p2=>((xm[String(p2.Code)]||{}).xi||0);
     const sq=squadOf(t).slice().sort((a2,b2)=>xiOfP(b2)-xiOfP(a2)||ovrOf(b2)-ovrOf(a2));
     const star=sq[0];
-    let g=0,pf=0;
-    D.fx.forEach(fx2=>{[[fx2.Home,num(fx2['Home pts'])],[fx2.Away,num(fx2['Away pts'])]].forEach(([n,pt])=>{
-      if(n===t&&(fin(fx2.Finished)||pt>0)){g++;pf+=pt}});});
+    let g=0,pf=0,best=0;
+    D.fx.forEach(fx2=>{if(fx2.Home!==t&&fx2.Away!==t)return;
+      const pt=effPtsOf(fx2,t);
+      if(fin(fx2.Finished)||pt>0){g++;pf+=pt}
+      if(pt>best)best=pt;});
     const st=D.st.find(s2=>s2.Team===t)||{};
-    let best=0;D.fx.forEach(fx2=>{[[fx2.Home,num(fx2['Home pts'])],[fx2.Away,num(fx2['Away pts'])]].forEach(([n,pt])=>{if(n===t&&pt>best)best=pt;});});
     return '<button class="mt" data-prof="'+esc(t)+'" style="--tc:'+TEAMS[t].col+'">'
      +'<b class="mtn">'+esc(t)+'</b><em class="mtm">'+esc(TEAMS[t].mgr||'')+'</em>'
      +'<span class="mtrow">'
