@@ -1194,7 +1194,7 @@ function luckAgg(){ /* per owner: per-GW actual (excl. bonus) vs xP, from GW Sta
       else if(logGws.has(num(g))&&!logXI[num(g)+'|'+String(code)+'|'+r.Owner])return;
       const t=out[r.Owner]=out[r.Owner]||{act:0,x:0,gws:{}};
       const a=r.Pts-r.Bonus,x=xpOf(r);
-      t.act+=a;t.x+=x;
+      t.act+=a;t.x+=x;t.bon=(t.bon||0)+num(r.Bonus); // excluded bonus, kept so the profile can reconcile vs the full score
       const gg=t.gws[g]=t.gws[g]||{act:0,x:0};gg.act+=a;gg.x+=x;});});
   return out;
 }
@@ -1215,7 +1215,7 @@ function luckCard(){
 }
 function openProfile(team){
   const st=D.st.find(s=>s.Team===team)||{};
-  const agg=luckAgg()[team]||{act:0,x:0,gws:{}};
+  const agg=luckAgg()[team]||{act:0,x:0,bon:0,gws:{}};
   const gws=Object.keys(agg.gws).map(Number).sort((a,b)=>a-b);
   let best=null;
   D.fx.forEach(f=>{
@@ -1261,7 +1261,8 @@ function openProfile(team){
    +'</div>'
    +'<div class="posh2">Actual vs expected, week by week'+(gws.length<2?' · one gameweek so far':'')+'</div>'
    +'<div style="overflow-x:auto">'+chart+'</div>'
-   +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:'+colX+';font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.</p>'
+   +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:'+colX+';font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.'
+   +(agg.bon?' Bonus points (+'+Math.round(agg.bon)+') sit outside both lines — with them, actual is '+fmt1(agg.act+agg.bon)+', matching the score up top.':'')+'</p>'
    +(hero?'<div class="profcard" style="max-width:200px;margin:14px auto 0"><div style="text-align:center;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:var(--goldd);margin-bottom:6px">TOP SCORER · '+xiOfP(hero)+' PTS STARTED</div>'+card(hero,D.ro.indexOf(hero))+'</div>':'')
    +'</div>';
   ov.classList.add('on');sheet.classList.add('on');
