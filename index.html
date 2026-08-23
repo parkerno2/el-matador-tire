@@ -181,8 +181,8 @@ font-weight:700;font-size:13cqw;background:rgba(0,0,0,.16);box-shadow:inset 0 0 
 font-size:10.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 padding:2.8% 2px 2%;border-top:1px solid var(--ln1);color:var(--tx)}
 .fc .meta{position:absolute;left:0;right:0;top:80.5%;z-index:2;display:flex;align-items:center;justify-content:center;gap:5%}
-.fc .meta img,.fc .meta svg{width:12%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
-.fc .meta .sep{width:1px;height:9cqw;background:var(--ln2)}
+.fc .meta img,.fc .meta svg{width:15%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.fc .meta .sep{width:1px;height:10cqw;background:var(--ln2)}
 .fc .inj{position:absolute;top:27%;left:8.5%;z-index:3;background:#D6001C;color:#fff;font-size:5.6cqw;
 font-weight:700;padding:1.2% 4%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0,0,.4);letter-spacing:.06em}
 .fc.gold  {--tx:#3A2B05;--sub:#7A5E14;--ln1:rgba(58,43,5,.45);--ln2:rgba(58,43,5,.22);--bub:#8F681B;--bubn:#FBE9A6}
@@ -193,6 +193,11 @@ font-weight:700;padding:1.2% 4%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0
 .fc.potm  {--tx:#fff;--sub:#F0C9D8;--ln1:rgba(255,210,63,.65);--ln2:rgba(255,210,63,.3);--bub:#4E0C28;--bubn:#fff}
 .fc.spec .rt b,.fc.potm .rt b{color:var(--gold)}
 .fc.elite .rt b{color:var(--cyan)}
+/* predicted auto-sub treatments: cyan ring + SUB pill for the incoming player, dimmed OUT for the leaving one */
+.fc.subin svg.bg>path:last-of-type{stroke:var(--cyan);stroke-width:2.6}
+.fc.subin .tag{background:var(--cyan);color:#06333A}
+.fc.subout{opacity:.55}
+.fc.subout .tag{background:#8A8494;color:#fff}
 /* ---------- manager XIs: perspective stage ---------- */
 .xhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 4px}
 .xstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:12px 0}
@@ -441,6 +446,11 @@ padding:3px 9px;border-radius:20px}
 .axtog button.on{background:var(--gold);color:var(--p1)}
 .scsub{text-align:center;font-size:.66rem;color:#D8CBE2;margin-top:4px;font-weight:600}
 .scsub b{color:#7CF5C1;font-family:'Saira Condensed';font-size:.8rem}
+.asub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:8px 12px;margin:10px auto 0;max-width:520px;font-size:.68rem;color:#E9DFF0;font-weight:600}
+.asub .md2{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+.asub b{color:var(--gold)}
+.asub .inn{color:#7CF5C1;font-weight:700}
+.asubnote{text-align:center;font-size:.6rem;color:#B9A6C6;margin-top:5px}
 .ngwcard{width:100%;border:none;text-align:left;font-family:inherit}
 .ngwcard .arr2{float:right;color:var(--p3);font-weight:700}
 /* players view */
@@ -543,7 +553,8 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
 .mtm{display:block;font-style:normal;font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px}
 .mtrow{display:flex;justify-content:space-between;max-width:340px;margin-top:12px;gap:10px}
 .mtrow b{font-family:'Saira Condensed';font-size:1.55rem;display:block;line-height:1}
-.mtrow i{font-style:normal;font-size:.54rem;letter-spacing:.08em;color:rgba(255,255,255,.65);font-weight:700;text-transform:uppercase}
+.mtrow i{font-style:normal;font-size:.54rem;letter-spacing:.08em;color:rgba(255,255,255,.65);font-weight:700;text-transform:uppercase;white-space:nowrap}
+@media(max-width:480px){.mtrow{gap:6px}.mtrow b{font-size:1.15rem}.mtrow i{font-size:.5rem;letter-spacing:.04em}}
 .mtstar{display:block;margin-top:11px;font-size:.72rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mtstar i{font-style:normal;font-size:.54rem;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-right:6px}
 /* gradient matchup cards — one per derby, 5th for the preview button */
@@ -794,6 +805,32 @@ function xpBlendOf(p){ // Expected view: played → xP (deserved), not yet playe
 }
 function fxFinished(club){const f=(D.cf||[]).find(x=>num(x.GW)===D.gw&&(x.Home===club||x.Away===club));return !!(f&&fin(f.Finished))}
 
+/* ---- predicted auto-subs: a starter whose fixture is FINISHED with 0 minutes
+   gets replaced by the first viable bench player (bench slot order) that keeps
+   the formation legal (exactly 1 GKP, ≥3 DEF, ≥2 MID, ≥1 FWD; GK only for GK).
+   FPL confirms these at gameweek end — we forecast them the moment they lock. ---- */
+function autoSubs(team){
+  const xi=xiOf(team).slice(),bench=benchOf(team);
+  const zeroed=p=>{const r=gwsRow(p.Code);return fxFinished(p.Club)&&(!r||!num(r.Mins));};
+  const cnt=(l,pos)=>l.reduce((s,x)=>s+(x.Pos===pos?1:0),0);
+  const legal=l=>cnt(l,'GKP')===1&&cnt(l,'DEF')>=3&&cnt(l,'MID')>=2&&cnt(l,'FWD')>=1;
+  const subs=[],used=new Set(),replaced=new Set();
+  bench.forEach(b=>{
+    if(zeroed(b)||used.has(b.Code))return; // a bench player already benched-out by his own finished 0-min game can't come in
+    for(let i=0;i<xi.length;i++){
+      const p=xi[i];
+      if(replaced.has(p.Code)||!zeroed(p))continue;
+      if((p.Pos==='GKP')!==(b.Pos==='GKP'))continue;
+      const trial=xi.slice();trial[i]=b;
+      if(!legal(trial))continue;
+      xi[i]=b;used.add(b.Code);replaced.add(p.Code);subs.push({out:p,inn:b});
+      break;
+    }
+  });
+  return{xi:xi,subs:subs};
+}
+function effXiOf(team){return autoSubs(team).xi}
+
 /* ---- house TOTW: a 10+ point haul, live at full time (bonus counts when it lands),
    worn until the player's NEXT match finishes — i.e., it lasts one week ---- */
 const TOTW_HAUL=10;
@@ -829,9 +866,9 @@ function formDelta(p){
 }
 const dynOvr=p=>ovrOf(p)+formDelta(p);
 
-function teamProj(team){return xiOf(team).reduce((s,p)=>s+projOf(p),0)}
+function teamProj(team){return effXiOf(team).reduce((s,p)=>s+projOf(p),0)} // effective XI: predicted auto-subs included
 function teamXP(team){return xiOf(team).reduce((s,p)=>s+xpOf(gwsRow(p.Code)),0)}
-function teamXPBlend(team){return xiOf(team).reduce((s,p)=>s+xpBlendOf(p),0)}
+function teamXPBlend(team){return effXiOf(team).reduce((s,p)=>s+xpBlendOf(p),0)}
 function teamEP(team,epMap){return xiOf(team).reduce((s,p)=>{const e=epMap[String(p.Code)];return s+(e||0)},0)}
 
 /* ================= cards ================= */
@@ -900,8 +937,9 @@ function faceImgHTML(p){
 }
 function card(p,i){
   const t=tierOf(p),o=dynOvr(p),fd=formDelta(p);
-  const tag=t==='potm'?'POTM':t==='totw'?'TOTW':t==='spec'?(p.Drafted||'').split('.')[0]:'';
-  return '<button class="fc '+t+'" data-i="'+i+'" aria-label="'+esc(p.Player)+'">'
+  const sm=SUBMARK[p.Code]||''; // predicted auto-sub marker: 'in' | 'out' (set by renderMatch only)
+  const tag=sm==='in'?'SUB':sm==='out'?'OUT':(t==='potm'?'POTM':t==='totw'?'TOTW':t==='spec'?(p.Drafted||'').split('.')[0]:'');
+  return '<button class="fc '+t+(sm?' sub'+sm:'')+'" data-i="'+i+'" aria-label="'+esc(p.Player)+'">'
    +cardBg(t)
    +(tag?'<span class="tag">'+tag+'</span>':'')
    +('isud'.indexOf(p.Status)>-1?'<span class="inj">INJ</span>':'')
@@ -1000,7 +1038,7 @@ function rowsFor(xi,mirror){
       +c.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>').join('');
   }).join('');
 }
-function liveScoreOf(team){return xiOf(team).reduce((s,p)=>s+num(p['GW pts']),0)}
+function liveScoreOf(team){return effXiOf(team).reduce((s,p)=>s+num(p['GW pts']),0)} // predicted auto-subs count once locked; FPL's own total is the floor via mscore's max()
 function seasonTot(p){
   // during GW1 the API's season totals can still hold last season's numbers
   return D.gwsDone===0?Math.round(num(p['GW pts'])):Math.round(num(p['Season pts']));
@@ -1016,7 +1054,7 @@ function nextFixture(club){
 }
 
 /* ================= gameweek ================= */
-let BENCHOPEN=false,XPMODE=false;
+let BENCHOPEN=false,XPMODE=false,SUBMARK={};
 function renderGW(){
   buildH2H();
   const rows=D.fx.filter(f=>num(f.GW)===D.gw);
@@ -1034,6 +1072,7 @@ function mscore(f){
   return{done,liveNow,hs,as2,score:(done||liveNow)?(hs+' – '+as2):'vs'};
 }
 function renderScoreboard(rows,dl){
+  SUBMARK={}; // sub treatments only live inside a matchup detail
   document.getElementById('gwbody').innerHTML=
    '<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
    +(dl?' · deadline '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase():'')+'</div>'
@@ -1066,14 +1105,31 @@ function renderMatch(f,dl){
   const s=mscore(f);
   const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
   const hXI=xiOf(f.Home),aXI=xiOf(f.Away);
+  const hAS=autoSubs(f.Home),aAS=autoSubs(f.Away);
+  /* effective XI on the pitch: predicted sub-ins wear the SUB treatment; the
+     replaced starters drop to the bench row, dimmed. TBD until FPL finalizes. */
+  SUBMARK={};[hAS,aAS].forEach(as=>as.subs.forEach(s2=>{SUBMARK[s2.inn.Code]='in';SUBMARK[s2.out.Code]='out';}));
+  const hEff=hAS.xi,aEff=aAS.xi;
+  const benchEff=(t,as)=>{const inn=new Set(as.subs.map(s2=>s2.inn.Code));
+    return benchOf(t).filter(b=>!inn.has(b.Code)).concat(as.subs.map(s2=>s2.out));};
+  const asubStrip=(t,as)=>as.subs.length?'<div class="asub"><span class="md2" style="background:'+(TEAMS[t]?.col||'#999')+'"></span>'
+    +'<b>Projected auto-subs</b> '+as.subs.map(s2=>'<span class="inn">▲ '+esc(s2.inn.Player)+'</span> for '+esc(s2.out.Player)).join(' · ')+'</div>':'';
+  const asubs=asubStrip(f.Away,aAS)+asubStrip(f.Home,hAS)
+    +((hAS.subs.length||aAS.subs.length)?'<div class="asubnote">Already counted in proj final — FPL makes auto-subs official when the gameweek ends.</div>':'');
   const sub=s.done?'FULL TIME':s.liveNow?'● LIVE':(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
   D.xpview=XPMODE&&D.hasXP; // cards render xP/PROJ bubbles in expected mode
   const allPlayed=s.done||xiOf(f.Home).concat(xiOf(f.Away)).every(p=>fxStarted(p.Club));
   const scoreTxt=D.xpview?(fmt1(teamXPBlend(f.Home))+' – '+fmt1(teamXPBlend(f.Away))):s.score;
   const subTxt=D.xpview?(allPlayed?'EXPECTED POINTS':'EXPECTED + PROJECTED'):sub;
   /* the other number stays visible either way */
+  /* one companion number, same trajectory as the scoreboard card:
+     PREDICTED (pre-deadline) → PROJ FINAL (mid-GW) → xP (finished). */
   let scsub='';
-  if(D.hasXP&&!D.xpview)scsub='<div class="scsub">xP <b>'+fmt1(teamXP(f.Home))+'</b> – <b>'+fmt1(teamXP(f.Away))+'</b></div>';
+  if(!D.xpview){
+    if(s.done&&D.hasXP)scsub='<div class="scsub">xP <b>'+fmt1(teamXP(f.Home))+'</b> – <b>'+fmt1(teamXP(f.Away))+'</b></div>';
+    else if(D.dlPassed&&D.hasEP)scsub='<div class="scsub">proj final <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
+    else if(D.hasEP)scsub='<div class="scsub">predicted <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
+  }
   if(D.xpview)scsub='<div class="scsub">actual <b>'+s.hs+'</b> – <b>'+s.as2+'</b></div>';
   const xnote=D.xpview?'<div class="scsub" style="opacity:.8;font-weight:500">Played → what the performance deserved (xP) · yet to play → projected (PROJ). Converges to pure xP when the gameweek ends.</div>':'';
   document.getElementById('gwbody').innerHTML=
@@ -1093,18 +1149,19 @@ function renderMatch(f,dl){
    +'<div class="pbx t"></div><div class="pbx b"></div><div class="six t"></div><div class="six b"></div>'
    +'<div class="goal t"></div><div class="goal b"></div>'
    +'<div style="position:relative;z-index:2">'
-   +'<div class="teamtag"><span class="md" style="background:'+(TEAMS[f.Away]?.col||'#999')+'"></span>'+esc(f.Away)+' · '+formation(aXI)+'</div>'
-   +rowsFor(aXI,false)
-   +'<div class="teamtag" style="margin:8px 0 8px"><span class="md" style="background:'+(TEAMS[f.Home]?.col||'#999')+'"></span>'+esc(f.Home)+' · '+formation(hXI)+'</div>'
-   +rowsFor(hXI,true)
+   +'<div class="teamtag"><span class="md" style="background:'+(TEAMS[f.Away]?.col||'#999')+'"></span>'+esc(f.Away)+' · '+formation(aEff)+'</div>'
+   +rowsFor(aEff,false)
+   +'<div class="teamtag" style="margin:8px 0 8px"><span class="md" style="background:'+(TEAMS[f.Home]?.col||'#999')+'"></span>'+esc(f.Home)+' · '+formation(hEff)+'</div>'
+   +rowsFor(hEff,true)
    +'</div></div>'
+   +asubs
    +'<button class="btoggle" id="btog">'+(BENCHOPEN?'Hide benches':'Show benches')+'</button>'
    +(BENCHOPEN?
      '<div class="subs"><h4>Benches</h4>'
      +'<div class="teamtag" style="margin:0 0 8px"><span class="md" style="background:'+(TEAMS[f.Away]?.col||'#999')+'"></span>'+esc(f.Away)+' bench</div>'
-     +'<div class="prow">'+benchOf(f.Away).map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>'
+     +'<div class="prow">'+benchEff(f.Away,aAS).map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>'
      +'<div class="teamtag" style="margin:14px 0 8px"><span class="md" style="background:'+(TEAMS[f.Home]?.col||'#999')+'"></span>'+esc(f.Home)+' bench</div>'
-     +'<div class="prow">'+benchOf(f.Home).map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>'
+     +'<div class="prow">'+benchEff(f.Home,hAS).map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>'
      +'</div>':'')
    +'</div>';
   document.getElementById('gwbody').onclick=null;
@@ -1158,9 +1215,12 @@ function openProfile(team){
   const maxv=Math.max(...gws.map(g=>Math.max(agg.gws[g].act,agg.gws[g].x)),10);
   const px=i=>n<2?W/2:PX+i*((W-PX*2)/(n-1)),py=v=>H-PY-(v/maxv)*(H-PY*2);
   const line=key=>gws.map((g,i)=>px(i)+','+py(agg.gws[g][key])).join(' ');
-  const dots=key=>gws.map((g,i)=>{const v=agg.gws[g][key],c=key==='act'?col:colX;
+  const dots=key=>gws.map((g,i)=>{const v=agg.gws[g][key],ov=agg.gws[g][key==='act'?'x':'act'],c=key==='act'?col:colX;
+    /* the higher value labels ABOVE its dot, the lower BELOW its own — labels can
+       never meet between the dots (the GW1 Raya-profile collision) */
+    const up=v>ov||(v===ov&&key==='act');
     return '<circle cx="'+px(i)+'" cy="'+py(v)+'" r="4" fill="'+c+'"/>'
-     +'<text x="'+px(i)+'" y="'+(py(v)+(key==='act'?-10:18))+'" font-size="10.5" text-anchor="middle" fill="'+c+'" font-weight="700">'+fmt1(v)+'</text>';}).join('');
+     +'<text x="'+px(i)+'" y="'+(py(v)+(up?-9:16))+'" font-size="10.5" text-anchor="middle" fill="'+c+'" font-weight="700">'+fmt1(v)+'</text>';}).join('');
   const axis=gws.map((g,i)=>'<text x="'+px(i)+'" y="'+(H-5)+'" font-size="8.5" text-anchor="middle" fill="#6B6076" font-weight="700">GW'+g+'</text>').join('');
   const chart=n?'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:260px">'
    +[0.5,1].map(f2=>'<line x1="'+PX+'" y1="'+py(maxv*f2)+'" x2="'+(W-PX)+'" y2="'+py(maxv*f2)+'" stroke="#EEE8F2" stroke-dasharray="3 4"/>').join('')
@@ -1644,6 +1704,7 @@ function plrRow(p){
    +'<span class="ptb"><b>'+num(p['Season pts'])+'</b><span>'+(D.gwsDone>1?plrAvg(p).toFixed(1)+' AVG':'PTS')+'</span></span>'+own+'</div>';
 }
 function renderXIs(){
+  SUBMARK={}; // sub treatments only live inside a matchup detail
   const body=document.getElementById('xisbody');
   if(!D.plr||!D.plr.length){body.innerHTML='<p class="state">The Players tab hasn’t landed in the sheet yet — repaste Code.gs and run refreshAll.</p>';return}
   const club=SUB&&SUB!=='all'?SUB.toUpperCase():null;
@@ -1983,6 +2044,7 @@ document.body.addEventListener('click',e=>{
   const b=e.target.closest('[data-i]');
   if(b&&D.ro[+b.dataset.i])openSheet(D.ro[+b.dataset.i]);
 });
+
 
 /* ================= boot ================= */
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
