@@ -37,7 +37,12 @@ box-shadow:0 3px 14px rgba(55,0,60,.3)}
 .brand{font-weight:700;font-size:.84rem;letter-spacing:.16em}
 .gwpill{margin-left:auto;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
 letter-spacing:.06em;padding:3px 10px;border-radius:12px}
+.gwpill{background:rgba(255,255,255,.18);color:#fff}
 .gwpill.live{background:#3DF59B;color:#063}
+.gwpill.prov{background:#FFF3B0;color:#7A5E14}
+.gwpill.final{background:linear-gradient(160deg,#FBE9A6,#D2A73F);color:var(--p1)}
+.provnote{background:linear-gradient(115deg,#FFF6DC,#FDEFC4);border:1px solid #EDDB9C;border-left:4px solid var(--gold);
+border-radius:12px;padding:10px 14px;margin:10px 0 2px;font-size:.74rem;line-height:1.55;color:#5C4A12}
 /* ---------- page heroes (slim bars) ---------- */
 .hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;margin:0 -12px;
 padding:11px 18px 10px;display:flex;align-items:baseline;gap:12px}
@@ -169,7 +174,8 @@ padding:0;cursor:pointer;flex:none;container-type:inline-size;transition:transfo
 .fc .tag{position:absolute;top:4%;left:50%;transform:translateX(-50%);z-index:3;background:var(--gold);color:var(--p1);
 font-size:5.8cqw;font-weight:700;letter-spacing:.12em;padding:1.4% 5.5%;border-radius:9cqw;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap}
 .fc .pts{position:absolute;top:4.5%;right:7.5%;z-index:2;text-align:center;line-height:.85;font-family:'Saira Condensed';font-weight:600;
-background:var(--bub);border:1px solid var(--ln1);border-radius:12cqw;padding:3.5% 5.5% 3%;min-width:17%;box-shadow:0 2px 5px rgba(20,10,25,.25)}
+background:var(--bub);border:1px solid var(--ln1);border-radius:14cqw;padding:4% 5% 3.5%;min-width:27%;font-size:13.5cqw;box-shadow:0 2px 5px rgba(20,10,25,.25)}
+.fc .pts i{display:block;margin-top:.6cqw}
 .fc .pts b{display:block;font-size:13.5cqw;color:var(--bubn)}
 .fc .pts i{font-style:normal;font-size:5.4cqw;letter-spacing:.14em;opacity:.85;color:var(--bubn)}
 .fc .face{position:absolute;top:6%;left:8%;right:8%;height:61%;z-index:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
@@ -182,6 +188,7 @@ font-size:10.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 padding:2.8% 2px 2%;border-top:1px solid var(--ln1);color:var(--tx)}
 .fc .meta{position:absolute;left:0;right:0;top:80.5%;z-index:2;display:flex;align-items:center;justify-content:center;gap:5%}
 .fc .meta img,.fc .meta svg{width:15%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.fc .meta img.crest{aspect-ratio:auto 1/1}.fc .meta img.flag{aspect-ratio:auto 4/3}
 .fc .meta .sep{width:1px;height:10cqw;background:var(--ln2)}
 .fc .inj{position:absolute;top:27%;left:8.5%;z-index:3;background:#D6001C;color:#fff;font-size:5.6cqw;
 font-weight:700;padding:1.2% 4%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0,0,.4);letter-spacing:.06em}
@@ -726,11 +733,11 @@ const badgeImg=(club,px)=>{
   const code=D.clubs[club];
   const src=code?('https://resources.premierleague.com/premierleague/badges/50/t'+code+'.png')
     :(CLUBDOM[club]?('https://www.google.com/s2/favicons?domain='+CLUBDOM[club]+'&sz=64'):'');
-  return src?'<img class="crest"'+(px?' style="height:'+px+'px"':'')+' loading="lazy" src="'+src+'" alt="'+esc(club)+'" onerror="this.style.display=\'none\'">':'';
+  return src?'<img class="crest"'+(px?' style="height:'+px+'px"':'')+' decoding="async" src="'+src+'" alt="'+esc(club)+'" onerror="this.style.display=\'none\'">':'';
 };
 const face=c=>'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+c+'.png';
 const face250=c=>'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+c+'.png';
-const flagImg=(n,px)=>n?'<img loading="lazy" style="'+(px?'height:'+px+'px;':'')+'border-radius:2px" src="https://flagcdn.com/w80/'+String(n).toLowerCase()+'.png" alt="'+esc(NAT[n]||n)+'" onerror="this.style.display=\'none\'">':'';
+const flagImg=(n,px)=>n?'<img decoding="async" class="flag" style="'+(px?'height:'+px+'px;':'')+'border-radius:2px" src="https://flagcdn.com/w80/'+String(n).toLowerCase()+'.png" alt="'+esc(NAT[n]||n)+'" onerror="this.style.display=\'none\'">':'';
 const mg=(name,sm)=>{const t=TEAMS[name];return t?'<span class="mg'+(sm?' sm':'')+'" style="background:'+t.col+'">'+t.ini+'</span>':''};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
 const dt=s=>{const d=s?new Date(String(s).replace(/^'/,'')):null;return(d&&!isNaN(d))?d:null};
@@ -1038,7 +1045,29 @@ function rowsFor(xi,mirror){
       +c.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>').join('');
   }).join('');
 }
-function liveScoreOf(team){return effXiOf(team).reduce((s,p)=>s+num(p['GW pts']),0)} // predicted auto-subs count once locked; FPL's own total is the floor via mscore's max()
+/* Provisional bonus: FPL shows BPS live but folds bonus into totals later. For any finished
+   fixture whose players all still show Bonus 0, rank BPS and award 3/2/1 with FPL's tie rules
+   (ties share the tier and consume the places below). Cleared automatically per fixture the
+   moment official bonus lands, and entirely when the GW is confirmed. */
+function computeProvBonus(curFx){
+  const pb={};
+  (curFx||[]).forEach(f=>{
+    if(!fin(f.Finished))return;
+    const rows=Object.values(D.gwsCur||{}).filter(r=>(r.Club===f.Home||r.Club===f.Away)&&r.Mins>0);
+    if(!rows.length||rows.some(r=>r.Bonus>0))return;
+    const vals=[...new Set(rows.map(r=>r.BPS))].sort((a,b)=>b-a);
+    let pos=0;
+    for(const v of vals){
+      if(pos>=3)break;
+      const tier=[3,2,1][pos];
+      const winners=rows.filter(r=>r.BPS===v);
+      winners.forEach(r=>{pb[String(r.Code)]=tier});
+      pos+=winners.length;
+    }
+  });
+  return pb;
+}
+function liveScoreOf(team){return effXiOf(team).reduce((s,p)=>s+num(p['GW pts'])+((D.pbonus||{})[String(p.Code)]||0),0)} // predicted auto-subs count once locked; FPL's own total is the floor via mscore's max()
 function effPtsOf(f,team){ // a fixture's score for one team, live-corrected exactly like the scoreboard (analysis must agree with it)
   const raw=f.Home===team?num(f['Home pts']):num(f['Away pts']);
   if(num(f.GW)===D.gw&&!fin(f.Finished)&&(D.dlPassed||raw>0))return Math.max(raw,liveScoreOf(team));
@@ -1082,12 +1111,15 @@ function renderScoreboard(rows,dl){
   document.getElementById('gwbody').innerHTML=
    '<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
    +(dl?' · deadline '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase():'')+'</div>'
+   +(D.provOver?'<div class="provnote"><b>All matches finished — provisional result.</b> '
+     +(Object.keys(D.pbonus||{}).length?'Estimated bonus (from live BPS) is counted. ':'')
+     +'FPL usually confirms within a few hours; bonus and late stat amendments can still move points.</div>':'')
    +rows.map((f,i)=>{
      const s=mscore(f);
      const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
      /* xP once the GW is done; projected final while it runs; pure prediction pre-deadline */
      let xline='';
-     if(s.done&&D.hasXP)
+     if((s.done||D.provOver)&&D.hasXP)
        xline='<div class="xline"><span class="xlab xp">XP</span><b>'+fmt1(teamXP(f.Home))+'</b>–<b>'+fmt1(teamXP(f.Away))+'</b></div>';
      else if(D.dlPassed&&D.hasEP)
        xline='<div class="xline"><span class="xlab proj">PROJ FINAL</span><b>'+fmt1(teamProj(f.Home))+'</b>–<b>'+fmt1(teamProj(f.Away))+'</b></div>';
@@ -1098,7 +1130,7 @@ function renderScoreboard(rows,dl){
       +'<div class="mrow">'+mg(f.Home)+'<span class="tn2">'+esc(f.Home)+'<em>'+esc(TEAMS[f.Home]?.mgr||'')+'</em></span>'
       +'<span class="sc">'+s.score+'</span>'
       +'<span class="tn2 a">'+esc(f.Away)+'<em>'+esc(TEAMS[f.Away]?.mgr||'')+'</em></span>'+mg(f.Away)+'</div>'
-      +'<div class="st'+(s.liveNow?' live':'')+'">'+(s.done?'FULL TIME':s.liveNow?'● LIVE':'TAP FOR LINEUPS')+'</div>'
+      +'<div class="st'+(s.liveNow&&!D.provOver?' live':'')+'">'+(s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'● LIVE'):'TAP FOR LINEUPS')+'</div>'
       +(sr?'<div class="msr">All-time: '+esc(sr)+'</div>':'')
       +xline
       +'</div>';
@@ -1122,7 +1154,7 @@ function renderMatch(f,dl){
     +'<b>Projected auto-subs</b> '+as.subs.map(s2=>'<span class="inn">▲ '+esc(s2.inn.Player)+'</span> for '+esc(s2.out.Player)).join(' · ')+'</div>':'';
   const asubs=asubStrip(f.Away,aAS)+asubStrip(f.Home,hAS)
     +((hAS.subs.length||aAS.subs.length)?'<div class="asubnote">Already counted in proj final — FPL makes auto-subs official when the gameweek ends.</div>':'');
-  const sub=s.done?'FULL TIME':s.liveNow?'● LIVE':(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
+  const sub=s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'● LIVE'):(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
   D.xpview=XPMODE&&D.hasXP; // cards render xP/PROJ bubbles in expected mode
   const allPlayed=s.done||xiOf(f.Home).concat(xiOf(f.Away)).every(p=>fxStarted(p.Club));
   const scoreTxt=D.xpview?(fmt1(teamXPBlend(f.Home))+' – '+fmt1(teamXPBlend(f.Away))):s.score;
@@ -1132,7 +1164,7 @@ function renderMatch(f,dl){
      PREDICTED (pre-deadline) → PROJ FINAL (mid-GW) → xP (finished). */
   let scsub='';
   if(!D.xpview){
-    if(s.done&&D.hasXP)scsub='<div class="scsub">xP <b>'+fmt1(teamXP(f.Home))+'</b> – <b>'+fmt1(teamXP(f.Away))+'</b></div>';
+    if((s.done||D.provOver)&&D.hasXP)scsub='<div class="scsub">xP <b>'+fmt1(teamXP(f.Home))+'</b> – <b>'+fmt1(teamXP(f.Away))+'</b></div>';
     else if(D.dlPassed&&D.hasEP)scsub='<div class="scsub">proj final <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
     else if(D.hasEP)scsub='<div class="scsub">predicted <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
   }
@@ -2113,11 +2145,18 @@ function loadAll(quiet){
     const curDl=cur?dt(cur['Deadline (UTC)']):null;
     const anyLivePts=ro.some(r=>num(r['GW pts'])>0||num(r['GW mins'])>0);
     D.dlPassed=!!(curDl&&Date.now()>curDl.getTime());
+    /* provisional full time: every current-GW fixture at the whistle, FPL yet to close the GW */
+    const curFx=cf.filter(f=>num(f.GW)===D.gw);
+    D.provOver=!!(D.dlPassed&&curFx.length&&curFx.every(f=>fin(f.Finished))&&cur&&!fin(cur.Finished));
+    D.pbonus=D.dlPassed?computeProvBonus(curFx):{};
     D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||D.dlPassed;
     const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&(D.dlPassed||anyLivePts);
     const pill=document.getElementById('gwpill');
-    pill.textContent='GW'+D.gw+(liveNow?' · LIVE':'');
-    pill.classList.toggle('live',liveNow);
+    const finalMode=!D.dlPassed&&D.gwsDone>0&&!liveNow&&!D.provOver;
+    pill.textContent=finalMode?('GW'+D.gwsDone+' · FINAL'):('GW'+D.gw+(D.provOver?' · PROVISIONAL':liveNow?' · LIVE':''));
+    pill.classList.toggle('live',liveNow&&!D.provOver);
+    pill.classList.toggle('prov',D.provOver);
+    pill.classList.toggle('final',finalMode);
     LOADED=Date.now();
     renderGW();renderTable();renderXIs();renderAct();renderAna();
   }).catch(e=>{
