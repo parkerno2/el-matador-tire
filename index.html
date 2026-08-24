@@ -41,6 +41,8 @@ letter-spacing:.06em;padding:3px 10px;border-radius:12px}
 .gwpill.live{background:#3DF59B;color:#063}
 .gwpill.prov{background:#FFF3B0;color:#7A5E14}
 .gwpill.final{background:linear-gradient(160deg,#FBE9A6,#D2A73F);color:var(--p1)}
+.provtag{display:inline-block;background:#FFF3B0;color:#7A5E14;font-size:.56rem;font-weight:700;letter-spacing:.08em;
+text-transform:uppercase;padding:2px 9px;border-radius:12px;margin-left:8px;vertical-align:2px;flex:none}
 .provnote{background:linear-gradient(115deg,#FFF6DC,#FDEFC4);border:1px solid #EDDB9C;border-left:4px solid var(--gold);
 border-radius:12px;padding:10px 14px;margin:10px 0 2px;font-size:.74rem;line-height:1.55;color:#5C4A12}
 /* ---------- page heroes (slim bars) ---------- */
@@ -1689,7 +1691,7 @@ function renderTable(){
      +'</div>';
   }
   document.getElementById('tablebody').innerHTML=
-   race+'<h2>Standings</h2><div class="card" style="padding:6px 8px">'
+   race+'<h2>Standings'+(D.provOver?'<span class="provtag">GW'+D.gw+' provisional included</span>':'')+'</h2><div class="card" style="padding:6px 8px">'
    +'<div class="trow thead"><span></span><span></span><span style="text-align:left">TEAM</span>'
    +'<span>W</span><span>D</span><span>L</span><span class="lp2">PTS</span></div>'
    +st.map((s,i)=>{const v=sim.title[s.Team]||0,tc=TEAMS[s.Team]?.col||'#5B1A66';
@@ -2149,6 +2151,19 @@ function loadAll(quiet){
     const curFx=cf.filter(f=>num(f.GW)===D.gw);
     D.provOver=!!(D.dlPassed&&curFx.length&&curFx.every(f=>fin(f.Finished))&&cur&&!fin(cur.Finished));
     D.pbonus=D.dlPassed?computeProvBonus(curFx):{};
+    if(D.provOver){
+      const eff={};st.forEach(s=>{eff[s.Team]={...s}});
+      fx.filter(f=>num(f.GW)===D.gw&&!fin(f.Finished)).forEach(f=>{
+        const hs=Math.max(num(f['Home pts']),liveScoreOf(f.Home)),as2=Math.max(num(f['Away pts']),liveScoreOf(f.Away));
+        const H=eff[f.Home],A=eff[f.Away];if(!H||!A)return;
+        H['Pts For']=num(H['Pts For'])+hs;H['Pts Against']=num(H['Pts Against'])+as2;
+        A['Pts For']=num(A['Pts For'])+as2;A['Pts Against']=num(A['Pts Against'])+hs;
+        if(hs>as2){H.W=num(H.W)+1;H['League Pts']=num(H['League Pts'])+3;A.L=num(A.L)+1;}
+        else if(as2>hs){A.W=num(A.W)+1;A['League Pts']=num(A['League Pts'])+3;H.L=num(H.L)+1;}
+        else{H.D=num(H.D)+1;A.D=num(A.D)+1;H['League Pts']=num(H['League Pts'])+1;A['League Pts']=num(A['League Pts'])+1;}
+      });
+      D.stOfficial=D.st;D.st=D.st.map(s=>eff[s.Team]||s);
+    }
     D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||D.dlPassed;
     const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&(D.dlPassed||anyLivePts);
     const pill=document.getElementById('gwpill');
