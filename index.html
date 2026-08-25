@@ -50,6 +50,10 @@ border:1px solid #4A1355;border-left:4px solid var(--gold);border-radius:12px;pa
 color:#fff;text-decoration:none;box-shadow:0 3px 12px rgba(55,0,60,.25);margin-top:14px}
 .recapcard .new{background:var(--gold);color:var(--p1);font-size:.5rem;font-weight:700;letter-spacing:.08em;
 padding:1px 7px;border-radius:8px;margin-left:7px;vertical-align:1px}
+.recapcard.prev{border-left-color:#3DF59B}
+.recapcard.prev .rk{color:#7FE8B4}
+.recapcard.prev .go{background:#3DF59B;color:#063}
+.recapcard.prev .new{background:#3DF59B;color:#063}
 .recapcard .rk{font-size:.56rem;font-weight:700;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase}
 .recapcard .rt{font-size:.84rem;font-weight:700;margin-top:3px;line-height:1.3}
 .recapcard .rs{font-size:.64rem;color:#C9BAD6;margin-top:2px;line-height:1.4}
@@ -1118,15 +1122,30 @@ const RECAPS=[
   {gw:1,href:'recap-gw1.html',title:'El Clásico flips on Monday night, a 66 lands, and a penalty hits the post',
    sub:'Four matches, the numbers behind them, and the first waiver watch'}
 ];
+const PREVIEWS=[
+  {gw:2,href:'preview-gw2.html',title:'A coin-flip at the top, Watkins in limbo, and Isak\u2019s Anfield debut',
+   sub:'Predicted scores, team news and the numbers to watch for all four matchups'}
+];
 const RECAP_HIDE_H=30;
-function recapCardHTML(){
+function gwDeadline(g){const w=D.mw.find(x=>num(x.GW)===g);return w?dt(w['Deadline (UTC)']):null}
+function contentCardsHTML(){
+  let out='';
   const r=RECAPS.find(r=>r.gw===D.gw&&D.provOver)||RECAPS.find(r=>r.gw===D.gwsDone);
-  if(!r)return'';
-  const nxt=D.mw.find(x=>num(x.GW)===r.gw+1);
-  const ndl=nxt?dt(nxt['Deadline (UTC)']):null;
-  if(ndl&&Date.now()>ndl.getTime()-RECAP_HIDE_H*36e5)return'';
-  return'<a class="recapcard" href="'+r.href+'"><div><div class="rk">📰 Gameweek '+r.gw+' recap<span class="new">NEW</span></div>'
-    +'<div class="rt">'+r.title+'</div><div class="rs">'+r.sub+'</div></div><span class="go">READ</span></a>';
+  if(r){
+    const ndl=gwDeadline(r.gw+1);
+    if(!(ndl&&Date.now()>ndl.getTime()-RECAP_HIDE_H*36e5))
+      out+='<a class="recapcard" href="'+r.href+'"><div><div class="rk">📰 Gameweek '+r.gw+' recap<span class="new">NEW</span></div>'
+        +'<div class="rt">'+r.title+'</div><div class="rs">'+r.sub+'</div></div><span class="go">READ</span></a>';
+  }
+  /* a preview lives until its own deadline passes — kickoff weekend switches the app to live mode anyway */
+  const p=PREVIEWS.find(p=>p.gw===D.gw||p.gw===D.gwsDone+1);
+  if(p){
+    const dl=gwDeadline(p.gw);
+    if(!(dl&&Date.now()>dl.getTime()))
+      out+='<a class="recapcard prev" href="'+p.href+'"><div><div class="rk">🔭 Gameweek '+p.gw+' preview<span class="new">NEW</span></div>'
+        +'<div class="rt">'+p.title+'</div><div class="rs">'+p.sub+'</div></div><span class="go">READ</span></a>';
+  }
+  return out;
 }
 function renderGW(){
   buildH2H();
@@ -1147,7 +1166,7 @@ function mscore(f){
 function renderScoreboard(rows,dl){
   SUBMARK={}; // sub treatments only live inside a matchup detail
   document.getElementById('gwbody').innerHTML=
-   recapCardHTML()
+   contentCardsHTML()
    +'<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
    +(dl?' · deadline '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase():'')+'</div>'
    +(D.provOver?'<div class="provnote"><b>All matches finished — provisional result.</b> '
