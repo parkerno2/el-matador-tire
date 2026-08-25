@@ -673,11 +673,16 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
 <script>
 /* ================= config ================= */
 const SHEET='1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
+/* FPL allows mid-season team renames (Ethan, 25 Aug: Maize 'n' Mount -> I Am a Baleba).
+   Canonicalize every sheet cell to the CURRENT name so static config, GW Log history, series
+   and standings all agree. One line per rename, old -> current. */
+const TEAM_ALIAS={'Maize ‘n’ Mount':'I Am a Baleba'};
+const canonTeam=v=>(typeof v==='string'&&TEAM_ALIAS[v])?TEAM_ALIAS[v]:v;
 const TEAMS={'Cold Palmers':{mgr:'Parker Nolan',ini:'PN',col:'#2E5BFF',xi:1185,lo:904,hi:1466},
 'Trophy Hunters':{mgr:'Bryant Scantlebury',ini:'BS',col:'#8E44AD',xi:1215,lo:865,hi:1565},
 'The Soaring Gulls':{mgr:'CJ Taunt',ini:'CT',col:'#00A88F',xi:1170,lo:889,hi:1451},
 'Devils U21s':{mgr:'PJ Nolan',ini:'PJ',col:'#D6001C',xi:1117,lo:846,hi:1388},
-'Maize ‘n’ Mount':{mgr:'Ethan Gould',ini:'EG',col:'#F0B323',xi:1243,lo:946,hi:1540},
+'I Am a Baleba':{mgr:'Ethan Gould',ini:'EG',col:'#F0B323',xi:1243,lo:946,hi:1540},
 'Kobbie Mainoo Fan':{mgr:'Baha Kharoofa',ini:'BK',col:'#E8710A',xi:940,lo:703,hi:1177},
 'Team Jacob':{mgr:'Jacob Sodini',ini:'JS',col:'#795548',xi:1137,lo:871,hi:1403}, // colour changed from #1B7F79 (clashed with CJ's teal)
 'In It to McGinn It':{mgr:'Nate Grahn',ini:'NG',col:'#B5179E',xi:1051,lo:787,hi:1315}};
@@ -729,7 +734,7 @@ function readTab(name){
         if(!j.table)throw new Error('no table');
         const cols=j.table.cols.map(c=>c.label||c.id);
         resolve(j.table.rows.map(row=>{const o={};row.c.forEach((c,i)=>{if(!cols[i])return;
-          let v=c?((c.f!==undefined&&c.f!==null)?c.f:c.v):'';o[cols[i]]=(v===null?'':v)});return o}));
+          let v=c?((c.f!==undefined&&c.f!==null)?c.f:c.v):'';o[cols[i]]=canonTeam(v===null?'':v)});return o}));
       }catch(e){reject(e)}
     };
     s.src='https://docs.google.com/spreadsheets/d/'+SHEET+'/gviz/tq?'
@@ -1680,6 +1685,7 @@ function simulate(){
   for(let s=0;s<N;s++){
     const p={...pts},q={...pf};
     for(const[h,a]of remain){
+      if(!M[h]||!M[a])continue; /* unaliased rename — degrade, don't crash */
       const hs=Math.max(0,Math.round(M[h].mean+M[h].sd*gauss()));
       const as_=Math.max(0,Math.round(M[a].mean+M[a].sd*gauss()));
       q[h]+=hs;q[a]+=as_;
