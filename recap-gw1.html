@@ -15,9 +15,12 @@ background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed
 .wrap{max-width:700px;margin:0 auto;padding:0 12px 40px}
 /* header */
 .hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;
-padding:14px 18px 12px;display:flex;align-items:center;gap:12px}
+padding:calc(12px + env(safe-area-inset-top)) 14px 11px 18px;display:flex;align-items:center;gap:10px;
+position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(30,0,40,.35)}
+.sh-x{background:rgba(255,255,255,.16);border:none;color:#fff;width:28px;height:28px;flex:none;
+border-radius:50%;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;text-decoration:none}
 .hero h1{font-size:1.02rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
-.gwpill{margin-left:auto;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
+.gwpill{margin-left:auto;flex:none;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
 letter-spacing:.06em;padding:3px 10px;border-radius:12px;white-space:nowrap}
 .stand{background:linear-gradient(115deg,#31054E,#37003C);color:#fff;padding:9px 18px 11px;font-size:.72rem;
 color:#D9CCE3;line-height:1.5;border-bottom:2px solid rgba(255,210,63,.5)}
@@ -31,15 +34,18 @@ box-shadow:0 1px 3px rgba(55,0,60,.06),0 4px 14px rgba(55,0,60,.09);padding:0;ma
 .srow{display:flex;align-items:center;gap:10px;margin-top:6px}
 .tm{flex:1;min-width:0}
 .tm .tn{font-size:.78rem;font-weight:700;line-height:1.15}
+.tm.win .tn{color:var(--gold)}
 .tm .mg{font-size:.6rem;color:#C9BAD6;letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
 .tm.away{text-align:right}
 .sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:.02em;
 white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
 .sc .w{color:var(--gold)}.sc .d{opacity:.45;font-size:1.3rem;vertical-align:6px;padding:0 4px}
 /* player strip */
-.pstrip{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);
+.pstrip{display:flex;align-items:center;gap:12px;padding:11px 14px 10px;border-bottom:1px solid var(--line);
 background:linear-gradient(180deg,#FBF9FD,#fff)}
-.ph{width:52px;height:52px;border-radius:50%;flex:none;background:#EDE5F3 center/cover no-repeat;
+.pk{font-size:.5rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--goldd);margin-bottom:2px}
+.pk.low{color:var(--bad)}
+.ph{width:56px;height:56px;box-shadow:0 3px 8px rgba(55,0,60,.18);border-radius:50%;flex:none;background:#EDE5F3 center/cover no-repeat;
 border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
 font-weight:700;color:var(--p2);font-size:1rem;overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:cover;object-position:top}
@@ -87,7 +93,7 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
 </style>
 </head>
 <body>
-<div class="hero"><a href="index.html" style="color:#fff;text-decoration:none;font-size:.72rem;font-weight:700;opacity:.85;flex:none">←</a><h1>El Matador Tire</h1><span class="gwpill">GW1 · RECAP</span></div>
+<div class="hero"><h1>El Matador Tire</h1><span class="gwpill">GW1 · RECAP</span><a class="sh-x" href="index.html" aria-label="Close">×</a></div>
 <div class="stand">Five clubs debuted new managers, <b>11 of the league's 88 starters never played</b>, and the auto-subs quietly scored 39 points. Oh, and somebody dropped a 66.</div>
 <div class="wrap">
 
@@ -99,10 +105,10 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
   <div class="srow">
    <div class="tm"><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
    <div class="sc">36<span class="d">–</span><span class="w">46</span></div>
-   <div class="tm away"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
+   <div class="tm away win"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="244851">CP</div>
-  <div class="pinfo"><div class="pname">COLE PALMER <span>· MID · CHE</span></div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">COLE PALMER <span>· MID · CHE</span></div>
    <div class="pline">Set up the opener, released Lacroix for the second, finished the third through Leno's legs. All three bonus.</div></div>
   <div class="ppts">13<small>PTS</small></div></div>
  <div class="mbody">
@@ -123,10 +129,10 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
   <div class="srow">
    <div class="tm"><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
    <div class="sc">25<span class="d">–</span><span class="w">34</span></div>
-   <div class="tm away"><div class="tn">Maize 'n' Mount</div><div class="mg">Ethan</div></div>
+   <div class="tm away win"><div class="tn">Maize 'n' Mount</div><div class="mg">Ethan</div></div>
   </div></div>
  <div class="pstrip"><div class="ph low" data-code="502500">IT</div>
-  <div class="pinfo"><div class="pname">IGOR THIAGO <span>· FWD · BRE</span></div>
+  <div class="pinfo"><div class="pk low">The zero</div><div class="pname">IGOR THIAGO <span>· FWD · BRE</span></div>
    <div class="pline">82 minutes, a headed goal ruled offside, then a 55th-minute penalty off the post — a penalty won by Parker's Schade.</div></div>
   <div class="ppts low">0<small>PTS</small></div></div>
  <div class="mbody">
@@ -145,12 +151,12 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
 <div class="card">
  <div class="mhead"><div class="kick">The Gamer Derby · First Meeting</div>
   <div class="srow">
-   <div class="tm"><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
+   <div class="tm win"><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
    <div class="sc"><span class="w">45</span><span class="d">–</span>33</div>
    <div class="tm away"><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="243298">CG</div>
-  <div class="pinfo"><div class="pname">CODY GAKPO <span>· MID · LIV</span></div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">CODY GAKPO <span>· MID · LIV</span></div>
    <div class="pline">Cut inside and drove one in from outside the box in the 2–2 at Newcastle. One point still under review.</div></div>
   <div class="ppts">12<small>PTS</small></div></div>
  <div class="mbody">
@@ -171,10 +177,10 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
   <div class="srow">
    <div class="tm"><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
    <div class="sc">36<span class="d">–</span><span class="w">66</span></div>
-   <div class="tm away"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
+   <div class="tm away win"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="466525">AS</div>
-  <div class="pinfo"><div class="pname">ANTON STACH <span>· MID · LEE</span></div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">ANTON STACH <span>· MID · LEE</span></div>
    <div class="pline">Curled an 88th-minute free-kick past Sels to win it at Forest — plus a clean sheet and 16 defensive actions.</div></div>
   <div class="ppts">13<small>PTS</small></div></div>
  <div class="mbody">

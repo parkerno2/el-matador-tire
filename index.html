@@ -47,9 +47,11 @@ text-transform:uppercase;padding:2px 9px;border-radius:12px;margin-left:8px;vert
 border-radius:12px;padding:10px 14px;margin:10px 0 2px;font-size:.74rem;line-height:1.55;color:#5C4A12}
 .recapcard{display:flex;align-items:center;gap:12px;background:linear-gradient(115deg,#2E5BFF -40%,#5B1A66 40%,#37003C 110%);
 border:1px solid #4A1355;border-left:4px solid var(--gold);border-radius:12px;padding:11px 14px;margin:10px 0 2px;
-color:#fff;text-decoration:none;box-shadow:0 3px 12px rgba(55,0,60,.25)}
+color:#fff;text-decoration:none;box-shadow:0 3px 12px rgba(55,0,60,.25);margin-top:14px}
+.recapcard .new{background:var(--gold);color:var(--p1);font-size:.5rem;font-weight:700;letter-spacing:.08em;
+padding:1px 7px;border-radius:8px;margin-left:7px;vertical-align:1px}
 .recapcard .rk{font-size:.56rem;font-weight:700;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase}
-.recapcard .rt{font-size:.78rem;font-weight:700;margin-top:2px;line-height:1.3}
+.recapcard .rt{font-size:.84rem;font-weight:700;margin-top:3px;line-height:1.3}
 .recapcard .rs{font-size:.64rem;color:#C9BAD6;margin-top:2px;line-height:1.4}
 .recapcard .go{margin-left:auto;flex:none;background:var(--gold);color:var(--p1);font-weight:700;font-size:.62rem;
 letter-spacing:.06em;padding:5px 11px;border-radius:12px;white-space:nowrap}
@@ -1115,7 +1117,7 @@ function recapCardHTML(){
   const nxt=D.mw.find(x=>num(x.GW)===r.gw+1);
   const ndl=nxt?dt(nxt['Deadline (UTC)']):null;
   if(ndl&&Date.now()>ndl.getTime()-RECAP_HIDE_H*36e5)return'';
-  return'<a class="recapcard" href="'+r.href+'"><div><div class="rk">Gameweek '+r.gw+' recap</div>'
+  return'<a class="recapcard" href="'+r.href+'"><div><div class="rk">📰 Gameweek '+r.gw+' recap<span class="new">NEW</span></div>'
     +'<div class="rt">'+r.title+'</div><div class="rs">'+r.sub+'</div></div><span class="go">READ</span></a>';
 }
 function renderGW(){
@@ -1137,12 +1139,12 @@ function mscore(f){
 function renderScoreboard(rows,dl){
   SUBMARK={}; // sub treatments only live inside a matchup detail
   document.getElementById('gwbody').innerHTML=
-   '<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
+   recapCardHTML()
+   +'<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
    +(dl?' · deadline '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase():'')+'</div>'
    +(D.provOver?'<div class="provnote"><b>All matches finished — provisional result.</b> '
      +(Object.keys(D.pbonus||{}).length?'Estimated bonus (from live BPS) is counted. ':'')
      +'FPL usually confirms within a few hours; bonus and late stat amendments can still move points.</div>':'')
-   +recapCardHTML()
    +rows.map((f,i)=>{
      const s=mscore(f);
      const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
