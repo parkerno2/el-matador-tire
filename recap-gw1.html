@@ -101,7 +101,7 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
    <div class="sc">36<span class="d">–</span><span class="w">46</span></div>
    <div class="tm away"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
   </div></div>
- <div class="pstrip"><div class="ph" data-player="Palmer">CP</div>
+ <div class="pstrip"><div class="ph" data-code="244851">CP</div>
   <div class="pinfo"><div class="pname">COLE PALMER <span>· MID · CHE</span></div>
    <div class="pline">Set up the opener, released Lacroix for the second, finished the third through Leno's legs. All three bonus.</div></div>
   <div class="ppts">13<small>PTS</small></div></div>
@@ -125,7 +125,7 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
    <div class="sc">25<span class="d">–</span><span class="w">34</span></div>
    <div class="tm away"><div class="tn">Maize 'n' Mount</div><div class="mg">Ethan</div></div>
   </div></div>
- <div class="pstrip"><div class="ph low" data-player="Thiago">IT</div>
+ <div class="pstrip"><div class="ph low" data-code="502500">IT</div>
   <div class="pinfo"><div class="pname">IGOR THIAGO <span>· FWD · BRE</span></div>
    <div class="pline">82 minutes, a headed goal ruled offside, then a 55th-minute penalty off the post — a penalty won by Parker's Schade.</div></div>
   <div class="ppts low">0<small>PTS</small></div></div>
@@ -149,7 +149,7 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
    <div class="sc"><span class="w">45</span><span class="d">–</span>33</div>
    <div class="tm away"><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
   </div></div>
- <div class="pstrip"><div class="ph" data-player="Gakpo">CG</div>
+ <div class="pstrip"><div class="ph" data-code="243298">CG</div>
   <div class="pinfo"><div class="pname">CODY GAKPO <span>· MID · LIV</span></div>
    <div class="pline">Cut inside and drove one in from outside the box in the 2–2 at Newcastle. One point still under review.</div></div>
   <div class="ppts">12<small>PTS</small></div></div>
@@ -173,7 +173,7 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
    <div class="sc">36<span class="d">–</span><span class="w">66</span></div>
    <div class="tm away"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
   </div></div>
- <div class="pstrip"><div class="ph" data-player="Stach">AS</div>
+ <div class="pstrip"><div class="ph" data-code="466525">AS</div>
   <div class="pinfo"><div class="pname">ANTON STACH <span>· MID · LEE</span></div>
    <div class="pline">Curled an 88th-minute free-kick past Sels to win it at Forest — plus a clean sheet and 16 defensive actions.</div></div>
   <div class="ppts">13<small>PTS</small></div></div>
@@ -219,32 +219,19 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
 </div>
 
 <script>
-/* Headshots resolved the same way the app does it: Players tab (Code column) via gviz JSONP.
-   Falls back silently to initials if offline or blocked. */
+/* Headshots: codes fixed at publish time (name lookup burned us — two Palmers in the Players
+   tab). Same cascade as the app: committed face -> PL 250x250 -> PL 110x140 -> initials stay. */
 (function(){
-  var SHEET='1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
-  window.__ph=function(resp){
-    try{
-      var rows=resp.table.rows,map={};
-      rows.forEach(function(r){var c=r.c;if(c&&c[0]&&c[1])map[String(c[1].v)]=String(c[0].v)});
-      document.querySelectorAll('.ph[data-player]').forEach(function(el){
-        var code=map[el.getAttribute('data-player')];
-        if(!code)return;
-        /* same cascade as the app: committed face -> PL 250x250 -> initials */
-        var img=new Image();
-        img.onload=function(){el.textContent='';el.appendChild(img)};
-        img.onerror=function(){
-          img.onerror=null;
-          img.src='https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png';
-        };
-        img.src='faces/'+code+'.png';
-      });
-    }catch(e){}
-  };
-  var s=document.createElement('script');
-  s.src='https://docs.google.com/spreadsheets/d/'+SHEET+'/gviz/tq?tqx=responseHandler:__ph&headers=1&sheet=Players';
-  s.onerror=function(){};
-  document.head.appendChild(s);
+  document.querySelectorAll('.ph[data-code]').forEach(function(el){
+    var code=el.getAttribute('data-code');
+    var srcs=['faces/'+code+'.png',
+      'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png',
+      'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+code+'.png'];
+    var i=0,img=new Image();
+    img.onload=function(){el.textContent='';el.appendChild(img)};
+    img.onerror=function(){if(++i<srcs.length)img.src=srcs[i]};
+    img.src=srcs[0];
+  });
 })();
 </script>
 </body>
