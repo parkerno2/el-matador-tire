@@ -968,7 +968,10 @@ function card(p,i){
      ?(fxStarted(p.Club)
        ?'<span class="pts"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
        :'<span class="pts"><b>'+fmt1(epOf(p.Code)||0)+'</b><i>PROJ</i></span>')
-     :'<span class="pts"><b>'+(D.started?Math.round(num(p['GW pts'])):0)+'</b><i>PTS</i></span>')
+     :(fxStarted(p.Club)
+       ?'<span class="pts"><b>'+Math.round(num(p['GW pts']))+'</b><i>PTS</i></span>'
+       /* pre-match: the player's own prediction, labeled PROJ — never a dead 0 PTS (Parker, 26 Aug) */
+       :'<span class="pts"><b>'+fmt1(epOf(p.Code)||0)+'</b><i>PROJ</i></span>'))
    +'<span class="face">'+faceImgHTML(p)+'</span>'
    +'<span class="nm">'+esc(p.Player)+'</span>'
    +'<span class="meta">'+badgeImg(p.Club,0)+'<span class="sep"></span>'+flagImg(p.Nation,0)+'</span>'
