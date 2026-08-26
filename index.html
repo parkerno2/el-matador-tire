@@ -904,14 +904,7 @@ function ovrOf(p){
   if(p.OVR!==''&&p.OVR!==undefined&&p.OVR!==null&&p.OVR!=0)return Math.round(num(p.OVR));
   return Math.max(62,Math.min(96,Math.round(62+22*num(p['Proj pts'])/170)));
 }
-/* ---- TEMP BANTER PATCH (Parker, 25 Aug): auto-expires 02:32 UTC — clean build redeployed on schedule ---- */
-const PRANK_UNTIL=1787711560000;
-const prankOn=()=>Date.now()<PRANK_UNTIL;
-const prankKMF=p=>prankOn()&&p&&p.Team==='Kobbie Mainoo Fan';
-const prankT=t=>prankOn()&&t==='Kobbie Mainoo Fan';
-const pFmt=(t,v)=>prankT(t)?'\u{1F923}':fmt1(v);
 function tierOf(p){
-  if(prankKMF(p))return'silver';
   if(D.potm&&normN(p.Player)===D.potm)return'potm';
   if(haulTOTW(p))return'totw'; // house rule: 10+ pt haul, live at FT, lasts one week
   if(/^R[12]\./.test(p.Drafted||''))return'spec';
@@ -982,12 +975,12 @@ function card(p,i){
    +(fd?'<span class="fdar '+(fd>0?'up':'dn')+'">'+(fd>0?'▲':'▼')+Math.abs(fd)+'</span>':'')+'</span>'
    +(D.xpview
      ?(fxStarted(p.Club)
-       ?'<span class="pts"><b>'+(prankKMF(p)?'\u{1F923}':fmt1(xpOf(gwsRow(p.Code))))+'</b><i>XP</i></span>'
-       :'<span class="pts"><b>'+(prankKMF(p)?'\u{1F923}':fmt1(epOf(p.Code)||0))+'</b><i>PROJ</i></span>')
+       ?'<span class="pts"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
+       :'<span class="pts"><b>'+fmt1(epOf(p.Code)||0)+'</b><i>PROJ</i></span>')
      :(fxStarted(p.Club)
        ?'<span class="pts"><b>'+Math.round(num(p['GW pts']))+'</b><i>PTS</i></span>'
        /* pre-match: the player's own prediction, labeled PROJ — never a dead 0 PTS (Parker, 26 Aug) */
-       :'<span class="pts"><b>'+(prankKMF(p)?'\u{1F923}':fmt1(epOf(p.Code)||0))+'</b><i>PROJ</i></span>'))
+       :'<span class="pts"><b>'+fmt1(epOf(p.Code)||0)+'</b><i>PROJ</i></span>'))
    +'<span class="face">'+faceImgHTML(p)+'</span>'
    +'<span class="nm">'+esc(p.Player)+'</span>'
    +'<span class="meta">'+badgeImg(p.Club,0)+'<span class="sep"></span>'+flagImg(p.Nation,0)+'</span>'
@@ -1185,11 +1178,11 @@ function renderScoreboard(rows,dl){
      /* xP once the GW is done; projected final while it runs; pure prediction pre-deadline */
      let xline='';
      if((s.done||D.provOver)&&D.hasXP)
-       xline='<div class="xline"><span class="xlab xp">XP</span><b>'+pFmt(f.Home,teamXP(f.Home))+'</b>–<b>'+pFmt(f.Away,teamXP(f.Away))+'</b></div>';
+       xline='<div class="xline"><span class="xlab xp">XP</span><b>'+fmt1(teamXP(f.Home))+'</b>–<b>'+fmt1(teamXP(f.Away))+'</b></div>';
      else if(D.dlPassed&&D.hasEP)
-       xline='<div class="xline"><span class="xlab proj">PROJ FINAL</span><b>'+pFmt(f.Home,teamProj(f.Home))+'</b>–<b>'+pFmt(f.Away,teamProj(f.Away))+'</b></div>';
+       xline='<div class="xline"><span class="xlab proj">PROJ FINAL</span><b>'+fmt1(teamProj(f.Home))+'</b>–<b>'+fmt1(teamProj(f.Away))+'</b></div>';
      else if(!D.dlPassed&&D.hasEP)
-       xline='<div class="xline"><span class="xlab pred">PREDICTED</span><b>'+pFmt(f.Home,teamProj(f.Home))+'</b>–<b>'+pFmt(f.Away,teamProj(f.Away))+'</b></div>';
+       xline='<div class="xline"><span class="xlab pred">PREDICTED</span><b>'+fmt1(teamProj(f.Home))+'</b>–<b>'+fmt1(teamProj(f.Away))+'</b></div>';
      return '<div class="mcard gx g'+((i%4)+1)+'" data-mi="'+i+'">'
       +(nm?'<div class="mname">'+esc(nm)+'</div>':'')
       +'<div class="mrow">'+mg(f.Home)+'<span class="tn2">'+esc(f.Home)+'<em>'+esc(TEAMS[f.Home]?.mgr||'')+'</em></span>'
@@ -1229,9 +1222,9 @@ function renderMatch(f,dl){
      PREDICTED (pre-deadline) → PROJ FINAL (mid-GW) → xP (finished). */
   let scsub='';
   if(!D.xpview){
-    if((s.done||D.provOver)&&D.hasXP)scsub='<div class="scsub">xP <b>'+pFmt(f.Home,teamXP(f.Home))+'</b> – <b>'+pFmt(f.Away,teamXP(f.Away))+'</b></div>';
-    else if(D.dlPassed&&D.hasEP)scsub='<div class="scsub">proj final <b>'+pFmt(f.Home,teamProj(f.Home))+'</b> – <b>'+pFmt(f.Away,teamProj(f.Away))+'</b></div>';
-    else if(D.hasEP)scsub='<div class="scsub">predicted <b>'+pFmt(f.Home,teamProj(f.Home))+'</b> – <b>'+pFmt(f.Away,teamProj(f.Away))+'</b></div>';
+    if((s.done||D.provOver)&&D.hasXP)scsub='<div class="scsub">xP <b>'+fmt1(teamXP(f.Home))+'</b> – <b>'+fmt1(teamXP(f.Away))+'</b></div>';
+    else if(D.dlPassed&&D.hasEP)scsub='<div class="scsub">proj final <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
+    else if(D.hasEP)scsub='<div class="scsub">predicted <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
   }
   if(D.xpview)scsub='<div class="scsub">actual <b>'+s.hs+'</b> – <b>'+s.as2+'</b></div>';
   const xnote=D.xpview?'<div class="scsub" style="opacity:.8;font-weight:500">Played → what the performance deserved (xP) · yet to play → projected (PROJ). Converges to pure xP when the gameweek ends.</div>':'';
@@ -1738,7 +1731,7 @@ function renderTable(){
   if(hi&&lo)recs='<h2>Season records</h2><div class="minirecs">'
    +'<div><b class="hi">'+hi.p+'</b><div class="lb"><span>Highest GW</span><em>'+esc(hi.n)+' · GW'+hi.g+'</em></div></div>'
    +'<div><b class="lo">'+lo.p+'</b><div class="lb"><span>Lowest GW</span><em>'+esc(lo.n)+' · GW'+lo.g+'</em></div></div></div>';
-  const bv=prankOn()?99:sim.last['Kobbie Mainoo Fan'],col=heat(bv);
+  const bv=sim.last['Kobbie Mainoo Fan'],col=heat(bv);
   const done={};D.mw.forEach(w=>{done[num(w.GW)]=fin(w.Finished)});
   const tot=per=>{const t={};D.fx.forEach(f=>{if(num(f.GW)<per[1]||num(f.GW)>per[2]||!fin(f.Finished))return;
     t[f.Home]=(t[f.Home]||0)+num(f['Home pts']);t[f.Away]=(t[f.Away]||0)+num(f['Away pts']);});return t};
