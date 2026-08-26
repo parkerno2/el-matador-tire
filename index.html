@@ -762,7 +762,7 @@ const flagImg=(n,px)=>n?'<img decoding="async" class="flag" style="'+(px?'height
 const mg=(name,sm)=>{const t=TEAMS[name];return t?'<span class="mg'+(sm?' sm':'')+'" style="background:'+t.col+'">'+t.ini+'</span>':''};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
 const dt=s=>{const d=s?new Date(String(s).replace(/^'/,'')):null;return(d&&!isNaN(d))?d:null};
-const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
+const num=v=>{const n=parseFloat(typeof v==='string'?v.replace(/,/g,''):v);return isNaN(n)?0:n};
 
 /* ================= expected points (xP) math — validated vs API GW1 ================= */
 const GOALPTS={GKP:6,DEF:6,MID:5,FWD:4},CSPTS={GKP:4,DEF:4,MID:1,FWD:0},DCTH={DEF:10,MID:12,FWD:12,GKP:99};
@@ -822,7 +822,7 @@ function gwsRow(code,gw){ // normalized GW Stats row for a player+GW
 function epOf(code){ // pre-deadline prediction for the current GW (falls back to nearest block)
   const m=D.predCur||{};return m[String(code)]!==undefined?m[String(code)]:null;
 }
-function fxStarted(club){const f=(D.cf||[]).find(x=>num(x.GW)===D.gw&&(x.Home===club||x.Away===club));return !!(f&&fin(f.Started))}
+function fxStarted(club){return (D.cf||[]).some(x=>num(x.GW)===D.gw&&(x.Home===club||x.Away===club)&&fin(x.Started))} // DGW-safe: any fixture
 function projOf(p){ // one player's contribution to the projected final
   if(fxStarted(p.Club))return num(p['GW pts']);
   const e=epOf(p.Code);return e===null?0:e;
@@ -831,7 +831,7 @@ function xpBlendOf(p){ // Expected view: played → xP (deserved), not yet playe
   if(fxStarted(p.Club))return xpOf(gwsRow(p.Code));
   const e=epOf(p.Code);return e===null?0:e;
 }
-function fxFinished(club){const f=(D.cf||[]).find(x=>num(x.GW)===D.gw&&(x.Home===club||x.Away===club));return !!(f&&fin(f.Finished))}
+function fxFinished(club){const fs=(D.cf||[]).filter(x=>num(x.GW)===D.gw&&(x.Home===club||x.Away===club));return fs.length>0&&fs.every(x=>fin(x.Finished))} // DGW-safe: all fixtures
 
 /* ---- predicted auto-subs: a starter whose fixture is FINISHED with 0 minutes
    gets replaced by the first viable bench player (bench slot order) that keeps
@@ -961,7 +961,10 @@ function faceImgHTML(p){
  const urls=[];
  if(p.Code){urls.push('faces/'+p.Code+'.png');urls.push(face250(p.Code));urls.push(face(p.Code));}
  if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
- return '<img loading="lazy" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
+ return '<img decoding="async" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
+}
+function projBubble(p){ // pre-match bubble text: the prediction if one exists, otherwise a dash (never a fake 0.0)
+  const e=D.hasEP?epOf(p.Code):null;return e===null?'–':fmt1(e);
 }
 function card(p,i){
   const t=tierOf(p),o=dynOvr(p),fd=formDelta(p);
@@ -976,11 +979,11 @@ function card(p,i){
    +(D.xpview
      ?(fxStarted(p.Club)
        ?'<span class="pts"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
-       :'<span class="pts"><b>'+fmt1(epOf(p.Code)||0)+'</b><i>PROJ</i></span>')
+       :'<span class="pts"><b>'+projBubble(p)+'</b><i>PROJ</i></span>')
      :(fxStarted(p.Club)
        ?'<span class="pts"><b>'+Math.round(num(p['GW pts']))+'</b><i>PTS</i></span>'
        /* pre-match: the player's own prediction, labeled PROJ — never a dead 0 PTS (Parker, 26 Aug) */
-       :'<span class="pts"><b>'+fmt1(epOf(p.Code)||0)+'</b><i>PROJ</i></span>'))
+       :'<span class="pts"><b>'+projBubble(p)+'</b><i>PROJ</i></span>'))
    +'<span class="face">'+faceImgHTML(p)+'</span>'
    +'<span class="nm">'+esc(p.Player)+'</span>'
    +'<span class="meta">'+badgeImg(p.Club,0)+'<span class="sep"></span>'+flagImg(p.Nation,0)+'</span>'
@@ -1004,6 +1007,8 @@ let SUB=null;
 function route(){
   const parts=(location.hash||'#gw').slice(1).split('/');
   const h=parts[0];
+  if(!document.getElementById('v-'+h)){location.replace('#gw');return;} // unknown view: never a blank page
+  if(h!=='gw')SUBMARK={}; // predicted-sub tags only live inside a matchup detail
   SUB=parts.length>1?parts[1]:null;
   document.body.setAttribute('data-view',h);
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on','v-'+h===v.id));
@@ -1102,9 +1107,12 @@ function seasonTot(p){
   // during GW1 the API's season totals can still hold last season's numbers
   return D.gwsDone===0?Math.round(num(p['GW pts'])):Math.round(num(p['Season pts']));
 }
+function gwsPlayed(p){ // finished GWs + the live one once this player's club has kicked off (Season pts already includes it)
+  return D.gwsDone+(fxStarted(p.Club)?1:0);
+}
 function avgOf(p){
   if(!D.started)return'—';
-  return(seasonTot(p)/Math.max(1,D.gwsDone||1)).toFixed(1);
+  return(seasonTot(p)/Math.max(1,gwsPlayed(p))).toFixed(1);
 }
 function nextFixture(club){
   const f=D.cf.find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club));
@@ -1791,7 +1799,7 @@ function plrPseudo(p){ /* Players-tab row → openSheet-compatible object */
     OVR:fc.ovr||'', 'GW pts':(gwsRow(p.Code)||{}).Pts||0,'GW mins':(gwsRow(p.Code)||{}).Mins||0,
     'Season pts':num(p['Season pts']),'Proj pts':num(p.Proj)};
 }
-function plrAvg(p){return (num(p['Season pts'])/Math.max(1,D.gwsDone||1))}
+function plrAvg(p){return (num(p['Season pts'])/Math.max(1,gwsPlayed(p)))}
 function plrRow(p){
   const owned=p.Owner&&p.Owner!=='FREE';
   const own=owned
@@ -2043,7 +2051,7 @@ function renderFAQ(){
    +demoCard('elite',88,'GKP','GOULD','','<b>Elite</b> — rated 85+, earned not given','111234.png')
    +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b> — round 1–2 picks, league colours all season','mgr-nolan.png')
    +demoCard('spec',91,'MID','SCANTLEBURY','R2','<b>Round 2 vintage</b> — same colours, later letter','215413.png')
-   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b> — FPL’s official dream team, lasts one week','mgr-baha.png')
+   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b> — a 10+ point haul, lasts one week','mgr-baha.png')
    +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b> — the league’s monthly pick','231416.png')
    +demoCard('gold',82,'MID','PJ NOLAN','','<b>Gold</b> — the league’s broad middle class','493105.png')
    +'</div>'
@@ -2066,10 +2074,10 @@ function renderFAQ(){
 const ov=document.getElementById('ov'),sheet=document.getElementById('sheet');
 function tierExplain(t,p){
   switch(t){
-    case'potm':return esc(p.Player)+' is the league’s pick for Premier League Player of the Month — this card lasts until the next award.';
-    case'totw':return'In FPL’s official Team of the Week — the black &amp; gold lasts until the next dream team drops.';
+    case'potm':return esc(p.Player)+' holds the Premier League Player of the Month award — this card lasts until the next one is announced.';
+    case'totw':return esc(p.Player)+' hauled 10+ points this gameweek — the black &amp; gold lasts until his next match finishes.';
     case'spec':return'A round 1–2 draft pick carries the league colours all season.';
-    case'elite':return'Elite tier — the commissioner’s 85+ list.';
+    case'elite':return'Elite tier — rated 85+ on current form. Earned, not given.';
     case'gold':return'Gold tier — rated 78–84.';
     default:return'Silver tier — rated under 78.';
   }
