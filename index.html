@@ -991,11 +991,14 @@ function cardBg(t){
   +'<path d="'+PLATE+'" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".7" transform="translate(75 105) scale(.965) translate(-75 -105)"/>'
   +'<path d="'+PLATE+'" fill="none" stroke="'+EDGE[t]+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
 }
+const FACE_SWAP={'444102':{src:'hasbulla.png',until:'2026-08-30T16:30:00Z'}};
 function faceImgHTML(p){
  /* Cards need TRANSPARENT cutouts — PL photos are the only reliable source.
     EA/futwiz/futbin "face" assets are opaque gray squares (verified 21 Aug 2026).
     The EA Map instead powers the photographic portrait in the player sheet. */
  const urls=[];
+ /* FACE_SWAP: time-boxed gag faces — {code:{src,until}}; expired entries are ignored, the real cascade follows. Parker, 29 Aug: Hasbulla on Evanilson for 24h. */
+ const fs=FACE_SWAP[String(p.Code)];if(fs&&Date.now()<Date.parse(fs.until))urls.push('faces/'+fs.src);
  if(p.Code){urls.push('faces/'+p.Code+'.png');urls.push(face250(p.Code));urls.push(face(p.Code));}
  if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
  return '<img decoding="async" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
