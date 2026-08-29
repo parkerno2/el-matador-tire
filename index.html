@@ -193,7 +193,13 @@ font-size:5.8cqw;font-weight:700;letter-spacing:.12em;padding:1.4% 5.5%;border-r
 background:var(--bub);border:1px solid var(--ln1);border-radius:14cqw;padding:4% 5% 3.5%;min-width:27%;font-size:13.5cqw;box-shadow:0 2px 5px rgba(20,10,25,.25)}
 .fc .pts i{display:block;margin-top:.6cqw}
 .fc .pts b{display:block;font-size:13.5cqw;color:var(--bubn)}
-.fc .pts i{font-style:normal;font-size:5.4cqw;letter-spacing:.14em;opacity:.85;color:var(--bubn)}
+.fc .pts i{font-style:normal;font-size:6.2cqw;letter-spacing:.14em;opacity:1;color:var(--bubn)}
+/* v5.5 bubble states — PROJ (pencilled in) vs LIVE (green ring) vs PTS (solid). Never identical pills again. */
+.fc .pts.proj{background:var(--bubp);border:1.5px dashed var(--bub);box-shadow:none;font-weight:500}
+.fc .pts.proj b{color:var(--tx);font-weight:500}
+.fc .pts.proj i{color:var(--tx);opacity:.8}
+.fc .pts.live{border:1.6px solid #19D27A;box-shadow:0 0 0 1.2px rgba(25,210,122,.35),0 2px 5px rgba(20,10,25,.25)}
+.fc .pts.live i{color:#5CF0A5}
 .fc .face{position:absolute;top:6%;left:8%;right:8%;height:61%;z-index:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
 .fc .face img{width:96%;height:96%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.38))}
 .fc .face:has(.noface){align-items:center;overflow:visible}
@@ -208,12 +214,12 @@ padding:2.8% 2px 2%;border-top:1px solid var(--ln1);color:var(--tx)}
 .fc .meta .sep{width:1px;height:10cqw;background:var(--ln2)}
 .fc .inj{position:absolute;top:27%;left:8.5%;z-index:3;background:#D6001C;color:#fff;font-size:5.6cqw;
 font-weight:700;padding:1.2% 4%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0,0,.4);letter-spacing:.06em}
-.fc.gold  {--tx:#3A2B05;--sub:#7A5E14;--ln1:rgba(58,43,5,.45);--ln2:rgba(58,43,5,.22);--bub:#8F681B;--bubn:#FBE9A6}
-.fc.silver{--tx:#262A33;--sub:#575E6C;--ln1:rgba(38,42,51,.4);--ln2:rgba(38,42,51,.18);--bub:#6E7686;--bubn:#FAFBFD}
-.fc.spec  {--tx:#fff;--sub:#D8CBE2;--ln1:rgba(255,210,63,.6);--ln2:rgba(255,210,63,.3);--bub:#26002A;--bubn:#fff}
-.fc.elite {--tx:#fff;--sub:#BFE9FF;--ln1:rgba(4,245,255,.65);--ln2:rgba(4,245,255,.3);--bub:#082B6F;--bubn:#fff}
-.fc.totw  {--tx:#FFD23F;--sub:#C8B36A;--ln1:rgba(255,210,63,.7);--ln2:rgba(255,210,63,.35);--bub:#0C0C10;--bubn:#FFD23F}
-.fc.potm  {--tx:#fff;--sub:#F0C9D8;--ln1:rgba(255,210,63,.65);--ln2:rgba(255,210,63,.3);--bub:#4E0C28;--bubn:#fff}
+.fc.gold  {--tx:#3A2B05;--sub:#7A5E14;--ln1:rgba(58,43,5,.45);--ln2:rgba(58,43,5,.22);--bub:#6E4F0E;--bubn:#fff;--bubp:rgba(255,250,235,.62)}
+.fc.silver{--tx:#262A33;--sub:#575E6C;--ln1:rgba(38,42,51,.4);--ln2:rgba(38,42,51,.18);--bub:#454C5C;--bubn:#fff;--bubp:rgba(255,255,255,.62)}
+.fc.spec  {--tx:#fff;--sub:#D8CBE2;--ln1:rgba(255,210,63,.6);--ln2:rgba(255,210,63,.3);--bub:#26002A;--bubn:#fff;--bubp:rgba(0,0,0,.32)}
+.fc.elite {--tx:#fff;--sub:#BFE9FF;--ln1:rgba(4,245,255,.65);--ln2:rgba(4,245,255,.3);--bub:#082B6F;--bubn:#fff;--bubp:rgba(0,0,0,.32)}
+.fc.totw  {--tx:#FFD23F;--sub:#C8B36A;--ln1:rgba(255,210,63,.7);--ln2:rgba(255,210,63,.35);--bub:#0C0C10;--bubn:#FFD23F;--bubp:rgba(0,0,0,.4)}
+.fc.potm  {--tx:#fff;--sub:#F0C9D8;--ln1:rgba(255,210,63,.65);--ln2:rgba(255,210,63,.3);--bub:#4E0C28;--bubn:#fff;--bubp:rgba(0,0,0,.32)}
 .fc.spec .rt b,.fc.potm .rt b{color:var(--gold)}
 .fc.elite .rt b{color:var(--cyan)}
 /* predicted auto-sub treatments: cyan ring + SUB pill for the incoming player, dimmed OUT for the leaving one */
@@ -423,6 +429,37 @@ padding:3px 9px;border-radius:20px}
 .plrow .mid2{flex:1;text-align:center;font-family:'Saira Condensed';font-size:.92rem}
 .plrow .pst{width:32px;text-align:right;font-size:.56rem;letter-spacing:.08em;color:var(--mid);font-weight:700}
 .plrow .pst.live{color:#0E8A5F}
+/* v5.5 fixture → your players panel */
+.plrow.tap{cursor:pointer;user-select:none;-webkit-user-select:none}
+.plrow.tap .cl{display:flex;align-items:center;gap:5px;width:auto;min-width:38px}
+.plrow .cnt{font-family:'Saira Condensed';font-size:.62rem;font-weight:700;color:var(--p2);background:#EFE7F4;border-radius:9px;padding:1px 6px;min-width:14px;text-align:center}
+.plrow .chev{width:14px;text-align:center;color:var(--mid);font-size:.7rem;transition:transform .18s ease}
+.plrow.open .chev{transform:rotate(90deg)}
+.plrow.open{border-bottom-color:transparent}
+.plx{display:none;grid-template-columns:1fr 1fr;gap:0 10px;padding:2px 0 10px;border-bottom:1px solid #F0EAF4}
+.plx.on{display:grid}
+.plx:last-child{border-bottom:none}
+.plx .side{min-width:0}
+.plx .side.a .plp{flex-direction:row-reverse;text-align:right}
+.plx .plp{display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:.7rem;font-weight:600;cursor:pointer;border-radius:8px;min-width:0}
+.plx .plp:active{background:#F4EEF8}
+.plx .plp .mg{width:20px;height:20px;font-size:.46rem;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+.plx .plp .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plx .plp .pn em{font-style:normal;font-weight:600;font-size:.56rem;color:var(--mid);margin-left:4px;letter-spacing:.04em}
+.plx .plp .pv{font-family:'Saira Condensed';font-weight:700;font-size:.8rem;line-height:1;text-align:center;min-width:30px;padding:3px 5px 2px;border-radius:10px;background:#37003C;color:#fff}
+.plx .plp .pv i{display:block;font-style:normal;font-size:.42rem;letter-spacing:.1em;font-weight:700;opacity:.9}
+.plx .plp .pv.proj{background:transparent;color:var(--ink);border:1.5px dashed #9A8FA6;font-weight:500}
+.plx .plp .pv.live{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #19D27A}
+.plx .plp.bench{opacity:.5}
+.plx .plp.bench .pn em{color:#C62828}
+.plx .none{font-size:.62rem;color:var(--mid);padding:6px 2px;font-weight:600}
+.plsnap{display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px;padding:8px 2px 10px;border-bottom:1px solid #F0EAF4;font-size:.64rem;font-weight:700;color:var(--mid)}
+.plsnap .lv{color:#0E8A5F;letter-spacing:.08em;font-size:.58rem}
+.plsnap .ch{display:inline-flex;align-items:center;gap:4px;background:#F4EEF8;border-radius:10px;padding:2px 7px 2px 3px;color:var(--ink)}
+.plsnap .ch .mg{width:16px;height:16px;font-size:.4rem;box-shadow:inset 0 0 0 1.2px rgba(255,255,255,.55)}
+.plhead{display:flex;align-items:center;justify-content:space-between;margin-top:24px}
+.plhead h2{margin:0}
+.plhead button{background:none;border:1px solid var(--line);border-radius:14px;color:var(--p2);font-family:inherit;font-weight:700;font-size:.62rem;letter-spacing:.06em;padding:4px 10px;cursor:pointer}
 /* ---------- MOTM race ---------- */
 .race{padding:14px 16px 12px;margin:16px 0 4px;border-top:4px solid var(--gold)}
 .race .lb2{font-size:.56rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--p2)}
@@ -978,12 +1015,13 @@ function card(p,i){
    +(fd?'<span class="fdar '+(fd>0?'up':'dn')+'">'+(fd>0?'▲':'▼')+Math.abs(fd)+'</span>':'')+'</span>'
    +(D.xpview
      ?(fxStarted(p.Club)
-       ?'<span class="pts"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
-       :'<span class="pts"><b>'+projBubble(p)+'</b><i>PROJ</i></span>')
+       ?'<span class="pts'+(fxFinished(p.Club)?'':' live')+'"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
+       :'<span class="pts proj"><b>'+projBubble(p)+'</b><i>PROJ</i></span>')
      :(fxStarted(p.Club)
-       ?'<span class="pts"><b>'+Math.round(num(p['GW pts']))+'</b><i>PTS</i></span>'
-       /* pre-match: the player's own prediction, labeled PROJ — never a dead 0 PTS (Parker, 26 Aug) */
-       :'<span class="pts"><b>'+projBubble(p)+'</b><i>PROJ</i></span>'))
+       /* v5.5: LIVE (green ring + LIVE label) while his match is on, solid PTS once it's finished */
+       ?'<span class="pts'+(fxFinished(p.Club)?'':' live')+'"><b>'+Math.round(num(p['GW pts']))+'</b><i>'+(fxFinished(p.Club)?'PTS':'LIVE')+'</i></span>'
+       /* pre-match: the player's own prediction, labeled PROJ — hollow dashed bubble so it can't be mistaken for banked points (v5.5) */
+       :'<span class="pts proj"><b>'+projBubble(p)+'</b><i>PROJ</i></span>'))
    +'<span class="face">'+faceImgHTML(p)+'</span>'
    +'<span class="nm">'+esc(p.Player)+'</span>'
    +'<span class="meta">'+badgeImg(p.Club,0)+'<span class="sep"></span>'+flagImg(p.Nation,0)+'</span>'
@@ -1203,6 +1241,13 @@ function renderScoreboard(rows,dl){
    }).join('')+nextGwBtn()+plStrip();
   document.getElementById('gwbody').onclick=e=>{
     if(e.target.closest('#ngwbtn')){openNextGw();return}
+    if(e.target.closest('#plall')){PLALL=!PLALL;if(!PLALL)PLOPEN.clear();renderGW();return}
+    if(e.target.closest('.plp'))return; // player row → sheet via the body [data-i] handler
+    const r=e.target.closest('.plrow.tap');
+    if(r){const k=r.dataset.fx;if(PLALL){PLALL=false;PLOPEN.clear();}
+      if(PLOPEN.has(k))PLOPEN.delete(k);else PLOPEN.add(k);
+      r.classList.toggle('open',PLOPEN.has(k));r.setAttribute('aria-expanded',PLOPEN.has(k));
+      const x=r.nextElementSibling;if(x&&x.classList.contains('plx'))x.classList.toggle('on',PLOPEN.has(k));return}
     const c=e.target.closest('.mcard');if(c&&c.dataset.mi!==undefined)location.hash='gw/'+c.dataset.mi};
 }
 function renderMatch(f,dl){
@@ -1992,7 +2037,31 @@ function openNextGw(){
   ov.classList.add('on');sheet.classList.add('on');
   sheet.querySelector('.sh-x').onclick=closeSheet;
 }
-/* premier league scores strip (gameweek page) */
+/* premier league scores strip (gameweek page) — v5.5: each fixture opens a "your players" panel */
+const PLOPEN=new Set(); // fixture keys expanded by the user; survives the 5-min refetch re-render
+let PLALL=false;
+function fxKey(f){return f.Home+'|'+f.Away}
+function fxPlayers(club){ // every rostered player at this club, XI first, then bench; within a group by owner then points
+  const rows=D.ro.map((p,i)=>({p,i})).filter(o=>o.p.Club===club);
+  const xi=o=>inEffXi(o.p.Team,o.p.Code)?0:1;
+  return rows.sort((a,b)=>xi(a)-xi(b)||String(a.p.Team).localeCompare(String(b.p.Team))||num(b.p['GW pts'])-num(a.p['GW pts']));
+}
+function plPlayerRow(o,started,done){
+  const p=o.p,bench=!inEffXi(p.Team,p.Code);
+  const val=started?'<span class="pv'+(done?'':' live')+'"><b>'+Math.round(num(p['GW pts']))+'</b><i>'+(done?'PTS':'LIVE')+'</i></span>'
+                   :'<span class="pv proj"><b>'+projBubble(p)+'</b><i>PROJ</i></span>';
+  return '<div class="plp'+(bench?' bench':'')+'" data-i="'+o.i+'">'+mg(p.Team,1)
+   +'<span class="pn">'+esc(p.Player)+'<em>'+String(p.Pos).slice(0,3)+(bench?' · BENCH':'')+'</em></span>'+val+'</div>';
+}
+function plSnapshot(rows){ // who has men on the pitch right now
+  const live=rows.filter(f=>fin(f.Started)&&!fin(f.Finished));
+  if(!live.length)return'';
+  const clubs=new Set(live.flatMap(f=>[f.Home,f.Away]));
+  const per={};let tot=0;
+  D.ro.forEach(p=>{if(clubs.has(p.Club)&&inEffXi(p.Team,p.Code)){per[p.Team]=(per[p.Team]||0)+1;tot++}});
+  const chips=Object.keys(TEAMS).filter(t=>per[t]).sort((a,b)=>per[b]-per[a]).map(t=>'<span class="ch">'+mg(t,1)+per[t]+'</span>').join('');
+  return '<div class="plsnap"><span class="lv">● ON THE PITCH</span><span>'+tot+' XI player'+(tot===1?'':'s')+' in '+live.length+' live match'+(live.length===1?'':'es')+'</span>'+chips+'</div>';
+}
 function plStrip(){
   const rows=(D.cf||[]).filter(f=>num(f.GW)===D.gw);
   if(!rows.length)return'';
@@ -2003,13 +2072,20 @@ function plStrip(){
     const ko=dt(f['Kickoff (UTC)']);
     const mid=hasScore?('<b>'+num(hg)+' – '+num(f['Away goals'])+'</b>'):(ko?ko.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}):'');
     const st=done?'FT':(started&&hasScore?'LIVE':'');
-    return '<div class="plrow">'+badgeImg(f.Home,16)+'<span class="cl">'+esc(f.Home)+'</span>'
+    const k=fxKey(f),open=PLALL||PLOPEN.has(k);
+    const hp=fxPlayers(f.Home),ap=fxPlayers(f.Away);
+    const cnt=hp.filter(o=>inEffXi(o.p.Team,o.p.Code)).length+ap.filter(o=>inEffXi(o.p.Team,o.p.Code)).length;
+    const side=(ps,cls)=>'<div class="side'+cls+'">'+(ps.length?ps.map(o=>plPlayerRow(o,started,done)).join(''):'<div class="none">No league players</div>')+'</div>';
+    return '<div class="plrow tap'+(open?' open':'')+'" data-fx="'+esc(k)+'" role="button" aria-expanded="'+open+'">'
+     +'<span class="chev">›</span>'+badgeImg(f.Home,16)+'<span class="cl">'+esc(f.Home)+'</span>'
      +'<span class="mid2">'+mid+'</span>'
-     +'<span class="cl a">'+esc(f.Away)+'</span>'+badgeImg(f.Away,16)
-     +'<span class="pst'+(st==='LIVE'?' live':'')+'">'+st+'</span></div>';
+     +'<span class="cl a">'+esc(f.Away)+'<span class="cnt" title="league XI players in this match">'+cnt+'</span></span>'+badgeImg(f.Away,16)
+     +'<span class="pst'+(st==='LIVE'?' live':'')+'">'+st+'</span></div>'
+     +'<div class="plx'+(open?' on':'')+'">'+side(hp,'')+side(ap,' a')+'</div>';
   };
-  return '<h2 style="margin-top:24px">Premier League</h2><div class="card" style="padding:8px 12px">'
-   +rows.slice().sort((a,b)=>String(a['Kickoff (UTC)']).localeCompare(String(b['Kickoff (UTC)']))).map(item).join('')+'</div>';
+  const sorted=rows.slice().sort((a,b)=>String(a['Kickoff (UTC)']).localeCompare(String(b['Kickoff (UTC)'])));
+  return '<div class="plhead"><h2>Premier League</h2><button id="plall" type="button">'+(PLALL?'HIDE ALL':'SHOW ALL')+'</button></div><div class="card" style="padding:8px 12px">'
+   +plSnapshot(sorted)+sorted.map(item).join('')+'</div>';
 }
 /* upcoming fixtures accordion (table page) */
 function upAcc(){
