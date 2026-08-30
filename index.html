@@ -227,6 +227,9 @@ font-weight:700;padding:1.2% 4%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0
 .fc.subin .tag{background:var(--cyan);color:#06333A}
 .fc.subout{opacity:.55}
 .fc.subout .tag{background:#8A8494;color:#fff}
+.fc.subin.likely svg.bg>path:last-of-type{stroke:#F5B942;stroke-dasharray:7 4}
+.fc.subin.likely .tag{background:#F5B942;color:#3A2A00}
+.fc.subout.likely .tag{background:#B08A3A;color:#fff}
 /* ---------- manager XIs: perspective stage ---------- */
 .xhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 4px}
 .xstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:12px 0}
@@ -461,6 +464,7 @@ padding:3px 9px;border-radius:20px}
 .plhead h2{margin:0}
 .plhead button{background:none;border:1px solid var(--line);border-radius:14px;color:var(--p2);font-family:inherit;font-weight:700;font-size:.62rem;letter-spacing:.06em;padding:4px 10px;cursor:pointer}
 /* ---------- MOTM race ---------- */
+.race h3 .livetag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:.55rem;font-weight:800;letter-spacing:.12em;vertical-align:middle;background:#19D27A;color:#06333A}
 .race{padding:14px 16px 12px;margin:16px 0 4px;border-top:4px solid var(--gold)}
 .race .lb2{font-size:.56rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--p2)}
 .race h3{margin:2px 0 10px;font-size:.92rem;font-weight:700}
@@ -510,6 +514,7 @@ padding:3px 9px;border-radius:20px}
 .asub .md2{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
 .asub b{color:var(--gold)}
 .asub .inn{color:#7CF5C1;font-weight:700}
+.asub.lk{border-style:dashed}.asub.lk b{color:#F5B942}.asub.lk .inn{color:#FFD98A}
 .asubnote{text-align:center;font-size:.6rem;color:#B9A6C6;margin-top:5px}
 .ngwcard{width:100%;border:none;text-align:left;font-family:inherit}
 .ngwcard .arr2{float:right;color:var(--p3);font-weight:700}
@@ -874,27 +879,54 @@ function fxFinished(club){const fs=(D.cf||[]).filter(x=>num(x.GW)===D.gw&&(x.Hom
    gets replaced by the first viable bench player (bench slot order) that keeps
    the formation legal (exactly 1 GKP, ≥3 DEF, ≥2 MID, ≥1 FWD; GK only for GK).
    FPL confirms these at gameweek end — we forecast them the moment they lock. ---- */
-function autoSubs(team){
+/* ---- likely auto-subs (projection tier): a starter FPL flags as out before his
+   match kicks off is treated as a 0-minute starter for PROJ FINAL only — his bench
+   replacement's prediction counts instead. Status 'i'/'s'/'u'/'n' = out; 'd'
+   (doubtful) only at ≤OUT_CHANCE% in the news line. Pure forecast: the moment he
+   logs a minute the starter is back and the sub vanishes; at full time with 0
+   minutes it becomes a locked sub like any other. Never touches the live score. ---- */
+const OUT_CHANCE=25;
+function flaggedOut(p){
+  const st=String(p.Status||'a');
+  if('isun'.indexOf(st)>-1)return true;
+  if(st==='d'){const m=/(\d+)\s*%/.exec(String(p.News||''));return !!m&&num(m[1])<=OUT_CHANCE;}
+  return false;
+}
+function likelyOut(p){
+  if(fxFinished(p.Club)||!flaggedOut(p))return false;
+  const r=gwsRow(p.Code);return !r||!num(r.Mins);
+}
+function autoSubs(team,likely){ // likely=true adds the projection tier; default = locked subs only (live score, Analysis)
   const xi=xiOf(team).slice(),bench=benchOf(team);
   const zeroed=p=>{const r=gwsRow(p.Code);return fxFinished(p.Club)&&(!r||!num(r.Mins));};
+  const outKind=p=>zeroed(p)?'locked':(likely&&likelyOut(p))?'likely':'';
   const cnt=(l,pos)=>l.reduce((s,x)=>s+(x.Pos===pos?1:0),0);
   const legal=l=>cnt(l,'GKP')===1&&cnt(l,'DEF')>=3&&cnt(l,'MID')>=2&&cnt(l,'FWD')>=1;
   const subs=[],used=new Set(),replaced=new Set();
   bench.forEach(b=>{
-    if(zeroed(b)||used.has(b.Code))return; // a bench player already benched-out by his own finished 0-min game can't come in
+    if(outKind(b)||used.has(b.Code))return; // a bench player who's out himself (finished 0-min, or flagged out in likely mode) can't come in
     for(let i=0;i<xi.length;i++){
       const p=xi[i];
-      if(replaced.has(p.Code)||!zeroed(p))continue;
+      const kind=outKind(p);if(replaced.has(p.Code)||!kind)continue;
       if((p.Pos==='GKP')!==(b.Pos==='GKP'))continue;
       const trial=xi.slice();trial[i]=b;
       if(!legal(trial))continue;
-      xi[i]=b;used.add(b.Code);replaced.add(p.Code);subs.push({out:p,inn:b});
+      xi[i]=b;used.add(b.Code);replaced.add(p.Code);subs.push({out:p,inn:b,kind:kind==='locked'?'locked':'likely'});
       break;
     }
   });
+  if(likely&&subs.length){ // report the NET effect: what's already certain (confirmed-facts pass) + who additionally comes in / goes out on the flagged assumption.
+    // A flagged starter early in the XI reshuffles which bench player covers which slot, but a starter who finished on 0 mins is out either way.
+    const base=autoSubs(team,false).subs;
+    const bi=new Set(base.map(x=>x.inn.Code)),bo=new Set(base.map(x=>x.out.Code));
+    const addIn=subs.filter(x=>!bi.has(x.inn.Code)).map(x=>x.inn),addOut=subs.filter(x=>!bo.has(x.out.Code)).map(x=>x.out);
+    const net=base.map(x=>({out:x.out,inn:x.inn,kind:'locked'}));
+    addIn.forEach((b,i)=>{if(addOut[i])net.push({out:addOut[i],inn:b,kind:'likely'});});
+    return{xi:xi,subs:net};
+  }
   return{xi:xi,subs:subs};
 }
-function effXiOf(team){return autoSubs(team).xi}
+function effXiOf(team,likely){return autoSubs(team,likely).xi}
 
 /* ---- house TOTW: a 10+ point haul, live at full time (bonus counts when it lands),
    worn until the player's NEXT match finishes — i.e., it lasts one week ---- */
@@ -931,9 +963,9 @@ function formDelta(p){
 }
 const dynOvr=p=>ovrOf(p)+formDelta(p);
 
-function teamProj(team){return effXiOf(team).reduce((s,p)=>s+projOf(p),0)} // effective XI: predicted auto-subs included
+function teamProj(team){return effXiOf(team,true).reduce((s,p)=>s+projOf(p),0)} // effective XI: locked + likely auto-subs
 function teamXP(team){return xiOf(team).reduce((s,p)=>s+xpOf(gwsRow(p.Code)),0)}
-function teamXPBlend(team){return effXiOf(team).reduce((s,p)=>s+xpBlendOf(p),0)}
+function teamXPBlend(team){return effXiOf(team,true).reduce((s,p)=>s+xpBlendOf(p),0)}
 function teamEP(team,epMap){return xiOf(team).reduce((s,p)=>{const e=epMap[String(p.Code)];return s+(e||0)},0)}
 
 /* ================= cards ================= */
@@ -1009,8 +1041,9 @@ function projBubble(p){ // pre-match bubble text: the prediction if one exists, 
 function card(p,i){
   const t=tierOf(p),o=dynOvr(p),fd=formDelta(p);
   const sm=SUBMARK[p.Code]||''; // predicted auto-sub marker: 'in' | 'out' (set by renderMatch only)
-  const tag=sm==='in'?'SUB':sm==='out'?'OUT':(t==='potm'?'POTM':t==='totw'?'TOTW':t==='spec'?(p.Drafted||'').split('.')[0]:'');
-  return '<button class="fc '+t+(sm?' sub'+sm:'')+'" data-i="'+i+'" aria-label="'+esc(p.Player)+'">'
+  const tag=sm==='in'?'SUB':sm==='inl'?'LIKELY':sm.startsWith('out')?'OUT':(t==='potm'?'POTM':t==='totw'?'TOTW':t==='spec'?(p.Drafted||'').split('.')[0]:'');
+  const smc=sm?(' sub'+(sm.startsWith('in')?'in':'out')+(sm.endsWith('l')?' likely':'')):'';
+  return '<button class="fc '+t+smc+'" data-i="'+i+'" aria-label="'+esc(p.Player)+'">'
    +cardBg(t)
    +(tag?'<span class="tag">'+tag+'</span>':'')
    +('isud'.indexOf(p.Status)>-1?'<span class="inj">INJ</span>':'')
@@ -1257,17 +1290,22 @@ function renderMatch(f,dl){
   const s=mscore(f);
   const nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
   const hXI=xiOf(f.Home),aXI=xiOf(f.Away);
-  const hAS=autoSubs(f.Home),aAS=autoSubs(f.Away);
+  const hAS=autoSubs(f.Home,true),aAS=autoSubs(f.Away,true);
   /* effective XI on the pitch: predicted sub-ins wear the SUB treatment; the
      replaced starters drop to the bench row, dimmed. TBD until FPL finalizes. */
-  SUBMARK={};[hAS,aAS].forEach(as=>as.subs.forEach(s2=>{SUBMARK[s2.inn.Code]='in';SUBMARK[s2.out.Code]='out';}));
+  SUBMARK={};[hAS,aAS].forEach(as=>as.subs.forEach(s2=>{const l=s2.kind==='likely'?'l':'';SUBMARK[s2.inn.Code]='in'+l;SUBMARK[s2.out.Code]='out'+l;}));
   const hEff=hAS.xi,aEff=aAS.xi;
   const benchEff=(t,as)=>{const inn=new Set(as.subs.map(s2=>s2.inn.Code));
     return benchOf(t).filter(b=>!inn.has(b.Code)).concat(as.subs.map(s2=>s2.out));};
-  const asubStrip=(t,as)=>as.subs.length?'<div class="asub"><span class="md2" style="background:'+(TEAMS[t]?.col||'#999')+'"></span>'
-    +'<b>Projected auto-subs</b> '+as.subs.map(s2=>'<span class="inn">▲ '+esc(s2.inn.Player)+'</span> for '+esc(s2.out.Player)).join(' · ')+'</div>':'';
-  const asubs=asubStrip(f.Away,aAS)+asubStrip(f.Home,hAS)
-    +((hAS.subs.length||aAS.subs.length)?'<div class="asubnote">Already counted in proj final — FPL makes auto-subs official when the gameweek ends.</div>':'');
+  const reason=(t,p)=>{if(flaggedOut(p)){const n=String(p.News||'').split(' - ')[0];return n?' ('+esc(n)+')':'';}
+    const fl=xiOf(t).filter(likelyOut).map(q=>q.Player);return fl.length?' (if '+esc(fl.join(', '))+' misses out)':'';};
+  const asubStrip=(t,as,kind)=>{const L=as.subs.filter(s2=>s2.kind===kind);return L.length?'<div class="asub'+(kind==='likely'?' lk':'')+'"><span class="md2" style="background:'+(TEAMS[t]?.col||'#999')+'"></span>'
+    +'<b>'+(kind==='likely'?'Likely auto-subs':'Projected auto-subs')+'</b> '+L.map(s2=>'<span class="inn">▲ '+esc(s2.inn.Player)+'</span> for '+esc(s2.out.Player)+(kind==='likely'?reason(t,s2.out):'')).join(' · ')+'</div>':'';};
+  const anyK=k=>hAS.subs.concat(aAS.subs).some(s2=>s2.kind===k);
+  const asubs=asubStrip(f.Away,aAS,'locked')+asubStrip(f.Home,hAS,'locked')
+    +(anyK('locked')?'<div class="asubnote">Already counted in proj final — FPL makes auto-subs official when the gameweek ends.</div>':'')
+    +asubStrip(f.Away,aAS,'likely')+asubStrip(f.Home,hAS,'likely')
+    +(anyK('likely')?'<div class="asubnote">Assumes starters FPL has flagged out don\'t play — counted in proj final only. If the flagged player logs a minute, he\'s back and the bench order re-settles.</div>':'');
   const sub=s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'● LIVE'):(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
   D.xpview=XPMODE&&D.hasXP; // cards render xP/PROJ bubbles in expected mode
   const allPlayed=s.done||xiOf(f.Home).concat(xiOf(f.Away)).every(p=>fxStarted(p.Club));
@@ -1789,18 +1827,24 @@ function renderTable(){
    +'<div><b class="lo">'+lo.p+'</b><div class="lb"><span>Lowest GW</span><em>'+esc(lo.n)+' · GW'+lo.g+'</em></div></div></div>';
   const bv=sim.last['Kobbie Mainoo Fan'],col=heat(bv);
   const done={};D.mw.forEach(w=>{done[num(w.GW)]=fin(w.Finished)});
-  const tot=per=>{const t={};D.fx.forEach(f=>{if(num(f.GW)<per[1]||num(f.GW)>per[2]||!fin(f.Finished))return;
-    t[f.Home]=(t[f.Home]||0)+num(f['Home pts']);t[f.Away]=(t[f.Away]||0)+num(f['Away pts']);});return t};
+  // MOTM totals: finished fixtures + the live gameweek once its deadline has passed, scored exactly like the
+  // scoreboard (effPtsOf = max(API, effective-XI live sum) → includes locked auto-subs + provisional bonus). #12
+  const motmLive=D.dlPassed&&!done[D.gw];
+  const tot=per=>{const t={};D.fx.forEach(f=>{const g=num(f.GW);if(g<per[1]||g>per[2])return;
+    if(!fin(f.Finished)&&!(motmLive&&g===D.gw))return;
+    t[f.Home]=(t[f.Home]||0)+effPtsOf(f,f.Home);t[f.Away]=(t[f.Away]||0)+effPtsOf(f,f.Away);});return t};
   const curPer=PERIODS.find(p=>D.gw>=p[1]&&D.gw<=p[2]);
   let race='';
   if(curPer){
     const rt=tot(curPer);
     const ent=Object.entries(rt).sort((a,b)=>b[1]-a[1]);
     const mx=Math.max(1,ent.length?ent[0][1]:1);
-    race='<div class="card race"><span class="lb2">Manager of the Month</span><h3>'+curPer[0]+' · GW'+curPer[1]+'–'+curPer[2]+' · $30</h3>'
+    const liveTag=motmLive?' <span class="livetag">GW'+D.gw+' '+(D.provOver?'PROVISIONAL':'LIVE')+'</span>':'';
+    race='<div class="card race"><span class="lb2">Manager of the Month</span><h3>'+curPer[0]+' · GW'+curPer[1]+'–'+curPer[2]+' · $30'+liveTag+'</h3>'
      +(ent.length?ent.map(([n,v],i)=>'<div class="rrow'+(i===0?' lead':'')+'">'+mg(n,1)
        +'<span class="rn">'+esc(n)+'</span><span class="rbar"><i style="width:'+Math.max(2,100*v/mx)+'%;background:'+(TEAMS[n]?.col||'#5B1A66')+'"></i></span><b>'+v+'</b>'+(i===0?'<span class="money">$30</span>':'')+'</div>').join('')
        :'<p class="mnote" style="margin:4px 0 2px">Race starts when the first scores land.</p>')
+     +(motmLive?'<p class="mnote" style="margin:6px 0 0">Includes this gameweek\'s live scores — same numbers as the scoreboard. Settles when FPL confirms the gameweek.</p>':'')
      +'</div>';
   }
   document.getElementById('tablebody').innerHTML=
