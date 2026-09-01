@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>El Matador Tire · GW2 Recap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Saira+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--p1:#37003C;--p2:#5B1A66;--p3:#2E5BFF;--gold:#FFD23F;--goldd:#B8860B;--cyan:#04F5FF;
+--bg:#F4F1F6;--card:#fff;--ink:#1B1420;--mid:#6B6076;--sub:#575E6C;--line:#E4DEE9;--bad:#C62828;--good:#0E8A5F}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Chakra Petch',system-ui,sans-serif;color:var(--ink);font-size:16px;
+background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed}
+.wrap{max-width:700px;margin:0 auto;padding:0 12px 40px}
+/* header */
+.hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;
+padding:calc(12px + env(safe-area-inset-top)) 14px 11px 18px;display:flex;align-items:center;gap:10px;
+position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(30,0,40,.35)}
+.sh-x{background:rgba(255,255,255,.16);border:none;color:#fff;width:28px;height:28px;flex:none;
+border-radius:50%;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hero h1{font-size:1.02rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.gwpill{margin-left:auto;flex:none;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
+letter-spacing:.06em;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.stand{background:linear-gradient(115deg,#31054E,#37003C);color:#fff;padding:9px 18px 11px;font-size:.72rem;
+color:#D9CCE3;line-height:1.5;border-bottom:2px solid rgba(255,210,63,.5)}
+.stand b{color:#fff}
+h2{font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin:16px 2px 6px}
+/* match card */
+.card{background:var(--card);border:1px solid #E7DEF0;border-radius:14px;
+box-shadow:0 1px 3px rgba(55,0,60,.06),0 4px 14px rgba(55,0,60,.09);padding:0;margin-bottom:12px;overflow:hidden}
+.mhead{background:linear-gradient(115deg,#2E5BFF -40%,#5B1A66 40%,#37003C 110%);color:#fff;padding:10px 14px 9px}
+.kick{font-size:.56rem;font-weight:700;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase}
+.srow{display:flex;align-items:center;gap:10px;margin-top:6px}
+.tm{flex:1;min-width:0}
+.tm .tn{font-size:.78rem;font-weight:700;line-height:1.15}
+.tm.win .tn{color:var(--gold)}
+.tm .mg{font-size:.6rem;color:#C9BAD6;letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+.tm.away{text-align:right}
+.sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:.02em;
+white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.sc .w{color:var(--gold)}.sc .d{opacity:.45;font-size:1.3rem;vertical-align:6px;padding:0 4px}
+/* player strip */
+.pstrip{display:flex;align-items:center;gap:12px;padding:11px 14px 10px;border-bottom:1px solid var(--line);
+background:linear-gradient(180deg,#FBF9FD,#fff)}
+.pk{font-size:.5rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--goldd);margin-bottom:2px}
+.pk.low{color:var(--bad)}
+.ph{width:56px;height:56px;box-shadow:0 3px 8px rgba(55,0,60,.18);border-radius:50%;flex:none;background:#EDE5F3 center/cover no-repeat;
+border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
+font-weight:700;color:var(--p2);font-size:1rem;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:top}
+.ph.low{border-color:var(--bad)}
+.pinfo{flex:1;min-width:0}
+.pname{font-weight:700;font-size:.86rem}
+.pname span{color:var(--mid);font-weight:600;font-size:.68rem}
+.pline{font-size:.68rem;color:var(--sub);margin-top:2px;line-height:1.35}
+.ppts{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;color:var(--p1);flex:none;line-height:1}
+.ppts small{display:block;font-family:'Chakra Petch';font-size:.5rem;font-weight:700;letter-spacing:.14em;
+color:var(--mid);text-align:center;margin-top:1px}
+.ppts.low{color:var(--bad)}
+/* body */
+.mbody{padding:11px 14px 13px}
+.story{font-size:.8rem;line-height:1.55;color:#2A2230}
+.hits{margin:10px 0 0;padding:0;list-style:none}
+.hits li{font-size:.74rem;line-height:1.45;color:#3A3142;padding:5px 0 5px 16px;position:relative;border-top:1px solid #F0EAF5}
+.hits li::before{content:'▸';position:absolute;left:2px;color:var(--goldd);font-size:.7rem}
+.hits b{color:var(--p1)}
+/* chips + number */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.chip{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:4px 9px;font-size:.6rem;
+font-weight:600;color:var(--sub);letter-spacing:.03em}
+.chip b{color:var(--p1);font-weight:700}
+.chip.gold{background:linear-gradient(160deg,#FBE9A6,#FFD23F);border-color:#E3BC2E;color:#5C4A12}
+.chip.gold b{color:var(--p1)}
+.notm{display:flex;align-items:center;gap:12px;margin-top:12px;background:linear-gradient(115deg,#FFF6DC,#FDEFC4);
+border:1px solid #EDDB9C;border-left:4px solid var(--gold);border-radius:12px;padding:8px 12px}
+.notm .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2rem;color:var(--p1);flex:none;min-width:44px;text-align:center}
+.notm .c{font-size:.66rem;line-height:1.4;color:#5C4A12}
+/* around the league */
+table{width:100%;border-collapse:collapse;font-size:.74rem}
+th{font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)}
+td{padding:5px 6px;border-bottom:1px solid #F0EAF5}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);font-weight:700}
+.res{font-size:.56rem;font-weight:700;padding:1px 6px;border-radius:8px}
+.res.w{background:#DDF2E7;color:var(--good)}.res.l{background:#F8E1E1;color:var(--bad)}
+.fxg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.fx{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:7px 9px;font-size:.66rem;line-height:1.4}
+.fx b{color:var(--p1)}
+.fx .tag{font-size:.52rem;color:var(--goldd);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.foot{font-size:.62rem;color:var(--mid);line-height:1.55;margin-top:14px;padding:0 4px}
+@media(max-width:390px){.sc{font-size:1.6rem}.tm .tn{font-size:.72rem}}
+</style>
+</head>
+<body>
+<div class="hero"><h1>El Matador Tire</h1><span class="gwpill">GW2 · RECAP</span><a class="sh-x" href="index.html" aria-label="Close">×</a></div>
+<div class="stand"><b>Bruno Fernandes dropped a 23</b>, a £51.7m striker started and never played, and twenty points rotted on one bench. Two unbeaten leaders, four teams at .500, and two very different 0–2s.</div>
+<div class="wrap">
+
+<h2>Matchweek 2 · Aug 28–31</h2>
+
+<!-- MR MARKS BOWL -->
+<div class="card">
+ <div class="mhead"><div class="kick">The Mr. Marks Bowl · Series 7–2</div>
+  <div class="srow">
+   <div class="tm win"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
+   <div class="sc"><span class="w">40</span><span class="d">–</span>31</div>
+   <div class="tm away"><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="513418">KS</div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">KEVIN SCHADE <span>· MID · BRE</span></div>
+   <div class="pline">Flicked Lewis-Potter's low cross into the far corner with the outside of the boot at Elland Road. All three bonus, Team of the Week.</div></div>
+  <div class="ppts">10<small>PTS</small></div></div>
+ <div class="mbody">
+  <div class="story">Bryant got the week's best defender; Parker got everyone else. Parker never needed a hero: Schade's strike, Palmer's 74th-minute stunner that settled Chelsea's 4–3 over Brighton, Raya's shutout in Arsenal's grind at Villa Park. Bryant's week began with Tarkowski smashing a 91st-minute equaliser at Bournemouth for 12 — and ended with three starters on zero, led by Vuskovic in a Brighton defence that shipped four.</div>
+  <ul class="hits">
+   <li><b>Bryant's new-club department paid in threes</b> — Semenyo crossed for Haaland's opener at Palace, Rogers set up Chelsea's second. Assists only pay three.</li>
+   <li><b>Woltemade needed 19 minutes and one corner</b> — the delivery Wissa finished with an overhead kick at Spurs.</li>
+   <li><b>Rice limped off late at Villa Park</b> — the one thing Parker will want news on before Friday.</li>
+  </ul>
+  <div class="chips"><span class="chip">xP <b>44.2 – 28.1</b></span><span class="chip">Bonus <b>3 – 2</b></span><span class="chip gold">Series <b>7–2</b> Parker</span></div>
+  <div class="notm"><div class="n">3</div><div class="c">Bryant starters — Vuskovic, Araujo, Tzolis — who played and scored zero.</div></div>
+ </div>
+</div>
+
+<!-- GULLS v JACOB -->
+<div class="card">
+ <div class="mhead"><div class="kick">First Meeting</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
+   <div class="sc">41<span class="d">–</span><span class="w">49</span></div>
+   <div class="tm away win"><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="223340">BS</div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">BUKAYO SAKA <span>· MID · ARS</span></div>
+   <div class="pline">The only goal at Villa Park, stabbed in from Calafiori's low cross — with a clean-sheet point and maximum bonus on top.</div></div>
+  <div class="ppts">11<small>PTS</small></div></div>
+ <div class="mbody">
+  <div class="story">Sarr and Richarlison never got on the pitch for their clubs, so Jacob effectively started nine — and the nine were ruthless: Saka's winner, Mbeumo's goal-and-assist in United's 5–2, and Roefs and Ballard walled up behind Sunderland's shutout. CJ actually had the week's most eventful player: João Pedro, booed by Brighton fans all afternoon, scored at both ends and added an assist in the seven-goal chaos at Stamford Bridge.</div>
+  <ul class="hits">
+   <li><b>Calvert-Lewin's 79th-minute tap-in</b> for Leeds kept CJ close; his midfield trio of Tavernier, Dewsbury-Hall and Okafor managed 5 combined.</li>
+   <li><b>Kadıoğlu, 0</b> — the other casualty of Brighton's four-goal Sunday.</li>
+   <li><b>Gakpo crossed for Isak's equaliser</b> at Anfield — a Jacob player feeding Baha's striker.</li>
+  </ul>
+  <div class="chips"><span class="chip">xP <b>43.5 – 46.7</b></span><span class="chip">Bonus <b>4 – 5</b></span><span class="chip gold">Series <b>1–0</b> Jacob</span></div>
+  <div class="notm"><div class="n">9</div><div class="c">Players Jacob got minutes from. They outscored CJ's eleven anyway.</div></div>
+ </div>
+</div>
+
+<!-- HASBULLA DERBY -->
+<div class="card">
+ <div class="mhead"><div class="kick">The Hasbulla Derby · First Meeting</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
+   <div class="sc">47<span class="d">–</span><span class="w">57</span></div>
+   <div class="tm away win"><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="141746">BF</div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">BRUNO FERNANDES <span>· MID · MUN</span></div>
+   <div class="pline">Hat-trick — a left-foot equaliser, a penalty, a third — then the wedged pass for Mbeumo's lob in United's comeback 5–2 over Ipswich. The season's biggest single score.</div></div>
+  <div class="ppts">23<small>PTS</small></div></div>
+ <div class="mbody">
+  <div class="story">PJ's 47 was the fourth-best score of the week and would have won two of the other three matchups. Instead he ran into Bruno erupting at Old Trafford and Cherki cutting Palace apart twice for 14. Nate won it despite a zero from his own goalkeeper: Alisson conceded twice, gave away Forest's penalty with a foul on Neco Williams, and got booked for it.</div>
+  <ul class="hits">
+   <li><b>THE ZERO: Ollie Watkins started for PJ and never played</b> — Villa sold him to Al Hilal for £51.7m. He isn't left out; he's on another continent.</li>
+   <li><b>Donnarumma managed 0 in a 4–1 City win</b> — Pino's free-kick hit the bar and went in off his back.</li>
+   <li><b>Gibbs-White's goal-and-assist and Foden's two assists</b> deserved better company on PJ's sheet.</li>
+  </ul>
+  <div class="chips"><span class="chip">xP <b>40.9 – 50.0</b></span><span class="chip">Bonus <b>5 – 6</b></span><span class="chip gold">Series <b>1–0</b> Nate</span></div>
+  <div class="notm"><div class="n">£51.7m</div><div class="c">What Al Hilal paid Villa for PJ's zero-point starter.</div></div>
+ </div>
+</div>
+
+<!-- ROONEY TOONS DERBY -->
+<div class="card">
+ <div class="mhead"><div class="kick">The Rooney Toons Derby · Series 4–3–1</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">I Am a Baleba</div><div class="mg">Ethan</div></div>
+   <div class="sc">43<span class="d">–</span><span class="w">66</span></div>
+   <div class="tm away win"><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="503139">AS</div>
+  <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">ALEX SCOTT <span>· MID · BOU</span></div>
+   <div class="pline">Goal against Everton after Evanilson turned Tarkowski, 15 defensive actions, three bonus — and subbed off four minutes before the equaliser that would have cost his clean-sheet point.</div></div>
+  <div class="ppts">12<small>PTS</small></div></div>
+ <div class="mbody">
+  <div class="story">Baha's 66 ties CJ's opening-week mark for the season's best, built on three Team of the Week picks — Scott, plus Calafiori (the assist for Saka's winner) and Hall (max bonus behind Newcastle's shutout of Spurs) — with Isak's tap-in at Anfield and Wissa's overhead kick adding eight each. Ethan, formerly Maize 'n' Mount, got a Haaland brace and almost nothing else from his XI while 20 points piled up on his bench. The brutal math: even a perfect bench day only reaches 57.</div>
+  <ul class="hits">
+   <li><b>The Friday rebuild cut both ways</b> — Ethan dropped Chris Richards two hours before City roasted Richards for two of their four, then watched pickup De Cuyper (GW1's top score anywhere, unowned at the time) take Brighton's four-goal zero.</li>
+   <li><b>N.Williams scored 6 on Ethan's bench</b> — including the assist for winning the penalty Alisson gave away. Mukiele added 9 next to him.</li>
+   <li><b>Barry put 1.48 xG worth of chances over and wide</b> — from six yards at one point — and Baha won big anyway.</li>
+  </ul>
+  <div class="chips"><span class="chip">xP <b>32.9 – 49.6</b></span><span class="chip">Bonus <b>6 – 12</b></span><span class="chip gold">Series <b>4–3–1</b> Baha</span></div>
+  <div class="notm"><div class="n">20</div><div class="c">Points on Ethan's bench while his starting eleven managed 43.</div></div>
+ </div>
+</div>
+
+<!-- AROUND THE LEAGUE -->
+<h2>Around the League</h2>
+<div class="card"><div class="mbody" style="padding-top:13px">
+ <table>
+  <tr><th>#</th><th>Team</th><th class="r">GW2</th><th class="r">xP</th><th class="r"></th></tr>
+  <tr class="top"><td>1</td><td>Kobbie Mainoo Fan</td><td class="r">66</td><td class="r">49.6</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>2</td><td>In It to McGinn It</td><td class="r">57</td><td class="r">50.0</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>3</td><td>Team Jacob</td><td class="r">49</td><td class="r">46.7</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>4</td><td>Devils U21s</td><td class="r">47</td><td class="r">40.9</td><td class="r"><span class="res l">L</span></td></tr>
+  <tr><td>5</td><td>I Am a Baleba</td><td class="r">43</td><td class="r">32.9</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>6</td><td>The Soaring Gulls</td><td class="r">41</td><td class="r">43.5</td><td class="r"><span class="res l">L</span></td></tr>
+  <tr><td>7</td><td>Cold Palmers</td><td class="r">40</td><td class="r">44.2</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>8</td><td>Trophy Hunters</td><td class="r">31</td><td class="r">28.1</td><td class="r"><span class="res l">L</span></td></tr>
+ </table>
+ <ul class="hits" style="margin-top:8px">
+  <li><b>Waiver watch:</b> Pascal Groß put up 13 unowned — a stoppage-time header against Chelsea, seven days after CJ cut him. Elanga scored again for Newcastle, Isidor won Sunderland's match in 26 minutes off the bench, and Dedić was the board's best unowned defender. PJ, obviously, needs a forward who plays his football in England.</li>
+  <li><b>The xP ledger, two weeks in:</b> Nate (50.0) built the week's best team and sits 1–1; Jacob and Parker are the 2–0 sides, and both earned it. PJ is the league's unluckiest 0–2; Bryant is just 0–2.</li>
+ </ul>
+ <div class="fxg">
+  <div class="fx"><span class="tag">GW3 · The Fortnite Derby</span><br><b>In It to McGinn It</b> v Cold Palmers</div>
+  <div class="fx"><span class="tag">GW3 · Red Card Ranked Inv.</span><br><b>Team Jacob</b> v Kobbie Mainoo Fan</div>
+  <div class="fx"><span class="tag">GW3</span><br><b>Trophy Hunters</b> v I Am a Baleba</div>
+  <div class="fx"><span class="tag">GW3 · El Jlásico</span><br><b>The Soaring Gulls</b> v Devils U21s</div>
+ </div>
+</div></div>
+
+<div class="foot">Scores are provisional counts at the final whistle; bonus and minor stat corrections can still move before FPL's freeze. Reporting: Sky Sports, Al Jazeera, Opta Analyst, Sky Sports News (transfers). Fantasy numbers: league data — every XI reconciles exactly to its H2H score.</div>
+</div>
+
+<script>
+/* Headshots: codes fixed at publish time (name lookup burned us — two Palmers in the Players
+   tab). Same cascade as the app: committed face -> PL 250x250 -> PL 110x140 -> initials stay. */
+(function(){
+  document.querySelectorAll('.ph[data-code]').forEach(function(el){
+    var code=el.getAttribute('data-code');
+    var srcs=['faces/'+code+'.png',
+      'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png',
+      'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+code+'.png'];
+    var i=0,img=new Image();
+    img.onload=function(){el.textContent='';el.appendChild(img)};
+    img.onerror=function(){if(++i<srcs.length)img.src=srcs[i]};
+    img.src=srcs[0];
+  });
+})();
+</script>
+</body>
+</html>

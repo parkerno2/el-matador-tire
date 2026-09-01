@@ -1,7 +1,12 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FPL Companion · El Matador Tire</title>
-<link rel="manifest" href="manifest.webmanifest">
+<title>⚠ PREVIEW · FPL Companion</title>
+<!-- ============================================================
+     PREVIEW BUILD — NOT THE DEPLOYED APP. Safe to open locally.
+     The real index.html is untouched; port approved changes there.
+     Preview-only differences: this banner, absolute faces/ URLs,
+     no manifest / no service worker.
+     ============================================================ -->
 <meta name="theme-color" content="#37003C">
 <link rel="icon" type="image/png" href="icons/icon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -496,6 +501,9 @@ padding:3px 9px;border-radius:20px}
 .srow b{font-family:'Saira Condensed';font-size:.96rem}
 .sh-note{margin-top:10px;font-size:.66rem;color:var(--mid);line-height:1.55}
 .foot{color:var(--mid);font-size:.66rem;text-align:center;padding:24px 0 0;line-height:1.6}
+/* ---------- PREVIEW-ONLY banner ---------- */
+.pvban{position:fixed;top:0;left:0;right:0;z-index:99;background:repeating-linear-gradient(45deg,#FFD23F 0 14px,#1B1420 14px 28px);color:#fff;text-align:center;font-size:.6rem;font-weight:700;letter-spacing:.18em;padding:3px 0;text-shadow:0 1px 3px rgba(0,0,0,.9);pointer-events:none}
+body{padding-top:14px}
 /* ---------- xP additions ---------- */
 .mcard .xline{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:.66rem}
 .xlab{font-size:.52rem;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:12px}
@@ -605,6 +613,9 @@ font-size:.62rem;font-weight:700;letter-spacing:.08em;padding:9px 18px;border-ra
 transition:top .18s ease;pointer-events:none;white-space:nowrap}
 #ptr.show{top:calc(env(safe-area-inset-top) + 52px)}
 #ptr.spin{background:var(--p3)}
+/* PREVIEW-ONLY: November simulator button */
+.novbtn{position:fixed;right:12px;bottom:calc(var(--navh) + 14px);z-index:60;border:none;background:#1B1420;color:var(--gold);font-family:inherit;font-size:.64rem;font-weight:700;padding:10px 14px;border-radius:20px;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer}
+.novbtn.on{background:var(--gold);color:#1B1420}
 /* analysis: 8 manager hero cards, 3-3-2 */
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0 4px}
 .mgrid .mt{position:relative;overflow:hidden;border:none;border-radius:14px;text-align:left;cursor:pointer;
@@ -656,6 +667,7 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
 @media(min-width:700px){.sh-left{width:250px}.sh-left .fc{width:100%;max-width:212px}}
 </style></head><body>
 
+<div class="pvban">PREVIEW BUILD · NOT DEPLOYED</div>
 <div class="top"><div class="in">
   <span class="brand">EL MATADOR TIRE</span>
   <span class="gwpill" id="gwpill">…</span>
@@ -703,6 +715,7 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
 </div>
 
 <div id="ptr">↓ Pull to refresh</div>
+<button class="novbtn" id="novsim">🧪 Simulate November</button>
 <nav id="nav"></nav>
 <div class="ov" id="ov"></div>
 <div class="sheet" id="sheet"></div>
@@ -730,7 +743,7 @@ const TEAMS={'Cold Palmers':{mgr:'Parker Nolan',ini:'PN',col:'#2E5BFF',xi:1185,l
 'Devils U21s':{mgr:'PJ Nolan',ini:'PJ',col:'#D6001C',xi:1117,lo:846,hi:1388},
 'I Am a Baleba':{mgr:'Ethan Gould',ini:'EG',col:'#F0B323',xi:1243,lo:946,hi:1540},
 'Kobbie Mainoo Fan':{mgr:'Baha Kharoofa',ini:'BK',col:'#E8710A',xi:940,lo:703,hi:1177},
-'Team Jacob':{mgr:'Jacob Sodini',ini:'JS',col:'#795548',xi:1137,lo:871,hi:1403}, // colour changed from #1B7F79 (clashed with CJ's teal)
+'Team Jacob':{mgr:'Jacob Sodini',ini:'JS',col:'#795548',xi:1137,lo:871,hi:1403}, /* PREVIEW: was #1B7F79 — too close to CJ's teal. Pick any colour you like */
 'In It to McGinn It':{mgr:'Nate Grahn',ini:'NG',col:'#B5179E',xi:1051,lo:787,hi:1315}};
 const MATCH={'BS|PN':'The Mr. Marks Bowl','PJ|PN':'Nolan','PN|BK':'El Clásico','JS|PN':'The Gamer Derby',
 'NG|PN':'The Fortnite Derby','BS|CT':'De Klassieker','BS|BK':'The Sacred Heart Derby','PJ|CT':'El Jlásico',
@@ -1029,9 +1042,10 @@ function faceImgHTML(p){
     EA/futwiz/futbin "face" assets are opaque gray squares (verified 21 Aug 2026).
     The EA Map instead powers the photographic portrait in the player sheet. */
  const urls=[];
+ /* PREVIEW: absolute faces URL so the local file shows deployed faces. Port as 'faces/' */
  /* FACE_SWAP: time-boxed gag faces — {code:{src,until}}; expired entries are ignored, the real cascade follows. Parker, 29 Aug: Hasbulla on Evanilson for 24h. */
- const fs=FACE_SWAP[String(p.Code)];if(fs&&Date.now()<Date.parse(fs.until))urls.push('faces/'+fs.src);
- if(p.Code){urls.push('faces/'+p.Code+'.png');urls.push(face250(p.Code));urls.push(face(p.Code));}
+ const fs=FACE_SWAP[String(p.Code)];if(fs&&Date.now()<Date.parse(fs.until))urls.push('https://parkerno2.github.io/el-matador-tire/faces/'+fs.src);
+ if(p.Code){urls.push('https://parkerno2.github.io/el-matador-tire/faces/'+p.Code+'.png');urls.push(face250(p.Code));urls.push(face(p.Code));}
  if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
  return '<img decoding="async" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
@@ -1901,7 +1915,7 @@ function plrRow(p){
     :'<span class="ownp free">FREE</span>';
   /* owned → transparent league face first; free agents → straight to the PL photo */
   const chain=owned
-    ?['faces/'+p.Code+'.png',face250(p.Code),face(p.Code)]
+    ?['https://parkerno2.github.io/el-matador-tire/faces/'+p.Code+'.png',face250(p.Code),face(p.Code)]
     :[face250(p.Code),face(p.Code)];
   const img='<img class="pf" loading="lazy" src="'+chain[0]+'" data-alt="'+chain.slice(1).join('|')
    +'" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface3>'+initials(p.Player)+'</span>\'}">';
@@ -1994,7 +2008,7 @@ function grassSVG(){
    +'<rect x="302" y="0" width="96" height="8" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="3"/>'
    +'</svg>';
 }
-function renderXIs_legacy(){ /* retired Manager XIs screen (v2) — dead code, kept for reference */
+function renderXIs_legacy(){ /* PREVIEW: retired Manager XIs screen, kept for reference — do not port */
   const order=D.st.slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For'])).map(s=>s.Team).filter(t=>t);
   const names=order.length===8?order:Object.keys(TEAMS);
   if(!TEAMSEL)TEAMSEL=names[0];
@@ -2283,9 +2297,77 @@ document.body.addEventListener('click',e=>{
   if(b&&D.ro[+b.dataset.i])openSheet(D.ro[+b.dataset.i]);
 });
 
+/* ================= PREVIEW-DEMO ONLY: November simulator — NEVER PORT =================
+   Fabricates GW2–6 (stats, manager scores, lineups) so form arrows, TOTW churn,
+   tier moves and multi-week Lab charts can be previewed today. Deterministic
+   (seeded), component-consistent (synthetic points are computed from synthetic
+   stats with the real scoring rules, so breakdowns reconcile). Toggle restores. */
+const _R=s=>{const x=Math.sin(s*127.1)*43758.5453;return x-Math.floor(x)};
+function novToggle(){
+  const btn=document.getElementById('novsim');
+  if(D.demo){ // restore
+    Object.assign(D,D._real);D.demo=false;D._real=null;
+    btn.classList.remove('on');btn.textContent='🧪 Simulate November';
+  }else{
+    D._real={gwsByGw:D.gwsByGw,gwsCur:D.gwsCur,gw:D.gw,cf:D.cf,fx:D.fx,gl:D.gl,hasXP:D.hasXP};
+    const gwsByGw={...D.gwsByGw},GEND=6;
+    for(let g=2;g<=GEND;g++){
+      const blk={};
+      D.plr.forEach(p=>{
+        const c=num(p.Code);if(!c)return;
+        const owned=p.Owner&&p.Owner!=='FREE';
+        if(_R(c*3+g*17)>(owned?0.9:0.55))return; // DNP
+        const mins=_R(c+g*13)<0.78?90:Math.round(45+_R(c*5+g)*45);
+        const pos=p.Pos,mult=GOALPTS[pos]||4,csp=CSPTS[pos]||0;
+        const pG=pos==='FWD'?0.34:pos==='MID'?0.2:0.05;
+        const G=(_R(c*17+g)<pG?1:0)+(_R(c*19+g)<pG*0.28?1:0);
+        const A=_R(c*23+g)<0.17?1:0;
+        const cs=_R(c*29+g)<0.33?1:0,gc=cs?0:(_R(c*31+g)<0.55?1:2);
+        const sv=pos==='GKP'?Math.round(_R(c*37+g)*6):0;
+        const dc=pos==='DEF'?Math.round(4+_R(c*41+g)*9):Math.round(2+_R(c*43+g)*11);
+        const bn=_R(c*47+g)<0.15?Math.ceil(_R(c*53+g)*3):0;
+        const pts=(mins>=60?2:1)+G*mult+A*3+(mins>=60?cs*csp:0)
+          +((pos==='GKP'||pos==='DEF')?-Math.floor(gc/2):0)
+          +Math.floor(sv/3)+(dc>=DCTH[pos]?2:0)+bn;
+        blk[String(c)]={Code:String(c),GW:g,Player:p.Player,Pos:pos,Club:p.Club,
+          Owner:owned?p.Owner:'',Mins:mins,Pts:pts,G:G,A:A,CS:mins>=60?cs:0,GC:gc,OG:0,PS:0,PM:0,
+          YC:_R(c*59+g)<0.12?1:0,RC:0,Saves:sv,Bonus:bn,BPS:20+Math.round(_R(c)*20),DefCon:dc,
+          xG:Math.round((G*0.55+_R(c*61+g)*0.35)*100)/100,
+          xA:Math.round((A*0.45+_R(c*67+g)*0.22)*100)/100,
+          xGC:Math.round((cs?0.35+_R(c*71+g)*0.5:0.9+_R(c*73+g)*1.1)*100)/100,Final:g<GEND};
+      });
+      gwsByGw[g]=blk;
+    }
+    // synthetic manager scores + finished flags on H2H
+    const fx=D.fx.map(r=>({...r}));
+    fx.forEach(r=>{const g=num(r.GW);
+      if(g<2||g>GEND)return;
+      const sum=t=>xiOf(t).reduce((s,p)=>{const q=gwsByGw[g][String(p.Code)];return s+(q?q.Pts:0)},0);
+      r['Home pts']=sum(r.Home);r['Away pts']=sum(r.Away);r.Finished=g<GEND?true:false;
+    });
+    // synthetic GW Log (XI/BEN from current slots) for finished GWs 1..GEND-1
+    const gl=[];
+    for(let g=1;g<GEND;g++)D.ro.forEach(p=>{
+      const q=(g===1?D.gwsByGw[1]:gwsByGw[g])[String(p.Code)];
+      const s=num(p.Slot);
+      gl.push({GW:g,Team:p.Team,Player:p.Player,Code:p.Code,Pos:p.Pos,Club:p.Club,
+        'GW pts':q?q.Pts:0,'GW mins':q?q.Mins:0,Started:(s>=1&&s<=11)||(!s&&p['Best XI']==='XI')?'XI':'BEN',TOTW:''});
+    });
+    // all GW6 fixtures finished so the "current" GW reads as a completed Saturday
+    const clubs=[...new Set(D.plr.map(p=>p.Club))];
+    const cf=D.cf.concat(clubs.map(cl=>({GW:GEND,Home:cl,Away:'—','Kickoff (UTC)':'',Finished:true,Started:true,'Home goals':1,'Away goals':1,Mins:90})));
+    Object.assign(D,{gwsByGw,gw:GEND,gwsCur:gwsByGw[GEND],cf,fx,gl,hasXP:true,demo:true});
+    btn.classList.add('on');btn.textContent='🧪 November ON — tap to restore';
+  }
+  renderGW();renderTable();renderXIs();renderAct();renderAna();
+  const pill=document.getElementById('gwpill');
+  pill.textContent='GW'+D.gw+(D.demo?' · SIM':'');
+}
+document.getElementById('novsim').onclick=novToggle;
 
 /* ================= boot ================= */
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* PREVIEW: no service worker — restore this line when porting to index.html:
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{}); */
 buildNav();route();renderFAQ();
 let LOADED=0;
 function loadAll(quiet){
