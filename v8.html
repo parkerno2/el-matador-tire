@@ -402,7 +402,10 @@ async function boot(){
     D.mw=mw;
     D.fx=fx.map(r=>({gw:num(r.GW),h:fixName(r.Home),a:fixName(r.Away),hp:num(r['Home pts']),ap:num(r['Away pts']),done:yes(r.Finished)}));
     D.st=st.map(r=>({t:fixName(r.Team),mgr:r.Manager,w:num(r.W),d:num(r.D),l:num(r.L),p:num(r['League Pts']),pf:num(r['Pts For']),pa:num(r['Pts Against'])}));
-    D.ro=ro.map(r=>({t:fixName(r.Team),code:String(r.Code),pl:r.Player,pos:r.Pos,slot:num(r.Slot),gwp:num(r['GW pts'])}));
+    D.ro=ro.map(r=>({t:fixName(r.Team),code:String(r.Code),pl:r.Player,pos:r.Pos,slot:num(r.Slot),
+      bxi:r['Best XI']==='XI',gxi:r['GW XI']==='XI',gwp:num(r['GW pts'])}));
+    D.ro.forEach(r0=>{});
+    ro.forEach(r=>{if(r.Code&&num(r.OVR))D.ovr[String(r.Code)]=num(r.OVR)});D.ovrLoaded=true;
     /* current GW = first fixture row not finished, else max */
     const open=D.fx.filter(f=>!f.done);D.gw=open.length?Math.min(...open.map(f=>f.gw)):Math.max(...D.fx.map(f=>f.gw));
     const mrow=D.mw.find(x=>num(x.GW)===D.gw);
@@ -413,13 +416,20 @@ async function boot(){
     readTab('Predictions').then(p=>{D.predRows=p.filter(r=>num(r.GW)===D.gw);buildPred();render()}).catch(()=>{});
     const lastDone=Math.max(0,...D.fx.filter(f=>f.done).map(f=>f.gw));
     if(lastDone)readTab('GW Stats',`where A=${lastDone} and H>4`).then(rows=>{buildStars(rows,lastDone);render()}).catch(()=>{});
-    readTab('Ratings').then(rr=>{rr.forEach(r=>{if(r.Code)D.ovr[String(r.Code)]=num(r.OVR)});D.ovrLoaded=true;render()}).catch(()=>{});
+
   }catch(e){snapBoot()}
+}
+function xiOf(t){
+  /* pre-deadline: FPL's projected best XI; after: the submitted lineup */
+  let xi=D.ro.filter(r=>r.t===t&&(D.dlPassed?r.gxi:r.bxi));
+  if(xi.length!==11)xi=D.ro.filter(r=>r.t===t&&(r.bxi||r.gxi));
+  if(xi.length!==11)xi=D.ro.filter(r=>r.t===t&&r.slot>=1&&r.slot<=11);
+  return xi;
 }
 function buildPred(){
   D.pred={};const ep={};(D.predRows||[]).forEach(r=>{ep[String(r.Code)]=num(r.EP)});D.epMap=ep;
   Object.keys(TEAMS).forEach(t=>{
-    const xi=D.ro.filter(r=>r.t===t&&r.slot>=1&&r.slot<=11);
+    const xi=xiOf(t);
     if(xi.length===11)D.pred[t]=xi.reduce((s,r)=>s+(ep[r.code]||0),0);
   });
 }
@@ -429,7 +439,7 @@ function buildStars(rows,gw){
     (D.stars[t]=D.stars[t]||[]).push({pl:r.Player,code:String(r.Code),pts:num(r.Pts)});});
   Object.values(D.stars).forEach(a=>a.sort((x,y)=>y.pts-x.pts));
 }
-function liveXi(t){const xi=D.ro.filter(r=>r.t===t&&r.slot>=1&&r.slot<=11);return xi.reduce((s,r)=>s+r.gwp,0)}
+function liveXi(t){return xiOf(t).reduce((s,r)=>s+r.gwp,0)}
 
 /* ================= renders ================= */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -539,7 +549,7 @@ function openPitch(i){
   document.getElementById('povT').textContent=(derbyOf(f.h,f.a)||'Gameweek '+f.gw);
   document.getElementById('povS').textContent=f.h+' v '+f.a+(D.dlPassed?' · points this gameweek':' · projected points, current XIs');
   const half=t=>{
-    const T=TEAMS[t];const xi=D.ro.filter(r=>r.t===t&&r.slot>=1&&r.slot<=11).sort((a,b)=>a.slot-b.slot);
+    const T=TEAMS[t];const xi=xiOf(t);
     const gk=xi.filter(p=>p.pos==='GKP'),df=xi.filter(p=>p.pos==='DEF'),md=xi.filter(p=>p.pos==='MID'),fw=xi.filter(p=>p.pos==='FWD');
     const mini=p=>{
       const v=D.dlPassed?p.gwp:(D.epMap&&D.epMap[p.code]!=null?f1(D.epMap[p.code]):p.gwp);
@@ -642,7 +652,7 @@ function snapBoot(){
    'In It to McGinn It':[[116535,'A.Becker','GKP',0],[441164,'Pedro Porro','DEF',1],[216094,'Frimpong','DEF',1],[500040,'Mosquera','DEF',6],[141746,'B.Fernandes','MID',23],[466052,'Cherki','MID',14],[176297,'Rashford','MID',2],[460842,'Kudus','MID',1],[502500,'Thiago','FWD',2],[438234,'Marmoush','FWD',2],[444102,'Evanilson','FWD',5]],
    'I Am a Baleba':[[111234,'Pickford','GKP',3],[494521,'Truffert','DEF',4],[465730,'De Cuyper','DEF',0],[607464,'Kayode','DEF',2],[430871,'Cunha','MID',9],[424876,'Szoboszlai','MID',4],[533463,'O.Dango','MID',1],[440993,'Ndiaye','MID',4],[223094,'Haaland','FWD',13],[485711,'Šeško','FWD',1],[551466,'Gonzalo','FWD',2]],
    'Kobbie Mainoo Fan':[[465247,'Lammens','GKP',2],[225796,'James','DEF',1],[466075,'Calafiori','DEF',11],[480455,'Branthwaite','DEF',4],[487838,'Hall','DEF',11],[494595,'Wirtz','MID',4],[184029,'Ødegaard','MID',3],[503139,'Scott','MID',12],[219168,'Isak','FWD',8],[216646,'Wissa','FWD',8],[586309,'Barry','FWD',2]]};
-  D.ro=[];Object.keys(RO).forEach(t=>RO[t].forEach((p,i)=>D.ro.push({t,code:String(p[0]),pl:p[1],pos:p[2],slot:i+1,gwp:p[3]})));
+  D.ro=[];Object.keys(RO).forEach(t=>RO[t].forEach((p,i)=>D.ro.push({t,code:String(p[0]),pl:p[1],pos:p[2],slot:i+1,bxi:true,gxi:true,gwp:p[3]})));
   D.pred={'In It to McGinn It':30.3,'Cold Palmers':40.5,'Team Jacob':41.5,'Kobbie Mainoo Fan':45.9,
    'Trophy Hunters':31.4,'I Am a Baleba':46.5,'The Soaring Gulls':56.0,'Devils U21s':30.0};
   D.stars={};D.starGw=2;
