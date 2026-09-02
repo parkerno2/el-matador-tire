@@ -573,25 +573,30 @@ document.body.addEventListener('click',e=>{
 function wireStages(){
   const sc=document.getElementById('stages'),dots=[...document.querySelectorAll('#dots i')];
   const stages=[...sc.querySelectorAll('.stage')];
+  const arm=st=>{st.classList.add('on');
+    st.querySelectorAll('.tb i').forEach(b=>b.style.width=b.dataset.w+'%');
+    odometer(st);};
   const io=new IntersectionObserver(es=>es.forEach(en=>{
     if(en.intersectionRatio>.6){
-      en.target.classList.add('on');
       const i=+en.target.dataset.i;
       dots.forEach((d,j)=>d.classList.toggle('on',j===i));
-      en.target.querySelectorAll('.tb i').forEach(b=>b.style.width=b.dataset.w+'%');
-      odometer(en.target);
+      arm(en.target);
     }}),{root:sc,threshold:.6});
   stages.forEach(s=>io.observe(s));
+  if(stages[0])arm(stages[0]); /* first stage arms immediately — never depends on IO timing */
 }
 function odometer(stage){
   const el=stage.querySelector('.vs .n');if(!el||el.dataset.done)return;el.dataset.done=1;
   const n1=el.dataset.n1,n2=el.dataset.n2;
-  if(isNaN(parseFloat(n1)))return;
+  const fin=()=>{el.innerHTML=n1+'<small> – </small>'+n2};
+  if(isNaN(parseFloat(n1))||document.hidden){fin();return}
   const t0=performance.now(),dur=800;
-  const step=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);
+  setTimeout(fin,dur+120); /* guarantee: throttled rAF (occluded window) never strands frame one */
+  const step=t=>{if(!el.isConnected)return;
+    const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);
     const fmt=v=>String(v).includes('.')?(parseFloat(v)*e).toFixed(1):Math.round(parseFloat(v)*e);
     el.innerHTML=fmt(n1)+'<small> – </small>'+fmt(n2);
-    if(k<1)requestAnimationFrame(step);else el.innerHTML=n1+'<small> – </small>'+n2;};
+    if(k<1)requestAnimationFrame(step);else fin();};
   requestAnimationFrame(step);
 }
 function wireReveal(){
