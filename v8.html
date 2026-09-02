@@ -152,6 +152,70 @@ section{padding:10px 20px 0}
 .lrow .v{width:48px;text-align:right;font-family:var(--disp);font-weight:800;font-size:14.5px;font-variant-numeric:tabular-nums}
 .lrow .v.up{color:var(--live)}.lrow .v.dn{color:var(--bad)}
 .fn{font-size:11px;color:var(--faint);line-height:1.6;padding:12px 16px;border-top:1px solid var(--line)}
+
+/* ===== THE PLATE CARD SYSTEM — ported verbatim from the league app (locked design) ===== */
+.fc{position:relative;display:block;width:23.5%;max-width:132px;min-width:54px;aspect-ratio:150/210;border:none;background:none;
+padding:0;cursor:pointer;flex:none;container-type:inline-size;transition:transform .16s ease;-webkit-tap-highlight-color:transparent}
+.prow{gap:1.6%}
+.prow:has(.fc:nth-child(5)){gap:0}
+.prow:has(.fc:nth-child(5)) .fc+.fc{margin-left:-2.6%}
+.fc:hover,.fc:focus-visible{transform:translateY(-4px) scale(1.04);z-index:5;outline:none}
+.fc svg.bg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.fc .rt{position:absolute;top:7%;left:12%;z-index:2;text-align:center;line-height:.9}
+.fc .rt b{font-family:'Saira Condensed';font-weight:700;font-size:15.5cqw;color:var(--tx);display:block}
+.fc .rt span{font-size:6.4cqw;font-weight:700;letter-spacing:.08em;color:var(--sub)}
+.fc .rt .fdar{display:block;font-size:5.6cqw;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.fc .rt .fdar.up{color:#2FBF71}.fc .rt .fdar.dn{color:#E5484D}
+.fc .tag{position:absolute;top:4%;left:50%;transform:translateX(-50%);z-index:3;background:var(--gold);color:var(--p1);
+font-size:5.8cqw;font-weight:700;letter-spacing:.12em;padding:1.4% 5.5%;border-radius:9cqw;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap}
+.fc .pts{position:absolute;top:4.5%;right:7.5%;z-index:2;text-align:center;line-height:.85;font-family:'Saira Condensed';font-weight:600;
+background:var(--bub);border:1px solid var(--ln1);border-radius:14cqw;padding:4% 5% 3.5%;min-width:27%;font-size:13.5cqw;box-shadow:0 2px 5px rgba(20,10,25,.25)}
+.fc .pts i{display:block;margin-top:.6cqw}
+.fc .pts b{display:block;font-size:13.5cqw;color:var(--bubn)}
+.fc .pts i{font-style:normal;font-size:6.2cqw;letter-spacing:.14em;opacity:1;color:var(--bubn)}
+/* v5.5 bubble states — PROJ (pencilled in) vs LIVE (green ring) vs PTS (solid). Never identical pills again. */
+.fc .pts.proj{background:var(--bubp);border:1.5px dashed var(--bub);box-shadow:none;font-weight:500}
+.fc .pts.proj b{color:var(--tx);font-weight:500}
+.fc .pts.proj i{color:var(--tx);opacity:.8}
+.fc .pts.live{border:1.6px solid #19D27A;box-shadow:0 0 0 1.2px rgba(25,210,122,.35),0 2px 5px rgba(20,10,25,.25)}
+.fc .pts.live i{color:#5CF0A5}
+.fc .face{position:absolute;top:6%;left:8%;right:8%;height:61%;z-index:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.fc .face img{width:96%;height:96%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.38))}
+.fc .face:has(.noface){align-items:center;overflow:visible}
+.fc .noface{width:52%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-weight:700;font-size:13cqw;background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);color:var(--tx)}
+.fc .nm{position:absolute;left:10%;right:10%;top:67%;z-index:2;font-weight:700;text-align:center;
+font-size:10.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+padding:2.8% 2px 2%;border-top:1px solid var(--ln1);color:var(--tx)}
+.fc .meta{position:absolute;left:0;right:0;top:80.5%;z-index:2;display:flex;align-items:center;justify-content:center;gap:5%}
+.fc .meta img,.fc .meta svg{width:15%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.fc .meta img.crest{aspect-ratio:auto 1/1}.fc .meta img.flag{aspect-ratio:auto 4/3}
+.fc .meta .sep{width:1px;height:10cqw;background:var(--ln2)}
+.fc .inj{position:absolute;top:27%;left:8.5%;z-index:3;background:#D6001C;color:#fff;font-size:5.6cqw;
+font-weight:700;padding:1.2% 4%;border-radius:8cqw;box-shadow:0 2px 5px rgba(0,0,0,.4);letter-spacing:.06em}
+.fc.gold  {--tx:#3A2B05;--sub:#7A5E14;--ln1:rgba(58,43,5,.45);--ln2:rgba(58,43,5,.22);--bub:#6E4F0E;--bubn:#fff;--bubp:rgba(255,250,235,.62)}
+.fc.silver{--tx:#262A33;--sub:#575E6C;--ln1:rgba(38,42,51,.4);--ln2:rgba(38,42,51,.18);--bub:#454C5C;--bubn:#fff;--bubp:rgba(255,255,255,.62)}
+.fc.spec  {--tx:#fff;--sub:#D8CBE2;--ln1:rgba(255,210,63,.6);--ln2:rgba(255,210,63,.3);--bub:#26002A;--bubn:#fff;--bubp:rgba(0,0,0,.32)}
+.fc.elite {--tx:#fff;--sub:#BFE9FF;--ln1:rgba(4,245,255,.65);--ln2:rgba(4,245,255,.3);--bub:#082B6F;--bubn:#fff;--bubp:rgba(0,0,0,.32)}
+.fc.totw  {--tx:#FFD23F;--sub:#C8B36A;--ln1:rgba(255,210,63,.7);--ln2:rgba(255,210,63,.35);--bub:#0C0C10;--bubn:#FFD23F;--bubp:rgba(0,0,0,.4)}
+.fc.potm  {--tx:#fff;--sub:#F0C9D8;--ln1:rgba(255,210,63,.65);--ln2:rgba(255,210,63,.3);--bub:#4E0C28;--bubn:#fff;--bubp:rgba(0,0,0,.32)}
+.fc.spec .rt b,.fc.potm .rt b{color:var(--gold)}
+.fc.elite .rt b{color:var(--cyan)}
+/* predicted auto-sub treatments: cyan ring + SUB pill for the incoming player, dimmed OUT for the leaving one */
+.fc.subin svg.bg>path:last-of-type{stroke:var(--cyan);stroke-width:2.6}
+.fc.subin .tag{background:var(--cyan);color:#06333A}
+.fc.subout{opacity:.55}
+.fc.subout .tag{background:#8A8494;color:#fff}
+.fc.subin.likely svg.bg>path:last-of-type{stroke:#F5B942;stroke-dasharray:7 4}
+.fc.subin.likely .tag{background:#F5B942;color:#3A2A00}
+.fc.subout.likely .tag{background:#B08A3A;color:#fff}
+/* v8 placements */
+.stars .fc{width:76px;max-width:76px}
+.stars{align-items:flex-start;gap:8px}
+.prowx .fc{width:21.5%;max-width:84px;min-width:56px}
+.prowx{gap:2%;padding:0 8px;margin-top:10px}
+.fc .nm,.fc .rt span{font-family:var(--body)}
+
 /* reveal on scroll */
 .rv{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
 .rv.in{opacity:1;transform:none}
@@ -204,6 +268,14 @@ nav button .ub{display:none}
 </style>
 </head>
 <body>
+<svg style="position:absolute;width:0;height:0" width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gGold" x1="0" y1="0" x2="0.32" y2="1"><stop offset="0" stop-color="#FBE9A6"/><stop offset=".3" stop-color="#EFCB68"/><stop offset=".72" stop-color="#D2A73F"/><stop offset="1" stop-color="#B8892B"/></linearGradient>
+  <linearGradient id="gSilver" x1="0" y1="0" x2="0.32" y2="1"><stop offset="0" stop-color="#FAFBFD"/><stop offset=".35" stop-color="#DCDFE6"/><stop offset=".8" stop-color="#ACB2C0"/><stop offset="1" stop-color="#979DAD"/></linearGradient>
+  <linearGradient id="gSpec" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#7E3190"/><stop offset=".42" stop-color="#37003C"/><stop offset="1" stop-color="#2E5BFF"/></linearGradient>
+  <linearGradient id="gElite" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#2A5AC2"/><stop offset=".45" stop-color="#0B3E9E"/><stop offset="1" stop-color="#0E63D6"/></linearGradient>
+  <linearGradient id="gTotw" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#3E3E4A"/><stop offset=".5" stop-color="#141419"/><stop offset="1" stop-color="#2B2416"/></linearGradient>
+  <linearGradient id="gPotm" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#8E2C55"/><stop offset=".5" stop-color="#6E1239"/><stop offset="1" stop-color="#B03A6A"/></linearGradient>
+</defs></svg>
 <div class="wrap">
 <header>
   <div id="lgBadge"></div>
@@ -236,6 +308,95 @@ nav button .ub{display:none}
 </nav>
 
 <script>
+/* ================= Plate cards (ported from the league app) ================= */
+const FILL={gold:'url(#gGold)',silver:'url(#gSilver)',spec:'url(#gSpec)',elite:'url(#gElite)',totw:'url(#gTotw)',potm:'url(#gPotm)'};
+const EDGE={gold:'#8A6A1D',silver:'#767D8E',spec:'#FFD23F',elite:'#04F5FF',totw:'#FFD23F',potm:'#FFD23F'};
+const ACC={gold:'#6E4F0E',silver:'#454C5C',spec:'#FFD23F',elite:'#04F5FF',totw:'#FFD23F',potm:'#FFD23F'};
+const TIER_DROP={silver:'wave',gold:'wave',spec:'wave',elite:'splash',potm:'splash',totw:'cape'};
+const PLATE='M18 6 H106 L142 42 V196 L136 202 H14 L8 196 V16 Z';
+function bdWave(t,u){
+ const g='<defs><linearGradient id="wv'+u+'" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+ACC[t]+'" stop-opacity=".46"/><stop offset=".55" stop-color="'+ACC[t]+'" stop-opacity=".14"/><stop offset="1" stop-color="'+ACC[t]+'" stop-opacity="0"/></linearGradient></defs>';
+ return g
+  +'<path d="M-12 118 C36 102 70 58 152 12 L152 30 C76 72 34 108 -12 132 Z" fill="url(#wv'+u+')" opacity=".75"/>'
+  +'<path d="M-12 138 C30 118 52 74 152 34 L152 66 C72 98 40 132 -12 158 Z" fill="url(#wv'+u+')"/>'
+  +'<path d="M-12 156 C44 140 84 108 152 84 L152 100 C90 122 44 148 -12 170 Z" fill="url(#wv'+u+')" opacity=".55"/>'
+  +'<path d="M-12 128 C40 110 66 66 152 22" fill="none" stroke="'+ACC[t]+'" stroke-width="1" opacity=".3"/>';
+}
+function bdSplash(t,u){
+ const drops=[[34,84,2.6],[52,62,2],[74,44,2.8],[98,30,2],[118,20,2.6],[60,100,1.6],[88,58,1.5],[110,42,1.8],[128,12,1.4]];
+ return '<path d="M-8 148 C30 128 62 92 148 26" fill="none" stroke="'+ACC[t]+'" stroke-width="16" opacity=".12" stroke-linecap="round"/>'
+  +'<path d="M-8 132 C36 112 74 74 150 14" fill="none" stroke="'+ACC[t]+'" stroke-width="7" opacity=".2" stroke-linecap="round"/>'
+  +'<path d="M-8 162 C48 142 92 106 152 62" fill="none" stroke="'+ACC[t]+'" stroke-width="4" opacity=".14" stroke-linecap="round"/>'
+  +drops.map(d=>'<circle cx="'+d[0]+'" cy="'+d[1]+'" r="'+d[2]+'" fill="'+ACC[t]+'" opacity=".38"/>').join('');
+}
+function bdCape(t,u){
+ const g='<defs><linearGradient id="cp'+u+'" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="'+ACC[t]+'" stop-opacity="0"/><stop offset=".5" stop-color="'+ACC[t]+'" stop-opacity=".42"/><stop offset="1" stop-color="'+ACC[t]+'" stop-opacity=".06"/></linearGradient></defs>';
+ return g
+  +'<path d="M-24 128 C8 62 96 24 158 64" fill="none" stroke="url(#cp'+u+')" stroke-width="24" stroke-linecap="round"/>'
+  +'<path d="M-18 142 C24 88 108 52 160 84" fill="none" stroke="url(#cp'+u+')" stroke-width="10" opacity=".8" stroke-linecap="round"/>'
+  +'<path d="M-12 110 C22 58 92 22 150 42" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="4" stroke-linecap="round"/>'
+  +[[38,52],[104,26],[128,58],[62,32]].map(p=>'<path d="M'+p[0]+' '+(p[1]-4)+' L'+(p[0]+2.6)+' '+p[1]+' L'+p[0]+' '+(p[1]+4)+' L'+(p[0]-2.6)+' '+p[1]+' Z" fill="'+ACC[t]+'" opacity=".55"/>').join('');
+}
+const DROPS={wave:bdWave,splash:bdSplash,cape:bdCape};
+let CARDUID=0;
+function cardBg(t){
+ const u=++CARDUID,art=DROPS[TIER_DROP[t]];
+ return '<svg class="bg" viewBox="0 0 150 210" aria-hidden="true">'
+  +'<defs><clipPath id="cs'+u+'"><path d="'+PLATE+'"/></clipPath>'
+  +'<clipPath id="ct'+u+'"><rect x="0" y="0" width="150" height="134"/></clipPath></defs>'
+  +'<path d="'+PLATE+'" transform="translate(0 8)" fill="rgba(20,10,25,.16)"/>'
+  +'<path d="'+PLATE+'" transform="translate(0 3.5)" fill="rgba(20,10,25,.22)"/>'
+  +'<path d="'+PLATE+'" fill="'+FILL[t]+'"/>'
+  +'<g clip-path="url(#cs'+u+')"><g clip-path="url(#ct'+u+')">'+(art?art(t,u):'')+'</g>'
+  +'<path d="M-30 0 L64 0 L14 210 L-80 210 Z" fill="rgba(255,255,255,.07)"/></g>'
+  +'<path d="'+PLATE+'" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".7" transform="translate(75 105) scale(.965) translate(-75 -105)"/>'
+  +'<path d="'+PLATE+'" fill="none" stroke="'+EDGE[t]+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
+}
+function faceImgHTML(p){
+ /* Cards need TRANSPARENT cutouts — PL photos are the only reliable source.
+    EA/futwiz/futbin "face" assets are opaque gray squares (verified 21 Aug 2026).
+    The EA Map instead powers the photographic portrait in the player sheet. */
+ const urls=[];
+ if(p.Code){urls.push('faces/'+p.Code+'.png');urls.push(face250(p.Code));urls.push(face(p.Code));}
+ if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
+ return '<img decoding="async" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
+}
+const face=c=>'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+c+'.png';
+const face250=c=>'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+c+'.png';
+const NAT={};
+const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const badgeImg=(club,px)=>{const code=(D.clubs||{})[club];
+  const src=code?('https://resources.premierleague.com/premierleague/badges/50/t'+code+'.png'):'';
+  return src?'<img class="crest"'+(px?' style="height:'+px+'px"':'')+' decoding="async" src="'+src+'" alt="'+esc(club)+'" onerror="this.style.display=\'none\'">':'';};
+const flagImg=(n,px)=>n?'<img decoding="async" class="flag" style="'+(px?'height:'+px+'px;':'')+'border-radius:2px" src="https://flagcdn.com/w80/'+String(n).toLowerCase()+'.png" alt="'+esc(NAT[n]||n)+'" onerror="this.style.display=\'none\'">':'';
+/* v8 tier logic: base OVR from Rosters (no form deltas here — single source of truth for
+   dynamic tiers stays in the classic app); TOTW + round-1/2 Drafted art carried through. */
+function ovrOf(p){if(p.ovr)return Math.round(p.ovr);return Math.max(62,Math.min(96,Math.round(62+22*(p.projPts||0)/170)))}
+function tierOf(p){
+  if(p.totw)return'totw';
+  if(/^R[12]\./.test(p.drafted||''))return'spec';
+  const o=ovrOf(p);return o>=85?'elite':o>=78?'gold':'silver';
+}
+function cardV8(p,mode){
+  /* mode: 'pts' (solid, banked) | 'live' | 'proj' (hollow dashed) — the app's bubble grammar */
+  const t=tierOf(p),o=ovrOf(p);
+  const tag=t==='totw'?'TOTW':t==='spec'?(p.drafted||'').split('.')[0]:'';
+  let bub='';
+  if(mode==='proj'){const e=D.epMap&&D.epMap[p.code]!=null?f1(D.epMap[p.code]):'–';
+    bub='<span class="pts proj"><b>'+e+'</b><i>PROJ</i></span>';}
+  else bub='<span class="pts'+(mode==='live'?' live':'')+'"><b>'+Math.round(p.gwp)+'</b><i>'+(mode==='live'?'LIVE':'PTS')+'</i></span>';
+  return '<button class="fc '+t+'" aria-label="'+esc(p.pl)+'">'
+   +cardBg(t)
+   +(tag?'<span class="tag">'+tag+'</span>':'')
+   +('isud'.indexOf(p.status)>-1&&p.status?'<span class="inj">INJ</span>':'')
+   +'<span class="rt"><b>'+o+'</b><span>'+String(p.pos).slice(0,3)+'</span></span>'
+   +bub
+   +'<span class="face">'+faceImgHTML({Code:p.code,Player:p.pl})+'</span>'
+   +'<span class="nm">'+esc(p.pl)+'</span>'
+   +'<span class="meta">'+badgeImg(p.club,0)+'<span class="sep"></span>'+flagImg(p.nation,0)+'</span>'
+   +'</button>';
+}
+
 /* ================= crests ================= */
 /* El Matador crest system — 8 bespoke club badges, one geometric family.
    Shared silhouette: modern rounded shield, team-color duotone gradient body,
@@ -403,7 +564,9 @@ async function boot(){
     D.fx=fx.map(r=>({gw:num(r.GW),h:fixName(r.Home),a:fixName(r.Away),hp:num(r['Home pts']),ap:num(r['Away pts']),done:yes(r.Finished)}));
     D.st=st.map(r=>({t:fixName(r.Team),mgr:r.Manager,w:num(r.W),d:num(r.D),l:num(r.L),p:num(r['League Pts']),pf:num(r['Pts For']),pa:num(r['Pts Against'])}));
     D.ro=ro.map(r=>({t:fixName(r.Team),code:String(r.Code),pl:r.Player,pos:r.Pos,slot:num(r.Slot),
-      bxi:r['Best XI']==='XI',gxi:r['GW XI']==='XI',gwp:num(r['GW pts'])}));
+      bxi:r['Best XI']==='XI',gxi:r['GW XI']==='XI',gwp:num(r['GW pts']),
+      club:r.Club,nation:r.Nation,ovr:num(r.OVR),projPts:num(r['Proj pts']),status:r.Status||'',
+      drafted:r.Drafted||'',totw:!!(r.TOTW&&String(r.TOTW).trim())}));
     D.ro.forEach(r0=>{});
     ro.forEach(r=>{if(r.Code&&num(r.OVR))D.ovr[String(r.Code)]=num(r.OVR)});D.ovrLoaded=true;
     /* current GW = first fixture row not finished, else max */
@@ -413,6 +576,7 @@ async function boot(){
     D.dlPassed=D.dl?Date.now()>D.dl.getTime():false;
     D.ready=true;render();
     /* second wave: predictions + last-GW stars + ratings (non-blocking) */
+    readTab('Clubs').then(cl=>{D.clubs={};cl.forEach(r=>{const k=r.Club||r.Code3||Object.values(r)[0],v=r.ID||r.Id||r.Code||Object.values(r)[1];if(k&&v)D.clubs[k]=v});render()}).catch(()=>{});
     readTab('Predictions').then(p=>{D.predRows=p.filter(r=>num(r.GW)===D.gw);buildPred();render()}).catch(()=>{});
     const lastDone=Math.max(0,...D.fx.filter(f=>f.done).map(f=>f.gw));
     if(lastDone)readTab('GW Stats',`where A=${lastDone} and H>4`).then(rows=>{buildStars(rows,lastDone);render()}).catch(()=>{});
@@ -444,11 +608,7 @@ function liveXi(t){return xiOf(t).reduce((s,r)=>s+r.gwp,0)}
 /* ================= renders ================= */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const f1=v=>(Math.round(v*10)/10).toFixed(1);
-function face(code,cls){
-  return `<img class="${cls||''}" loading="lazy" src="faces/${code}.png"
-   data-alt="https://resources.premierleague.com/premierleague/photos/players/250x250/p${code}.png|https://resources.premierleague.com/premierleague/photos/players/110x140/p${code}.png"
-   onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join('|')}else{this.outerHTML='<span class=noimg>⚽</span>'}">`;
-}
+
 function stageHTML(f,i){
   const T1=TEAMS[f.h],T2=TEAMS[f.a];
   const nm=derbyOf(f.h,f.a),sr=seriesOf(f.h,f.a);
@@ -460,7 +620,9 @@ function stageHTML(f,i){
   else{n1='–';n2='–';tag='Lineups pending'}
   const s1=D.st.find(s=>s.t===f.h)||{},s2=D.st.find(s=>s.t===f.a)||{};
   const g1=(D.stars[f.h]||[]).slice(0,2),g2=(D.stars[f.a]||[]).slice(0,2);
-  const pc=p=>p?`<div class="pcard${p.pts>=10?'':' sil'}">${face(p.code)}<div class="o">${p.pts}</div><div class="nm">${esc(p.pl)}</div><div class="lw">GW${D.starGw}</div></div>`:'';
+  const roMap={};D.ro.forEach(r=>roMap[r.code]=r);
+  const pc=p=>{if(!p)return'';const r=roMap[p.code]||{code:p.code,pl:p.pl,pos:'',club:'',nation:'',gwp:p.pts};
+    return cardV8({...r,gwp:p.pts},'pts');};
   const mgw=Math.max(s1.pf+s1.pa,s2.pf+s2.pa,1);
   const tape=(lb,v1,v2,fmt)=>{const tot=(v1+v2)||1;
     return `<div class="trow"><em>${fmt?fmt(v1):v1}</em><div class="tmid"><div class="lb">${lb}</div>
@@ -551,9 +713,7 @@ function openPitch(i){
   const half=t=>{
     const T=TEAMS[t];const xi=xiOf(t);
     const gk=xi.filter(p=>p.pos==='GKP'),df=xi.filter(p=>p.pos==='DEF'),md=xi.filter(p=>p.pos==='MID'),fw=xi.filter(p=>p.pos==='FWD');
-    const mini=p=>{
-      const v=D.dlPassed?p.gwp:(D.epMap&&D.epMap[p.code]!=null?f1(D.epMap[p.code]):p.gwp);
-      return `<div class="mini${tierCls(p.code)}">${face(p.code)}<div class="nm">${esc(p.pl)}</div><span class="pt">${v}</span></div>`};
+    const mini=p=>cardV8(p,D.dlPassed?'pts':'proj');
     const rowx=a=>a.length?`<div class="prowx">${a.map(mini).join('')}</div>`:'';
     const tot=D.dlPassed?Math.max(f.h===t?f.hp:f.ap,liveXi(t)):(D.pred[t]!=null?f1(D.pred[t]):'–');
     return `<div class="half"><div class="tlab2"><span class="cr2">${crestSVG(T.m,30)}</span><b>${esc(t)}</b><em>${tot}</em></div>
