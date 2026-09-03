@@ -747,6 +747,11 @@ h2{font-size:.62rem;letter-spacing:.12em}
     <p></p></div>
     <div id="anabody"><p class="state">Loading analysis…</p></div>
   </section>
+  <section class="view" id="v-team">
+    <div class="hero"><span class="kick">Your clubhouse</span><h1>My team</h1>
+    <p></p></div>
+    <div id="teambody"><p class="state">Loading your team…</p></div>
+  </section>
   <section class="view" id="v-act">
     <div class="hero"><span class="kick">The wire</span><h1>Trades &amp; Waivers</h1>
     <p></p></div>
@@ -1126,6 +1131,7 @@ function card(p,i){
 
 /* ================= routing ================= */
 const VIEWS=[['gw','Gameweek','M13 2 3 14h7l-1 8 10-12h-7l1-8z'],
+['team','My team','M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21v-.5a8 8 0 0 1 16 0v.5'],
 ['table','Table','M6 3h12v4a6 6 0 0 1-12 0V3zM3 5h3M18 5h3M9 21h6M12 13v8'],
 ['xis','Players','M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3'],
 ['ana','Analysis','M3 3v18h18M7 15l4-5 3 3 5-7'],
@@ -1148,6 +1154,7 @@ function route(){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on','v-'+h===v.id));
   document.querySelectorAll('nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===h));
   if(h==='gw'&&D.ro&&D.ro.length)renderGW();
+  if(h==='team'&&D.ro&&D.ro.length)renderTeam();
   if(h==='xis'&&D.plr&&D.plr.length)renderXIs();
   window.scrollTo(0,0);
 }
@@ -1516,7 +1523,7 @@ function luckCard(){
   }
   return '<div class="fahead" style="margin:16px 2px 6px"><h2 style="margin:0">Luck index</h2>'+tog+'</div><div class="card lucks">'+rowsH+cap+'</div>';
 }
-function openProfile(team){
+function openProfile(team,intoEl){
   const st=D.st.find(s=>s.Team===team)||{};
   const agg=luckAgg()[team]||{act:0,x:0,bon:0,gws:{}};
   const gws=Object.keys(agg.gws).map(Number).sort((a,b)=>a-b);
@@ -1579,8 +1586,7 @@ function openProfile(team){
      return '<div class="txrow'+((ok||pend)?'':' dim')+'" style="box-shadow:none;border-top:1px solid #F1EEF7;border-radius:0;margin:0">'+mg(t2.Team,1)
       +'<span class="txmain"><b>'+(t2.GW?('GW'+t2.GW):'')+'</b><em>'+esc(t2.Type||'')+' · '+esc(t2.Result||'')+'</em></span>'
       +'<span class="txmove"><span class="in">↑ '+esc(t2.In||'')+'</span><span class="out">↓ '+esc(t2.Out||'')+'</span></span></div>';}).join(''):'';
-  sheet.innerHTML='<div class="sh-right" style="padding:16px 18px"><button class="sh-x" aria-label="Close">×</button>'
-   +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+mg(team)+'<div><h3 style="margin:0">'+esc(team)+'</h3>'
+  const inner='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+mg(team)+'<div><h3 style="margin:0">'+esc(team)+'</h3>'
    +'<div class="sub" style="margin:0">'+esc(TEAMS[team]?.mgr||'')+'</div></div></div>'
    +'<div class="profstats" style="grid-template-columns:repeat(3,1fr);margin:0 0 12px;gap:8px">'
    +'<div><b style="font-size:1.9rem;color:var(--p2)">'+avg.toFixed(1)+'</b><span>Avg pts / GW</span></div>'
@@ -1594,14 +1600,39 @@ function openProfile(team){
    +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:'+colX+';font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.'
    +(agg.bon?' Bonus points (+'+Math.round(agg.bon)+') sit outside both lines — with them, actual is '+fmt1(agg.act+agg.bon)+', matching the score up top.':'')+'</p>'
    +(hero?'<div class="profcard" style="max-width:200px;margin:14px auto 0"><div style="text-align:center;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:var(--goldd);margin-bottom:6px">TOP SCORER · '+xiOfP(hero)+' PTS STARTED</div>'+card(hero,D.ro.indexOf(hero))+'</div>':'')
-   +txHtml
-   +'</div>';
-  ov.classList.add('on');sheet.classList.add('on');pushOverlay();
-  sheet.querySelector('.sh-x').onclick=closeSheet;
-  sheet.querySelectorAll('[data-pc]').forEach(r=>r.onclick=()=>{
+   +txHtml;
+  const bindRows=el=>el.querySelectorAll('[data-pc]').forEach(r=>r.onclick=()=>{
     const p=(D.plr||[]).find(x=>String(x.Code)===String(r.dataset.pc));
     if(p)openSheet(plrPseudo(p));
   });
+  if(intoEl){ /* v9.1 page mode — the My team tab renders the full team page in place */
+    intoEl.innerHTML='<div class="card" style="padding:16px 18px">'+inner+'</div>';
+    bindRows(intoEl);return;
+  }
+  sheet.innerHTML='<div class="sh-right" style="padding:16px 18px"><button class="sh-x" aria-label="Close">×</button>'+inner+'</div>';
+  ov.classList.add('on');sheet.classList.add('on');pushOverlay();
+  sheet.querySelector('.sh-x').onclick=closeSheet;
+  bindRows(sheet);
+}
+/* ================= My team tab (v9.1) — pick once, then the app opens on YOU ================= */
+function myTeam(){let t=null;try{t=localStorage.getItem('emt-myteam')}catch(e){}return (t&&TEAMS[t])?t:null}
+function renderTeam(){
+  const body=document.getElementById('teambody');if(!body)return;
+  const mine=myTeam();
+  if(!mine){
+    body.innerHTML='<h2 style="margin-top:14px">Who are you?</h2>'
+     +'<p class="mnote" style="padding:0 2px 10px;margin:0">Pick your team once — this phone remembers, and My team opens straight onto your squad. Switch any time.</p>'
+     +'<div class="mgrid">'+Object.keys(TEAMS).map(t=>
+       '<button class="mt" data-pick="'+esc(t)+'" style="--tc:'+(TEAMS[t].col||'#5B1A66')+'"><span class="mtn">'+esc(t)+'</span><em class="mtm">'+esc(TEAMS[t].mgr)+'</em></button>').join('')+'</div>';
+    body.querySelectorAll('[data-pick]').forEach(b=>b.onclick=e=>{e.stopPropagation();
+      try{localStorage.setItem('emt-myteam',b.dataset.pick)}catch(err){}
+      renderTeam();});
+    return;
+  }
+  body.innerHTML='<div id="teampage" style="margin-top:12px"></div>'
+   +'<p class="mnote" style="text-align:center;padding-bottom:4px"><button id="swteam" style="background:none;border:none;color:var(--p2);font-family:inherit;font-weight:700;cursor:pointer;font-size:.68rem">Not '+esc((TEAMS[mine].mgr||'').split(' ')[0])+'? Switch team</button></p>';
+  openProfile(mine,document.getElementById('teampage'));
+  document.getElementById('swteam').onclick=()=>{try{localStorage.removeItem('emt-myteam')}catch(e){}renderTeam()};
 }
 document.body.addEventListener('click',e=>{
   const lm=e.target.closest('[data-lm]');
