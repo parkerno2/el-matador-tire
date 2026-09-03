@@ -2941,7 +2941,7 @@ function buildNav(){
   document.getElementById('nav').innerHTML=V10_VIEWS.map(v=>
    '<button data-v="'+v[0]+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+v[2]+'"/></svg><span>'+v[1]+'</span><span class="bar"></span></button>').join('');
   document.getElementById('nav').onclick=e=>{const b=e.target.closest('[data-v]');if(b)location.hash=b.dataset.v;};
-  const top=document.querySelector('.top');
+  const top=document.querySelector('.top .in')||document.querySelector('.top');
   if(top&&!document.getElementById('hfaq')){
     top.insertAdjacentHTML('beforeend','<button class="hbtn" id="hfaq" aria-label="How it works">?</button><span class="hav" id="hav" title="My team"></span>');
     document.getElementById('hfaq').onclick=()=>{location.hash='faq'};
@@ -2949,6 +2949,7 @@ function buildNav(){
   }
   updateHeader();
 }
+function heroCopy(){const k=document.querySelector('#v-gw .hero .kick'),h=document.querySelector('#v-gw .hero h1');if(k)k.textContent='Gameweek '+(D.gw||'');if(h)h.textContent='Matchday';const a=document.querySelector('#v-ana .hero h1');if(a)a.textContent='The Lab';}
 function updateHeader(){
   const hv=document.getElementById('hav');if(!hv)return;
   const mine=myTeam();
@@ -3037,7 +3038,7 @@ function renderScoreboard(rows,dl){
   html+='<h2 class="v10">'+(yours?'Around the league':'Gameweek '+D.gw)+'</h2><div class="stack">'+rest.map(i=>bugHTML(rows[i],i)).join('')+'</div>';
   html+='<div style="height:10px"></div>'+nextGwBtn()+plStrip();
   document.getElementById('gwbody').innerHTML=html;
-  v10clock();
+  v10clock();heroCopy();
   document.getElementById('gwbody').onclick=e=>{
     if(e.target.closest('#allart')){openArticles();return}
     if(e.target.closest('#ngwbtn')){openNextGw();return}
@@ -3143,6 +3144,7 @@ function renderTeam(){
 /* ---- Table: standings first, then the money ---- */
 function renderTable(){
   __orig.renderTable();
+  if((location.hash||'').startsWith('#team'))renderTeam();
   const body=document.getElementById('tablebody');
   const race=body.querySelector('.card.race');
   const stand=body.querySelector('h2:not(.v10)');
