@@ -2950,7 +2950,7 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 .mx .scene{position:absolute;inset:0;overflow:auto;padding:4px 10px 10px;display:flex;flex-direction:column;opacity:0;animation:sIn .5s ease var(--t0) both,sOut .45s ease var(--t1) forwards;-webkit-overflow-scrolling:touch}
 @keyframes sIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes sOut{from{opacity:1}to{opacity:0;visibility:hidden}}
-.mx .scene .deal{animation:deal .5s cubic-bezier(.2,.8,.2,1) both}
+.mx .scene .deal{animation:deal .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0s)}
 .mx .scene .strip{animation:lgin .5s ease both}
 /* team intro */
 .mx .intro{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:10px 0 30px}
@@ -3076,8 +3076,8 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .mx .intro{padding-bottom:110px}
 /* the star man: all eleven are dealt, then he flips around and grows while the other ten step back — for ~3 s, then everyone returns */
 .mx .lgpitch{overflow:visible}
-.mx .deal.focus{position:relative;animation:deal .5s cubic-bezier(.2,.8,.2,1) both,starIn 1.1s cubic-bezier(.2,.8,.2,1) var(--f0) forwards,starOut .6s ease calc(var(--f0) + 3.2s) forwards}
-.mx .deal.other{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,dimOut .45s ease var(--f0) forwards,dimBack .6s ease calc(var(--f0) + 3.2s) forwards}
+.mx .scene .deal.focus{position:relative;animation:deal .5s cubic-bezier(.2,.8,.2,1) both,starIn 1.1s cubic-bezier(.2,.8,.2,1) forwards,starOut .6s ease forwards;animation-delay:var(--d,0s),var(--f0),calc(var(--f0) + 3.2s)}
+.mx .scene .deal.other{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,dimOut .45s ease forwards,dimBack .6s ease forwards;animation-delay:var(--d,0s),var(--f0),calc(var(--f0) + 3.2s)}
 @keyframes starIn{0%{transform:none;z-index:20}45%{transform:perspective(700px) rotateY(180deg) scale(1.25);z-index:20}100%{transform:perspective(700px) rotateY(360deg) scale(1.5);z-index:20;filter:drop-shadow(0 0 20px rgba(255,210,63,.85)) drop-shadow(0 16px 26px rgba(0,0,0,.5))}}
 @keyframes starOut{to{transform:scale(1.1);z-index:20;filter:drop-shadow(0 0 10px rgba(255,210,63,.6))}}
 @keyframes dimOut{to{opacity:.4;filter:saturate(.7)}}
@@ -3867,7 +3867,7 @@ function mxXI(team,side,t0,art,carry){
   const delayOf=p=>t0+0.5+seq.indexOf(p)*0.2;
   const feat=mxFeature(team,xi,art);const fAt=t0+3.6;
   const rows=order.map(p=>{const g=xi.filter(x=>x.Pos===p);if(!g.length)return'';
-    return '<div class="prow'+(g.length===5?' five':'')+'">'+g.map(x=>{const isF=feat&&x===feat.p;return '<div class="deal'+(isF?' focus':(feat?' other':''))+'" style="animation-delay:'+delayOf(x).toFixed(2)+'s;--f0:'+fAt.toFixed(2)+'s">'+card(x,D.ro.indexOf(x))+'</div>';}).join('')+'</div>';}).join('');
+    return '<div class="prow'+(g.length===5?' five':'')+'">'+g.map(x=>{const isF=feat&&x===feat.p;return '<div class="deal'+(isF?' focus':(feat?' other':''))+'" style="--d:'+delayOf(x).toFixed(2)+'s;--f0:'+fAt.toFixed(2)+'s">'+card(x,D.ro.indexOf(x))+'</div>';}).join('')+'</div>';}).join('');
   const km=mxKeyMan(team,xi);
   const started=xi.every(p=>fxStarted(p.Club));
   const tot=started?xi.reduce((s,p)=>s+num(p['GW pts']),0):teamProj(team);
