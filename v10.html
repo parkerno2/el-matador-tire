@@ -3064,23 +3064,34 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .mx .sface .sv .nn{display:flex;align-items:baseline;justify-content:center}
 /* lower-thirds: the written preview rides over the picture */
 .mx .scene{position:absolute}
-.mx .lt{position:absolute;left:10px;right:10px;bottom:10px;z-index:5;display:flex;flex-direction:column;gap:3px;padding:10px 12px 10px 14px;background:linear-gradient(90deg,rgba(20,8,30,.94),rgba(20,8,30,.82));border-left:4px solid #FFD23F;border-radius:0 12px 12px 0;box-shadow:0 10px 24px rgba(0,0,0,.35);animation:ltIn .5s cubic-bezier(.2,.8,.2,1) both}
+.mx .lt{position:absolute;left:10px;right:10px;bottom:10px;z-index:5;display:flex;flex-direction:column;gap:3px;padding:10px 12px 10px 14px;background:linear-gradient(90deg,rgba(20,8,30,.94),rgba(20,8,30,.82));border-left:4px solid #FFD23F;border-radius:0 12px 12px 0;box-shadow:0 10px 24px rgba(0,0,0,.35);animation:ltIn .5s cubic-bezier(.2,.8,.2,1) var(--in) both,ltOut .35s ease var(--out) forwards}
+@keyframes ltOut{to{opacity:0;visibility:hidden}}
+.mx .lt.star{border-left-color:#FFD23F;background:linear-gradient(90deg,rgba(55,0,60,.97),rgba(20,8,30,.9));box-shadow:0 0 0 1px rgba(255,210,63,.35),0 12px 28px rgba(0,0,0,.45)}
+.mx .lt.star .k{font-size:.66rem;color:#FFD23F}
+.mx .lt.star .t{font-size:.88rem;font-weight:600}
 .mx .lt .k{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#FFD23F}
 .mx .lt .t{font-size:.8rem;line-height:1.4;color:#F6F1F8;font-weight:500}
 .mx .lt.hi .t{font-weight:600}
 @keyframes ltIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .mx .intro{padding-bottom:110px}
-/* the featured player steps forward, the rest step back */
+/* the star man: all eleven are dealt, then he flips around and grows while the other ten step back — for ~3 s, then everyone returns */
 .mx .lgpitch{overflow:visible}
-.mx .deal.focus{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,focusIn .6s cubic-bezier(.2,.8,.2,1) var(--f0) forwards;position:relative}
-.mx .deal.other{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,dimOut .6s ease var(--f0) forwards}
-@keyframes focusIn{to{transform:scale(1.42);z-index:20;filter:drop-shadow(0 0 18px rgba(255,210,63,.75)) drop-shadow(0 14px 22px rgba(0,0,0,.5))}}
-@keyframes dimOut{to{opacity:.42;filter:saturate(.7)}}
-.lgfx.mx.done .deal.focus{transform:scale(1.42);z-index:20}
-.lgfx.mx.done .deal.other{opacity:.42}
-.lgfx.mx.done .lt{animation:none;opacity:1;transform:none}
+.mx .deal.focus{position:relative;animation:deal .5s cubic-bezier(.2,.8,.2,1) both,starIn 1.1s cubic-bezier(.2,.8,.2,1) var(--f0) forwards,starOut .6s ease calc(var(--f0) + 3.2s) forwards}
+.mx .deal.other{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,dimOut .45s ease var(--f0) forwards,dimBack .6s ease calc(var(--f0) + 3.2s) forwards}
+@keyframes starIn{0%{transform:none;z-index:20}45%{transform:perspective(700px) rotateY(180deg) scale(1.25);z-index:20}100%{transform:perspective(700px) rotateY(360deg) scale(1.5);z-index:20;filter:drop-shadow(0 0 20px rgba(255,210,63,.85)) drop-shadow(0 16px 26px rgba(0,0,0,.5))}}
+@keyframes starOut{to{transform:scale(1.1);z-index:20;filter:drop-shadow(0 0 10px rgba(255,210,63,.6))}}
+@keyframes dimOut{to{opacity:.4;filter:saturate(.7)}}
+@keyframes dimBack{to{opacity:1;filter:none}}
+.lgfx.mx.done .deal.focus{transform:scale(1.1);z-index:20;filter:drop-shadow(0 0 10px rgba(255,210,63,.6))}
+.lgfx.mx.done .deal.other{opacity:1;filter:none}
+.lgfx.mx.done .lt{animation:none;opacity:1;transform:none;visibility:visible}
+.lgfx.mx.done .lt.carry{display:none}
 .mx .scene.s2 .strip,.mx .scene.s4 .strip{margin-bottom:0}
 .mx .scene.s2,.mx .scene.s4{padding-bottom:84px}
+
+/* form chips: Manrope glyphs centre reliably (Saira's metrics sit low on iOS) */
+.mx .form span,.bug .form span,.myhead .form span,.frow .form span{display:grid;place-items:center;line-height:1;padding:0;font-family:'Manrope',sans-serif;font-weight:800;font-size:.6rem}
+.mx .strip .form span{width:22px;height:22px;font-size:.68rem;border-radius:5px}
 
 /* ===== v10-auth — claim / sign-in sheet + team profile editor ===== */
 .au{display:flex;flex-direction:column;gap:8px}
@@ -3387,9 +3398,9 @@ function renderScoreboard(rows,dl){
   html+='<div class="stack" style="margin-top:12px">';
   if(yours)html+=bugHTML(rows[first],first,{you:true,open:true,noTag:uniform});
   html+='</div>';
-  if(cc)html+='<h2 class="v10">Recent news<span class="lnk" id="allart">All articles '+CHEV+'</span></h2><div class="program">'+cc+'</div>';
   const rest=yours?order.slice(1):order;
   html+='<h2 class="v10">'+(yours?'Around the league':'Gameweek '+D.gw)+(uniform&&stTag?'<span class="lnk hst">'+stTag+'</span>':'')+'</h2><div class="stack">'+rest.map(i=>bugHTML(rows[i],i,{noTag:uniform})).join('')+'</div>';
+  if(cc)html+='<h2 class="v10">Recent news<span class="lnk" id="allart">All articles '+CHEV+'</span></h2><div class="program">'+cc+'</div>';
   html+='<div style="height:10px"></div>'+nextGwBtn()+plStrip();
   html=html.replace('<b>Gameweek '+(D.gw+1)+' preview</b><em>Predicted scores · fixtures · tap to open</em>','<b>Gameweek '+(D.gw+1)+' fixtures</b><em>Predicted scores · who plays whom · tap to open</em>');
   document.getElementById('gwbody').innerHTML=html;
@@ -3812,6 +3823,12 @@ function mxKeyMan(team,xi){
   const best=xi.slice().sort((a,b)=>val(b)-val(a))[0];if(!best)return null;
   return {p:best,v:val(best),lab:fxStarted(best.Club)?'pts':'proj'};
 }
+function mxOverlapText(f){
+  const hxi=effXiOf(f.Home,true),axi=effXiOf(f.Away,true);const all=hxi.concat(axi);
+  const fx=(D.cf||[]).filter(x=>num(x.GW)===D.gw).map(x=>({x,h:hxi.filter(p=>p.Club===x.Home||p.Club===x.Away).length,a:axi.filter(p=>p.Club===x.Home||p.Club===x.Away).length})).filter(o=>o.h+o.a>=2).sort((a,b)=>(b.h+b.a)-(a.h+a.a)).slice(0,3);
+  if(!fx.length)return '';
+  return fx.map(o=>clubName(o.x.Home)+'–'+clubName(o.x.Away)+': '+(o.h?FIRSTOF(f.Home)+' '+o.h:'')+(o.h&&o.a?', ':'')+(o.a?FIRSTOF(f.Away)+' '+o.a:'')).join(' · ')+'.';
+}
 function mxOverlap(hxi,axi){
   const all=hxi.concat(axi);const by={};
   (D.cf||[]).filter(x=>num(x.GW)===D.gw).forEach(x=>{const n=all.filter(p=>p.Club===x.Home||p.Club===x.Away).length;if(n>=3)by[x.Home+'–'+x.Away]=n;});
@@ -3819,7 +3836,7 @@ function mxOverlap(hxi,axi){
   const [k,n]=top;const [h,a]=k.split('–');
   return '<div class="mxov">'+badgeImg(h,18)+'<b>'+n+'</b> of the '+all.length+' starters are in '+esc(clubName(h))+' – '+esc(clubName(a))+badgeImg(a,18)+'</div>';
 }
-function lowerThird(k,t,delay,cls){if(!t)return '';return '<div class="lt '+(cls||'')+'" style="animation-delay:'+(delay||0).toFixed(2)+'s">'+(k?'<span class="k">'+esc(k)+'</span>':'')+'<span class="t">'+esc(t)+'</span></div>'}
+function lowerThird(k,t,delay,cls,out){if(!t)return '';return '<div class="lt '+(cls||'')+'" style="--in:'+(delay||0).toFixed(2)+'s;--out:'+(out===undefined?'999s':out.toFixed(2)+'s')+'">'+(k?'<span class="k">'+esc(k)+'</span>':'')+'<span class="t">'+esc(t)+'</span></div>'}
 const sentences=t=>{const out=[];let cur='';const str=String(t||'').replace(/\s+/g,' ').trim();for(let i=0;i<str.length;i++){cur+=str[i];if(/[.!?]/.test(str[i])&&str[i+1]===' '&&/[A-Z“"(]/.test(str[i+2]||'')){out.push(cur.trim());cur='';i++;}}if(cur.trim())out.push(cur.trim());return out;};
 function mxIntro(team,side,cap,t0){
   const st=D.st.slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For']));
@@ -3834,17 +3851,21 @@ function mxIntro(team,side,cap,t0){
 }
 /* the featured player of an XI scene: the article's player to watch when he is in this XI, else the key man */
 function mxFeature(team,xi,art){
-  if(art&&art.ptw&&art.ptw.code){const p=xi.find(x=>String(x.Code)===String(art.ptw.code));if(p)return {p,k:'Player to watch',t:clip(art.ptw.line,150)};}
+  if(art&&art.ptw&&art.ptw.code){const p=xi.find(x=>String(x.Code)===String(art.ptw.code));if(p)return {p,k:'★ Star man · '+p.Player,t:clip(art.ptw.line,170)};}
   const km=mxKeyMan(team,xi);if(!km)return null;
-  return {p:km.p,k:'Key man',t:esc(km.p.Player)+' · '+(km.lab==='pts'?Math.round(km.v)+' pts so far':fmt1(km.v)+' projected')+(FIRSTOF(team)?' for '+FIRSTOF(team):'')};
+  const p=km.p,ep=epOf(p.Code),pts=num(p['GW pts']),mins=num(p['GW mins']);
+  const nf=nextClubFixture(p.Club);const fx=nf?(nf.Home===p.Club?'v ':'at ')+clubName(nf.Home===p.Club?nf.Away:nf.Home):'';
+  const line=km.lab==='pts'?(pts+' points from '+mins+' minutes so far — '+FIRSTOF(team)+'’s top scorer this week.')
+    :(fmt1(km.v)+' projected, the highest in '+FIRSTOF(team)+'’s XI'+(fx?', '+fx:'')+'.');
+  return {p,k:'★ Star man · '+p.Player,t:line};
 }
-function mxXI(team,side,t0,art){
+function mxXI(team,side,t0,art,carry){
   const as=autoSubs(team,true);const xi=as.xi;
   const order=['FWD','MID','DEF','GKP'];
   /* deal from the keeper upward: delays run GK → DEF → MID → FWD, DOM order stays top-down */
   const seq=['GKP','DEF','MID','FWD'].flatMap(p=>xi.filter(x=>x.Pos===p));
   const delayOf=p=>t0+0.5+seq.indexOf(p)*0.2;
-  const feat=mxFeature(team,xi,art);const fAt=t0+3.4;
+  const feat=mxFeature(team,xi,art);const fAt=t0+3.6;
   const rows=order.map(p=>{const g=xi.filter(x=>x.Pos===p);if(!g.length)return'';
     return '<div class="prow'+(g.length===5?' five':'')+'">'+g.map(x=>{const isF=feat&&x===feat.p;return '<div class="deal'+(isF?' focus':(feat?' other':''))+'" style="animation-delay:'+delayOf(x).toFixed(2)+'s;--f0:'+fAt.toFixed(2)+'s">'+card(x,D.ro.indexOf(x))+'</div>';}).join('')+'</div>';}).join('');
   const km=mxKeyMan(team,xi);
@@ -3855,7 +3876,8 @@ function mxXI(team,side,t0,art){
    +'<div class="strip" style="animation-delay:'+(t0+2.9).toFixed(2)+'s"><span><i>'+(started?'Points':'Projected')+'</i><b class="num">'+(started?Math.round(tot):fmt1(tot))+'</b></span>'
    +'<span class="mid"><i>'+esc(team)+'</i><b>'+formation(xi)+'</b></span>'
    +'<span><i>Form</i>'+formHTML(team,'')+'</span></div>'
-   +(feat?lowerThird(feat.k+' · '+feat.p.Player,feat.t,fAt,'hi'):'');
+   +(carry?lowerThird(carry.k,carry.t,t0+0.3,'carry',feat?fAt:undefined):'')
+   +(feat?lowerThird(feat.k,feat.t,fAt,'star'):'');
 }
 function mxFinal(f,art,t0){
   const {st,nums,lab}=mxScore(f);
@@ -3874,7 +3896,8 @@ function mxFinal(f,art,t0){
    +(ka?'<div class="km a"><span class="k">Key man</span><b>'+esc(ka.p.Player)+'</b><em class="num">'+(ka.lab==='pts'?Math.round(ka.v):fmt1(ka.v))+' <small>'+ka.lab+'</small></em></div>':'<div></div>')+'</div>'
    +mxOverlap(hxi,axi)
    +(fact?'<div class="mxfact">'+esc(fact)+'</div>':'')
-   +(art&&art.hits&&art.hits[0]?lowerThird(art.hits[0].b?clip(art.hits[0].b,70):'The talking point',clip(art.hits[0].t||art.hits[0].b,160),(t0||0)+1.2):'');
+   +(art&&art.hits&&art.hits[0]?lowerThird(art.hits[0].b?clip(art.hits[0].b,70):'The talking point',clip(art.hits[0].t||art.hits[0].b,170),(t0||0)+1.0,'',art.hits[1]?(t0||0)+4.6:undefined):'')
+   +(art&&art.hits&&art.hits[1]?lowerThird(art.hits[1].b?clip(art.hits[1].b,70):'Also',clip(art.hits[1].t||art.hits[1].b,170),(t0||0)+4.9):'');
 }
 /* ---- the written preview rides along: per-matchup story, player to watch and the first talking point, parsed from the preview page ---- */
 let ARTICLE=null;
@@ -3914,12 +3937,14 @@ function openMatchGraphic(f,q){
   const nm=derbyName(f.Home,f.Away);
   const H=(TEAMS[f.Home]||{}).col||'#5B1A66',A=(TEAMS[f.Away]||{}).col||'#5B1A66';
   const art=articleFor(f);
-  const T=[0,3.0,9.6,12.6,19.2];const LEN=MXQ?24.6:MX_LEN;
+  const T=[0,3.0,10.6,13.6,21.2];const LEN=MXQ?28.4:27;
   const sen=art?sentences(art.story):[];
   const capH=art?{k:art.kick||'',t:clip(sen[0]||'',170)}:null;
-  const capA=art?{k:art.notm&&art.notm.n?art.notm.n+' · '+clip(art.notm.c,90):'',t:clip(sen.slice(1,3).join(' ')||sen[0]||'',190)}:null;
+  const carryH=art?{k:'The matchup',t:clip(sen[1]||sen[0]||'',190)}:null;
+  const capA=art?{k:art.notm&&art.notm.n?art.notm.n+' · '+clip(art.notm.c,90):'The matchup',t:clip(sen.slice(2,4).join(' ')||sen[1]||sen[0]||'',200)}:null;
+  const carryA=art?{k:'Who plays whom',t:clip(mxOverlapText(f)||(sen[4]||''),190)}:null;
   const scene=(cls,t0,t1,inner)=>'<div class="scene '+cls+'" style="--t0:'+t0+'s;--t1:'+(t1===null?'999s':t1+'s')+'">'+inner+'</div>';
-  const scenes=scene('s1 h',T[0],T[1],mxIntro(f.Home,'h',capH,T[0]))+scene('s2 h',T[1],T[2],mxXI(f.Home,'h',T[1],art))+scene('s3 a',T[2],T[3],mxIntro(f.Away,'a',capA,T[2]))+scene('s4 a',T[3],T[4],mxXI(f.Away,'a',T[3],art))+scene('s5',T[4],null,mxFinal(f,art,T[4]));
+  const scenes=scene('s1 h',T[0],T[1],mxIntro(f.Home,'h',capH,T[0]))+scene('s2 h',T[1],T[2],mxXI(f.Home,'h',T[1],art,carryH))+scene('s3 a',T[2],T[3],mxIntro(f.Away,'a',capA,T[2]))+scene('s4 a',T[3],T[4],mxXI(f.Away,'a',T[3],art,carryA))+scene('s5',T[4],null,mxFinal(f,art,T[4]));
   document.body.insertAdjacentHTML('beforeend','<div id="lgfx" class="lgfx mx" style="--hc:'+H+';--ac:'+A+'">'
    +'<button class="lgx" id="lgx" aria-label="Close">×</button>'
    +'<div class="mxhdr"><span class="g">Gameweek '+D.gw+'</span><span class="d">'+esc(nm||(f.Home+' v '+f.Away))+'</span></div>'
