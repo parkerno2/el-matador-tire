@@ -3012,6 +3012,12 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .mx .lgpitch:after{width:80px;height:80px}
 .mx .strip{margin-top:8px;padding:8px 12px}
 
+/* close button clears the status bar / island; footer gets Next · Close */
+.lgfx .lgx{top:calc(10px + env(safe-area-inset-top));width:36px;height:36px;font-size:1.25rem}
+.mx .lgfoot{gap:8px}.mx .lgfoot .k{margin-left:auto}.mx .lgfoot .k .num{font-size:.7rem;color:#FFD23F}
+.mx .lgfoot button.watch{white-space:nowrap}
+.bug .watchrow{gap:8px;flex-wrap:wrap}
+
 /* ===== v10-auth — claim / sign-in sheet + team profile editor ===== */
 .au{display:flex;flex-direction:column;gap:8px}
 .au [hidden]{display:none !important}
@@ -3290,7 +3296,7 @@ function bugHTML(f,i,o){
    +'<div class="mid"><div class="sc"><span class="'+(winL?'win':'')+'">'+nums[0]+'</span><i>–</i><span class="'+(winR?'win':'')+'">'+nums[1]+'</span></div><span class="lab'+(st==='live'?' live':'')+'">'+lab+'</span></div>'
    +flank(f.Away,true)+'</div>'
    +'<div class="frow">'+formHTML(f.Home)+'<span class="srs">'+esc(sr||'')+'</span>'+formHTML(f.Away,'r')+'</div>'
-   +(o.you?'<div class="watchrow"><button class="watch elev" data-mx="'+i+'"><span class="pl">▶</span>'+watchLabel(f)+'</button></div>':'')
+   +(o.you?'<div class="watchrow"><button class="watch elev" data-mx="'+i+'"><span class="pl">▶</span>'+watchLabel(f)+'</button><button class="watch" data-mxall="1">▶ Watch all</button></div>':'')
    +(fact?(o.open?'<div class="fact open">'+CHEVD+'<span>'+esc(fact)+'</span></div>':'<div class="fact">'+CHEV+'<span>'+esc(fact)+'</span></div>'):'')
    +'</div>';
 }
@@ -3308,7 +3314,7 @@ function renderScoreboard(rows,dl){
   html+='</div>';
   if(cc)html+='<h2 class="v10">Recent news<span class="lnk" id="allart">All articles '+CHEV+'</span></h2><div class="program">'+cc+'</div>';
   const rest=yours?order.slice(1):order;
-  html+='<h2 class="v10">'+(yours?'Around the league':'Gameweek '+D.gw)+'</h2><div class="stack">'+rest.map(i=>bugHTML(rows[i],i)).join('')+'</div>';
+  html+='<h2 class="v10">'+(yours?'Around the league':'Gameweek '+D.gw)+'<span class="lnk" data-mxall="1">▶ Watch all</span></h2><div class="stack">'+rest.map(i=>bugHTML(rows[i],i)).join('')+'</div>';
   html+='<div style="height:10px"></div>'+nextGwBtn()+plStrip();
   document.getElementById('gwbody').innerHTML=html;
   v10clock();heroCopy();
@@ -3745,8 +3751,10 @@ function mxFinal(f){
    +mxOverlap(hxi,axi)
    +(fact?'<div class="mxfact">'+esc(fact)+'</div>':'');
 }
-function openMatchGraphic(f){
-  const old=document.getElementById('lgfx');if(old)old.remove();
+let MXQ=null; /* playlist: {list:[fixture indices], i} when watching every matchup back to back */
+function openMatchGraphic(f,q){
+  MXQ=q||null;
+  const old=document.getElementById('lgfx');if(old){clearTimeout(old._t);clearTimeout(old._n);old.remove();}
   const saveOpp=OPPMODE;OPPMODE=false;SUBMARK={};
   const nm=derbyName(f.Home,f.Away);
   const H=(TEAMS[f.Home]||{}).col||'#5B1A66',A=(TEAMS[f.Away]||{}).col||'#5B1A66';
@@ -3762,16 +3770,30 @@ function openMatchGraphic(f){
    +scene('s4 a',T[3],T[4],mxXI(f.Away,'a',T[3]))
    +scene('s5',T[4],null,mxFinal(f))
    +'</div>'
-   +'<div class="lgfoot">'+mwWordmark(110)+'<span class="k">El Matador Tire</span><button class="watch" id="lgre">↻ Replay</button></div>'
+   +'<div class="lgfoot">'+mwWordmark(110)+'<span class="k">'+(MXQ?'<b class="num">'+(MXQ.i+1)+' / '+MXQ.list.length+'</b> · ':'')+'El Matador Tire</span>'
+   +(MXQ&&MXQ.i<MXQ.list.length-1?'<button class="watch" id="lgnx">Next ▸</button>':'<button class="watch" id="lgre">↻ Replay</button>')
+   +'<button class="watch" id="lgcl">✕ Close</button></div>'
    +'</div>');
   OPPMODE=saveOpp;
   const g=document.getElementById('lgfx');
-  g._t=setTimeout(()=>{g.classList.add('done')},MX_LEN*1000);
-  document.getElementById('lgx').onclick=()=>{clearTimeout(g._t);g.remove();};
-  document.getElementById('lgre').onclick=()=>openMatchGraphic(f);
-  /* tap the body to skip to the end */
-  g.querySelector('.mxbody').onclick=()=>{clearTimeout(g._t);g.classList.add('done');};
+  const rows=D.fx.filter(x=>num(x.GW)===D.gw);
+  const next=()=>{if(MXQ&&MXQ.i<MXQ.list.length-1){const q={list:MXQ.list,i:MXQ.i+1};const nf=rows[q.list[q.i]];if(nf){openMatchGraphic(nf,q);return true;}}return false;};
+  const finish=()=>{clearTimeout(g._t);g.classList.add('done');if(MXQ&&MXQ.i<MXQ.list.length-1){clearTimeout(g._n);g._n=setTimeout(next,4500);}};
+  g._t=setTimeout(finish,MX_LEN*1000);
+  const close=()=>{clearTimeout(g._t);clearTimeout(g._n);g.remove();MXQ=null;};
+  document.getElementById('lgx').onclick=close;document.getElementById('lgcl').onclick=close;
+  const re=document.getElementById('lgre');if(re)re.onclick=()=>openMatchGraphic(f,MXQ);
+  const nx=document.getElementById('lgnx');if(nx)nx.onclick=()=>{clearTimeout(g._t);clearTimeout(g._n);next();};
+  /* tap the body to skip to the end of this matchup */
+  g.querySelector('.mxbody').onclick=finish;
 }
+/* watch every matchup back to back — yours first */
+function openAllGraphics(){
+  const rows=D.fx.filter(x=>num(x.GW)===D.gw);const mine=myTeam();
+  const list=rows.map((f,i)=>i).sort((a,b)=>{const ma=mine&&(rows[a].Home===mine||rows[a].Away===mine)?0:1,mb=mine&&(rows[b].Home===mine||rows[b].Away===mine)?0:1;return ma-mb||a-b});
+  if(list.length)openMatchGraphic(rows[list[0]],{list,i:0});
+}
+document.body.addEventListener('click',e=>{const b=e.target.closest('[data-mxall]');if(!b)return;e.stopPropagation();e.preventDefault();openAllGraphics();},true);
 document.body.addEventListener('click',e=>{const b=e.target.closest('[data-mx]');if(!b)return;e.stopPropagation();e.preventDefault();
   const f=D.fx.filter(x=>num(x.GW)===D.gw)[+b.dataset.mx];if(f)openMatchGraphic(f);},true);
 
