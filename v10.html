@@ -2832,7 +2832,7 @@ nav button span:not(.bar){font-size:.6rem !important;font-weight:600}
 .statgrid.lg .pc{display:block;font-style:normal;font-size:.5rem;letter-spacing:.06em;margin-top:2px;opacity:.85}
 .lgnote{font-size:.56rem;color:#D8CBE2;margin:0 10px 8px;position:relative;z-index:2;letter-spacing:.04em}
 /* brand: plate + league */
-.top .brand .lg{font-family:'Manrope',sans-serif;font-weight:800;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:#fff;white-space:nowrap}
+.top .brand .lg{font-family:'Manrope',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#fff;white-space:nowrap}
 /* opponent mode: the bubble shows who he plays */
 .fc .pts.opp{background:rgba(255,255,255,.94);border:1.5px solid var(--bub);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5% 4% 2%;line-height:1}
 .fc .pts.opp img{width:58%;height:auto;display:block;filter:none}
@@ -2873,6 +2873,12 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 @keyframes deal{from{opacity:0;transform:perspective(700px) rotateY(90deg) translateY(28px)}60%{opacity:1}to{opacity:1;transform:none}}
 @keyframes lgin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.lgpitch .deal,.lghead,.lgpitch,.lgfoot{animation:none}}
+
+.top .in{flex-wrap:nowrap}
+.gwpill{white-space:nowrap;flex:none}
+.hbtn{width:26px;height:26px;margin-left:6px}
+.hav{margin-left:6px}
+.lgfx.done .deal,.lgfx.done .lghead,.lgfx.done .lgpitch,.lgfx.done .lgfoot{animation:none;opacity:1;transform:none}
 
 </style>
 <script>window.__orig={renderMatch:renderMatch,renderTeam:renderTeam,renderTable:renderTable,renderScoreboard:renderScoreboard,buildNav:buildNav,rowsFor:rowsFor,card:card};</script>
@@ -3134,7 +3140,7 @@ function renderMatch(f,dl){
   const anchor=st.querySelector('.series')||st.querySelector('.axtog')||st.querySelector('.scsub');
   if(anchor)anchor.insertAdjacentHTML('afterend',tape);
   /* the team on the LEFT of the stage plays at the TOP of the pitch (it read flipped before) */
-  const duel=st.querySelector('.duel');const wrap=duel&&duel.querySelector(':scope > div');
+  const duel=st.querySelector('.duel');const wrap=duel&&duel.querySelector(':scope > div[style*="z-index"]');
   if(wrap){const hAS=autoSubs(f.Home,true),aAS=autoSubs(f.Away,true);
     const tag=(t,xi)=>'<div class="teamtag"><span class="md" style="background:'+((TEAMS[t]||{}).col||'#999')+'"></span>'+esc(t)+' · '+formation(xi)+(lineupsLocked()?'':' · <span style="opacity:.85">projected</span>')+'</div>';
     wrap.innerHTML=tag(f.Home,hAS.xi)+rowsFor(hAS.xi,false)+'<div style="height:8px"></div>'+tag(f.Away,aAS.xi)+rowsFor(aAS.xi,true);}
@@ -3293,7 +3299,7 @@ function oppToggle(){return '<div class="axtog om"><div class="in3"><button clas
 document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';if((location.hash||'').startsWith('#team'))renderTeam();else renderGW();});
 /* ---- Matchweek plate in the top bar; the league name moves into the hero kickers ---- */
 function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))" role="img" aria-label="Matchweek"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="\'Archivo Black\',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>'}
-(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(88)+'<span class="lg">El Matador Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
+(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(74)+'<span class="lg">El Matador Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
   document.querySelectorAll('.hero .kick').forEach(k=>{if(!/El Matador/i.test(k.textContent))k.textContent='El Matador Tire · '+k.textContent;});})();
 const __hc=heroCopy;heroCopy=function(){__hc();const k=document.querySelector('#v-gw .hero .kick');if(k)k.textContent='El Matador Tire · Gameweek '+(D.gw||'');};
 /* ---- Players: the club view is gone (search + free agents + the wire stay) ---- */
@@ -3349,6 +3355,7 @@ function openLineup(team){
    +'<div class="lgfoot">'+mwWordmark(120)+'<span class="k">'+(opp?(nxf.Home===team?'vs ':'at ')+esc(opp)+' · ':'')+'El Matador Tire</span><button class="watch" id="lgre">↻ Replay</button></div>'
    +'</div>');
   OPPMODE=saveOpp;
+  setTimeout(()=>{const g=document.getElementById('lgfx');if(g)g.classList.add('done')},5200); /* guaranteed final frame (throttled/occluded tabs strand CSS animations) */
   document.getElementById('lgx').onclick=()=>{document.getElementById('lgfx').remove();};
   document.getElementById('lgre').onclick=()=>openLineup(team);
 }
