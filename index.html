@@ -3681,7 +3681,7 @@ const __rt3=renderTeam;renderTeam=function(){__rt3();const mine=myTeam();const p
   if(typeof profileButtonHTML==='function'){const t=head.querySelector('.t');(t||head).insertAdjacentHTML('beforeend','<div class="profrow">'+profileButtonHTML()+'</div>');}};
 
 /* nations the sheet's pulselive lookup missed (new signings) — client-side patch until Code.gs NATFALLBACK catches up */
-const NAT_FIX={551210:'NL',449434:'SE',433969:'JP',154566:'GB-ENG',465642:'DE',201658:'GB-ENG',205533:'GB-ENG',465730:'BE',607464:'IT',482616:'FR',586309:'FR',463726:'BA',551466:'ES'};
+const NAT_FIX={551210:'NL',449434:'SE',433969:'JP',154566:'GB-ENG',465642:'DE',201658:'GB-ENG',205533:'GB-ENG',465730:'BE',607464:'IT',482616:'FR',586309:'FR',463726:'BA',551466:'ES',513545:'ML',440993:'SN',611695:'CI',638987:'SN'};
 function fixNations(){[D.ro,D.plr].forEach(a=>(a||[]).forEach(p=>{if(!p.Nation&&NAT_FIX[String(p.Code)])p.Nation=NAT_FIX[String(p.Code)]}))}
 const __la2=loadAll;loadAll=function(q){return __la2(q).then(r=>{fixNations();rerenderView();return r})};
 fixNations();
