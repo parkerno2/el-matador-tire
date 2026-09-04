@@ -3808,7 +3808,7 @@ function profileButtonHTML(){
 document.body.addEventListener('click',e=>{
   const b=e.target.closest('[data-claim]');if(!b)return;e.stopPropagation();
   const mine=myTeam();
-  if(AUTH.team()&&(!mine||AUTH.team()===mine))openProfile();else openClaim();
+  if(AUTH.team()&&(!mine||AUTH.team()===mine))openTeamEditor();else openClaim();
 });
 function authAfterSignIn(team){
   try{localStorage.setItem('emt-myteam',team)}catch(e){}
@@ -3889,7 +3889,7 @@ function authResizePhoto(file,size,max){
 }
 
 /* ---- profile sheet ---- */
-function openProfile(){
+function openTeamEditor(){
   const team=AUTH.team();if(!team||!TEAMS[team]){openClaim();return}
   const cur=PROFILE[team]||{};
   const p={color:cur.color||'',shape:cur.shape||'',photo:cur.photo||'',manager:cur.manager||(TEAMS[team].mgr||'')};
