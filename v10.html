@@ -3487,7 +3487,7 @@ function renderTeam(){
     const cur=D.fx.filter(f=>num(f.GW)===D.gw).find(f=>f.Home===mine||f.Away===mine);
     let gwTxt='—',gwSub='This gameweek';
     if(cur){const s=mscore(cur);const my=cur.Home===mine?s.hs:s.as2;const opp=cur.Home===mine?cur.Away:cur.Home;
-      if(s.done||s.liveNow){gwTxt=my;gwSub='GW'+D.gw+' '+(s.done?'final':'live')+(D.hasEP&&!s.done?' · proj '+fmt1(teamProj(mine)):'');}
+      if(s.done||s.liveNow){gwTxt=my;gwSub='GW'+D.gw+(s.done?' · final':D.hasEP?' · proj '+fmt1(teamProj(mine)):' · live');}
       else{gwTxt=D.hasEP?fmt1(teamProj(mine)):'—';gwSub='GW'+D.gw+' projected';}}
     tiles.children[0].innerHTML='<b style="font-size:1.9rem;color:var(--p2)">'+gwTxt+'</b><span>'+esc(gwSub)+'</span>';
     tiles.children[2].innerHTML='<b style="font-size:1.9rem">'+num(row['Pts For'])+'</b><span>Points for'+(pos?' · '+ORD(pos):'')+'</span>';
@@ -3604,6 +3604,7 @@ const koFmt=ko=>ko?ko.toLocaleString(undefined,{weekday:'short',day:'numeric',mo
 function nextClubFixture(club){return (D.cf||[]).find(x=>num(x.GW)===D.gw&&!fin(x.Finished)&&(x.Home===club||x.Away===club))||(D.cf||[]).find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club))}
 let OPPMODE=false;
 function card(p,i){
+  if(p&&!p.Nation&&typeof NAT_FIX!=='undefined'&&NAT_FIX[String(p.Code)])p.Nation=NAT_FIX[String(p.Code)];
   let h=__orig.card(p,i);
   if(!OPPMODE||fxStarted(p.Club))return h;
   const nf=nextClubFixture(p.Club);if(!nf)return h;
@@ -3662,6 +3663,7 @@ function fixtureBlock(p){
   return '<div class="fxblk"><div class="fxk">'+(gwOf(cur[0])===D.gw?'This gameweek':'Next up · Gameweek '+gwOf(cur[0]))+(cur.length>1?' · double':'')+'</div>'+cur.map(row).join('')+nextSmall+'</div>';
 }
 const __os=openSheet;openSheet=function(p){
+  if(p&&!p.Nation&&typeof NAT_FIX!=='undefined'&&NAT_FIX[String(p.Code)])p.Nation=NAT_FIX[String(p.Code)];
   __os(p);
   const sub=document.querySelector('#sheet .sub');
   if(sub){[...sub.childNodes].forEach(n=>{if(n.nodeType===3&&n.textContent.trim().startsWith(p.Club))n.textContent=n.textContent.replace(p.Club,clubName(p.Club));});sub.insertAdjacentHTML('afterend',fixtureBlock(p));}
