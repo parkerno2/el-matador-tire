@@ -2911,9 +2911,8 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 .hbtn{width:26px;height:26px;margin-left:6px}
 .hav{margin-left:6px}
 .lgfx.done .deal,.lgfx.done .lghead,.lgfx.done .lgpitch,.lgfx.done .lgfoot{animation:none;opacity:1;transform:none}
-.myhead{flex-wrap:wrap}
-.myhead .profrow{flex-basis:100%;display:flex;gap:8px;margin-top:4px}
-.myhead .profrow .watch{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}
+.myhead .profrow{display:flex;gap:8px;margin-top:6px}
+.myhead .profrow .watch{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff;padding:5px 10px;font-size:.6rem}
 
 /* ===== the matchup graphic ===== */
 .lgfx.mx{background:radial-gradient(90% 60% at 0% 20%,color-mix(in srgb,var(--hc) 45%,transparent),transparent 60%),radial-gradient(90% 60% at 100% 80%,color-mix(in srgb,var(--ac) 45%,transparent),transparent 60%),linear-gradient(160deg,#2E5BFF -50%,#4A1260 35%,#20104A 100%);overflow:hidden;padding:0}
@@ -2935,7 +2934,7 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 .mx .intro .cr.sm{width:56px;height:56px;margin-top:-34px;margin-left:120px}
 .mx .intro .k{font-family:'Manrope',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#FFD23F;margin-top:10px}
 .mx .intro .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2.4rem;line-height:1;text-transform:uppercase;letter-spacing:.02em}
-.mx .intro .m{font-size:.9rem;font-weight:700;color:#fff}
+.mx .intro .mg2{font-size:.9rem;font-weight:700;color:#fff}
 .mx .intro .r{font-size:.78rem;color:#E6DCEC;font-weight:600}
 .mx .intro .r .num{font-family:'Saira Condensed',sans-serif;font-size:.9rem;font-weight:700;color:#fff}
 .mx .intro .form{margin-top:6px}
@@ -2947,12 +2946,14 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 .mx .lgtag b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.05rem;text-transform:uppercase;color:#fff;letter-spacing:.02em}
 .mx .lgtag span{font-size:.7rem;color:#C9B8D6;font-weight:600}
 .mx .lgpitch{animation:none;flex:none}
-.mx .strip{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.26);border-radius:12px}
+.mx .strip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:12px;margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.26);border-radius:12px}
 .mx .strip span{display:flex;flex-direction:column;gap:3px;min-width:0}
 .mx .strip span:last-child{align-items:flex-end}
 .mx .strip i{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:#C9B8D6}
 .mx .strip b{font-size:.86rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mx .strip b.num,.mx .strip em.num{font-family:'Saira Condensed',sans-serif;font-style:normal;font-size:1.25rem;line-height:1;color:#FFD23F}
+.mx .strip em.num small{font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:#C9B8D6;font-weight:600}
+.mx .strip .mid{text-align:center;align-items:center}
 /* the matchup scene */
 .mx .s5{justify-content:center;gap:10px}
 .mx .face{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-top:6px}
@@ -2998,6 +2999,13 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 #gwbody .stage .axtog:not(.om){position:absolute;top:10px;right:10px;margin:0;z-index:3}
 #gwbody .stage .axtog:not(.om) button{padding:5px 9px;font-size:.54rem}
 #gwbody .stage .scsub+.axtog+.scsub{max-width:520px;margin:6px auto 0}
+/* compact pitch so the XI + strip fit a phone viewport without scrolling */
+.mx .lgpitch{padding:10px 0 8px}
+.mx .lgpitch .in{gap:6px}
+.mx .lgpitch .deal{width:21%;max-width:86px}
+.mx .lgpitch .prow.five .deal{width:18.6%;max-width:80px}
+.mx .lgpitch:after{width:80px;height:80px}
+.mx .strip{margin-top:8px;padding:8px 12px}
 
 /* ===== v10-auth — claim / sign-in sheet + team profile editor ===== */
 .au{display:flex;flex-direction:column;gap:8px}
@@ -3052,6 +3060,10 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .au .au-in{flex:none;width:100%;min-width:0;box-sizing:border-box;margin:0;padding:10px 12px;background:#F6F5F8;border:1px solid #E6E0ED;border-radius:12px;font-family:'Manrope',sans-serif;font-size:.84rem;font-weight:600;color:#1B1420;outline:none}
 .au .au-in:focus{border-color:#5B1A66;box-shadow:0 0 0 3px rgba(91,26,102,.14)}
 .au-actions{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+/* phone width: the hero row wraps instead of clipping the photo buttons */
+.au-hero{flex-wrap:wrap}
+.au-photo{flex:1 1 170px}
+.au-big{width:84px;height:84px}
 
 </style>
 <script>window.__orig={renderMatch:renderMatch,renderTeam:renderTeam,renderTable:renderTable,renderScoreboard:renderScoreboard,buildNav:buildNav,rowsFor:rowsFor,card:card};</script>
@@ -3650,7 +3662,7 @@ const __rt3=renderTeam;renderTeam=function(){__rt3();const mine=myTeam();const p
   const pr=mine&&PROFILE[mine]||{};
   if(pr.photo){const cr=head.querySelector('.cr');if(cr)cr.innerHTML='<img src="'+pr.photo+'" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 2px #FFD23F">';}
   if(pr.manager){const r=head.querySelector('.r');if(r)r.innerHTML=r.innerHTML.replace(esc((TEAMS[mine]||{}).mgr||''),esc(pr.manager));}
-  if(typeof profileButtonHTML==='function')head.insertAdjacentHTML('beforeend','<div class="profrow">'+profileButtonHTML()+'</div>');};
+  if(typeof profileButtonHTML==='function'){const t=head.querySelector('.t');(t||head).insertAdjacentHTML('beforeend','<div class="profrow">'+profileButtonHTML()+'</div>');}};
 
 /* ===== v10 · the matchup graphic: ~22 s broadcast-style preview of one H2H matchup =====
    Scenes: left team intro → left XI dealt from the GK upward → right team intro → right XI → the matchup
@@ -3684,7 +3696,7 @@ function mxIntro(team,side){
   const face=pr.photo?'<span class="ph"><img src="'+pr.photo+'" alt=""></span>':'';
   return '<div class="intro '+side+'">'+(face||'<span class="cr big">'+crestOf(team,150)+'</span>')
    +(face?'<span class="cr sm">'+crestOf(team,64)+'</span>':'')
-   +'<span class="k">'+(side==='h'?'Home':'Away')+'</span><span class="n">'+esc(team)+'</span><span class="m">'+esc(pr.manager||(TEAMS[team]||{}).mgr||'')+'</span>'
+   +'<span class="k">'+(side==='h'?'Home':'Away')+'</span><span class="n">'+esc(team)+'</span><span class="mg2">'+esc(pr.manager||(TEAMS[team]||{}).mgr||'')+'</span>'
    +'<span class="r">'+(pos?ORD(pos)+' · ':'')+(row.W!==undefined?'<span class="num">'+num(row.W)+'–'+num(row.D)+'–'+num(row.L)+'</span> · ':'')+'<span class="num">'+num(row['Pts For'])+'</span> points for</span>'
    +formHTML(team,'')+'</div>';
 }
@@ -3702,7 +3714,7 @@ function mxXI(team,side,t0){
   return '<div class="lgtag"><span class="cr">'+crestOf(team,26)+'</span><b>'+esc(team)+'</b><span>'+formation(xi)+(lineupsLocked()?'':' · projected')+'</span></div>'
    +'<div class="lgpitch"><div class="in">'+rows+'</div></div>'
    +'<div class="strip" style="animation-delay:'+(t0+3.2).toFixed(2)+'s"><span><i>'+(started?'Points':'Projected')+'</i><b class="num">'+(started?Math.round(tot):fmt1(tot))+'</b></span>'
-   +(km?'<span><i>Key man</i><b>'+esc(km.p.Player)+' <em class="num">'+(km.lab==='pts'?Math.round(km.v):fmt1(km.v))+'</em></b></span>':'')
+   +(km?'<span class="mid"><i>Key man</i><b>'+esc(km.p.Player)+'</b><em class="num">'+(km.lab==='pts'?Math.round(km.v):fmt1(km.v))+' <small>'+km.lab+'</small></em></span>':'')
    +'<span><i>Form</i>'+formHTML(team,'')+'</span></div>';
 }
 function mxFinal(f){
@@ -3791,10 +3803,10 @@ function authCrest(team,size,color,shape){const ini=(TEAMS[team]||{}).ini;return
 /* ---- the header/clubhouse button v10-delta places ---- */
 function profileButtonHTML(){
   const mine=myTeam();
-  return mine&&AUTH.team()===mine?'<button class="watch" data-prof="1">✎ Edit team</button>':'<button class="watch" data-prof="1">Claim your team</button>';
+  return mine&&AUTH.team()===mine?'<button class="watch" data-claim="1">✎ Edit team</button>':'<button class="watch" data-claim="1">Claim your team</button>';
 }
 document.body.addEventListener('click',e=>{
-  const b=e.target.closest('[data-prof]');if(!b)return;e.stopPropagation();
+  const b=e.target.closest('[data-claim]');if(!b)return;e.stopPropagation();
   const mine=myTeam();
   if(AUTH.team()&&(!mine||AUTH.team()===mine))openProfile();else openClaim();
 });
