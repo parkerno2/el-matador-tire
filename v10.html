@@ -3057,6 +3057,7 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .mx .hit{font-size:.76rem;line-height:1.45;color:#EFE7F3;padding:8px 10px;border-left:3px solid #FFD23F;background:rgba(0,0,0,.18);border-radius:0 10px 10px 0;animation:lgin .6s 2.6s ease both}
 .mx .hit b{color:#fff}
 .lgfx.mx.done .story .st,.lgfx.mx.done .ptw,.lgfx.mx.done .hit,.lgfx.mx.done .sface .cr{animation:none;opacity:1;transform:none}
+.mx .sface .sv .nn{display:flex;align-items:baseline;justify-content:center}
 
 /* ===== v10-auth — claim / sign-in sheet + team profile editor ===== */
 .au{display:flex;flex-direction:column;gap:8px}
@@ -3223,7 +3224,7 @@ function crestSVG(m, size=64, opt){
   const t=CREST[m]; if(!t) return '';
   const o=opt||{};
   const c1=o.c1||t.c1,c2=o.c2||t.c2,sh=SHAPE_BY[o.shape||t.shape||'shield']||SHAPES[0];
-  const useIni=o.emblem!==undefined?o.emblem==='initials':t.emblem==='initials';
+  const useIni=o.emblem!==undefined?o.emblem==='initials':t.useIni===true;
   const emblem=useIni?'<text x="50" y="66" text-anchor="middle" font-family="\'Saira Condensed\',sans-serif" font-weight="700" font-size="'+(m.length>2?34:44)+'" letter-spacing="1" fill="#fff" style="paint-order:stroke" stroke="rgba(0,0,0,.25)" stroke-width="1.5">'+m+'</text>':t.emblem;
   const id='cg'+m+(__cid++);
   return `<svg width="${size}" height="${size}" viewBox="0 0 100 108" fill="none" aria-label="${t.name} crest">
@@ -3486,9 +3487,8 @@ function renderTeam(){
     const cur=D.fx.filter(f=>num(f.GW)===D.gw).find(f=>f.Home===mine||f.Away===mine);
     let gwTxt='—',gwSub='This gameweek';
     if(cur){const s=mscore(cur);const my=cur.Home===mine?s.hs:s.as2;const opp=cur.Home===mine?cur.Away:cur.Home;
-      if(s.done||s.liveNow){gwTxt=my;gwSub='GW'+D.gw+' · '+(s.done?'final':'live')+(D.hasEP&&!s.done?' · proj '+fmt1(teamProj(mine)):'');}
-      else{gwTxt=D.hasEP?fmt1(teamProj(mine)):'—';gwSub='GW'+D.gw+' projected';}
-      gwSub+=' · '+(cur.Home===mine?'vs ':'at ')+FIRSTOF(opp);}
+      if(s.done||s.liveNow){gwTxt=my;gwSub='GW'+D.gw+' '+(s.done?'final':'live')+(D.hasEP&&!s.done?' · proj '+fmt1(teamProj(mine)):'');}
+      else{gwTxt=D.hasEP?fmt1(teamProj(mine)):'—';gwSub='GW'+D.gw+' projected';}}
     tiles.children[0].innerHTML='<b style="font-size:1.9rem;color:var(--p2)">'+gwTxt+'</b><span>'+esc(gwSub)+'</span>';
     tiles.children[2].innerHTML='<b style="font-size:1.9rem">'+num(row['Pts For'])+'</b><span>Points for'+(pos?' · '+ORD(pos):'')+'</span>';
     tiles.insertAdjacentHTML('beforebegin',teamNextLine(mine));
@@ -3733,7 +3733,7 @@ function applyProfiles(rows){
   Object.entries(TEAMS).forEach(([t,tm])=>{const pr=PROFILE[t]||{},ini=tm.ini,c=CREST[ini];if(!c)return;
     const pal=PALETTE_BY[pr.color],d=CREST_DEFAULTS[ini];
     c.c1=pal?pal.c1:d.c1;c.c2=pal?pal.c2:d.c2;tm.col=pal?pal.col:TEAM_COL_DEFAULTS[t];
-    c.shape=SHAPE_BY[pr.shape]?pr.shape:d.shape;c.emblem=pr.emblem==='initials'?'initials':'';});
+    c.shape=SHAPE_BY[pr.shape]?pr.shape:d.shape;c.useIni=pr.emblem==='initials';});
   if(!rows)rerenderView();
 }
 function rerenderView(){if(!D.ro||!D.ro.length)return;const h=(location.hash||'').slice(1);
@@ -3861,7 +3861,7 @@ function mxStory(f,art){
   const face=art.ptw&&art.ptw.code?'<span class="ph"><img src="faces/'+art.ptw.code+'.png" alt="" onerror="this.parentNode.style.display=\'none\'"></span>':'';
   const hit=art.hits&&art.hits[0];
   return '<div class="story"><div class="sk">'+esc(clip(art.kick||'',60))+'</div>'
-   +'<div class="sface"><span class="cr">'+crestOf(f.Home,64)+'</span><div class="sv"><b class="num">'+nums[0]+'</b><i>–</i><b class="num">'+nums[1]+'</b><span>'+esc(lab)+'</span></div><span class="cr">'+crestOf(f.Away,64)+'</span></div>'
+   +'<div class="sface"><span class="cr">'+crestOf(f.Home,64)+'</span><div class="sv"><div class="nn"><b class="num">'+nums[0]+'</b><i>–</i><b class="num">'+nums[1]+'</b></div><span>'+esc(lab)+'</span></div><span class="cr">'+crestOf(f.Away,64)+'</span></div>'
    +'<p class="st">'+esc(clip(art.story,300))+'</p>'
    +(art.ptw?'<div class="ptw">'+face+'<div class="pt"><span class="k">Player to watch</span><b>'+esc(art.ptw.name)+'</b><span class="l">'+esc(clip(art.ptw.line,150))+'</span></div></div>':'')
    +(hit?'<div class="hit"><b>'+esc(hit.b)+'</b> '+esc(clip(hit.t,140))+'</div>':'')
@@ -3943,7 +3943,7 @@ function authErrText(e){
 function authCrestOpts(team,color,shape,emblem){
   const ini=(TEAMS[team]||{}).ini,base=CREST[ini]||{};
   const p=color&&PALETTE.find(x=>x.id===color);
-  return {c1:p?p.c1:base.c1,c2:p?p.c2:base.c2,shape:shape||base.shape||'shield',emblem:emblem===undefined?(base.emblem||''):emblem};
+  return {c1:p?p.c1:base.c1,c2:p?p.c2:base.c2,shape:shape||base.shape||'shield',emblem:emblem===undefined?(base.useIni?'initials':''):emblem};
 }
 function authCrest(team,size,color,shape,emblem){const ini=(TEAMS[team]||{}).ini;return ini?crestSVG(ini,size,authCrestOpts(team,color,shape,emblem)):''}
 

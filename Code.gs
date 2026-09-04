@@ -833,13 +833,13 @@ function logGwHistory(ss, boot, teams, perEntry) {
  *
  *   claim  {team,pin}                               → {ok,token}   errors: claimed · badteam · badpin
  *   login  {team,pin}                               → {ok,token}   errors: wrong · unclaimed · locked (+retryMin)
- *   save   {team,token,color,shape,photo,manager}   → {ok}         errors: auth · badcolor · badshape · badphoto
+ *   save   {team,token,color,shape,photo,manager,emblem} → {ok}    errors: auth · badcolor · badshape · badphoto · bademblem
  *   reset  {team,token}                             → {ok}         clears the Managers row, keeps the PIN
  *   status {}                                       → {ok,claimed:[teams]}
  *   GET                                             → {ok,service:'emt',claimed:[teams]}   (open the URL to check the deploy)
  *
  * PIN hashes live ONLY in script properties (EMT_SECRET, EMT_PIN_<team>, EMT_FAIL_<team>) — never on the
- * (public) sheet. Profiles go to a `Managers` tab: Team | Color | Shape | Photo | Manager | Updated.
+ * (public) sheet. Profiles go to a `Managers` tab: Team | Color | Shape | Photo | Manager | Updated | Emblem ('' = crest art, 'initials').
  * 5 wrong PINs → 10-minute lockout. Changing a PIN invalidates old tokens.
  *
  * COMMISSIONER ESCAPE HATCH — a mate forgot his PIN:
@@ -851,7 +851,8 @@ var EMT_SHAPES = ['shield', 'heater', 'roundel', 'pennant', 'hex'];
 var EMT_PHOTO_MAX = 45000;      // chars — sheet cells cap at 50k
 var EMT_LOCK_TRIES = 5;
 var EMT_LOCK_MIN = 10;
-var EMT_MGR_HEAD = ['Team', 'Color', 'Shape', 'Photo', 'Manager', 'Updated'];
+var EMT_MGR_HEAD = ['Team', 'Color', 'Shape', 'Photo', 'Manager', 'Updated', 'Emblem'];
+var EMT_EMBLEMS = ['', 'initials'];
 
 function emtProps() { return PropertiesService.getScriptProperties(); }
 
@@ -928,7 +929,7 @@ function emtManagersSheet() {
   else if (sh.getLastRow() < 1) sh.getRange(1, 1, 1, EMT_MGR_HEAD.length).setValues([EMT_MGR_HEAD]);
   return sh;
 }
-function emtUpsertManager(team, color, shape, photo, manager) {
+function emtUpsertManager(team, color, shape, photo, manager, emblem) {
   var sh = emtManagersSheet();
   var last = sh.getLastRow();
   var row = 0;
@@ -937,7 +938,8 @@ function emtUpsertManager(team, color, shape, photo, manager) {
     for (var i = 0; i < teams.length; i++) if (String(teams[i][0]) === team) { row = i + 2; break; }
   }
   if (!row) row = last + 1;
-  sh.getRange(row, 1, 1, EMT_MGR_HEAD.length).setValues([[team, color, shape, photo, manager, "'" + new Date().toISOString()]]);
+  if (sh.getLastColumn() < EMT_MGR_HEAD.length) sh.getRange(1, 1, 1, EMT_MGR_HEAD.length).setValues([EMT_MGR_HEAD]);
+  sh.getRange(row, 1, 1, EMT_MGR_HEAD.length).setValues([[team, color, shape, photo, manager, "'" + new Date().toISOString(), emblem || '']]);
 }
 
 function emtHandle(req) {
@@ -978,13 +980,15 @@ function emtHandle(req) {
 
   if (action === 'save' || action === 'reset') {
     if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
-    if (action === 'reset') { emtUpsertManager(team, '', '', '', ''); return { ok: true }; }
+    if (action === 'reset') { emtUpsertManager(team, '', '', '', '', ''); return { ok: true }; }
     var color = String(req.color || ''), shape = String(req.shape || ''), photo = String(req.photo || '');
     if (color && EMT_PALETTE.indexOf(color) < 0) return { ok: false, error: 'badcolor' };
     if (shape && EMT_SHAPES.indexOf(shape) < 0) return { ok: false, error: 'badshape' };
     if (photo && (photo.indexOf('data:image/jpeg;base64,') !== 0 || photo.length > EMT_PHOTO_MAX)) return { ok: false, error: 'badphoto' };
+    var emblem = String(req.emblem || '');
+    if (EMT_EMBLEMS.indexOf(emblem) < 0) return { ok: false, error: 'bademblem' };
     var manager = String(req.manager || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
-    emtUpsertManager(team, color, shape, photo, manager);
+    emtUpsertManager(team, color, shape, photo, manager, emblem);
     return { ok: true };
   }
 
