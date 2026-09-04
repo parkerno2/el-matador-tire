@@ -2794,11 +2794,18 @@ h2.v10 .lnk{font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;let
 .fixt .fh{display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#665D72;cursor:pointer}
 .fixt .fh svg{margin-left:auto}
 .fixt .fg{display:grid;grid-template-columns:40px repeat(5,minmax(0,1fr));gap:5px;padding:0 12px 4px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.52rem;letter-spacing:.1em;color:#665D72;text-align:center}
-.fixt .fr{display:grid;grid-template-columns:40px repeat(5,minmax(0,1fr));gap:5px;align-items:center;padding:6px 12px;border-top:1px solid #E8E4EE}
-.fixt .fr b{font-size:.74rem}
-.fixt .fr span{height:22px;border-radius:5px;background:#EFEBF3;color:#3B2A48;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.68rem;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
-.fixt .fr span.h{background:#E4E7FF;color:#2A3FB8}
-.fixt .fr span.x{background:transparent;color:#B7A6C4}
+.fixt .fg{grid-template-columns:30px repeat(5,minmax(0,1fr))}
+.fixt .fr{display:grid;grid-template-columns:30px repeat(5,minmax(0,1fr));gap:5px;align-items:center;padding:5px 12px;border-top:1px solid #E8E4EE}
+.fixt .fr b{display:flex;align-items:center;justify-content:center}
+.fixt .fr b img{height:22px;width:auto}
+.fixt .fr .fxc{display:flex;gap:3px;min-width:0}
+.fixt .fr .fd{flex:1;min-width:0;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.62rem;letter-spacing:.08em;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.fixt .fr .fd img{height:17px;width:auto;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.fixt .fr .fd i{font-style:normal}
+.fixt .fr .fxc.dbl .fd{gap:1px;font-size:.5rem}.fixt .fr .fxc.dbl .fd img{height:12px}
+.fixt .fr span.x{display:flex;align-items:center;justify-content:center;height:30px;color:#B7A6C4;font-family:'Saira Condensed',sans-serif}
+.fixt .fleg{display:flex;align-items:center;gap:5px;padding:7px 12px 6px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:#665D72;border-top:1px solid #E8E4EE}
+.fixt .fleg span{width:12px;height:12px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);margin-left:6px}.fixt .fleg span:first-child{margin-left:0}
 /* table: the money */
 .money90{padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 .money90 .k{font-family:'Manrope',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#665D72;display:flex;align-items:center;gap:8px}
@@ -2833,10 +2840,10 @@ nav button span:not(.bar){font-size:.6rem !important;font-weight:600}
 .lgnote{font-size:.56rem;color:#D8CBE2;margin:0 10px 8px;position:relative;z-index:2;letter-spacing:.04em}
 /* brand: plate + league */
 .top .brand .lg{font-family:'Manrope',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#fff;white-space:nowrap}
-/* opponent mode: the bubble shows who he plays */
-.fc .pts.opp{background:rgba(255,255,255,.94);border:1.5px solid var(--bub);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5% 4% 2%;line-height:1}
-.fc .pts.opp img{width:58%;height:auto;display:block;filter:none}
-.fc .pts.opp i{display:block;font-style:normal;font-size:5.6cqw;letter-spacing:.14em;color:#241329;margin-top:.8cqw}
+/* opponent mode: the bubble is painted in the fixture's FPL difficulty colour and carries the opponent's badge */
+.fc .pts.opp{border:1px solid rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.4% 4% 2%;line-height:1;box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 2px 5px rgba(20,10,25,.3)}
+.fc .pts.opp img{width:60%;height:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.fc .pts.opp i{display:block;font-style:normal;font-weight:700;font-size:5.8cqw;letter-spacing:.16em;color:inherit;margin-top:1cqw}
 .axtog.om{margin:8px 0 2px}
 .mybench+.watchrow{margin-top:-4px}
 .watchrow{display:flex;gap:8px;justify-content:center;align-items:center;margin:8px 0 2px;flex-wrap:wrap}
@@ -2846,8 +2853,31 @@ nav button span:not(.bar){font-size:.6rem !important;font-weight:600}
 .watchrow .axtog button.on{background:#2E0F3A;color:#fff}
 button.watch{background:#fff;border:1px solid #CFC6D8;color:#5B1A66;font-family:inherit;font-weight:700;font-size:.66rem;letter-spacing:.06em;padding:7px 12px;border-radius:9px;cursor:pointer}
 button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
-.chip.fx{display:inline-flex;align-items:center;gap:4px;background:#EFEBF3;color:#3B2A48}
-.chip.fx img{height:14px;width:auto}
+/* player sheet: the fixture block */
+.fxblk{margin:0 0 10px;border:1px solid #E6E0ED;border-radius:14px;background:#FBF9FD;overflow:hidden}
+.fxblk .fxk{padding:7px 12px 5px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#665D72}
+.fxblk .fxrow{border-top:1px solid #EFEAF4;position:relative}
+.fxblk .fxrow:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--fd)}
+.fxblk .fxmain{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:10px 12px 6px 14px}
+.fxblk .fxs{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0;gap:2px}
+.fxblk .fxs img{height:40px;width:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
+.fxblk .fxs b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.92rem;line-height:1.05;color:#2A2233;margin-top:3px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fxblk .fxs i{font-style:normal;font-size:.52rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F96}
+.fxblk .fxs.me b{color:var(--p1)}.fxblk .fxs.me i{color:#B8860B}
+.fxblk .fxc{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px}
+.fxblk .fxc .v{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:#B7A6C4}
+.fxblk .fxc .ko{font-size:.58rem;font-weight:700;color:#3B2A48;text-align:center;line-height:1.2}
+.fxblk .fxc .sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.5rem;line-height:1;color:#2A2233}
+.fxblk .fxc .st{font-size:.52rem;font-weight:800;letter-spacing:.12em;padding:2px 6px;border-radius:5px;background:#EFEBF3;color:#3B2A48}
+.fxblk .fxc .st.live{background:#0E8A5F;color:#fff}
+.fxblk .fxfoot{display:flex;align-items:center;gap:8px;padding:0 12px 10px 14px;font-size:.66rem;color:#3B2A48}
+.fxblk .fxfoot .fxst{margin-left:auto;color:#665D72}.fxblk .fxfoot .fxst b{color:#2A2233;font-family:'Saira Condensed',sans-serif;font-size:.86rem}
+.fdr{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border-radius:999px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.fdr b{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.14);font-size:.72rem;font-weight:700}
+.fxblk .fxnext{display:flex;align-items:center;gap:6px;padding:7px 12px 8px;border-top:1px solid #EFEAF4;font-size:.66rem;color:#3B2A48;flex-wrap:wrap}
+.fxblk .fxnext .k{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:#665D72}
+.fxblk .fxnext img{height:18px;width:auto}.fxblk .fxnext b{font-family:'Saira Condensed',sans-serif;font-size:.82rem}
+.fxblk .fxnext .ko{color:#8A7F96;font-size:.58rem}.fxblk .fxnext .fdr{margin-left:auto}
 /* lineup graphic overlay */
 .lgfx{position:fixed;inset:0;z-index:100;background:radial-gradient(90% 60% at 50% 40%,rgba(46,91,255,.35),transparent 60%),linear-gradient(160deg,#2E5BFF -40%,#5B1A66 35%,#37003C 100%);color:#fff;display:flex;flex-direction:column;overflow:auto;padding:max(12px,env(safe-area-inset-top)) 10px 12px}
 .lgx{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:1.1rem;font-weight:800;cursor:pointer;z-index:2}
@@ -3169,9 +3199,12 @@ let FIXOPEN=true;
 function nextFive(team){
   const xi=effXiOf(team,true);const clubs=[...new Set(xi.map(p=>p.Club))];
   const gws=[0,1,2,3,4].map(i=>D.gw+i);
-  const cell=(c,g)=>{const f=(D.cf||[]).find(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!f)return '<span class="x">—</span>';const h=f.Home===c;return '<span class="'+(h?'h':'')+'">'+esc(h?f.Away:f.Home)+' ('+(h?'H':'A')+')</span>';};
+  const cell=(c,g)=>{const fs=(D.cf||[]).filter(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!fs.length)return '<span class="x">—</span>';
+    return '<span class="fxc'+(fs.length>1?' dbl':'')+'">'+fs.map(f=>{const h=f.Home===c,opp=h?f.Away:f.Home,n=fdrOf(c,f);
+      return '<span class="fd" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'" title="'+esc(clubName(opp))+' ('+(h?'H':'A')+') · difficulty '+n+'">'+badgeImg(opp,16)+'<i>'+(h?'H':'A')+'</i></span>';}).join('')+'</span>';};
   return '<div class="card fixt" style="padding:0;margin:0 0 10px"><div class="fh" id="fixh">Next five · your clubs'+(FIXOPEN?CHEVD:CHEV)+'</div>'
-   +(FIXOPEN?'<div class="fg"><span></span>'+gws.map(g=>'<span>GW'+g+'</span>').join('')+'</div>'+clubs.map(c=>'<div class="fr"><b>'+esc(c)+'</b>'+gws.map(g=>cell(c,g)).join('')+'</div>').join(''):'')+'</div>';
+   +(FIXOPEN?'<div class="fg"><span></span>'+gws.map(g=>'<span>GW'+g+'</span>').join('')+'</div>'+clubs.map(c=>'<div class="fr"><b title="'+esc(clubName(c))+'">'+badgeImg(c,22)+'</b>'+gws.map(g=>cell(c,g)).join('')+'</div>').join('')
+     +'<div class="fleg"><span style="background:#01FC7A"></span>Easy<span style="background:#E7E7E7"></span>Medium<span style="background:#FF1751"></span>Hard<span style="background:#80072D"></span>Very hard</div>':'')+'</div>';
 }
 function renderTeam(){
   __orig.renderTeam();
@@ -3285,15 +3318,27 @@ renderMatch=function(f,dl){
   if(duel)duel.insertAdjacentHTML('afterend','<div class="asubnote" style="margin-top:8px">Projected lineups — FPL publishes picks at the deadline'+(dl?' ('+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})+')':'')+'. Until then this is each manager’s last lineup carried forward, with new signings slotted by projection and flagged players covered.</div>');
 };
 
-/* ---- who am I playing? the card meta row shows the next opponent's badge (v / @) until his match kicks off ---- */
+/* ---- fixture difficulty: FPL's own team strengths (bootstrap-static), keyed by the sheet's short codes.
+   [difficulty when you host them, difficulty when you visit them] — matches FPL's team_h/a_difficulty exactly. ---- */
+const STRENGTH={ARS:[4,5],AVL:[3,4],BOU:[3,3],BRE:[3,3],BHA:[2,3],CHE:[4,4],COV:[2,2],CRY:[3,3],EVE:[3,3],FUL:[2,3],HUL:[2,2],IPS:[2,2],LEE:[2,3],LIV:[4,4],MCI:[4,5],MUN:[4,4],NEW:[2,3],NFO:[3,3],TOT:[3,3],SUN:[2,3]};
+const CLUBNAME={ARS:'Arsenal',AVL:'Aston Villa',BOU:'Bournemouth',BRE:'Brentford',BHA:'Brighton',CHE:'Chelsea',COV:'Coventry City',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich Town',LEE:'Leeds',LIV:'Liverpool',MCI:'Man City',MUN:'Man Utd',NEW:'Newcastle',NFO:'Nott’m Forest',TOT:'Spurs',SUN:'Sunderland'};
+const FDRCOL={1:'#01FC7A',2:'#01FC7A',3:'#E7E7E7',4:'#FF1751',5:'#80072D'};
+const FDRTXT={1:'#0B2A18',2:'#0B2A18',3:'#2A2233',4:'#FFFFFF',5:'#FFFFFF'};
+const FDRLAB={1:'Easy',2:'Easy',3:'Medium',4:'Hard',5:'Very hard'};
+const clubName=c=>CLUBNAME[c]||c;
+function fdrOf(club,f){const opp=f.Home===club?f.Away:f.Home,s=STRENGTH[opp];if(!s)return 3;return f.Home===club?s[0]:s[1]}
+function fdrPill(n){return '<span class="fdr" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'"><b>'+n+'</b>'+FDRLAB[n]+'</span>'}
+const koFmt=ko=>ko?ko.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
+
+/* ---- who am I playing? Opponents mode paints the card bubble in the fixture's FPL difficulty colour with the opponent's badge ---- */
 function nextClubFixture(club){return (D.cf||[]).find(x=>num(x.GW)===D.gw&&!fin(x.Finished)&&(x.Home===club||x.Away===club))||(D.cf||[]).find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club))}
 let OPPMODE=false;
 function card(p,i){
   let h=__orig.card(p,i);
   if(!OPPMODE||fxStarted(p.Club))return h;
   const nf=nextClubFixture(p.Club);if(!nf)return h;
-  const home=nf.Home===p.Club,opp=home?nf.Away:nf.Home;
-  return h.replace(/<span class="pts proj">.*?<\/i><\/span>/,'<span class="pts opp">'+badgeImg(opp,0)+'<i>'+(home?'H':'A')+'</i></span>');
+  const home=nf.Home===p.Club,opp=home?nf.Away:nf.Home,n=fdrOf(p.Club,nf);
+  return h.replace(/<span class="pts proj">.*?<\/i><\/span>/,'<span class="pts opp" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'" title="'+esc(clubName(opp))+' ('+(home?'H':'A')+') · difficulty '+n+'">'+badgeImg(opp,0)+'<i>'+(home?'H':'A')+'</i></span>');
 }
 function oppToggle(){return '<div class="axtog om"><div class="in3"><button class="'+(OPPMODE?'':'on')+'" data-om="0">Projected</button><button class="'+(OPPMODE?'on':'')+'" data-om="1">Opponents</button></div></div>'}
 document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';if((location.hash||'').startsWith('#team'))renderTeam();else renderGW();});
@@ -3320,13 +3365,42 @@ function leagueStats(p){
   const imp=pctRank(impactOf(me),all.map(impactOf));
   return {pts:me.pts,avg:me.avg,totw:me.totw,imp,pc:{pts:pc('pts'),avg:pc('avg'),totw:pc('totw'),imp},n:pool.length};
 }
+/* ---- the fixture is the headline of the player sheet: both badges, full names, home/away, kickoff or score, FPL difficulty ---- */
+function fixtureBlock(p){
+  const club=p.Club;const all=(D.cf||[]).filter(x=>x.Home===club||x.Away===club);
+  let cur=all.filter(x=>num(x.GW)===D.gw);
+  const later=all.filter(x=>num(x.GW)>D.gw&&!fin(x.Finished)).sort((a,b)=>num(a.GW)-num(b.GW)||(dt(a['Kickoff (UTC)'])||0)-(dt(b['Kickoff (UTC)'])||0));
+  if(!cur.length){if(!later.length)return '';cur=[later[0]];}
+  const gwOf=f=>num(f.GW);
+  const ep=epOf(p.Code);
+  const side=(c,cls)=>'<div class="fxs '+cls+(c===club?' me':'')+'">'+badgeImg(c,40)+'<b>'+esc(clubName(c))+'</b><i>'+(cls==='h'?'Home':'Away')+'</i></div>';
+  const row=f=>{
+    const home=f.Home===club,n=fdrOf(club,f),ko=dt(f['Kickoff (UTC)']);
+    const done=fin(f.Finished),started=fin(f.Started);
+    const hg=f['Home goals'],hasScore=hg!==''&&hg!==undefined&&hg!==null;
+    const mid=started&&hasScore?'<b class="sc num">'+num(hg)+' – '+num(f['Away goals'])+'</b><span class="st '+(done?'ft':'live')+'">'+(done?'FT':'LIVE')+'</span>'
+      :'<span class="v">v</span><span class="ko">'+(ko?esc(koFmt(ko)):'TBC')+'</span>';
+    const pts=Math.round(num(p['GW pts'])),mins=Math.round(num(p['GW mins']));
+    const foot=gwOf(f)!==D.gw?'<span class="fxst">Gameweek '+gwOf(f)+'</span>'
+      :started?'<span class="fxst"><b class="num">'+pts+'</b> pts · <b class="num">'+mins+'</b> mins'+(done?'':' so far')+'</span>'
+      :(ep!==null?'<span class="fxst">Projected <b class="num">'+fmt1(ep)+'</b> pts</span>':'<span class="fxst"></span>');
+    return '<div class="fxrow" style="--fd:'+FDRCOL[n]+'"><div class="fxmain">'+side(f.Home,'h')+'<div class="fxc">'+mid+'</div>'+side(f.Away,'a')+'</div>'
+      +'<div class="fxfoot">'+fdrPill(n)+foot+'</div></div>';
+  };
+  const nextSmall=(cur.every(f=>fin(f.Finished))&&later.length)?(()=>{const f=later[0],home=f.Home===club,opp=home?f.Away:f.Home,n=fdrOf(club,f),ko=dt(f['Kickoff (UTC)']);
+    return '<div class="fxnext"><span class="k">Next · GW'+gwOf(f)+'</span>'+badgeImg(opp,18)+'<b>'+(home?'v ':'@ ')+esc(clubName(opp))+'</b><span class="ko">'+esc(koFmt(ko))+'</span>'+fdrPill(n)+'</div>';})():'';
+  return '<div class="fxblk"><div class="fxk">'+(gwOf(cur[0])===D.gw?'This gameweek':'Next up · Gameweek '+gwOf(cur[0]))+(cur.length>1?' · double':'')+'</div>'+cur.map(row).join('')+nextSmall+'</div>';
+}
 const __os=openSheet;openSheet=function(p){
   __os(p);
-  const cr=document.querySelector('#sheet .chiprow');
-  if(cr&&!fxStarted(p.Club)){const nf=nextClubFixture(p.Club);if(nf){const home=nf.Home===p.Club,opp=home?nf.Away:nf.Home,ko=dt(nf['Kickoff (UTC)']);
-    cr.insertAdjacentHTML('beforeend','<span class="chip fx">'+badgeImg(opp,14)+' '+(home?'v ':'@ ')+esc(opp)+(ko?' · '+ko.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}):'')+'</span>');}}
+  const sub=document.querySelector('#sheet .sub');
+  if(sub)sub.insertAdjacentHTML('afterend',fixtureBlock(p));
+  /* rows the block now covers (gameweek, prediction, next fixture) go; season total / average stay only when there is no percentile grid */
+  const own=D.ro.find(r=>String(r.Code)===String(p.Code));
+  document.querySelectorAll('#sheet .srow').forEach(r=>{const t=(r.firstElementChild||{}).textContent||'';
+    if(/^Gameweek|^Predicted|^Next fixture/.test(t)||(own&&/^Season total|^Last season|^Average/.test(t)))r.remove();});
   const g=document.querySelector('#sheet .statgrid');const left=document.querySelector('#sheet .sh-left');if(!left)return;
-  const own=D.ro.find(r=>String(r.Code)===String(p.Code));if(!own){if(g)g.remove();return}
+  if(!own){if(g)g.remove();return}
   const s=leagueStats(own);
   const col=v=>v>=75?'#19D27A':v>=40?'#F5B942':'#E5484D';
   const tile=(lab,val,pct)=>'<div class="sg">'+lab+'<b>'+val+'</b><div class="bar"><i style="width:'+Math.max(2,pct)+'%;background:'+col(pct)+'"></i></div><em class="pc">'+ORD(pct)+' pct</em></div>';
