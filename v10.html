@@ -3124,7 +3124,7 @@ function renderTeam(){
     const oc=(TEAMS[opp]||{}).col||'#5B1A66';
     next='<div class="nextcard" data-go="'+(num(nxf.GW)===D.gw?('gw/'+idx):'gw')+'" style="background:radial-gradient(120% 90% at 0% 0%,'+rgba(oc,.42)+',transparent 55%),linear-gradient(140deg,#4A1260 0%,#34104E 48%,#20104A 100%)"><div style="min-width:0"><span class="k">Next'+(nm?' · '+esc(nm):'')+'</span><b>'+(nxf.Home===mine?'vs ':'at ')+esc(opp)+' · GW'+num(nxf.GW)+'</b>'
      +(D.hasEP&&num(nxf.GW)===D.gw?'<em>Predicted <span class="num">'+fmt1(teamProj(nxf.Home))+' – '+fmt1(teamProj(nxf.Away))+'</span></em>':'')+'</div><span style="margin-left:auto;color:#fff">'+CHEV+'</span></div>';}
-  const pitch='<div class="mypitch"><div class="arc"></div><div class="box"></div><div class="in"><div class="teamtag2">'+crestOf(mine,18)+'<span>'+esc(mine)+' · '+formation(as.xi)+(D.dlPassed?'':' · Best XI')+'</span></div>'+rowsFor(as.xi,true)+'</div></div>'
+  const pitch='<div class="mypitch"><div class="arc"></div><div class="box"></div><div class="in"><div class="teamtag2">'+crestOf(mine,18)+'<span>'+esc(mine)+' · '+formation(as.xi)+(lineupsLocked()?'':' · projected')+'</span></div>'+rowsFor(as.xi,true)+'</div></div>'
    +'<div class="mybench"><span class="lb">Bench</span><div class="prow">'+bench.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div></div>';
   const head='<div class="myhead"><span class="cr">'+crestOf(mine,56)+'</span><div class="t"><span class="k">Your clubhouse</span><span class="n">'+esc(mine)+'</span><span class="r">'+esc((TEAMS[mine]||{}).mgr||'')+(pos?' · '+ORD(pos):'')+(row.W!==undefined?' · <span class="num">'+row.W+'–'+row.D+'–'+row.L+'</span>':'')+'</span></div>'+formHTML(mine,'r')+'</div>';
   /* drop the profile's own header row (crest + name), keep its stat tiles and chart */
@@ -3166,6 +3166,55 @@ function renderTable(){
 
 /* boot: the nav already built by the app — rebuild with the five tabs */
 buildNav();
+
+/* ---- pre-deadline lineups: FPL publishes nobody's picks until the deadline (the API 404s), so the app
+   used to guess a "Best XI" ranked by season projection — which is not what the manager set and even
+   started injured players. FPL's own rule is that last week's lineup carries forward, so that's the guess:
+   last logged XI (GW Log), departed players replaced by the best-EP legal fill, then the likely-sub pass
+   handles anyone flagged out. Labelled PROJECTED everywhere until GW XI lands. ---- */
+const POSCAP={GKP:1,DEF:5,MID:5,FWD:3},POSMIN={GKP:1,DEF:3,MID:2,FWD:1};
+function projectedXI(team){
+  const sq=squadOf(team);if(sq.length<11)return null;
+  const lastGw=D.gwsDone;const log=(D.gl||[]).filter(r=>num(r.GW)===lastGw&&r.Team===team);
+  const ep=p=>{const e=D.hasEP?epOf(p.Code):null;return e==null?num(p['Proj pts'])/38:e};
+  let xi=[];
+  if(log.length){const was=new Set(log.filter(r=>r.Started==='XI').map(r=>String(r.Code)));xi=sq.filter(p=>was.has(String(p.Code)));}
+  const cnt=pos=>xi.filter(p=>p.Pos===pos).length;
+  const rest=()=>sq.filter(p=>!xi.includes(p)&&!(typeof flaggedOut==='function'&&flaggedOut(p))).sort((a,b)=>ep(b)-ep(a));
+  /* fill to 11 within position caps, best EP first */
+  for(const p of rest()){if(xi.length>=11)break;if(cnt(p.Pos)<POSCAP[p.Pos])xi.push(p);}
+  /* enforce minimums: swap the weakest surplus player for the best missing-position player */
+  for(const pos of Object.keys(POSMIN)){let guard=0;while(cnt(pos)<POSMIN[pos]&&guard++<5){
+    const inn=rest().find(p=>p.Pos===pos);if(!inn)break;
+    const out=xi.filter(p=>p.Pos!==pos&&cnt(p.Pos)>POSMIN[p.Pos]).sort((a,b)=>ep(a)-ep(b))[0];if(!out)break;
+    xi.splice(xi.indexOf(out),1,inn);}}
+  if(xi.length!==11||cnt('GKP')!==1)return null;
+  const order={GKP:0,DEF:1,MID:2,FWD:3};
+  return xi.sort((a,b)=>order[a.Pos]-order[b.Pos]||ep(b)-ep(a));
+}
+function xiOf(team){
+  const sq=squadOf(team);
+  const real=sq.filter(r=>r['GW XI']==='XI');
+  if(real.length>=11)return real.sort((a,b)=>num(a.Slot)-num(b.Slot));
+  return projectedXI(team)||sq.filter(r=>r['Best XI']==='XI');
+}
+function benchOf(team){
+  const sq=squadOf(team);
+  const real=sq.filter(r=>r['GW XI']==='BEN');
+  if(real.length)return real.sort((a,b)=>num(a.Slot)-num(b.Slot));
+  const xi=xiOf(team);const order={GKP:0,DEF:1,MID:2,FWD:3};
+  return sq.filter(p=>!xi.includes(p)).sort((a,b)=>order[a.Pos]-order[b.Pos]||num(b['Proj pts'])-num(a['Proj pts']));
+}
+function lineupsLocked(){return D.ro.some(r=>r['GW XI']==='XI')}
+/* label the guess wherever XIs are drawn */
+const __rm2=renderMatch;
+renderMatch=function(f,dl){
+  __rm2(f,dl);
+  if(lineupsLocked())return;
+  document.querySelectorAll('#gwbody .teamtag').forEach(t=>{t.insertAdjacentHTML('beforeend',' · <span style="opacity:.85">projected</span>')});
+  const duel=document.querySelector('#gwbody .duel');
+  if(duel)duel.insertAdjacentHTML('afterend','<div class="asubnote" style="margin-top:8px">Projected lineups — FPL publishes picks at the deadline'+(dl?' ('+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})+')':'')+'. Until then this is each manager’s last lineup carried forward, with new signings slotted by projection and flagged players covered.</div>');
+};
 
 </script>
 </body></html>
