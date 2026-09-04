@@ -2961,7 +2961,7 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 .mx .strip .mid{text-align:center;align-items:center}
 /* the matchup scene */
 .mx .s5{justify-content:center;gap:10px}
-.mx .face{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-top:6px}
+.mx .faceoff{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-top:6px}
 .mx .fs{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
 .mx .fs .cr{width:92px;height:92px;animation:crestIn .7s cubic-bezier(.2,.8,.2,1) both}
 .mx .fs.h .cr{animation-delay:calc(var(--t0) + .25s)}.mx .fs.a .cr{animation-delay:calc(var(--t0) + .45s)}
@@ -3737,7 +3737,7 @@ function mxFinal(f){
   const fact=factFor(f),sr=series(f.Home,f.Away);
   const tag={pred:'Predicted',live:'● Live',prov:'Provisional',ft:'Full time'}[st];
   const side=(t,cls)=>'<div class="fs '+cls+'"><span class="cr">'+crestOf(t,92)+'</span><b>'+esc(t)+'</b><i>'+esc(FIRSTOF(t))+'</i></div>';
-  return '<div class="face">'+side(f.Home,'h')+'<div class="vsbug"><span class="tg'+(st==='live'?' live':'')+'">'+tag+'</span><div class="sc"><span class="num">'+nums[0]+'</span><i>–</i><span class="num">'+nums[1]+'</span></div><span class="lab">'+esc(lab)+'</span></div>'+side(f.Away,'a')+'</div>'
+  return '<div class="faceoff">'+side(f.Home,'h')+'<div class="vsbug"><span class="tg'+(st==='live'?' live':'')+'">'+tag+'</span><div class="sc"><span class="num">'+nums[0]+'</span><i>–</i><span class="num">'+nums[1]+'</span></div><span class="lab">'+esc(lab)+'</span></div>'+side(f.Away,'a')+'</div>'
    +'<div class="frow">'+formHTML(f.Home)+'<span class="srs">'+esc(sr||'First meeting')+'</span>'+formHTML(f.Away,'r')+'</div>'
    +'<div class="tape">'+tr(num(row(f.Home)['Pts For']),num(row(f.Away)['Pts For']),'Points for')+tr(num(row(f.Home)['League Pts']),num(row(f.Away)['League Pts']),'League points')+'</div>'
    +'<div class="keymen">'+(kh?'<div class="km h"><span class="k">Key man</span><b>'+esc(kh.p.Player)+'</b><em class="num">'+(kh.lab==='pts'?Math.round(kh.v):fmt1(kh.v))+' <small>'+kh.lab+'</small></em></div>':'<div></div>')
