@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FPL Companion">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--p1:#37003C;--p2:#5B1A66;--p3:#2E5BFF;--gold:#FFD23F;--bg:#F4F1F6;--card:#fff;
 --ink:#1B1420;--mid:#6B6076;--line:#E4DEE9;--good:#0E8A5F;--bad:#C62828;--cyan:#04F5FF;--goldd:#B8860B;
@@ -2818,9 +2818,22 @@ h2.v10 .lnk{font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;let
 .artl a b{font-size:.8rem;line-height:1.3}
 /* nav labels */
 nav button span:not(.bar){font-size:.6rem !important;font-weight:600}
+/* flat five-across (the arc read as silly on desktop) */
+.prow.five.up .fc:nth-child(1),.prow.five.up .fc:nth-child(5),.prow.five.dn .fc:nth-child(1),.prow.five.dn .fc:nth-child(5),.prow.five.up .fc:nth-child(2),.prow.five.up .fc:nth-child(4),.prow.five.dn .fc:nth-child(2),.prow.five.dn .fc:nth-child(4){transform:none}
+.prow.five{margin-top:0}
+/* next-opponent meta row */
+.fc .meta .ha{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:7.5cqw;color:var(--sub);letter-spacing:.04em}
+/* top bar wordmark */
+.top .brand svg{display:block}
+/* players: no club view */
+.clubgrid,.allclubs{display:none !important}
+/* league percentile grid on the player sheet */
+.statgrid.lg{grid-template-columns:repeat(4,1fr);gap:8px 8px}
+.statgrid.lg .pc{display:block;font-style:normal;font-size:.5rem;letter-spacing:.06em;margin-top:2px;opacity:.85}
+.lgnote{font-size:.56rem;color:#D8CBE2;margin:0 10px 8px;position:relative;z-index:2;letter-spacing:.04em}
 
 </style>
-<script>window.__orig={renderMatch:renderMatch,renderTeam:renderTeam,renderTable:renderTable,renderScoreboard:renderScoreboard,buildNav:buildNav,rowsFor:rowsFor};</script>
+<script>window.__orig={renderMatch:renderMatch,renderTeam:renderTeam,renderTable:renderTable,renderScoreboard:renderScoreboard,buildNav:buildNav,rowsFor:rowsFor,card:card};</script>
 <script id="v10js">
 /* ===== v10 — Matchday frame. Overrides declared after the app script; everything else untouched. ===== */
 const CREST = {
@@ -3214,6 +3227,49 @@ renderMatch=function(f,dl){
   document.querySelectorAll('#gwbody .teamtag').forEach(t=>{t.insertAdjacentHTML('beforeend',' · <span style="opacity:.85">projected</span>')});
   const duel=document.querySelector('#gwbody .duel');
   if(duel)duel.insertAdjacentHTML('afterend','<div class="asubnote" style="margin-top:8px">Projected lineups — FPL publishes picks at the deadline'+(dl?' ('+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})+')':'')+'. Until then this is each manager’s last lineup carried forward, with new signings slotted by projection and flagged players covered.</div>');
+};
+
+/* ---- who am I playing? the card meta row shows the next opponent's badge (v / @) until his match kicks off ---- */
+function nextClubFixture(club){return (D.cf||[]).find(x=>num(x.GW)===D.gw&&!fin(x.Finished)&&(x.Home===club||x.Away===club))||(D.cf||[]).find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club))}
+function card(p,i){
+  let h=__orig.card(p,i);
+  if(fxStarted(p.Club))return h;
+  const nf=nextClubFixture(p.Club);if(!nf)return h;
+  const home=nf.Home===p.Club,opp=home?nf.Away:nf.Home;
+  return h.replace(/<span class="sep"><\/span><img decoding="async" class="flag"[^>]*>/,'<i class="ha">'+(home?'v':'@')+'</i>'+badgeImg(opp,0));
+}
+/* ---- Matchweek plate in the top bar; the league name moves into the hero kickers ---- */
+function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))" role="img" aria-label="Matchweek"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="\'Archivo Black\',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>'}
+(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(118);b.style.letterSpacing='0';}
+  document.querySelectorAll('.hero .kick').forEach(k=>{if(!/El Matador/i.test(k.textContent))k.textContent='El Matador Tire · '+k.textContent;});})();
+const __hc=heroCopy;heroCopy=function(){__hc();const k=document.querySelector('#v-gw .hero .kick');if(k)k.textContent='El Matador Tire · Gameweek '+(D.gw||'');};
+/* ---- Players: the club view is gone (search + free agents + the wire stay) ---- */
+const __rx=renderXIs;renderXIs=function(){if(SUB&&SUB!=='all'){location.replace('#xis');return}__rx();};
+/* ---- player sheet: league percentiles replace the FC27 six-stat grid ---- */
+function pctRank(v,arr){if(!arr.length)return 0;const below=arr.filter(x=>x<v).length,eq=arr.filter(x=>x===v).length;return Math.round(100*(below+eq*0.5)/arr.length)}
+function leagueStats(p){
+  const pool=D.ro.filter(r=>r.Pos===p.Pos);
+  const gws=Object.keys(D.gwsByGw||{}).map(Number).filter(g=>g<D.gw||(g===D.gw&&D.dlPassed)).sort((a,b)=>a-b);
+  const last3=r=>{const l=gws.slice(-3);if(!l.length)return 0;return l.reduce((s,g)=>s+(((D.gwsByGw[g]||{})[String(r.Code)]||{}).Pts||0),0)/l.length};
+  const totw=r=>(D.gl||[]).filter(x=>String(x.Code)===String(r.Code)&&x.TOTW==='TOTW').length;
+  const fa=(D.plr||[]).filter(x=>x.Owner==='FREE'&&x.Pos===p.Pos).map(x=>num(x['Season pts'])/Math.max(1,D.gwsDone));
+  const repl=fa.length?Math.max(...fa):0;
+  const m=r=>({pts:num(r['Season pts']),avg:num(r['Season pts'])/Math.max(1,D.gwsDone),l3:last3(r),totw:totw(r),par:num(r['Season pts'])/Math.max(1,D.gwsDone)-repl});
+  const all=pool.map(m),me=m(p);
+  const pc=k=>pctRank(me[k],all.map(a=>a[k]));
+  const impactOf=x=>['pts','avg','l3','totw','par'].reduce((s,k)=>s+pctRank(x[k],all.map(a=>a[k])),0)/5;
+  const imp=pctRank(impactOf(me),all.map(impactOf));
+  return {pts:me.pts,avg:me.avg,totw:me.totw,imp,pc:{pts:pc('pts'),avg:pc('avg'),totw:pc('totw'),imp},n:pool.length};
+}
+const __os=openSheet;openSheet=function(p){
+  __os(p);
+  const g=document.querySelector('#sheet .statgrid');const left=document.querySelector('#sheet .sh-left');if(!left)return;
+  const own=D.ro.find(r=>String(r.Code)===String(p.Code));if(!own){if(g)g.remove();return}
+  const s=leagueStats(own);
+  const col=v=>v>=75?'#19D27A':v>=40?'#F5B942':'#E5484D';
+  const tile=(lab,val,pct)=>'<div class="sg">'+lab+'<b>'+val+'</b><div class="bar"><i style="width:'+Math.max(2,pct)+'%;background:'+col(pct)+'"></i></div><em class="pc">'+ORD(pct)+' pct</em></div>';
+  const html='<div class="statgrid lg">'+tile('PTS',s.pts,s.pc.pts)+tile('AVG',fmt1(s.avg),s.pc.avg)+tile('TOTW',s.totw,s.pc.totw)+tile('IMPACT',s.imp,s.imp)+'</div><div class="lgnote">vs the league’s '+s.n+' rostered '+(own.Pos==='GKP'?'keepers':own.Pos==='DEF'?'defenders':own.Pos==='MID'?'midfielders':'forwards')+'</div>';
+  if(g)g.outerHTML=html;else left.insertAdjacentHTML('beforeend',html);
 };
 
 </script>
