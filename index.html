@@ -2586,7 +2586,7 @@ setInterval(()=>{
 /* ===== v10 — Matchday frame (hidden preview page) ===== */
 .pvban,.novbtn,#novsim{display:none !important}
 body{padding-top:0 !important}
-.top{padding:12px 14px 10px !important}
+.top{padding:calc(10px + env(safe-area-inset-top)) 14px 10px !important}
 .top .brand{font-size:.8rem}
 .gwpill{border-radius:7px !important;font-family:'Saira Condensed',sans-serif !important;font-weight:600 !important;font-size:.74rem !important;letter-spacing:.06em !important;padding:4px 10px !important;text-transform:none !important}
 .gwpill:not(.live):not(.prov):not(.final){background:rgba(255,255,255,.14) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);color:#fff !important}
@@ -2831,6 +2831,11 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 .lgfx.done .deal,.lgfx.done .lghead,.lgfx.done .lgpitch,.lgfx.done .lgfoot{animation:none;opacity:1;transform:none}
 .myhead .profrow{display:flex;gap:8px;margin-top:6px}
 .myhead .profrow .watch{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff;padding:5px 10px;font-size:.6rem}
+
+/* who-are-you picker: crests on the tiles + the claim button */
+.mgrid .mt{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.mgrid .mt .mtc{width:34px;height:34px;margin-bottom:4px}.mgrid .mt .mtc svg{display:block;width:100%;height:100%}
+.claimrow{display:flex;justify-content:center;margin:2px 0 14px}
 
 /* ===== the matchup graphic ===== */
 .lgfx.mx{background:radial-gradient(90% 60% at 0% 20%,color-mix(in srgb,var(--hc) 45%,transparent),transparent 60%),radial-gradient(90% 60% at 100% 80%,color-mix(in srgb,var(--ac) 45%,transparent),transparent 60%),linear-gradient(160deg,#2E5BFF -50%,#4A1260 35%,#20104A 100%);overflow:hidden;padding:0}
@@ -3575,7 +3580,12 @@ const __la=loadAll;loadAll=function(q){return __la(q).then(r=>loadProfiles().the
 /* header avatar + My team header show the manager photo when there is one */
 const __uh=updateHeader;updateHeader=function(){__uh();const hv=document.getElementById('hav'),mine=myTeam();const pr=mine&&PROFILE[mine];
   if(hv&&pr&&pr.photo)hv.innerHTML='<img src="'+pr.photo+'" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 2px #FFD23F">';};
-const __rt3=renderTeam;renderTeam=function(){__rt3();const mine=myTeam();const page=document.getElementById('teampage');if(!page)return;
+const __rt3=renderTeam;renderTeam=function(){__rt3();const mine=myTeam();const page=document.getElementById('teampage');
+  if(!page){const body=document.getElementById('teambody');const grid=body&&body.querySelector('.mgrid');
+    if(grid){grid.querySelectorAll('.mt').forEach(b=>{b.insertAdjacentHTML('afterbegin','<span class="mtc">'+crestOf(b.dataset.pick,34)+'</span>')});
+      const note=body.querySelector('.mnote');if(note)note.textContent='Claim your team with a 4-digit PIN to set your photo, colours and crest — or just pick one to follow.';
+      grid.insertAdjacentHTML('beforebegin','<div class="claimrow"><button class="watch elev" data-claim="1"><span class="pl">★</span>Claim your team</button></div>');}
+    return;}
   const head=page.querySelector('.myhead');if(!head)return;
   const pr=mine&&PROFILE[mine]||{};
   if(pr.photo){const cr=head.querySelector('.cr');if(cr)cr.innerHTML='<img src="'+pr.photo+'" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 2px #FFD23F">';}
