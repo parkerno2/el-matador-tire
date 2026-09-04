@@ -2841,8 +2841,8 @@ nav button span:not(.bar){font-size:.6rem !important;font-weight:600}
 /* brand: plate + league */
 .top .brand .lg{font-family:'Manrope',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#fff;white-space:nowrap}
 /* opponent mode: the bubble is painted in the fixture's FPL difficulty colour and carries the opponent's badge */
-.fc .pts.opp{border:1px solid rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.4% 4% 2%;line-height:1;box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 2px 5px rgba(20,10,25,.3)}
-.fc .pts.opp img{width:60%;height:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.fc .pts.opp{width:28%;min-width:0;box-sizing:border-box;border:1px solid rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.6% 0 1.4%;line-height:1;box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 2px 5px rgba(20,10,25,.3)}
+.fc .pts.opp img{width:64%;height:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 .fc .pts.opp i{display:block;font-style:normal;font-weight:700;font-size:5.8cqw;letter-spacing:.16em;color:inherit;margin-top:1cqw}
 .axtog.om{margin:8px 0 2px}
 .mybench+.watchrow{margin-top:-4px}
@@ -3394,7 +3394,7 @@ function fixtureBlock(p){
 const __os=openSheet;openSheet=function(p){
   __os(p);
   const sub=document.querySelector('#sheet .sub');
-  if(sub)sub.insertAdjacentHTML('afterend',fixtureBlock(p));
+  if(sub){[...sub.childNodes].forEach(n=>{if(n.nodeType===3&&n.textContent.trim().startsWith(p.Club))n.textContent=n.textContent.replace(p.Club,clubName(p.Club));});sub.insertAdjacentHTML('afterend',fixtureBlock(p));}
   /* rows the block now covers (gameweek, prediction, next fixture) go; season total / average stay only when there is no percentile grid */
   const own=D.ro.find(r=>String(r.Code)===String(p.Code));
   document.querySelectorAll('#sheet .srow').forEach(r=>{const t=(r.firstElementChild||{}).textContent||'';
