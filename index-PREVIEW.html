@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FPL Companion">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--p1:#37003C;--p2:#5B1A66;--p3:#2E5BFF;--gold:#FFD23F;--bg:#F4F1F6;--card:#fff;
 --ink:#1B1420;--mid:#6B6076;--line:#E4DEE9;--good:#0E8A5F;--bad:#C62828;--cyan:#04F5FF;--goldd:#B8860B;
@@ -23,7 +23,7 @@
 *{box-sizing:border-box}
 html{touch-action:manipulation}
 button,select,a{touch-action:manipulation}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Chakra Petch',system-ui,sans-serif;
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;
 line-height:1.45;-webkit-text-size-adjust:100%;font-size:15px;padding-left:var(--railw)}
 body{background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed}
 body[data-view="gw"]{background:linear-gradient(180deg,#DFD4F2 0,#ECE5F6 460px,#F0EBF7 100%) fixed}
@@ -149,12 +149,13 @@ background:radial-gradient(120% 85% at 50% -10%, rgba(255,255,255,.10), transpar
 .selrow{display:flex;justify-content:center;margin-bottom:10px}
 .derby{text-align:center;font-size:.62rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
 .gwlab{text-align:center;font-size:.66rem;color:#D8CBE2;margin:2px 0 10px}
+.dlchip{display:inline-block;background:var(--gold);color:var(--p1);font-weight:700;font-size:.6rem;letter-spacing:.06em;padding:3px 10px;border-radius:12px;margin-left:6px;vertical-align:1px}
 .vs{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;max-width:520px;margin:0 auto}
 .side{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .side .tn{font-weight:700;font-size:clamp(.74rem,2.6vw,.92rem);text-align:center;line-height:1.15}
 .side .mgr{font-size:.62rem;color:#D8CBE2}
 .score{font-family:'Saira Condensed';font-weight:700;font-size:1.8rem;text-align:center;white-space:nowrap}
-.score em{display:block;font-style:normal;font-family:'Chakra Petch';font-size:.56rem;color:#D8CBE2;font-weight:500;letter-spacing:.08em}
+.score em{display:block;font-style:normal;font-family:'Manrope';font-size:.56rem;color:#D8CBE2;font-weight:500;letter-spacing:.08em}
 .score em.live{color:#3DF59B}
 .series{text-align:center;font-size:.66rem;color:#E9DFF0;margin-top:8px}
 .series b{color:var(--gold)}
@@ -665,6 +666,51 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
 .sheet{width:min(560px,100%)}
 .sh-left .fc{width:62%;max-width:230px}
 @media(min-width:700px){.sh-left{width:250px}.sh-left .fc{width:100%;max-width:212px}}
+
+/* ===== v9 ELEVATION — first-principles token pass =====
+   Same app, same features, same personality. What changes: ONE type system,
+   ONE dark chrome, ONE matchup-gradient voice, ONE selected-control style,
+   a calm neutral ground, and disciplined tracking. Nothing structural. */
+
+/* ---- ground: flat, faintly warm — purple content pops instead of swimming ---- */
+body{background:#F6F5F8 !important;font-family:'Manrope',system-ui,sans-serif !important}
+body[data-view="ana"]{background:#F6F5F8 !important}
+
+/* ---- ink & lines: soften the purple-gray text to a true neutral scale ---- */
+:root{--mid:#665D72;--line:#E8E4EE}
+
+/* ---- one dark chrome (top bar, every hero, nav) ---- */
+.top{background:linear-gradient(120deg,#331040,#241028) !important;box-shadow:0 1px 0 rgba(255,255,255,.05) !important}
+.hero,#v-gw .hero,#v-table .hero,#v-xis .hero,#v-act .hero,#v-ana .hero,#v-faq .hero{
+  background:linear-gradient(120deg,#331040,#241028) !important}
+.hero.gold-rule{border-bottom:2px solid rgba(255,210,63,.5) !important}
+.hero .kick{letter-spacing:.16em !important;color:#C9B8D6 !important}
+nav{background:#221027 !important;box-shadow:none !important;border-top:1px solid rgba(255,255,255,.08) !important}
+
+/* ---- matchup cards: still colorful, one voice (the four-gradient rainbow retires) ---- */
+.mcard.g1,.mcard.g2,.mcard.g3,.mcard.g4,.g1,.g2,.g3,.g4{
+  background:linear-gradient(140deg,#4A1260 0%,#34104E 48%,#20104A 100%) !important}
+.mcard.g5,.g5{background:linear-gradient(140deg,#34104E 0%,#241028 100%) !important}
+.recapcard{background:linear-gradient(120deg,#3A1244 0%,#241028 82%) !important;border-color:#45134F !important}
+
+/* ---- surfaces: hairline + soft shadow, no heavy glows ---- */
+.card{border:1px solid #EBE7F0;box-shadow:0 1px 2px rgba(30,15,40,.05),0 5px 14px rgba(30,15,40,.06) !important}
+
+/* ---- type discipline: calmer tracking on labels, weight scale in rows ---- */
+h2{font-size:.62rem;letter-spacing:.12em}
+.mcard .mname{letter-spacing:.1em}
+.trow .nm2{font-weight:600}
+.lucks .lrow2{font-weight:600}
+.recapcard .rk{letter-spacing:.14em}
+
+/* ---- ONE selected-control style: deep plum pill, everywhere ---- */
+.fatog button.on,.labseg button.on,.labmet.on,.labview.on{
+  background:#2E0F3A !important;color:#fff !important;border-color:#2E0F3A !important}
+.labpill{background:#2E0F3A !important}
+.fatog button,.labmet,.labview,.labseg button{letter-spacing:.04em !important}
+
+.labhead{background:linear-gradient(120deg,#331040,#241028) !important}
+
 </style></head><body>
 
 <div class="pvban">PREVIEW BUILD · NOT DEPLOYED</div>
@@ -700,6 +746,11 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
     <div class="hero"><span class="kick">The numbers</span><h1>Analysis</h1>
     <p></p></div>
     <div id="anabody"><p class="state">Loading analysis…</p></div>
+  </section>
+  <section class="view" id="v-team">
+    <div class="hero"><span class="kick">Your clubhouse</span><h1>My team</h1>
+    <p></p></div>
+    <div id="teambody"><p class="state">Loading your team…</p></div>
   </section>
   <section class="view" id="v-act">
     <div class="hero"><span class="kick">The wire</span><h1>Trades &amp; Waivers</h1>
@@ -1080,6 +1131,7 @@ function card(p,i){
 
 /* ================= routing ================= */
 const VIEWS=[['gw','Gameweek','M13 2 3 14h7l-1 8 10-12h-7l1-8z'],
+['team','My team','M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21v-.5a8 8 0 0 1 16 0v.5'],
 ['table','Table','M6 3h12v4a6 6 0 0 1-12 0V3zM3 5h3M18 5h3M9 21h6M12 13v8'],
 ['xis','Players','M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3'],
 ['ana','Analysis','M3 3v18h18M7 15l4-5 3 3 5-7'],
@@ -1102,6 +1154,7 @@ function route(){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on','v-'+h===v.id));
   document.querySelectorAll('nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===h));
   if(h==='gw'&&D.ro&&D.ro.length)renderGW();
+  if(h==='team'&&D.ro&&D.ro.length)renderTeam();
   if(h==='xis'&&D.plr&&D.plr.length)renderXIs();
   window.scrollTo(0,0);
 }
@@ -1218,11 +1271,15 @@ const RECAPS=[
   {gw:1,href:'recap-gw1.html',title:'El Clásico flips on Monday night, a 66 lands, and a penalty hits the post',
    sub:'Four matches, the numbers behind them, and the first waiver watch'},
   {gw:2,href:'recap-gw2.html',title:'Bruno drops 23 in the Hasbulla Derby, Watkins starts from Saudi Arabia, and Baha matches the 66',
+   sub:'Four matches, the numbers behind them, and the waiver watch'},
+  {gw:3,href:'recap-gw3.html',title:'The league’s first draw lands at 51 apiece, Richarlison starts from exile, and Thiaw scores at the wrong end',
    sub:'Four matches, the numbers behind them, and the waiver watch'}
 ];
 const PREVIEWS=[
   {gw:2,href:'preview-gw2.html',title:'The Mr. Marks Bowl, seven City players in the Hasbulla Derby, and Isak at Anfield',
-   sub:'Who owns whom in every real game, predicted scores, and the transfer clock'}
+   sub:'Who owns whom in every real game, predicted scores, and the transfer clock'},
+  {gw:3,href:'preview-gw3.html',title:'El Jl\u00e1sico\u2019s 26-point gap, 22 starters in Arsenal\u2013Chelsea, and the Fortnite Derby\u2019s first meeting',
+   sub:'Who owns whom in every real game, predicted scores, and the last transfer clock of the window'}
 ];
 const RECAP_HIDE_H=30;
 function gwDeadline(g){const w=D.mw.find(x=>num(x.GW)===g);return w?dt(w['Deadline (UTC)']):null}
@@ -1261,12 +1318,19 @@ function mscore(f){
   const hs=done?hp:Math.max(hp,liveScoreOf(f.Home)),as2=done?ap:Math.max(ap,liveScoreOf(f.Away));
   return{done,liveNow,hs,as2,score:(done||liveNow)?(hs+' – '+as2):'vs'};
 }
+function dlChipText(dl){ /* v5.7: the deadline is the app's most time-critical fact — audit found the old
+   pale-gray label at ~1.2:1 contrast. Gold chip + live countdown. */
+  const ms=dl-Date.now();let rel='';
+  if(ms>0){const d2=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
+    rel=' · '+(d2>0?d2+'d '+h+'h':h>0?h+'h '+m+'m':m+'m')+' left';}
+  return 'DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()+rel;
+}
 function renderScoreboard(rows,dl){
   SUBMARK={}; // sub treatments only live inside a matchup detail
   document.getElementById('gwbody').innerHTML=
    contentCardsHTML()
    +'<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
-   +(dl?' · deadline '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase():'')+'</div>'
+   +(dl?' <span class="dlchip">'+dlChipText(dl)+'</span>':'')+'</div>'
    +(D.provOver?'<div class="provnote"><b>All matches finished — provisional result.</b> '
      +(Object.keys(D.pbonus||{}).length?'Estimated bonus (from live BPS) is counted. ':'')
      +'FPL usually confirms within a few hours; bonus and late stat amendments can still move points.</div>':'')
@@ -1398,22 +1462,72 @@ function luckAgg(){ /* per owner: per-GW actual (excl. bonus) vs xP, from GW Sta
       const gg=t.gws[g]=t.gws[g]||{act:0,x:0};gg.act+=a;gg.x+=x;});});
   return out;
 }
-function luckCard(){
-  const agg=luckAgg();
-  const rows=Object.keys(agg).map(t=>({t,...agg[t],d:agg[t].act-agg[t].x})).sort((a,b)=>b.d-a.d);
-  if(!rows.length)return'';
-  const mx=Math.max(...rows.map(r=>Math.abs(r.d)),1);
-  return '<h2>Luck index</h2><div class="card lucks">'
-   +rows.map(r=>{
-     const w=Math.abs(r.d)/mx*48;
-     const bar=r.d>=0?'<i style="left:50%;width:'+w+'%;background:var(--bad)"></i>':'<i style="right:50%;width:'+w+'%;background:#0B3E9E"></i>';
-     return '<div class="lrow2" data-prof="'+esc(r.t)+'">'+mg(r.t,1)
-     +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">'+fmt1(r.act)+' · xP '+fmt1(r.x)+'</span>'
-     +'<span class="lbar">'+bar+'</span>'
-     +'<span class="ld '+(r.d>=0?'hot':'cold')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('')
-   +'<p class="mnote">Actual points vs expected points, season to date. Positive = running hot. Bonus excluded from both sides. Tap a manager for the full profile.</p></div>';
+let LUCKMODE='perf';
+const CLOSE_MARGIN=5;
+function schedLuck(){
+  /* v5.7 Results luck: league points banked vs an ALL-PLAY schedule — each week your score is
+     compared against all seven rivals (win 3 / draw 1 / loss 0, all-play prorated to /7).
+     + = the fixture list has been kind (wins banked with scores that beat few rivals; the
+     close-game record shows how much could have swung). Sums week over week, so schedule
+     luck compounds. Scores via mscore (scoreboard-identical, incl. live + provisional). */
+  const out={},byGw={};
+  D.fx.forEach(f=>{const g=num(f.GW);(byGw[g]=byGw[g]||[]).push(f)});
+  Object.keys(byGw).forEach(g=>{
+    const fs=byGw[g];if(fs.length<4)return;
+    const sc={};let ready=true;
+    fs.forEach(f=>{const s2=mscore(f);if(!(s2.done||s2.liveNow)){ready=false;return}
+      sc[f.Home]=s2.hs;sc[f.Away]=s2.as2;});
+    if(!ready||Object.keys(sc).length<8)return;
+    fs.forEach(f=>{[f.Home,f.Away].forEach(t=>{
+      const opp=f.Home===t?f.Away:f.Home;
+      const mine=sc[t],theirs=sc[opp];
+      const act=mine>theirs?3:mine===theirs?1:0;
+      let beat=0,tie=0;
+      Object.keys(sc).forEach(o=>{if(o===t)return;if(mine>sc[o])beat++;else if(mine===sc[o])tie++;});
+      const o2=out[t]=out[t]||{pts:0,ap:0,beat:0,opp:0,cw:0,cl:0,cd:0,gws:0};
+      o2.pts+=act;o2.ap+=(beat+tie*0.5)/7*3;o2.beat+=beat+tie*0.5;o2.opp+=7;o2.gws++;
+      if(Math.abs(mine-theirs)<=CLOSE_MARGIN){if(act===3)o2.cw++;else if(act===0)o2.cl++;else o2.cd++;}
+    });});
+  });
+  return out;
 }
-function openProfile(team){
+function luckCard(){
+  /* v5.7: two honest components, never blended (different units). PERFORMANCE = act vs xP
+     (points). RESULTS = league pts vs all-play (league points). Green = lucky side up,
+     red = unlucky — matches the app's green-good/red-bad grammar everywhere else. */
+  const perf=luckAgg(),sched=schedLuck();
+  const anyP=Object.keys(perf).length,anyS=Object.keys(sched).length;
+  if(!anyP&&!anyS)return'';
+  const tog='<span class="fatog"><button data-lm="perf" class="'+(LUCKMODE==='perf'?'on':'')+'">Performance</button>'
+   +'<button data-lm="sched" class="'+(LUCKMODE==='sched'?'on':'')+'">Results</button></span>';
+  let rowsH='',cap='';
+  if(LUCKMODE==='perf'){
+    const rows=Object.keys(perf).map(t=>({t,...perf[t],d:perf[t].act-perf[t].x})).sort((a,b)=>b.d-a.d);
+    const mx=Math.max(...rows.map(r=>Math.abs(r.d)),1);
+    rowsH=rows.map(r=>{
+      const w=Math.abs(r.d)/mx*48;
+      const bar=r.d>=0?'<i style="left:50%;width:'+w+'%;background:var(--good)"></i>':'<i style="right:50%;width:'+w+'%;background:var(--bad)"></i>';
+      return '<div class="lrow2" data-prof="'+esc(r.t)+'">'+mg(r.t,1)
+      +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">'+fmt1(r.act)+' · xP '+fmt1(r.x)+'</span>'
+      +'<span class="lbar">'+bar+'</span>'
+      +'<span class="ld" style="color:'+(r.d>=0?'var(--good)':'var(--bad)')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('');
+    cap='<p class="mnote">Actual points vs expected points, season to date. <b style="color:var(--good)">+</b> = performances running hot, <b style="color:var(--bad)">−</b> = deserving more. Bonus excluded from both sides. Tap a manager for the full profile.</p>';
+  } else {
+    const rows=Object.keys(sched).map(t=>({t,...sched[t],d:sched[t].pts-sched[t].ap})).sort((a,b)=>b.d-a.d);
+    const mx=Math.max(...rows.map(r=>Math.abs(r.d)),1);
+    rowsH=rows.map(r=>{
+      const w=Math.abs(r.d)/mx*48;
+      const close=(r.cw+r.cl+r.cd)?' · close '+r.cw+'–'+r.cl:'';
+      const bar=r.d>=0?'<i style="left:50%;width:'+w+'%;background:var(--good)"></i>':'<i style="right:50%;width:'+w+'%;background:var(--bad)"></i>';
+      return '<div class="lrow2" data-prof="'+esc(r.t)+'">'+mg(r.t,1)
+      +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">beats '+fmt1(r.beat)+' of '+r.opp+close+'</span>'
+      +'<span class="lbar">'+bar+'</span>'
+      +'<span class="ld" style="color:'+(r.d>=0?'var(--good)':'var(--bad)')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('');
+    cap='<p class="mnote">League points banked vs an <b>all-play</b> schedule — your score against all seven rivals every week (win 3 · draw 1 · loss 0). <b style="color:var(--good)">+</b> = the fixture list has been kind: results better than the score earned. “Close” counts matches decided by ≤'+CLOSE_MARGIN+' — the ones that could have swung. Compounds week over week. Tap a manager for the full profile.</p>';
+  }
+  return '<div class="fahead" style="margin:16px 2px 6px"><h2 style="margin:0">Luck index</h2>'+tog+'</div><div class="card lucks">'+rowsH+cap+'</div>';
+}
+function openProfile(team,intoEl){
   const st=D.st.find(s=>s.Team===team)||{};
   const agg=luckAgg()[team]||{act:0,x:0,bon:0,gws:{}};
   const gws=Object.keys(agg.gws).map(Number).sort((a,b)=>a-b);
@@ -1451,24 +1565,82 @@ function openProfile(team){
     const pt=effPtsOf(f,team);
     if(fin(f.Finished)||pt>0){g++;pf+=pt}});
   const avg=g?(pf/g):0;
-  sheet.innerHTML='<div class="sh-right" style="padding:16px 18px"><button class="sh-x" aria-label="Close">×</button>'
-   +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+mg(team)+'<div><h3 style="margin:0">'+esc(team)+'</h3>'
+  /* ---- v5.7 team page: the roster is the point (Parker: "see everyone's current team
+     between matchweeks"). XI order from Rosters Slot; bench (Slot 12-15) faded. ---- */
+  const slotOf={};squadOf(team).forEach(r=>{slotOf[String(r.Code)]=num(r.Slot)||99});
+  const mine=(D.plr||[]).filter(p=>p.Owner===team)
+    .sort((a,b)=>(slotOf[String(a.Code)]||99)-(slotOf[String(b.Code)]||99));
+  const posName2={GKP:'Goalkeepers',DEF:'Defenders',MID:'Midfielders',FWD:'Forwards'};
+  const rosterHtml=mine.length?'<div class="posh2" style="margin-top:16px">Current squad · '+mine.length+' players</div>'
+   +['GKP','DEF','MID','FWD'].map(pos=>{
+     const rows=mine.filter(p=>p.Pos===pos);
+     return rows.length?'<div class="posh2" style="font-size:.52rem;margin:8px 2px 2px">'+posName2[pos]+'</div>'
+      +rows.map(p=>{const bench=(slotOf[String(p.Code)]||99)>11;
+        return bench?'<div style="opacity:.6">'+plrRow(p)+'</div>':plrRow(p);}).join(''):'';
+   }).join('')
+   +'<p class="mnote">Faded rows are on the bench right now. Tap any player for his full sheet.</p>':'';
+  const nxf=D.fx.filter(f=>(f.Home===team||f.Away===team)&&!fin(f.Finished)&&effPtsOf(f,f.Home)+effPtsOf(f,f.Away)===0)
+    .sort((a,b)=>num(a.GW)-num(b.GW))[0];
+  const nxNm=nxf?derbyName(nxf.Home,nxf.Away):'';
+  const nxHtml=nxf?'<div class="sub" style="margin:2px 0 10px">Next: GW'+num(nxf.GW)+' '
+   +(nxf.Home===team?'vs ':'at ')+esc(nxf.Home===team?nxf.Away:nxf.Home)+(nxNm?' · '+esc(nxNm):'')+'</div>':'';
+  const mytx=(D.tx||[]).filter(t2=>t2.Team===team).slice(0,6);
+  const txHtml=mytx.length?'<div class="posh2" style="margin-top:14px">Recent moves</div>'
+   +mytx.map(t2=>{const ok=/accept/i.test(t2.Result||''),pend=/pending/i.test(t2.Result||'');
+     return '<div class="txrow'+((ok||pend)?'':' dim')+'" style="box-shadow:none;border-top:1px solid #F1EEF7;border-radius:0;margin:0">'+mg(t2.Team,1)
+      +'<span class="txmain"><b>'+(t2.GW?('GW'+t2.GW):'')+'</b><em>'+esc(t2.Type||'')+' · '+esc(t2.Result||'')+'</em></span>'
+      +'<span class="txmove"><span class="in">↑ '+esc(t2.In||'')+'</span><span class="out">↓ '+esc(t2.Out||'')+'</span></span></div>';}).join(''):'';
+  const inner='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+mg(team)+'<div><h3 style="margin:0">'+esc(team)+'</h3>'
    +'<div class="sub" style="margin:0">'+esc(TEAMS[team]?.mgr||'')+'</div></div></div>'
    +'<div class="profstats" style="grid-template-columns:repeat(3,1fr);margin:0 0 12px;gap:8px">'
    +'<div><b style="font-size:1.9rem;color:var(--p2)">'+avg.toFixed(1)+'</b><span>Avg pts / GW</span></div>'
    +'<div><b style="font-size:1.9rem">'+(best?best.p:'—')+'</b><span>Best GW'+(best?(' · GW'+best.g+(best.fin?'':' live')):'')+'</span></div>'
    +'<div><b style="font-size:1.45rem;line-height:1.5">'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'—')+'</b><span>W – D – L</span></div>'
    +'</div>'
-   +'<div class="posh2">Actual vs expected, week by week'+(gws.length<2?' · one gameweek so far':'')+'</div>'
+   +nxHtml
+   +rosterHtml
+   +'<div class="posh2" style="margin-top:16px">Actual vs expected, week by week'+(gws.length<2?' · one gameweek so far':'')+'</div>'
    +'<div style="overflow-x:auto">'+chart+'</div>'
    +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:'+colX+';font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.'
    +(agg.bon?' Bonus points (+'+Math.round(agg.bon)+') sit outside both lines — with them, actual is '+fmt1(agg.act+agg.bon)+', matching the score up top.':'')+'</p>'
    +(hero?'<div class="profcard" style="max-width:200px;margin:14px auto 0"><div style="text-align:center;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:var(--goldd);margin-bottom:6px">TOP SCORER · '+xiOfP(hero)+' PTS STARTED</div>'+card(hero,D.ro.indexOf(hero))+'</div>':'')
-   +'</div>';
-  ov.classList.add('on');sheet.classList.add('on');
+   +txHtml;
+  const bindRows=el=>el.querySelectorAll('[data-pc]').forEach(r=>r.onclick=()=>{
+    const p=(D.plr||[]).find(x=>String(x.Code)===String(r.dataset.pc));
+    if(p)openSheet(plrPseudo(p));
+  });
+  if(intoEl){ /* v9.1 page mode — the My team tab renders the full team page in place */
+    intoEl.innerHTML='<div class="card" style="padding:16px 18px">'+inner+'</div>';
+    bindRows(intoEl);return;
+  }
+  sheet.innerHTML='<div class="sh-right" style="padding:16px 18px"><button class="sh-x" aria-label="Close">×</button>'+inner+'</div>';
+  ov.classList.add('on');sheet.classList.add('on');pushOverlay();
   sheet.querySelector('.sh-x').onclick=closeSheet;
+  bindRows(sheet);
+}
+/* ================= My team tab (v9.1) — pick once, then the app opens on YOU ================= */
+function myTeam(){let t=null;try{t=localStorage.getItem('emt-myteam')}catch(e){}return (t&&TEAMS[t])?t:null}
+function renderTeam(){
+  const body=document.getElementById('teambody');if(!body)return;
+  const mine=myTeam();
+  if(!mine){
+    body.innerHTML='<h2 style="margin-top:14px">Who are you?</h2>'
+     +'<p class="mnote" style="padding:0 2px 10px;margin:0">Pick your team once — this phone remembers, and My team opens straight onto your squad. Switch any time.</p>'
+     +'<div class="mgrid">'+Object.keys(TEAMS).map(t=>
+       '<button class="mt" data-pick="'+esc(t)+'" style="--tc:'+(TEAMS[t].col||'#5B1A66')+'"><span class="mtn">'+esc(t)+'</span><em class="mtm">'+esc(TEAMS[t].mgr)+'</em></button>').join('')+'</div>';
+    body.querySelectorAll('[data-pick]').forEach(b=>b.onclick=e=>{e.stopPropagation();
+      try{localStorage.setItem('emt-myteam',b.dataset.pick)}catch(err){}
+      renderTeam();});
+    return;
+  }
+  body.innerHTML='<div id="teampage" style="margin-top:12px"></div>'
+   +'<p class="mnote" style="text-align:center;padding-bottom:4px"><button id="swteam" style="background:none;border:none;color:var(--p2);font-family:inherit;font-weight:700;cursor:pointer;font-size:.68rem">Not '+esc((TEAMS[mine].mgr||'').split(' ')[0])+'? Switch team</button></p>';
+  openProfile(mine,document.getElementById('teampage'));
+  document.getElementById('swteam').onclick=()=>{try{localStorage.removeItem('emt-myteam')}catch(e){}renderTeam()};
 }
 document.body.addEventListener('click',e=>{
+  const lm=e.target.closest('[data-lm]');
+  if(lm){LUCKMODE=lm.dataset.lm;renderAna();return}
   const pr=e.target.closest('[data-prof]');
   if(pr){e.stopPropagation();openProfile(pr.dataset.prof)}
 });
@@ -1868,8 +2040,8 @@ function renderTable(){
    +'<div class="trow thead"><span></span><span></span><span style="text-align:left">TEAM</span>'
    +'<span>W</span><span>D</span><span>L</span><span class="lp2">PTS</span></div>'
    +st.map((s,i)=>{const v=sim.title[s.Team]||0,tc=TEAMS[s.Team]?.col||'#5B1A66';
-    return'<div class="trow'+(i===0&&D.started?' lead':'')+'">'
-    +'<span class="rk">'+(i+1)+'</span><span data-prof="'+esc(s.Team)+'" style="cursor:pointer">'+mg(s.Team)+'</span>'
+    return'<div class="trow'+(i===0&&D.started?' lead':'')+'" data-prof="'+esc(s.Team)+'" style="cursor:pointer">'
+    +'<span class="rk">'+(i+1)+'</span><span>'+mg(s.Team)+'</span>'
     +'<span class="nm2">'+esc(s.Team)+'<em>'+esc(s.Manager)+' · PF '+s['Pts For']+' · PA '+s['Pts Against']+'</em></span>'
     +'<span class="wdl w">'+s.W+'</span><span class="wdl">'+s.D+'</span><span class="wdl">'+s.L+'</span>'
     +'<span class="lp">'+s['League Pts']+'</span>'
@@ -2097,7 +2269,7 @@ function openNextGw(){
         +'<span class="mid2" style="font-size:.72rem;color:var(--mid)">'+(ko?ko.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}):'')+'</span>'
         +'<span class="cl a">'+esc(f.Away)+'</span>'+badgeImg(f.Away,16)+'<span class="pst"></span></div>';}).join(''):'')
    +'<p class="sh-note">Predictions are FPL’s pre-deadline expected points, frozen at the GW'+g+' deadline, summed over each manager’s current best XI.</p></div>';
-  ov.classList.add('on');sheet.classList.add('on');
+  ov.classList.add('on');sheet.classList.add('on');pushOverlay();
   sheet.querySelector('.sh-x').onclick=closeSheet;
 }
 /* premier league scores strip (gameweek page) — v5.5: each fixture opens a "your players" panel */
@@ -2286,10 +2458,18 @@ function openSheet(p){
    +bdHtml
    +'<p class="sh-note">'+tierExplain(t,p)+(gr?' Expected numbers swap luck for underlying stats — goals→xG, assists→xA, clean sheets→e<sup>−xGC</sup>, defensive contribution→his hit-rate in prior games. Bonus is left out of xP.':'')+'</p>'
    +'</div></div>';
-  ov.classList.add('on');sheet.classList.add('on');
+  ov.classList.add('on');sheet.classList.add('on');pushOverlay();
   sheet.querySelector('.sh-x').onclick=closeSheet;
 }
-function closeSheet(){ov.classList.remove('on');sheet.classList.remove('on')}
+let OVPUSHED=false;
+function pushOverlay(){ /* v5.7: one history entry per overlay stack, so the phone back
+   button dismisses the sheet instead of navigating the app underneath it */
+  if(!OVPUSHED){try{history.pushState({emtOv:1},'')}catch(e){}OVPUSHED=true}}
+function closeSheet(){ov.classList.remove('on');sheet.classList.remove('on');
+  if(OVPUSHED){OVPUSHED=false;try{history.back()}catch(e){}}}
+window.addEventListener('popstate',()=>{
+  if(OVPUSHED){OVPUSHED=false;ov.classList.remove('on');sheet.classList.remove('on')}
+});
 ov.onclick=closeSheet;
 addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 document.body.addEventListener('click',e=>{
