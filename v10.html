@@ -3080,8 +3080,8 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .mx .intro{padding-bottom:110px}
 /* the star man: all eleven are dealt, then he flips around and grows while the other ten step back — for ~3 s, then everyone returns */
 .mx .lgpitch{overflow:visible}
-.mx .scene .deal.focus{position:relative;animation:deal .5s cubic-bezier(.2,.8,.2,1) both,starIn 1.1s cubic-bezier(.2,.8,.2,1) forwards,starOut .6s ease forwards;animation-delay:var(--d,0s),var(--f0),calc(var(--f0) + 3.2s)}
-.mx .scene .deal.other{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,dimOut .45s ease forwards,dimBack .6s ease forwards;animation-delay:var(--d,0s),var(--f0),calc(var(--f0) + 3.2s)}
+.mx .scene .deal.focus{position:relative;animation:deal .5s cubic-bezier(.2,.8,.2,1) both,starIn 1.1s cubic-bezier(.2,.8,.2,1) forwards,starOut .6s ease forwards;animation-delay:var(--d,0s),var(--f0),calc(var(--f0) + var(--fh,3.2s))}
+.mx .scene .deal.other{animation:deal .5s cubic-bezier(.2,.8,.2,1) both,dimOut .45s ease forwards,dimBack .6s ease forwards;animation-delay:var(--d,0s),var(--f0),calc(var(--f0) + var(--fh,3.2s))}
 @keyframes starIn{0%{transform:none;z-index:20}45%{transform:perspective(700px) rotateY(180deg) scale(1.25);z-index:20}100%{transform:perspective(700px) rotateY(360deg) scale(1.5);z-index:20;filter:drop-shadow(0 0 20px rgba(255,210,63,.85)) drop-shadow(0 16px 26px rgba(0,0,0,.5))}}
 @keyframes starOut{to{transform:scale(1.1);z-index:20;filter:drop-shadow(0 0 10px rgba(255,210,63,.6))}}
 @keyframes dimOut{to{opacity:.4;filter:saturate(.7)}}
@@ -3170,7 +3170,7 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .mx .sofx{display:grid;grid-template-columns:34px minmax(0,1fr) auto minmax(0,1fr) 34px;align-items:center;gap:8px;padding:7px 10px;background:rgba(0,0,0,.26);border-radius:12px;animation:lgin .5s ease both}
 .mx .sofx:nth-child(1){animation-delay:.7s}.mx .sofx:nth-child(2){animation-delay:.9s}.mx .sofx:nth-child(3){animation-delay:1.1s}.mx .sofx:nth-child(4){animation-delay:1.3s}
 .mx .sofx .cr{width:34px;height:34px}.mx .sofx .cr svg{display:block;width:100%;height:100%}
-.mx .sofx .tn{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.9rem;line-height:1.05;text-transform:uppercase;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mx .sofx .tn{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.8rem;line-height:1;text-transform:uppercase;text-align:left;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .mx .sofx .tn.r{text-align:right}
 .mx .sofx .sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.05rem;color:#FFD23F;white-space:nowrap}
 .mx .sofx .sc i{font-style:normal;color:#C9B8D6;padding:0 3px}
@@ -3894,10 +3894,11 @@ function mxXI(team,side,t0,art,carry){
   const order=['FWD','MID','DEF','GKP'];
   /* deal from the keeper upward: delays run GK → DEF → MID → FWD, DOM order stays top-down */
   const seq=['GKP','DEF','MID','FWD'].flatMap(p=>xi.filter(x=>x.Pos===p));
-  const delayOf=p=>t0+0.5+seq.indexOf(p)*0.2;
-  const feat=mxFeature(team,xi,art);const fAt=t0+3.6;
+  const fast=!!(typeof SHOWCAP!=='undefined'&&SHOWCAP); /* the narrated show deals faster and flips sooner */
+  const delayOf=p=>t0+0.5+seq.indexOf(p)*(fast?0.15:0.2);
+  const feat=mxFeature(team,xi,art);const fAt=t0+(fast?2.4:3.6);
   const rows=order.map(p=>{const g=xi.filter(x=>x.Pos===p);if(!g.length)return'';
-    return '<div class="prow'+(g.length===5?' five':'')+'">'+g.map(x=>{const isF=feat&&x===feat.p;return '<div class="deal'+(isF?' focus':(feat?' other':''))+'" style="--d:'+delayOf(x).toFixed(2)+'s;--f0:'+fAt.toFixed(2)+'s">'+card(x,D.ro.indexOf(x))+'</div>';}).join('')+'</div>';}).join('');
+    return '<div class="prow'+(g.length===5?' five':'')+'">'+g.map(x=>{const isF=feat&&x===feat.p;return '<div class="deal'+(isF?' focus':(feat?' other':''))+'" style="--d:'+delayOf(x).toFixed(2)+'s;--f0:'+fAt.toFixed(2)+'s'+(fast?';--fh:2.6s':'')+'">'+card(x,D.ro.indexOf(x))+'</div>';}).join('')+'</div>';}).join('');
   const km=mxKeyMan(team,xi);
   const started=xi.every(p=>fxStarted(p.Club));
   const tot=started?xi.reduce((s,p)=>s+num(p['GW pts']),0):teamProj(team);
@@ -4239,7 +4240,7 @@ function openShow(only){
    +'<button class="lgx" id="lgx" aria-label="Close">×</button>'
    +'<div class="mxhdr"><span class="g">Gameweek '+D.gw+' · The preview</span><span class="d" id="shd">Malcolm Tyre in the booth</span></div>'
    +'<div class="mxbody" id="shbody"></div>'
-   +'<div class="lgfoot">'+mwWordmark(110)+'<span class="k" id="shk">El Matador Tire</span>'
+   +'<div class="lgfoot">'+mwWordmark(110)+'<span class="k" id="shk"></span>'
    +'<button class="watch" id="shmute" aria-label="Mute">🔊</button><button class="watch" id="shnx">Skip ▸</button><button class="watch" id="lgcl">✕ Close</button></div>'
    +'</div>');
   const g=document.getElementById('lgfx');
@@ -4255,7 +4256,7 @@ function openShow(only){
 }
 function showEstimate(it){const d=SHOW.dur&&SHOW.dur[(it.clip||'').split('/').pop().replace('.mp3','')];if(d)return d*1000+300;return ((it.cap||'').split(/\s+/).length/2.8+0.8)*1000}
 /* every scene holds long enough for its picture: the XI needs the deal (2.7 s) plus the star man's flip and return */
-function showHold(it){if(!it)return 0;if(it.kind==='beat')return [3200,7600,3200,7600,5200][it.j]||3000;if(it.kind==='open')return 9000;if(it.kind==='close')return 4500;return 0}
+function showHold(it){if(!it)return 0;if(it.kind==='beat')return [3200,5600,3200,5600,5200][it.j]||3000;if(it.kind==='open')return 9000;if(it.kind==='close')return 4500;return 0}
 function showEnded(){const q=SHOWQ;if(!q)return;const it=q.items[q.i];const rem=showHold(it)-(Date.now()-(q.t0||0));clearTimeout(q.g._t);if(rem>50)q.g._t=setTimeout(showNext,rem);else showNext();}
 function showTimer(){const q=SHOWQ;if(!q)return;const it=q.items[q.i];if(!it)return;clearTimeout(q.g._t);q.g._t=setTimeout(showNext,Math.max(showEstimate(it),showHold(it)));}
 function showSkipChapter(){const q=SHOWQ;if(!q)return;const cur=q.items[q.i];let j=q.i+1;while(j<q.items.length&&cur&&q.items[j].kind==='beat'&&cur.kind==='beat'&&q.items[j].ch===cur.ch)j++;q.i=j-1;showNext();}
@@ -4272,14 +4273,14 @@ function showNext(){
   else if(it.kind==='close'){cls='s0';html=showCloseHTML()+lowerThird('Malcolm Tyre',it.cap,0.6,'hi');if(hdr)hdr.textContent='That’s the gameweek';}
   else if(it.kind==='article'){cls='s0 art';const p=(typeof PREVIEWS!=='undefined'?PREVIEWS:[]).find(x=>x.gw===D.gw);
     html=p?'<iframe class="shart" src="'+p.href+'" title="Gameweek '+D.gw+' preview"></iframe>':'<div class="sopen"><div class="ttl">The written preview is on the way.</div></div>';
-    if(hdr)hdr.textContent='The written preview';const k=document.getElementById('shk');if(k)k.textContent='El Matador Tire';
+    if(hdr)hdr.textContent='The written preview';const k=document.getElementById('shk');if(k)k.textContent='';const mu=document.getElementById('shmute');if(mu)mu.style.display='none';
     const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}}
   else if(it.kind==='end'){q.g.classList.add('done');const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}OPPMODE=saveOpp;return;}
   else{
     const f=it.f,c=SHOW.chapters[it.ch];const homeFirst=f.Home===c.home;
     const H=(TEAMS[f.Home]||{}).col||'#5B1A66',A=(TEAMS[f.Away]||{}).col||'#5B1A66';q.g.style.setProperty('--hc',H);q.g.style.setProperty('--ac',A);
     if(hdr)hdr.textContent=derbyName(f.Home,f.Away)||(f.Home+' v '+f.Away);
-    const k=document.getElementById('shk');if(k)k.innerHTML='<b class="num">'+(it.n+1)+' / '+(q.only>=0?1:SHOW.chapters.length)+'</b> · El Matador Tire';
+    const k=document.getElementById('shk');if(k)k.innerHTML='<b class="num">'+(it.n+1)+' / '+(q.only>=0?1:SHOW.chapters.length)+'</b>';
     const nx=document.getElementById('shnx');if(nx){nx.textContent='Skip ▸';nx.onclick=()=>showSkipChapter();}
     const side=[c.home,c.home,c.away,c.away][it.j];const sd=side===f.Home?'h':'a';
     const star=it.j===1?c.star&&c.star.h:it.j===3?c.star&&c.star.a:null;
