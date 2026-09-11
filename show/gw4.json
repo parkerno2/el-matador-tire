@@ -1,0 +1,95 @@
+{
+ "gw": 4,
+ "voice": "Malcolm Tyre — El Matador Booth",
+ "open": "Gameweek four. Deadline Saturday, seven thirty. Ten fixtures, and a Manchester derby with seventeen of this league's starters. Here's how it lines up.",
+ "chapters": [
+  {
+   "home": "Cold Palmers",
+   "away": "The Soaring Gulls",
+   "star": {
+    "h": "244851",
+    "a": "201658"
+   },
+   "beats": [
+    "Cold Palmers. Parker's week runs through Chelsea, at home to Hull.",
+    "Palmer tops the eleven at seven. Hull haven't conceded a league goal yet.",
+    "The Soaring Gulls. CJ leads the series four to three, and there's not a flag in the squad.",
+    "Tavernier: ten points and a Team of the Week badge last time out.",
+    "Predicted: forty-four point six to fifty-four point seven, the week's highest number."
+   ]
+  },
+  {
+   "home": "Devils U21s",
+   "away": "Trophy Hunters",
+   "star": {
+    "h": "477424",
+    "a": "17761"
+   },
+   "beats": [
+    "Devils U21s. PJ is nought and three, with the week's lowest projection.",
+    "Gvardiol tops his line at seven point three, one of three City starters on Sunday.",
+    "Trophy Hunters. Bryant leads the series five to two, fresh off a season-best fifty-three.",
+    "Tarkowski projects seven. A Tarkowski clean sheet and a Solanke goal cannot both happen.",
+    "Predicted: thirty-two point three to thirty-eight point nine. Five derby shirts in this one."
+   ]
+  },
+  {
+   "home": "I Am a Baleba",
+   "away": "Team Jacob",
+   "star": {
+    "h": "223094",
+    "a": "243298"
+   },
+   "beats": [
+    "The Besties Derby. I Am a Baleba: Ethan is one and two, with the lowest points-for in the league.",
+    "Haaland projects eight. Eight goals in seven league games against United.",
+    "Team Jacob. Top of the table, two wins and a draw.",
+    "Gakpo is the whole margin: nine point three, the week's highest projection, and a seventy-five percent doubt.",
+    "Predicted: fifty point four to fifty point eight. Four tenths of a point."
+   ]
+  },
+  {
+   "home": "Kobbie Mainoo Fan",
+   "away": "In It to McGinn It",
+   "star": {
+    "h": "219168",
+    "a": "141746"
+   },
+   "beats": [
+    "Kobbie Mainoo Fan. Baha has the most points in the league: one, one and one.",
+    "Isak, projected seven point seven at Anfield, off thirteen points and a Team of the Week badge.",
+    "In It to McGinn It. Nate is two and one, after beating Parker.",
+    "Bruno Fernandes projects nine. With Cherki, seventeen point three between them: nearly half of Nate's total.",
+    "Predicted: fifty-two to thirty-eight point six. Everything else on the board tilts to Baha."
+   ]
+  }
+ ],
+ "close": "That's the gameweek. The full preview follows. Deadline Saturday, seven thirty.",
+ "dur": {
+  "open": 8.41,
+  "c1b0": 3.62,
+  "c1b1": 3.76,
+  "c1b2": 4.78,
+  "c1b3": 3.2,
+  "c1b4": 4.32,
+  "c2b0": 3.9,
+  "c2b1": 4.27,
+  "c2b2": 4.41,
+  "c2b3": 4.6,
+  "c2b4": 4.88,
+  "c3b0": 5.25,
+  "c3b1": 3.81,
+  "c3b2": 2.69,
+  "c3b3": 5.76,
+  "c3b4": 3.85,
+  "c4b0": 4.13,
+  "c4b1": 4.83,
+  "c4b2": 3.3,
+  "c4b3": 5.48,
+  "c4b4": 4.97,
+  "close": 3.99
+ },
+ "rendered": "2026-09-11",
+ "model": "eleven_multilingual_v2",
+ "speed": 1.1
+}
