@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>El Matador Tire · GW4 Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Saira+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--p1:#37003C;--p2:#5B1A66;--p3:#2E5BFF;--gold:#FFD23F;--goldd:#B8860B;--cyan:#04F5FF;
+--bg:#F4F1F6;--card:#fff;--ink:#1B1420;--mid:#6B6076;--sub:#575E6C;--line:#E4DEE9;--bad:#C62828;--good:#0E8A5F}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Chakra Petch',system-ui,sans-serif;color:var(--ink);font-size:16px;
+background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed}
+.wrap{max-width:700px;margin:0 auto;padding:0 12px 40px}
+/* header */
+.hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;
+padding:calc(12px + env(safe-area-inset-top)) 14px 11px 18px;display:flex;align-items:center;gap:10px;
+position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(30,0,40,.35)}
+.sh-x{background:rgba(255,255,255,.16);border:none;color:#fff;width:28px;height:28px;flex:none;
+border-radius:50%;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hero h1{font-size:1.02rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.gwpill{margin-left:auto;flex:none;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
+letter-spacing:.06em;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.stand{background:linear-gradient(115deg,#31054E,#37003C);color:#fff;padding:9px 18px 11px;font-size:.72rem;
+color:#D9CCE3;line-height:1.5;border-bottom:2px solid rgba(255,210,63,.5)}
+.stand b{color:#fff}
+h2{font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin:16px 2px 6px}
+/* match card */
+.card{background:var(--card);border:1px solid #E7DEF0;border-radius:14px;
+box-shadow:0 1px 3px rgba(55,0,60,.06),0 4px 14px rgba(55,0,60,.09);padding:0;margin-bottom:12px;overflow:hidden}
+.mhead{background:linear-gradient(115deg,#2E5BFF -40%,#5B1A66 40%,#37003C 110%);color:#fff;padding:10px 14px 9px}
+.kick{font-size:.56rem;font-weight:700;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase}
+.srow{display:flex;align-items:center;gap:10px;margin-top:6px}
+.tm{flex:1;min-width:0}
+.tm .tn{font-size:.78rem;font-weight:700;line-height:1.15}
+.tm.win .tn{color:var(--gold)}
+.tm .mg{font-size:.6rem;color:#C9BAD6;letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+.tm.away{text-align:right}
+.sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:.02em;
+white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.sc .w{color:var(--gold)}.sc .d{opacity:.45;font-size:1.3rem;vertical-align:6px;padding:0 4px}
+/* player strip */
+.pstrip{display:flex;align-items:center;gap:12px;padding:11px 14px 10px;border-bottom:1px solid var(--line);
+background:linear-gradient(180deg,#FBF9FD,#fff)}
+.pk{font-size:.5rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--goldd);margin-bottom:2px}
+.pk.low{color:var(--bad)}
+.ph{width:56px;height:56px;box-shadow:0 3px 8px rgba(55,0,60,.18);border-radius:50%;flex:none;background:#EDE5F3 center/cover no-repeat;
+border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
+font-weight:700;color:var(--p2);font-size:1rem;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:top}
+.ph.low{border-color:var(--bad)}
+.pinfo{flex:1;min-width:0}
+.pname{font-weight:700;font-size:.86rem}
+.pname span{color:var(--mid);font-weight:600;font-size:.68rem}
+.pline{font-size:.68rem;color:var(--sub);margin-top:2px;line-height:1.35}
+.ppts{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;color:var(--p1);flex:none;line-height:1}
+.ppts small{display:block;font-family:'Chakra Petch';font-size:.5rem;font-weight:700;letter-spacing:.14em;
+color:var(--mid);text-align:center;margin-top:1px}
+.ppts.low{color:var(--bad)}
+/* body */
+.mbody{padding:11px 14px 13px}
+.story{font-size:.8rem;line-height:1.55;color:#2A2230}
+.hits{margin:10px 0 0;padding:0;list-style:none}
+.hits li{font-size:.74rem;line-height:1.45;color:#3A3142;padding:5px 0 5px 16px;position:relative;border-top:1px solid #F0EAF5}
+.hits li::before{content:'▸';position:absolute;left:2px;color:var(--goldd);font-size:.7rem}
+.hits b{color:var(--p1)}
+/* chips + number */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.chip{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:4px 9px;font-size:.6rem;
+font-weight:600;color:var(--sub);letter-spacing:.03em}
+.chip b{color:var(--p1);font-weight:700}
+.chip.gold{background:linear-gradient(160deg,#FBE9A6,#FFD23F);border-color:#E3BC2E;color:#5C4A12}
+.chip.gold b{color:var(--p1)}
+.notm{display:flex;align-items:center;gap:12px;margin-top:12px;background:linear-gradient(115deg,#FFF6DC,#FDEFC4);
+border:1px solid #EDDB9C;border-left:4px solid var(--gold);border-radius:12px;padding:8px 12px}
+.notm .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2rem;color:var(--p1);flex:none;min-width:44px;text-align:center}
+.notm .c{font-size:.66rem;line-height:1.4;color:#5C4A12}
+/* around the league */
+table{width:100%;border-collapse:collapse;font-size:.74rem}
+th{font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)}
+td{padding:5px 6px;border-bottom:1px solid #F0EAF5}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);font-weight:700}
+.res{font-size:.56rem;font-weight:700;padding:1px 6px;border-radius:8px}
+.res.w{background:#DDF2E7;color:var(--good)}.res.l{background:#F8E1E1;color:var(--bad)}
+.fxg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.fx{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:7px 9px;font-size:.66rem;line-height:1.4}
+.fx b{color:var(--p1)}
+.fx .tag{font-size:.52rem;color:var(--goldd);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.foot{font-size:.62rem;color:var(--mid);line-height:1.55;margin-top:14px;padding:0 4px}
+@media(max-width:390px){.sc{font-size:1.6rem}.tm .tn{font-size:.72rem}}
+.gwpill.prev{background:#3DF59B;color:#063}
+.sc.pred{font-size:1.45rem}
+.predlab{font-size:.5rem;font-weight:700;letter-spacing:.18em;color:#7FE0AE;text-align:center;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="hero"><h1>El Matador Tire</h1><span class="gwpill prev">GW4 · PREVIEW</span><a class="sh-x" href="index.html" aria-label="Close">×</a></div>
+<div class="stand">Deadline <b>Saturday 7:30 AM</b> — ninety minutes before five games kick off at once. The window is shut, the waivers have run, and the week ends Monday night at Elland Road. In between is a Manchester derby with <b>17 of the league's 88 starting slots</b> on the pitch.</div>
+<div class="wrap">
+
+<h2>Matchweek 4 · Sep 12–14</h2>
+
+<!-- COLD PALMERS v SOARING GULLS -->
+<div class="card">
+ <div class="mhead"><div class="kick">CJ leads series 4–3 · 2–1 v 2–1</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
+   <div><div class="sc pred">44.6<span class="d">–</span>54.7</div><div class="predlab">PREDICTED</div></div>
+   <div class="tm away"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="201658">MT</div>
+  <div class="pinfo"><div class="pk">Player to watch</div><div class="pname">MARCUS TAVERNIER <span>· MID · BOU</span></div>
+   <div class="pline">Ten points and a TOTW badge last week, 7.0 projected — against Brentford, whose keeper CJ also owns.</div></div></div>
+ <div class="mbody">
+  <div class="story">No derby name yet, though the naming committee should get to it: CJ leads the all-time series 4–3, both sit at 2–1, and CJ arrives with the second-most points in the league and a one-point escape over PJ. His 54.7 is the week's highest projection and his squad carries no flags at all. Parker's 44.6 is built on Chelsea — Palmer (7.0), Lacroix and Hato all at home to Hull, where CJ's João Pedro (7.0) shares the same attack. The catch: Hull are the only team across the top four tiers yet to concede a league goal.</div>
+  <ul class="hits">
+   <li><b>Bournemouth–Brentford is CJ against himself, with Parker in the middle.</b> CJ owns Brentford's keeper Kelleher and Bournemouth's Tavernier; Parker owns two of Kelleher's teammates in Schade (a goal in his last two away games) and Sangaré (6.0). A Brentford goal pays Parker; a Bournemouth goal pays CJ and costs him at the same time.</li>
+   <li><b>The centre-forward slot is still a hole.</b> Havertz has started all three league games and Arteta says he "makes the people around him better"; Gyökeres has 12 league minutes, nine touches in 73 at Napoli, and projects 0.3. Parker's only other forward is Georginio, a 75% doubt at Coventry. Saliba is out until November; O'Reilly is fit again but projects 1.3 from the bench.</li>
+   <li><b>Monday night is the tiebreaker:</b> Parker's Elanga (6.0) for Newcastle against CJ's Stach (6.3) and Calvert-Lewin for Leeds, with CJ's Thiaw alongside Elanga in the away shirt. Four players from this matchup, last kickoff of the week.</li>
+  </ul>
+  <div class="chips"><span class="chip">Predicted <b>44.6 – 54.7</b></span><span class="chip">Flags <b>2 – 0</b></span><span class="chip gold">Week's top projection <b>54.7</b></span></div>
+  <div class="notm"><div class="n">0</div><div class="c">League goals conceded by Hull this season. Four Chelsea players from this matchup are trying to change that at 9:00 on Saturday.</div></div>
+ </div>
+</div>
+
+<!-- DEVILS U21s v TROPHY HUNTERS -->
+<div class="card">
+ <div class="mhead"><div class="kick">Bryant leads series 5–2 · 0–3 v 1–2</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
+   <div><div class="sc pred">32.3<span class="d">–</span>38.9</div><div class="predlab">PREDICTED</div></div>
+   <div class="tm away"><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="477424">JG</div>
+  <div class="pinfo"><div class="pk">Player to watch</div><div class="pname">JOŠKO GVARDIOL <span>· DEF · MCI</span></div>
+   <div class="pline">22 points and PJ's top projection at 7.3, in a Manchester derby where Bryant's Martínez is the man trying to keep City out.</div></div></div>
+ <div class="mbody">
+  <div class="story">Bryant leads the series 5–2 and the table says this is the bottom of the league playing sixth: PJ is 0–3 after losing to CJ by a single point, Bryant is fresh off a 53 — his best of the season — against Ethan. PJ's 32.3 is the week's lowest projection, and both sides are decided in the same two places. Sunday at Old Trafford, PJ starts three City players — Gvardiol, Donnarumma and Foden — while Bryant's Martínez is in the United back line trying to stop them and Bryant's Semenyo lines up beside them. City have conceded twice in three games; United have conceded two or more in each of their first three for only the second time in 50 years.</div>
+  <ul class="hits">
+   <li><b>Saturday lunchtime is Bryant's game on both benches.</b> Kinsky, Solanke and Tarkowski (7.0, Bryant's best) all play in Spurs–Everton — a Tarkowski clean sheet and a Solanke goal cannot both happen. Spurs have yet to score in three league games. PJ's Grealish is expected to start on Everton's left.</li>
+   <li><b>PJ has 6.7 sitting on his bench.</b> Ben White is "fine" per Arteta and expected to start at right-back at Sunderland; Hincapie (0.7) is in PJ's projected XI instead. Bryant's Tzolis and Brobbey are on opposite sides of the same game.</li>
+   <li><b>Villa–Forest is PJ's, unless Bryant flips his keeper.</b> Gibbs-White (6.0), Wood and Jackson all play; Suzuki — ten points and a TOTW badge from Bryant's bench last week — would face all three if he replaces Kinsky.</li>
+  </ul>
+  <div class="chips"><span class="chip">Predicted <b>32.3 – 38.9</b></span><span class="chip">Flags <b>0 – 2</b></span><span class="chip gold">Series <b>5–2</b> Bryant</span></div>
+  <div class="notm"><div class="n">5</div><div class="c">Manchester-derby shirts in this matchup on Sunday. Three of PJ's in sky blue, and Bryant's Martínez in the defence that has to keep them out.</div></div>
+ </div>
+</div>
+
+<!-- THE BESTIES DERBY -->
+<div class="card">
+ <div class="mhead"><div class="kick">The Besties Derby · First meeting</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">I Am a Baleba</div><div class="mg">Ethan</div></div>
+   <div><div class="sc pred">50.4<span class="d">–</span>50.8</div><div class="predlab">PREDICTED</div></div>
+   <div class="tm away"><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph low" data-code="243298">CG</div>
+  <div class="pinfo"><div class="pk low">The limbo</div><div class="pname">CODY GAKPO <span>· MID · LIV</span></div>
+   <div class="pline">The week's highest rostered projection at 9.3, a 75% doubt with an adductor issue. If he misses, Jacob's cover is McBurnie (2.7).</div></div></div>
+ <div class="mbody">
+  <div class="story">First meeting, and the closest projection on the board by a distance: four tenths of a point separate the league leader from the team that scored 34 last week. Jacob is 2–1–0 and top; Ethan is 1–2 with the league's lowest points-for. The derby runs through the derby: Ethan owns both sides of Old Trafford — Haaland (8.0, eight goals in seven league games against United), Ndiaye and Cunha, Šeško — and Jacob answers with Mbeumo (7.0) for United and Rúben for City. Cunha and Šeško both scored in United's midweek game, which puts Rashford's place in doubt and Ethan's pair in the frame.</div>
+  <ul class="hits">
+   <li><b>Gakpo is the whole margin.</b> Jacob's leading scorer (28 points, a goal involvement in every league game) missed the Atlético game; Iraola, pre-Fulham: "He didn't train yesterday. Today, we will try with him." Without him the 50.8 becomes 44.2. Ethan's Szoboszlai, Barcola (cramp, not injury) and Fulham's Gonzalo are in the same fixture.</li>
+   <li><b>Jacob owns Saturday night at the Stadium of Light outright:</b> Roefs and Ballard in Sunderland's defence, Saka (7.3) and Havertz (5.3) attacking them. He cannot lose the fixture; he cannot fully win it either.</li>
+   <li><b>Jacob's waiver week was a clear-out</b> — Osula (foot), Collins (25% doubt) and Richarlison (not in the Spurs squad) out; Mitchell (5.3, straight into the XI), Kostoulas and McBurnie in. Kostoulas is expected to lead Brighton's line at Coventry beside Ethan's De Cuyper (7.0). And Ethan's week cannot end before Monday: the app has Trafford, not Pickford, in his goal, and Trafford plays Newcastle in the last game of the round.</li>
+  </ul>
+  <div class="chips"><span class="chip">Predicted <b>50.4 – 50.8</b></span><span class="chip">Flags <b>0 – 3</b></span><span class="chip gold">Week's closest <b>0.4</b></span></div>
+  <div class="notm"><div class="n">9.3</div><div class="c">Gakpo's projection, the week's highest, attached to a player whose manager said he "didn't train yesterday" at the pre-Fulham press conference.</div></div>
+ </div>
+</div>
+
+<!-- KOBBIE MAINOO FAN v IN IT TO McGINN IT -->
+<div class="card">
+ <div class="mhead"><div class="kick">First meeting · 1–1–1 v 2–1</div>
+  <div class="srow">
+   <div class="tm"><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
+   <div><div class="sc pred">52.0<span class="d">–</span>38.6</div><div class="predlab">PREDICTED</div></div>
+   <div class="tm away"><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
+  </div></div>
+ <div class="pstrip"><div class="ph" data-code="219168">AI</div>
+  <div class="pinfo"><div class="pk">Player to watch</div><div class="pname">ALEXANDER ISAK <span>· FWD · LIV</span></div>
+   <div class="pline">13 points and a TOTW badge last week, 7.7 projected against Fulham — with Nate's Alisson and Kerkez behind him needing the clean sheet.</div></div></div>
+ <div class="mbody">
+  <div class="story">First meeting. Baha has the most points in the league (153) and a 1–1–1 record after the season's first draw, 51–51 with Jacob; Nate is 2–1 after beating Parker with 36. The 13.4-point gap is mostly Sunday: Nate's Bruno Fernandes (9.0, three goals and an assist already) and Cherki (8.3, two and two) project 17.3 between them at Old Trafford, on opposite sides of it — while Baha's Lammens is the keeper Cherki is shooting at and Baha's Enzo shares City's midfield with him. Everything else on the board tilts to Baha.</div>
+  <ul class="hits">
+   <li><b>Anfield is a same-shirt collision:</b> Baha's Isak and Wirtz against Nate's Alisson and Kerkez. Nate needs the clean sheet from the game Baha needs the goals in. Alisson is cleared to play despite an FA misconduct fine; Nate's Frimpong may get minutes at right wing.</li>
+   <li><b>Nate has three Tottenham players and Spurs have not scored in three league games.</b> Porro, Kudus (still building minutes after months out) and Marmoush (at risk of the bench after wasted chances against Forest) project 4.7 combined against Everton; Baha's Barry starts as Everton's only senior striker. Maddison (shoulder, "a sizeable doubt") sits on Baha's bench at 0.2.</li>
+   <li><b>Saturday 2:00 and Monday 2:00 are Baha's:</b> Ødegaard (8.0, TOTW) and Calafiori (7.3) at Sunderland with no reply from Nate; then Hall (6.0) and Wissa at Leeds, where Nate's Dedić — a 75% hamstring doubt still expected to start — is their teammate. Timber (25%) is back in training and Mosquera (50%) could return "this game or the next", per Arteta.</li>
+  </ul>
+  <div class="chips"><span class="chip">Predicted <b>52.0 – 38.6</b></span><span class="chip">Flags <b>2 – 2</b></span><span class="chip gold">Most points in the league <b>153</b></span></div>
+  <div class="notm"><div class="n">17.3</div><div class="c">Bruno and Cherki's combined projection, 45% of Nate's total, against 3.0 for Baha's two players in the same game.</div></div>
+ </div>
+</div>
+
+<!-- AROUND THE LEAGUE -->
+<h2>Around the League</h2>
+<div class="card"><div class="mbody" style="padding-top:13px">
+ <ul class="hits" style="margin-top:0">
+  <li><b>The slate:</b> Sat — five games at 9:00am (Villa v Forest, Bournemouth v Brentford, Chelsea v Hull, Palace v Ipswich, Liverpool v Fulham), Spurs v Everton (11:30), Sunderland v Arsenal (2:00pm, 14 starters from this league). Sun — Coventry v Brighton (8:00am), United v City (10:30am, 17 starters). Mon — Leeds v Newcastle (2:00pm, eight).</li>
+  <li><b>Waiver wire:</b> five moves since the last deadline — CJ's two on Saturday (Egan, Muharemović in; Senesi, Keane out) and Jacob's three on Wednesday. FPL's projections are in love with Hull's unbeaten back line: Tzolakis (8.7), Ajayi (8.3) and Mendy (8.0) are all unowned and all at Stamford Bridge on Saturday. Janelt (7.0), Bogle (7.3), Xhaka and Lewis-Potter (6.0) are also free.</li>
+  <li><b>Injury clock:</b> Saliba (Parker) back around 21 Nov, Kroupi (Bryant) 7 Nov, Mateta (Bryant) 11 Oct, Doku (Jacob) 20 Sep. Pope (Jacob) is a different case — no injury, just a £26m Horníček signing, a green-lit exit and no buyer; he projects zero again and Roefs covers.</li>
+  <li><b>MOTM (Aug/Sep, $30):</b> Kobbie Mainoo Fan 153, Team Jacob 145, Gulls 144, Trophy Hunters 120, McGinn It 118, Devils 116, Cold Palmers 112, Baleba 111 — two gameweeks left in the period, nine points covering the top three.</li>
+ </ul>
+</div></div>
+
+<div class="foot">Predicted scores are FPL's frozen pre-deadline projections summed over each XI, with flagged starters replaced by their likely subs — the same numbers the app shows; flags can change at Saturday's team sheets. Reporting: Sports Mole, Fantasy Football Scout, Goal, Yahoo/PA, Liverpool FC, Arsenal.com, Shields Gazette.</div>
+</div>
+
+<script>
+/* Headshots: codes fixed at publish time (name lookup burned us — two Palmers in the Players
+   tab). Same cascade as the app: committed face -> PL 250x250 -> PL 110x140 -> initials stay. */
+(function(){
+  document.querySelectorAll('.ph[data-code]').forEach(function(el){
+    var code=el.getAttribute('data-code');
+    var srcs=['faces/'+code+'.png',
+      'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png',
+      'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+code+'.png'];
+    var i=0,img=new Image();
+    img.onload=function(){el.textContent='';el.appendChild(img)};
+    img.onerror=function(){if(++i<srcs.length)img.src=srcs[i]};
+    img.src=srcs[0];
+  });
+})();
+</script>
+</body>
+</html>
