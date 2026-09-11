@@ -4201,10 +4201,23 @@ function showChapterFor(f){if(!SHOW)return -1;return SHOW.chapters.findIndex(c=>
 function showFixture(c){const rows=D.fx.filter(x=>num(x.GW)===D.gw);return rows.find(f=>(f.Home===c.home&&f.Away===c.away)||(f.Home===c.away&&f.Away===c.home))||null}
 /* unlock audio inside the tap that started the show — iOS only honours play() from a user gesture */
 function showUnlock(firstClip){
-  if(SHOWA){try{SHOWA.pause();}catch(e){}}
+  showAudioOff();
   SHOWA=new Audio();SHOWA.preload='auto';SHOWA.src=firstClip;
   const p=SHOWA.play();if(p&&p.catch)p.catch(()=>{});
+  /* the lock-screen "Now Playing" card: name it properly while the show runs, and make its buttons drive the show */
+  try{if(navigator.mediaSession){navigator.mediaSession.metadata=new MediaMetadata({title:'Gameweek '+D.gw+' preview',artist:'Malcolm Tyre · El Matador Tire',album:'Matchweek',artwork:[{src:'icons/icon-512.png',sizes:'512x512',type:'image/png'},{src:'icons/icon-180.png',sizes:'180x180',type:'image/png'}]});
+    navigator.mediaSession.setActionHandler('pause',showPause);navigator.mediaSession.setActionHandler('play',showResume);
+    ['seekbackward','seekforward','previoustrack','nexttrack','seekto'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,null);}catch(e){}});}}catch(e){}
 }
+/* tear the element down completely — a paused <audio> keeps iOS's lock-screen card alive; an unloaded one does not */
+function showAudioOff(){
+  if(SHOWA){try{SHOWA.onended=null;SHOWA.onerror=null;SHOWA.pause();SHOWA.removeAttribute('src');SHOWA.load();}catch(e){}SHOWA=null;}
+  try{if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';['play','pause'].forEach(a=>navigator.mediaSession.setActionHandler(a,null));}}catch(e){}
+}
+let SHOWPAUSED=false;
+function showPause(){const q=SHOWQ;if(!q)return;SHOWPAUSED=true;clearTimeout(q.g._t);if(SHOWA){try{SHOWA.pause();}catch(e){}}try{navigator.mediaSession.playbackState='paused';}catch(e){}}
+function showResume(){const q=SHOWQ;if(!q)return;SHOWPAUSED=false;try{navigator.mediaSession.playbackState='playing';}catch(e){}
+  if(SHOWA&&!SHOWA.ended&&SHOWA.src){const p=SHOWA.play();if(p&&p.catch)p.catch(()=>showTimer());}else showEnded();}
 /* ---- the cold open and the close card ---- */
 function showOpenHTML(){
   const rows=SHOW.chapters.map(c=>{const f=showFixture(c);if(!f)return '';const {nums}=mxScore(f);const nm=derbyName(f.Home,f.Away);
@@ -4245,7 +4258,7 @@ function openShow(only){
    +'</div>');
   const g=document.getElementById('lgfx');
   SHOWQ={items,i:-1,only,g};
-  const close=()=>{clearTimeout(g._t);if(SHOWA){try{SHOWA.pause();}catch(e){}}g.remove();SHOWQ=null;};
+  const close=()=>{clearTimeout(g._t);showAudioOff();g.remove();SHOWQ=null;};
   document.getElementById('lgx').onclick=close;document.getElementById('lgcl').onclick=close;
   document.getElementById('shmute').onclick=e=>{if(!SHOWA)return;SHOWA.muted=!SHOWA.muted;e.currentTarget.textContent=SHOWA.muted?'🔇':'🔊';};
   document.getElementById('shnx').onclick=()=>showSkipChapter();
@@ -4275,7 +4288,7 @@ function showNext(){
     html=p?'<iframe class="shart" src="'+p.href+'" title="Gameweek '+D.gw+' preview"></iframe>':'<div class="sopen"><div class="ttl">The written preview is on the way.</div></div>';
     if(hdr)hdr.textContent='The written preview';const k=document.getElementById('shk');if(k)k.textContent='';const mu=document.getElementById('shmute');if(mu)mu.style.display='none';
     const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}}
-  else if(it.kind==='end'){q.g.classList.add('done');const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}OPPMODE=saveOpp;return;}
+  else if(it.kind==='end'){showAudioOff();q.g.classList.add('done');const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}OPPMODE=saveOpp;return;}
   else{
     const f=it.f,c=SHOW.chapters[it.ch];const homeFirst=f.Home===c.home;
     const H=(TEAMS[f.Home]||{}).col||'#5B1A66',A=(TEAMS[f.Away]||{}).col||'#5B1A66';q.g.style.setProperty('--hc',H);q.g.style.setProperty('--ac',A);
@@ -4291,6 +4304,7 @@ function showNext(){
   OPPMODE=saveOpp;
   body.insertAdjacentHTML('beforeend','<div class="scene '+cls+'" style="--t0:0s;--t1:999s">'+html+'</div>');
   const rd=document.getElementById('shread');if(rd)rd.onclick=()=>showNext();
+  if(it.kind==='article'||it.kind==='end')showAudioOff();
   if(it.kind==='article'){const fr=body.querySelector('iframe.shart');if(fr)fr.onload=()=>{try{const d=fr.contentDocument;const x=d&&d.querySelector('.sh-x');if(x)x.style.display='none';}catch(e){}};return;}
   /* the clip */
   if(SHOWA&&it.clip){
@@ -4324,6 +4338,8 @@ document.addEventListener('click',e=>{
   if(ci<0){loadArticle().then(()=>openMatchGraphic(f));return;}
   openShow(ci);
 },true);
+/* leaving the app (home screen, lock) ends the show — no orphaned lock-screen card; ▶ PLAY restarts it */
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&SHOWQ){const g=SHOWQ.g;clearTimeout(g._t);showAudioOff();g.remove();SHOWQ=null;}});
 /* fetch the payload once the gameweek is known */
 (function(){const __rs=renderScoreboard;renderScoreboard=function(){try{loadShow();}catch(e){}return __rs.apply(this,arguments);};})();
 
