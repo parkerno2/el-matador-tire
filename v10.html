@@ -3537,8 +3537,10 @@ function renderMatch(f,dl){
   /* the team on the LEFT of the stage plays at the TOP of the pitch (it read flipped before) */
   const duel=st.querySelector('.duel');const wrap=duel&&duel.querySelector(':scope > div[style*="z-index"]');
   if(wrap){const hAS=autoSubs(f.Home,true),aAS=autoSubs(f.Away,true);
+    D.xpview=XPMODE&&D.hasXP; /* the base resets this after it renders — the re-dealt XI must honour the Actual | xP toggle like the benches do */
     const tag=(t,xi)=>'<div class="teamtag"><span class="md" style="background:'+((TEAMS[t]||{}).col||'#999')+'"></span>'+esc(t)+' · '+formation(xi)+(lineupsLocked()?'':' · <span style="opacity:.85">projected</span>')+'</div>';
-    wrap.innerHTML=tag(f.Home,hAS.xi)+rowsFor(hAS.xi,false)+'<div style="height:8px"></div>'+tag(f.Away,aAS.xi)+rowsFor(aAS.xi,true);}
+    wrap.innerHTML=tag(f.Home,hAS.xi)+rowsFor(hAS.xi,false)+'<div style="height:8px"></div>'+tag(f.Away,aAS.xi)+rowsFor(aAS.xi,true);
+    D.xpview=false;}
   const allStarted=xiOf(f.Home).concat(xiOf(f.Away)).every(p=>fxStarted(p.Club));
   if(!allStarted){const a2=st.querySelector('.tape');if(a2)a2.insertAdjacentHTML('afterend',oppToggle());}
   const mi=D.fx.filter(x=>num(x.GW)===D.gw).indexOf(f);
