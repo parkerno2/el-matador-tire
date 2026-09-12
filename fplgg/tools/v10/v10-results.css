@@ -1,0 +1,33 @@
+/* ===== team results history (team page) + scores-by-gameweek grid (Table tab) ===== */
+.hist.tres h4 .form{display:inline-flex;gap:3px;margin-left:auto}
+.hist.tres h4 .form i{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.62rem;color:#fff;background:#B9B3C2}
+.hist.tres h4 .form i.W{background:#0E8A5F}.hist.tres h4 .form i.L{background:#C4303A}
+.hist.tres h4:after{order:-1;margin-right:4px}
+.hist.tres table{min-width:320px}
+.hist.tres td.opp .oc{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.hist.tres td.opp .oc .mg.sm{margin:0}
+.hist.tres td.opp small{display:block;width:100%;font-size:.56rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8A8494;line-height:1.2}
+.hist.tres td.sc{font-size:.88rem;color:#8A8494}
+.hist.tres td.sc b{color:#1B1420;font-weight:700}
+.hist.tres td.sc i{font-style:normal;margin:0 3px;color:#B9B3C2}
+.hist.tres td.rs b{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 5px;border-radius:6px;font-size:.66rem;letter-spacing:.06em;font-weight:800;color:#fff;background:#B9B3C2}
+.hist.tres td.rs b.W{background:#0E8A5F}.hist.tres td.rs b.L{background:#C4303A}
+.hist.tres td.rs b.lv{background:#FFD23F;color:#37003C;font-size:.56rem;letter-spacing:.1em}
+.hist.tres td.ps{color:#3B3143}.hist.tres td.ps i{font-style:normal;color:#C49A00;margin-left:1px}
+.hist.tres tfoot td.sc{font-size:.9rem}
+
+.sgrid{padding:6px 0 0}
+.sgrid .gwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sgrid table{border-collapse:separate;border-spacing:0;font-family:'Saira Condensed',sans-serif;min-width:100%}
+.sgrid th{font-weight:600;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:#8A8494;padding:6px 4px 5px;text-align:center;border-bottom:1px solid #EEEAF2;white-space:nowrap;min-width:32px}
+.sgrid th.lv{color:#C49A00}
+.sgrid th.tm,.sgrid td.tm{position:sticky;left:0;background:#fff;text-align:left;padding-left:8px;z-index:1;box-shadow:2px 0 0 #F1EEF4}
+.sgrid td.tm{font-family:'Manrope',sans-serif;font-weight:700;font-size:.68rem;color:#1B1420;cursor:pointer;white-space:nowrap}
+.sgrid td.tm .mg.sm{margin-right:5px;vertical-align:-2px}
+.sgrid td{text-align:center;padding:5px 3px;border-bottom:1px solid #F1EEF4;font-weight:700;font-size:.84rem;color:#3B3143}
+.sgrid tbody tr:last-child td{border-bottom:none}
+.sgrid td.W{background:#E4F7EC;color:#0B5C3E}.sgrid td.L{background:#FBE7E8;color:#8E2C33}.sgrid td.D{background:#F1EEF4;color:#5A5262}
+.sgrid td.top{box-shadow:inset 0 0 0 2px #FFD23F}
+.sgrid td.live{font-style:italic}
+.sgrid td.none{color:#C9C4D0;font-weight:500}
+.sgrid td.tot,.sgrid th.tot{font-weight:800;color:#5B1A66;background:#FAF8FC;padding-right:8px}
