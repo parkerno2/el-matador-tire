@@ -2978,8 +2978,8 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 .mx .lgtag span{font-size:.7rem;color:#C9B8D6;font-weight:600}
 .mx .lgpitch{animation:none;flex:none}
 .mx .strip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:12px;margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.26);border-radius:12px}
-.mx .strip span{display:flex;flex-direction:column;gap:3px;min-width:0}
-.mx .strip span:last-child{align-items:flex-end}
+.mx .strip>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mx .strip>span:last-child{align-items:flex-end}
 .mx .strip i{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:#C9B8D6}
 .mx .strip b{font-size:.86rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mx .strip b.num,.mx .strip em.num{font-family:'Saira Condensed',sans-serif;font-style:normal;font-size:1.25rem;line-height:1;color:#FFD23F}
@@ -3095,7 +3095,7 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 
 /* form chips: Manrope glyphs centre reliably (Saira's metrics sit low on iOS) */
 .mx .form span,.bug .form span,.myhead .form span,.frow .form span{display:grid;place-items:center;line-height:1;padding:0;font-family:'Manrope',sans-serif;font-weight:800;font-size:.6rem}
-.mx .strip .form span{width:22px;height:22px;font-size:.68rem;border-radius:5px}
+.mx .strip .form span{width:22px;height:22px;font-size:.68rem;border-radius:5px;display:grid;place-items:center;align-items:center;gap:0}
 
 /* ===== v10-auth — claim / sign-in sheet + team profile editor ===== */
 .au{display:flex;flex-direction:column;gap:8px}

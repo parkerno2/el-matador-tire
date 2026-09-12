@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.3 (unified app backend; classic live overlay; manager logins)
+ * Google Sheet + Apps Script · v3.4 (unified app backend; classic live overlay; manager logins; season-wide nations)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -86,7 +86,7 @@ function getUrl(url) {
 
 /* ---------- nations: pulselive, cached in script properties ----------
  * Maps FPL player code (= opta id) → ISO nation code (e.g. GB-ENG, BR).
- * Fetches the 20 club squad lists only when an owned code is missing. */
+ * Pages the season-wide pulselive players list only when a needed code is missing. */
 var NATFALLBACK = {154561:'ES',85633:'BE',472769:'GB-ENG',437499:'FR',491279:'NL',227444:'RS',462424:'FR',204480:'GB-ENG',244851:'GB-ENG',215379:'GB-ENG',513418:'DE',195546:'AR',224117:'SE',482973:'BR',463067:'FR',215059:'ES',485055:'CZ',17761:'GB-ENG',169528:'US',221820:'AR',445087:'UY',610799:'HR',439509:'GR',437730:'GH',208706:'BR',244850:'GB-ENG',231747:'FR',470313:'DE',441264:'NL',200720:'IE',172649:'GB-ENG',226597:'BR',209036:'GB-ENG',221466:'AR',106611:'GB-ENG',231416:'TR',435997:'CH',215413:'GB-ENG',484420:'FR',466525:'DE',60307:'DE',475168:'BR',50175:'GB-ENG',177815:'GB-ENG',204936:'IT',109745:'ES',97032:'NL',216051:'PT',448104:'EC',477424:'HR',198869:'GB-ENG',209244:'GB-ENG',222531:'GB-ENG',232413:'GB-ENG',247632:'PT',114283:'GB-ENG',517052:'SN',178301:'GB-ENG',60689:'NZ',111234:'GB-ENG',432720:'GB-ENG',494521:'FR',427623:'US',215136:'GB-WLS',200834:'FR',78916:'GB-ENG',499604:'BR',424876:'HU',533463:'BF',153682:'GB-WLS',430871:'BR',223094:'NO',485711:'SI',690838:'GB-ENG',465247:'BE',80201:'DE',466075:'IT',225796:'GB-ENG',487838:'GB-ENG',445122:'NL',480455:'GB-ENG',172780:'GB-ENG',448047:'AR',184029:'NO',494595:'DE',503139:'GB-ENG',219168:'SE',486385:'GW',216646:'CD',98980:'AR',116535:'BR',441164:'ES',465351:'PT',544877:'HU',216094:'NL',500040:'ES',141746:'PT',176297:'GB-ENG',466052:'FR',248857:'GB-ENG',460842:'GH',438234:'EG',502500:'BR',444102:'BR',498016:'NL',98747:'GB-ENG',247348:'CO',469142:'NL',432830:'IE',171314:'PT',223827:'GB-NIR',223340:'GB-ENG',446008:'CM',243298:'NL',248875:'BE',232185:'SN',219847:'DE',212319:'BR',538207:'DK',560262:'FR',551210:'NL',449434:'SE',433969:'JP',154566:'GB-ENG',465642:'DE',201658:'GB-ENG',205533:'GB-ENG',465730:'BE',607464:'IT',482616:'FR',586309:'FR',463726:'BA',551466:'ES',513545:'ML',440993:'SN',611695:'CI',638987:'SN'};
 
 function getNationMap(codesNeeded) {
@@ -105,20 +105,22 @@ function getNationMap(codesNeeded) {
   Object.keys(NATFALLBACK).forEach(function (c) { if (!cache[c]) cache[c] = NATFALLBACK[c]; });
   var missing = codesNeeded.filter(function (c) { return c && !cache[c]; });
   if (!missing.length) return cache;
+  // Sep 2026: pulselive's compseasons/{id}/teams + staff endpoints now return empty; the season-wide
+  // players list still works and carries EVERY registered player (~1,100 incl. new signings) with opta id + nation.
   try {
-    var clubs = getUrl(PULSE + 'compseasons/' + PULSE_SEASON + '/teams').content || [];
-    clubs.forEach(function (t) {
-      try {
-        var staff = getUrl(PULSE + 'teams/' + Math.round(t.id) + '/compseasons/' + PULSE_SEASON + '/staff?pageSize=50&altIds=true&type=player');
-        (staff.players || []).forEach(function (p) {
-          var opta = p.altIds && p.altIds.opta ? String(p.altIds.opta).replace(/^p/, '') : null;
-          var iso = p.nationalTeam && p.nationalTeam.isoCode;
-          if (opta && iso) cache[opta] = iso;
-        });
-      } catch (e) { /* one club failing shouldn't kill the map */ }
-    });
+    var added = 0, page = 0, total = 1;
+    while (page * 100 < total && page < 20) {
+      var res = getUrl(PULSE + 'players?pageSize=100&compSeasons=' + PULSE_SEASON + '&altIds=true&type=player&id=-1&page=' + page);
+      total = (res.pageInfo && res.pageInfo.numEntries) || 0;
+      (res.content || []).forEach(function (p) {
+        var opta = p.altIds && p.altIds.opta ? String(p.altIds.opta).replace(/^p/, '') : null;
+        var iso = p.nationalTeam && p.nationalTeam.isoCode;
+        if (opta && iso && cache[opta] !== iso) { cache[opta] = iso; added++; }
+      });
+      page++;
+    }
     sh.getRange(1, 1).setValue(JSON.stringify(cache));
-    sh.getRange(1, 2).setValue('updated ' + new Date().toISOString());
+    sh.getRange(1, 2).setValue('updated ' + new Date().toISOString() + ' · ' + Object.keys(cache).length + ' players · +' + added);
   } catch (e) { Logger.log('Nation fetch failed: ' + e); }
   return cache;
 }
