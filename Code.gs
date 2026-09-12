@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.4 (unified app backend; classic live overlay; manager logins; season-wide nations)
+ * Google Sheet + Apps Script · v3.5 (unified app backend; classic live overlay; manager logins; season-wide nations; on-demand refresh)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -773,6 +773,29 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
 
   try { logGwHistory(ss, boot, teams, perEntry); } catch (e) { Logger.log('GW Log failed: ' + e); }
   // EA Map tab is now static — pasted from fpl_ea_crosswalk_2026_27.csv, never written by script.
+  try { PropertiesService.getScriptProperties().setProperty('EMT_LAST_REFRESH', String(Date.now())); } catch (e) {}
+}
+
+/* ---------- app pull-to-refresh → refreshAll on demand ----------
+ * The hourly trigger stays; the app's pull-to-refresh POSTs {action:'refresh'} and we re-run refreshAll
+ * (≈30 s) if the sheet is older than EMT_REFRESH_MIN_MS. One script lock so eight managers pulling at once
+ * cost one run; the rest get {ran:false, ageSec} and just re-read the sheet. */
+var EMT_REFRESH_MIN_MS = 90 * 1000;
+function emtRefresh() {
+  var p = emtProps();
+  var last = Number(p.getProperty('EMT_LAST_REFRESH') || 0), now = Date.now();
+  if (now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(4000)) return { ok: true, ran: false, busy: true };
+  try {
+    last = Number(p.getProperty('EMT_LAST_REFRESH') || 0); now = Date.now();
+    if (now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
+    p.setProperty('EMT_LAST_REFRESH', String(now));
+    refreshAll();
+    return { ok: true, ran: true, ms: Date.now() - now };
+  } catch (e) {
+    return { ok: false, error: String((e && e.message) || e) };
+  } finally { lock.releaseLock(); }
 }
 
 /* ---------- GW Log: append-only per-player history, one block per finished GW ----------
@@ -951,6 +974,7 @@ function emtHandle(req) {
   var pin = String(req.pin || '');
 
   if (action === 'status') return { ok: true, claimed: emtClaimed() };
+  if (action === 'refresh') return emtRefresh();
 
   if (action === 'claim' || action === 'login') {
     if (emtTeams().indexOf(team) < 0) return { ok: false, error: 'badteam' };
