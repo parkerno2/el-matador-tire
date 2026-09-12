@@ -4227,6 +4227,8 @@ function showNext(){
   const q=SHOWQ;if(!q)return;q.i++;const it=q.items[q.i];clearTimeout(q.g._t);q.t0=Date.now();
   if(!it){return;}
   const body=document.getElementById('shbody');if(!body)return;
+  /* a single chapter ends on its pinned faceoff: keep the last scene, stop the audio, offer Replay */
+  if(it.kind==='end'){showAudioOff();q.g.classList.add('done');const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}return;}
   /* the outgoing scene fades; the new one is dealt fresh so its animations run from now */
   [...body.querySelectorAll('.scene')].forEach(s=>{s.classList.add('out');setTimeout(()=>s.remove(),520);});
   const saveOpp=OPPMODE;OPPMODE=false;SUBMARK={};
@@ -4238,7 +4240,6 @@ function showNext(){
     html=p?'<iframe class="shart" src="'+p.href+'" title="Gameweek '+D.gw+' preview"></iframe>':'<div class="sopen"><div class="ttl">The written preview is on the way.</div></div>';
     if(hdr)hdr.textContent='The written preview';const k=document.getElementById('shk');if(k)k.textContent='';const mu=document.getElementById('shmute');if(mu)mu.style.display='none';
     const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}}
-  else if(it.kind==='end'){showAudioOff();q.g.classList.add('done');const nx=document.getElementById('shnx');if(nx){nx.textContent='↻ Replay';nx.onclick=()=>openShow(q.only);}OPPMODE=saveOpp;return;}
   else{
     const f=it.f,c=SHOW.chapters[it.ch];const homeFirst=f.Home===c.home;
     const H=(TEAMS[f.Home]||{}).col||'#5B1A66',A=(TEAMS[f.Away]||{}).col||'#5B1A66';q.g.style.setProperty('--hc',H);q.g.style.setProperty('--ac',A);
