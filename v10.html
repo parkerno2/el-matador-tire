@@ -3249,7 +3249,6 @@ details.acc.dun .stack{margin-top:8px}
 .hist.tres h4 .form{display:inline-flex;gap:3px;margin-left:auto}
 .hist.tres h4 .form i{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.62rem;color:#fff;background:#B9B3C2}
 .hist.tres h4 .form i.W{background:#0E8A5F}.hist.tres h4 .form i.L{background:#C4303A}
-.hist.tres h4:after{order:-1;margin-right:4px}
 .hist.tres table{min-width:320px}
 .hist.tres td.opp .oc{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
 .hist.tres td.opp .oc .mg.sm{margin:0}
@@ -3274,7 +3273,7 @@ details.acc.dun .stack{margin-top:8px}
 .sgrid td{text-align:center;padding:5px 3px;border-bottom:1px solid #F1EEF4;font-weight:700;font-size:.84rem;color:#3B3143}
 .sgrid tbody tr:last-child td{border-bottom:none}
 .sgrid td.W{background:#E4F7EC;color:#0B5C3E}.sgrid td.L{background:#FBE7E8;color:#8E2C33}.sgrid td.D{background:#F1EEF4;color:#5A5262}
-.sgrid td.top{box-shadow:inset 0 0 0 2px #FFD23F}
+.sgrid td.wk{box-shadow:inset 0 0 0 2px #FFD23F}
 .sgrid td.live{font-style:italic}
 .sgrid td.none{color:#C9C4D0;font-weight:500}
 .sgrid td.tot,.sgrid th.tot{font-weight:800;color:#5B1A66;background:#FAF8FC;padding-right:8px}
@@ -4644,7 +4643,7 @@ function gridHTML(){
   const head='<tr><th class="tm">Team</th>'+gws.map(g=>'<th'+(g===D.gw&&cell[st[0]+'|'+g]?.live?' class="lv"':'')+'>'+g+'</th>').join('')+'<th class="tot">PF</th></tr>';
   const body=st.map(t=>{let pf=0;
     const tds=gws.map(g=>{const c=cell[t+'|'+g];if(!c)return '<td class="none">—</td>';pf+=c.p;
-      return '<td class="'+c.r+(c.p===top[g]?' top':'')+(c.live?' live':'')+'">'+c.p+'</td>';}).join('');
+      return '<td class="'+c.r+(c.p===top[g]?' wk':'')+(c.live?' live':'')+'">'+c.p+'</td>';}).join('');
     return '<tr><td class="tm" data-prof="'+esc(t)+'">'+mg(t,1)+'<span>'+esc(TEAMS[t].mgr.split(' ')[0])+'</span></td>'+tds+'<td class="tot">'+pf+'</td></tr>';}).join('');
   return '<h2>Scores by gameweek</h2><div class="card sgrid"><div class="gwrap"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'
    +'<p class="mnote" style="padding:6px 8px 8px;margin:0">Green won, red lost, grey drew · gold outline = the week’s top score · tap a name for the full team page.</p></div>';
