@@ -73,7 +73,7 @@ function gridHTML(){
   const head='<tr><th class="tm">Team</th>'+gws.map(g=>'<th'+(g===D.gw&&cell[st[0]+'|'+g]?.live?' class="lv"':'')+'>'+g+'</th>').join('')+'<th class="tot">PF</th></tr>';
   const body=st.map(t=>{let pf=0;
     const tds=gws.map(g=>{const c=cell[t+'|'+g];if(!c)return '<td class="none">—</td>';pf+=c.p;
-      return '<td class="'+c.r+(c.p===top[g]?' top':'')+(c.live?' live':'')+'">'+c.p+'</td>';}).join('');
+      return '<td class="'+c.r+(c.p===top[g]?' wk':'')+(c.live?' live':'')+'">'+c.p+'</td>';}).join('');
     return '<tr><td class="tm" data-prof="'+esc(t)+'">'+mg(t,1)+'<span>'+esc(TEAMS[t].mgr.split(' ')[0])+'</span></td>'+tds+'<td class="tot">'+pf+'</td></tr>';}).join('');
   return '<h2>Scores by gameweek</h2><div class="card sgrid"><div class="gwrap"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'
    +'<p class="mnote" style="padding:6px 8px 8px;margin:0">Green won, red lost, grey drew · gold outline = the week’s top score · tap a name for the full team page.</p></div>';
