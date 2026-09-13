@@ -298,3 +298,7 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 /* matchup page: back button lives inside the stage, top-left, no light bar above */
 #gwbody .stage .backbtn{position:relative;z-index:3;color:#fff !important;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:5px 12px 5px 8px;font-size:.66rem;margin:-4px 0 6px;width:max-content}
 #gwbody .stage .derby{margin-top:2px}
+
+/* My team banner: match the phone wrap gutter (8px, not 12) — the 4px overhang let iOS pan the whole page sideways */
+@media(max-width:699px){.myhead{margin-left:-8px;margin-right:-8px}}
+html{overflow-x:clip}
