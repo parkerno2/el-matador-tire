@@ -1399,9 +1399,6 @@ function renderMatch(f,dl){
    +'<div class="score">'+scoreTxt+'<em class="'+(s.liveNow&&!D.xpview?'live':'')+'">'+subTxt+'</em></div>'
    +'<div class="side">'+mg(f.Away)+'<span class="tn">'+esc(f.Away)+'</span><span class="mgr">'+esc(TEAMS[f.Away]?.mgr||'')+'</span></div></div>'
    +scsub
-   +(D.hasXP?'<div class="axtog"><div class="in3">'
-     +'<button class="'+(XPMODE?'':'on')+'" data-xt="0">Actual</button>'
-     +'<button class="'+(XPMODE?'on':'')+'" data-xt="1">Expected</button></div></div>'+xnote:'')
    +(sr?'<div class="series">All-time: <b>'+esc(sr)+'</b></div>':'')
    +'<div class="duel"><div class="half"></div><div class="cc"></div>'
    +'<div class="pbx t"></div><div class="pbx b"></div><div class="six t"></div><div class="six b"></div>'
@@ -1425,7 +1422,6 @@ function renderMatch(f,dl){
   document.getElementById('gwbody').onclick=null;
   document.getElementById('gwback').onclick=()=>{location.hash='gw'};
   document.getElementById('btog').onclick=()=>{BENCHOPEN=!BENCHOPEN;renderGW()};
-  document.querySelectorAll('[data-xt]').forEach(b=>b.onclick=()=>{XPMODE=b.dataset.xt==='1';renderGW()});
   D.xpview=false; // never leak expected mode into other views
 }
 
@@ -2552,31 +2548,7 @@ function loadAll(quiet){
   });
 }
 loadAll();
-/* pull-to-refresh: drag down from the very top of any tab to re-pull the sheet.
-   Passive listeners so scrolling stays 60fps; only arms when the page is at scrollY 0. */
-(function(){
-  const el=document.getElementById('ptr');
-  let y0=null,armed=false;
-  document.addEventListener('touchstart',e=>{
-    y0=(window.scrollY<=0)?e.touches[0].clientY:null;armed=false;
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    if(y0===null)return;
-    const d=e.touches[0].clientY-y0;
-    if(d>34&&window.scrollY<=0){
-      el.classList.add('show');
-      armed=d>90;
-      el.textContent=armed?'↻ Release to refresh':'↓ Pull to refresh';
-    }else{el.classList.remove('show');armed=false;}
-  },{passive:true});
-  document.addEventListener('touchend',()=>{
-    if(armed&&!D.demo){
-      el.textContent='Refreshing…';el.classList.add('spin');
-      loadAll(true).finally(()=>{el.classList.remove('show','spin');});
-    }else el.classList.remove('show');
-    y0=null;armed=false;
-  },{passive:true});
-})();
+/* v11: refresh is the header button (v10-refresh.js); the pull gesture retired 13 Sep */
 /* iOS resumes the app frozen — refetch when it comes back into view, and every few minutes while open */
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Date.now()-LOADED>120000)loadAll(true);
@@ -2863,6 +2835,31 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 .recapcard.show .rk{color:#FFD23F}.recapcard.show .new{background:#FFD23F;color:#37003C}
 .recapcard.show .go{background:#FFD23F;color:#37003C}
 
+/* ===== v11 header (13 Sep): one bar — brand left, GW pill centred, refresh + avatar right; page heroes retired ===== */
+.top{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%) !important;box-shadow:0 3px 14px rgba(55,0,60,.28) !important}
+.top .in{display:grid !important;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.top .brand{justify-self:start;min-width:0}
+.top .brand .lg{font-size:.46rem;letter-spacing:.07em;line-height:1.15;white-space:nowrap}
+.top .brand{gap:6px !important}
+.top .in{column-gap:6px}
+.gwpill{margin:0 !important;justify-self:center}
+.hright{justify-self:end;display:flex;align-items:center;gap:6px}
+.hright .hbtn,.hright .hav{margin-left:0}
+.hbtn svg{display:block}
+.hbtn.busy{background:rgba(255,210,63,.22);border-color:rgba(255,210,63,.6);color:#FFD23F}
+.hbtn.busy svg{animation:hspin 1s linear infinite}
+@keyframes hspin{to{transform:rotate(360deg)}}
+.hero{display:none !important}
+.view.on{padding-top:10px}
+#v-gw.view.on{padding-top:8px}
+/* help link at the foot of every page (the "?" left the header) */
+.helpfoot{text-align:center;margin:22px 0 -14px}
+.helpfoot button{background:#fff;border:1px solid #E8E4EE;color:#5B1A66;font-family:'Manrope',sans-serif;font-weight:700;font-size:.66rem;letter-spacing:.04em;padding:7px 14px 7px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 1px 2px rgba(30,15,40,.05)}
+.helpfoot button b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#5B1A66;color:#fff;font-size:.62rem}
+/* matchup page: back button lives inside the stage, top-left, no light bar above */
+#gwbody .stage .backbtn{position:relative;z-index:3;color:#fff !important;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:5px 12px 5px 8px;font-size:.66rem;margin:-4px 0 6px;width:max-content}
+#gwbody .stage .derby{margin-top:2px}
+
 /* ===== the matchup graphic ===== */
 .lgfx.mx{background:radial-gradient(90% 60% at 0% 20%,color-mix(in srgb,var(--hc) 45%,transparent),transparent 60%),radial-gradient(90% 60% at 100% 80%,color-mix(in srgb,var(--ac) 45%,transparent),transparent 60%),linear-gradient(160deg,#2E5BFF -50%,#4A1260 35%,#20104A 100%);overflow:hidden;padding:0}
 .mxhdr{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:max(14px,env(safe-area-inset-top)) 44px 8px;text-align:center;animation:lgin .6s ease both}
@@ -3109,28 +3106,28 @@ button.watch.elev .pl{width:22px;height:22px;border-radius:50%;background:#37003
 .gwtabs button.on{background:#2E0F3A;color:#fff}
 .gwtabs button+button{border-left:1px solid #E8E4EE}
 .stack.derbies{gap:10px}
-.derby{position:relative;background:#fff;border:1px solid #EBE7F0;border-radius:14px;padding:10px 12px 9px;box-shadow:0 1px 2px rgba(30,15,40,.05),0 5px 14px rgba(30,15,40,.06);overflow:hidden}
-.derby:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--a) 0 50%,var(--b) 50% 100%)}
-.derby.live{border-color:rgba(255,210,63,.9);box-shadow:0 0 0 1px rgba(255,210,63,.5),0 5px 14px rgba(30,15,40,.08);cursor:pointer}
-.derby.unnamed{opacity:.92}
-.derby .dk{display:flex;align-items:center;gap:8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#5B1A66;margin:2px 0 8px}
-.derby.unnamed .dk{color:#8A8494}
-.derby .dk .go{margin-left:auto;font-size:.6rem;letter-spacing:.04em;text-transform:none;color:#2E5BFF;display:inline-flex;align-items:center;gap:2px}
-.derby .dvs{display:grid;grid-template-columns:minmax(0,1fr) minmax(88px,auto) minmax(0,1fr);align-items:center;gap:6px}
-.derby .ds{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
-.derby .ds .cr{width:40px;height:40px}.derby .ds .cr svg{display:block;width:100%;height:100%}
-.derby .ds b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.84rem;line-height:1.05;text-transform:uppercase;color:#1B1420;margin-top:3px;max-width:100%;overflow-wrap:anywhere}
-.derby .ds i{font-style:normal;font-size:.62rem;font-weight:600;color:#665D72}
-.derby .dsr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:6px 8px;background:#F6F5F8;border-radius:10px;max-width:150px;min-width:0}
-.derby .dsr .k{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8494}
-.derby .dsr b{font-size:.74rem;line-height:1.15;font-weight:700;color:#1B1420}
-.derby .dsr i{font-style:normal;font-size:.58rem;color:#8A8494;font-weight:600}
-.derby .dm{margin-top:8px;padding-top:7px;border-top:1px solid #EEEAF2;font-size:.68rem;color:#665D72;font-weight:500;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px}
-.derby .dm b{color:#1B1420;font-weight:800;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase}
-.derby .dm b.now{color:#0E8A5F}
-.derby .dm .num{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.8rem;color:#1B1420}
-.derby .dm i{font-style:normal;color:#8A8494;font-size:.6rem;text-transform:uppercase;letter-spacing:.06em}
-.derby .dm .dot{color:#C9C2D0;padding:0 2px}
+.dcard{position:relative;background:#fff;border:1px solid #EBE7F0;border-radius:14px;padding:10px 12px 9px;box-shadow:0 1px 2px rgba(30,15,40,.05),0 5px 14px rgba(30,15,40,.06);overflow:hidden}
+.dcard:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--a) 0 50%,var(--b) 50% 100%)}
+.dcard.live{border-color:rgba(255,210,63,.9);box-shadow:0 0 0 1px rgba(255,210,63,.5),0 5px 14px rgba(30,15,40,.08);cursor:pointer}
+.dcard.unnamed{opacity:.92}
+.dcard .dk{display:flex;align-items:center;gap:8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#5B1A66;margin:2px 0 8px}
+.dcard.unnamed .dk{color:#8A8494}
+.dcard .dk .go{margin-left:auto;font-size:.6rem;letter-spacing:.04em;text-transform:none;color:#2E5BFF;display:inline-flex;align-items:center;gap:2px}
+.dcard .dvs{display:grid;grid-template-columns:minmax(0,1fr) minmax(88px,auto) minmax(0,1fr);align-items:center;gap:6px}
+.dcard .ds{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
+.dcard .ds .cr{width:40px;height:40px}.dcard .ds .cr svg{display:block;width:100%;height:100%}
+.dcard .ds b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.84rem;line-height:1.05;text-transform:uppercase;color:#1B1420;margin-top:3px;max-width:100%;overflow-wrap:anywhere}
+.dcard .ds i{font-style:normal;font-size:.62rem;font-weight:600;color:#665D72}
+.dcard .dsr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:6px 8px;background:#F6F5F8;border-radius:10px;max-width:150px;min-width:0}
+.dcard .dsr .k{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8494}
+.dcard .dsr b{font-size:.74rem;line-height:1.15;font-weight:700;color:#1B1420}
+.dcard .dsr i{font-style:normal;font-size:.58rem;color:#8A8494;font-weight:600}
+.dcard .dm{margin-top:8px;padding-top:7px;border-top:1px solid #EEEAF2;font-size:.68rem;color:#665D72;font-weight:500;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px}
+.dcard .dm b{color:#1B1420;font-weight:800;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase}
+.dcard .dm b.now{color:#0E8A5F}
+.dcard .dm .num{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.8rem;color:#1B1420}
+.dcard .dm i{font-style:normal;color:#8A8494;font-size:.6rem;text-transform:uppercase;letter-spacing:.06em}
+.dcard .dm .dot{color:#C9C2D0;padding:0 2px}
 details.acc.dun{margin-top:14px}
 details.acc.dun summary{font-size:.74rem;font-weight:700;color:#5B1A66;cursor:pointer;padding:8px 2px}
 details.acc.dun .stack{margin-top:8px}
@@ -3341,10 +3338,13 @@ function buildNav(){
    '<button data-v="'+v[0]+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+v[2]+'"/></svg><span>'+v[1]+'</span><span class="bar"></span></button>').join('');
   document.getElementById('nav').onclick=e=>{const b=e.target.closest('[data-v]');if(b)location.hash=b.dataset.v;};
   const top=document.querySelector('.top .in')||document.querySelector('.top');
-  if(top&&!document.getElementById('hfaq')){
-    top.insertAdjacentHTML('beforeend','<button class="hbtn" id="hfaq" aria-label="How it works">?</button><span class="hav" id="hav" title="My team"></span>');
-    document.getElementById('hfaq').onclick=()=>{location.hash='faq'};
+  if(top&&!document.getElementById('hright')){
+    /* v11 header: brand · GW pill centred · ↻ refresh + avatar. The "?" moved to the page foot (help link). */
+    top.insertAdjacentHTML('beforeend','<span class="hright" id="hright"><button class="hbtn" id="hrefresh" aria-label="Refresh scores" title="Refresh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></button><span class="hav" id="hav" title="My team"></span></span>');
     document.getElementById('hav').onclick=()=>{location.hash='team'};
+    const ft=document.querySelector('.wrap > .foot');
+    if(ft&&!document.getElementById('hfaq'))ft.insertAdjacentHTML('beforebegin','<p class="helpfoot"><button id="hfaq" type="button"><b>?</b> How it works</button></p>');
+    const hq=document.getElementById('hfaq');if(hq)hq.onclick=()=>{location.hash='faq'};
   }
   updateHeader();
 }
@@ -3475,7 +3475,7 @@ function rowsFor(xi,mirror){
 function renderMatch(f,dl){
   __orig.renderMatch(f,dl);
   const st=document.querySelector('#gwbody .stage');if(!st)return;
-  const bb=document.getElementById('gwback');if(bb)bb.textContent='‹ Matchday';
+  const bb=document.getElementById('gwback');if(bb){bb.textContent='‹ Matchday';st.insertAdjacentElement('afterbegin',bb);} /* v11: the back button rides inside the stage (no light bar between header and stage) */
   const sides=st.querySelectorAll('.vs .side');
   if(sides[0])sides[0].insertAdjacentHTML('beforeend',formHTML(f.Home,'c'));
   if(sides[1])sides[1].insertAdjacentHTML('beforeend',formHTML(f.Away,'c'));
@@ -3695,7 +3695,7 @@ function oppToggle(){return '<div class="axtog om"><div class="in3"><button clas
 document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';const ps=b.closest('#sheet');if(ps&&ps.dataset.team){openProfile(ps.dataset.team);return}if((location.hash||'').startsWith('#team'))renderTeam();else renderGW();});
 /* ---- Matchweek plate in the top bar; the league name moves into the hero kickers ---- */
 function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))" role="img" aria-label="Matchweek"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="\'Archivo Black\',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>'}
-(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(74)+'<span class="lg">El Matador Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
+(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(60)+'<span class="lg">El Matador<br>Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
   document.querySelectorAll('.hero .kick').forEach(k=>{if(!/El Matador/i.test(k.textContent))k.textContent='El Matador Tire · '+k.textContent;});})();
 const __hc=heroCopy;heroCopy=function(){__hc();const k=document.querySelector('#v-gw .hero .kick');if(k)k.textContent='El Matador Tire · Gameweek '+(D.gw||'');};
 /* ---- Players: the club view is gone (search + free agents + the wire stay) ---- */
@@ -4395,7 +4395,7 @@ function derbyCard(r,idx){
   const rowsGw=D.fx.filter(x=>num(x.GW)===D.gw);const mi=r.thisGw?rowsGw.indexOf(r.thisGw):-1;
   const A=(TEAMS[r.a]||{}).col||'#5B1A66',B=(TEAMS[r.b]||{}).col||'#5B1A66';
   const side=(t,cls)=>'<div class="ds '+cls+'"><span class="cr">'+crestOf(t,40)+'</span><b>'+esc(t)+'</b><i>'+esc(FIRSTOF(t))+'</i></div>';
-  return '<div class="derby'+(r.thisGw?' live':'')+(r.nm?'':' unnamed')+'"'+(mi>=0?' data-mi="'+mi+'" role="button" tabindex="0"':'')+' style="--a:'+A+';--b:'+B+'">'
+  return '<div class="dcard'+(r.thisGw?' live':'')+(r.nm?'':' unnamed')+'"'+(mi>=0?' data-mi="'+mi+'" role="button" tabindex="0"':'')+' style="--a:'+A+';--b:'+B+'">'
    +'<div class="dk">'+(r.nm?esc(r.nm):'Unnamed pairing')+(mi>=0?'<span class="go">Open '+CHEV+'</span>':'')+'</div>'
    +'<div class="dvs">'+side(r.a,'l')+'<div class="dsr"><span class="k">All-time</span><b>'+esc(r.sr||'First ever meeting')+'</b><i>'+(r.played?r.played+(r.played===1?' meeting':' meetings')+' this season':'')+'</i></div>'+side(r.b,'r')+'</div>'
    +'<div class="dm">'+derbyMeta(r)+'</div></div>';
@@ -4417,7 +4417,7 @@ function gwTabsHTML(){
     const body=document.getElementById('gwbody');if(!body)return;
     if(GWTAB==='derbies'){body.innerHTML=gwTabsHTML()+derbiesHTML();
       body.onclick=e=>{const t=e.target.closest('[data-gwtab]');if(t){GWTAB=t.dataset.gwtab;renderGW();return}
-        const c=e.target.closest('.derby[data-mi]');if(c){location.hash='gw/'+c.dataset.mi;}};
+        const c=e.target.closest('.dcard[data-mi]');if(c){location.hash='gw/'+c.dataset.mi;}};
       v10clock&&v10clock();return;}
     body.insertAdjacentHTML('afterbegin',gwTabsHTML());
     const prev=body.onclick;
@@ -4469,28 +4469,36 @@ function histHTML(p){
   };
 })();
 
-/* ===== v10 · pull-to-refresh kicks the sheet: POST {action:'refresh'} to the web app, which re-runs refreshAll
-   (≈30 s, throttled server-side to once per 90 s for everyone), then the app re-reads the sheet. Without an API URL
-   (or if the call fails) the pull just re-reads the sheet as before. ===== */
+/* ===== v10 · the header ↻ button refreshes the SHEET: POST {action:'refresh'} to the web app, which re-runs refreshAll
+   (≈10–30 s, throttled server-side to once per 90 s for everyone), then the app re-reads the sheet. Without an API URL
+   (or if the call fails) the button just re-reads the sheet. Status shows in the #ptr toast under the header.
+   v11 (13 Sep): the pull-to-refresh gesture is gone — this button is the refresh. ===== */
 let KICKING=false;
 function kickRefresh(el){
-  if(KICKING||!D.api)return;KICKING=true;
+  if(KICKING)return;KICKING=true;
+  const btn=document.getElementById('hrefresh');if(btn)btn.classList.add('busy');
   const say=t=>{el.textContent=t;el.classList.add('show','spin');};
-  say('Updating live scores… up to 30 s');
+  const done=()=>{KICKING=false;clearInterval(keep);if(btn)btn.classList.remove('busy');setTimeout(()=>el.classList.remove('show','spin'),1600);};
   const keep=setInterval(()=>{if(KICKING)el.classList.add('show','spin');},400);
+  if(!D.api){say('Refreshing…');loadAll(true).then(()=>say('Up to date')).catch(()=>say('Couldn’t reach the sheet — showing what it has')).finally(done);return;}
+  say('Updating live scores… up to 30 s');
   const ac=new AbortController();const to=setTimeout(()=>ac.abort(),75000);
   fetch(D.api,{method:'POST',body:JSON.stringify({action:'refresh'}),signal:ac.signal}).then(r=>r.json())
    .then(r=>{
      if(r&&r.ran){say('Sheet updated — loading…');return loadAll(true).then(()=>say('Up to date'));}
-     if(r&&r.busy){say('Already updating — pull again in a moment');return;}
-     if(r&&r.ageSec!==undefined){say('Fresh — updated '+(r.ageSec<60?r.ageSec+' s':Math.round(r.ageSec/60)+' min')+' ago');return;}
+     if(r&&r.busy){say('Already updating — try again in a moment');return loadAll(true);}
+     if(r&&r.ageSec!==undefined){say('Fresh — updated '+(r.ageSec<60?r.ageSec+' s':Math.round(r.ageSec/60)+' min')+' ago');return loadAll(true);}
      say('Couldn’t update the sheet — showing what it has');
    })
-   .catch(()=>say('Couldn’t reach the sheet updater — showing what it has'))
-   .finally(()=>{clearTimeout(to);KICKING=false;clearInterval(keep);setTimeout(()=>el.classList.remove('show','spin'),1400);});
+   .catch(()=>{say('Couldn’t reach the sheet updater — showing what it has');return loadAll(true).catch(()=>{});})
+   .finally(()=>{clearTimeout(to);done();});
 }
-/* runs after the base's touchend: when it just started a pull-refresh, #ptr carries .spin */
-document.addEventListener('touchend',()=>{const el=document.getElementById('ptr');if(el&&el.classList.contains('spin')&&!KICKING)kickRefresh(el);},{passive:true});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('#hrefresh');if(!b)return;
+  const el=document.getElementById('ptr');if(!el)return;
+  if(KICKING){el.textContent='Still updating…';el.classList.add('show','spin');return;}
+  kickRefresh(el);
+});
 
 /* ===== v10 · team results history: every gameweek's score for a manager, FPL-app style =====
    1) Team page (openProfile, sheet + My team page mode): "Results" table — GW · opponent (derby name, H/A) ·

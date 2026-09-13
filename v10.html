@@ -2921,7 +2921,9 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 .top{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%) !important;box-shadow:0 3px 14px rgba(55,0,60,.28) !important}
 .top .in{display:grid !important;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
 .top .brand{justify-self:start;min-width:0}
-.top .brand .lg{font-size:.5rem;letter-spacing:.12em;line-height:1.15;white-space:nowrap}
+.top .brand .lg{font-size:.46rem;letter-spacing:.07em;line-height:1.15;white-space:nowrap}
+.top .brand{gap:6px !important}
+.top .in{column-gap:6px}
 .gwpill{margin:0 !important;justify-self:center}
 .hright{justify-self:end;display:flex;align-items:center;gap:6px}
 .hright .hbtn,.hright .hav{margin-left:0}
@@ -3775,7 +3777,7 @@ function oppToggle(){return '<div class="axtog om"><div class="in3"><button clas
 document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';const ps=b.closest('#sheet');if(ps&&ps.dataset.team){openProfile(ps.dataset.team);return}if((location.hash||'').startsWith('#team'))renderTeam();else renderGW();});
 /* ---- Matchweek plate in the top bar; the league name moves into the hero kickers ---- */
 function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))" role="img" aria-label="Matchweek"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="\'Archivo Black\',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>'}
-(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(74)+'<span class="lg">El Matador<br>Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
+(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(60)+'<span class="lg">El Matador<br>Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
   document.querySelectorAll('.hero .kick').forEach(k=>{if(!/El Matador/i.test(k.textContent))k.textContent='El Matador Tire · '+k.textContent;});})();
 const __hc=heroCopy;heroCopy=function(){__hc();const k=document.querySelector('#v-gw .hero .kick');if(k)k.textContent='El Matador Tire · Gameweek '+(D.gw||'');};
 /* ---- Players: the club view is gone (search + free agents + the wire stay) ---- */
