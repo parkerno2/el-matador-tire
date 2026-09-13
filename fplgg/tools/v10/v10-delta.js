@@ -185,13 +185,20 @@ function renderMatch(f,dl){
 /* ---- My team: the pitch, then everything the profile already knows ---- */
 function nextFixtureOf(team){return D.fx.filter(f=>(f.Home===team||f.Away===team)&&!fin(f.Finished)&&effPtsOf(f,f.Home)+effPtsOf(f,f.Away)===0).sort((a,b)=>num(a.GW)-num(b.GW))[0]}
 function squadHealth(team){
-  const gws=Object.keys(D.gwsByGw||{}).map(Number).filter(g=>g<D.gw||(g===D.gw&&D.dlPassed)).sort((a,b)=>a-b);
-  const last=gws.slice(-3);if(!last.length)return '';
+  /* 13 Sep fix: form and season average now come from the SAME source (GW Stats per GW). The old avg was
+     Season pts / gwsDone — Season pts already includes the live gameweek, so mid-GW every player read
+     below average and "Trending up" was always empty. The live GW counts for a player only once his club
+     has kicked off; the window is his last 3 counted gameweeks against his mean over all of them. */
+  const all=Object.keys(D.gwsByGw||{}).map(Number).filter(g=>g<D.gw||(g===D.gw&&D.dlPassed)).sort((a,b)=>a-b);
+  if(!all.length)return '';
+  const last=all.slice(-3);
   const rows=squadOf(team).map(p=>{
-    const pts=last.map(g=>((D.gwsByGw[g]||{})[String(p.Code)]||{}).Pts||0);
-    const l3=pts.reduce((s,x)=>s+x,0)/last.length;
-    const avg=num(p['Season pts'])/Math.max(1,D.gwsDone);
-    return {p,l3,d:l3-avg};}).filter(r=>r.l3>0||r.d<0);
+    const mine=all.filter(g=>g<D.gw||fxStarted(p.Club));if(mine.length<2)return null;
+    const at=g=>((D.gwsByGw[g]||{})[String(p.Code)]||{}).Pts||0;
+    const win=mine.slice(-3);
+    const l3=win.reduce((s,g)=>s+at(g),0)/win.length;
+    const avg=mine.reduce((s,g)=>s+at(g),0)/mine.length;
+    return {p,l3,d:l3-avg};}).filter(r=>r&&Math.abs(r.d)>=0.5&&(r.l3>0||r.d<0));
   const up=rows.filter(r=>r.d>0).sort((a,b)=>b.d-a.d).slice(0,3),dn=rows.filter(r=>r.d<0).sort((a,b)=>a.d-b.d).slice(0,3);
   const li=(r,c)=>'<div class="hr"><b>'+esc(r.p.Player)+'</b><span>'+fmt1(r.l3)+' / GW</span><span class="d '+c+'">'+(r.d>0?'+':'−')+fmt1(Math.abs(r.d))+'</span></div>';
   return '<h2 class="v10">Squad health<span class="lnk" style="cursor:default">last '+last.length+' GW'+(last.length>1?'s':'')+'</span></h2><div class="health">'
