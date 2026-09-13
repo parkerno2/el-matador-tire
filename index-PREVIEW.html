@@ -799,7 +799,7 @@ const TEAMS={'Cold Palmers':{mgr:'Parker Nolan',ini:'PN',col:'#2E5BFF',xi:1185,l
 const MATCH={'BS|PN':'The Mr. Marks Bowl','PJ|PN':'Nolan','PN|BK':'El Clásico','JS|PN':'The Gamer Derby',
 'NG|PN':'The Fortnite Derby','BS|CT':'De Klassieker','BS|BK':'The Sacred Heart Derby','PJ|CT':'El Jlásico',
 'CT|BK':'The Cumtown Derby','PJ|BK':'Derby of the Eternal Enemies','PJ|NG':'The Hasbulla Derby',
-'BS|NG':'The HMFL Classic','BK|EG':'The Rooney Toons Derby','JS|EG':'The Besties Derby','BK|JS':'Red Card Ranked Invitational'};
+'BS|NG':'The Green Bus Brouhaha','BK|EG':'The Rooney Toons Derby','JS|EG':'The Besties Derby','BK|JS':'Red Card Ranked Invitational'};
 const SEED={'BK|BS':[5,2,0],'BK|CT':[2,6,0],'BK|EG':[3,3,1],'BK|PJ':[3,5,0],'BK|PN':[1,7,0],'BS|CT':[3,5,0],
 'BS|EG':[4,4,0],'BS|PJ':[5,2,0],'BS|PN':[2,6,0],'CT|EG':[3,4,0],'CT|PJ':[4,4,0],'CT|PN':[4,3,0],
 'EG|PJ':[3,5,0],'EG|PN':[4,4,0],'PJ|PN':[4,3,0]};
@@ -1413,9 +1413,6 @@ function renderMatch(f,dl){
    +'<div class="score">'+scoreTxt+'<em class="'+(s.liveNow&&!D.xpview?'live':'')+'">'+subTxt+'</em></div>'
    +'<div class="side">'+mg(f.Away)+'<span class="tn">'+esc(f.Away)+'</span><span class="mgr">'+esc(TEAMS[f.Away]?.mgr||'')+'</span></div></div>'
    +scsub
-   +(D.hasXP?'<div class="axtog"><div class="in3">'
-     +'<button class="'+(XPMODE?'':'on')+'" data-xt="0">Actual</button>'
-     +'<button class="'+(XPMODE?'on':'')+'" data-xt="1">Expected</button></div></div>'+xnote:'')
    +(sr?'<div class="series">All-time: <b>'+esc(sr)+'</b></div>':'')
    +'<div class="duel"><div class="half"></div><div class="cc"></div>'
    +'<div class="pbx t"></div><div class="pbx b"></div><div class="six t"></div><div class="six b"></div>'
@@ -1439,7 +1436,6 @@ function renderMatch(f,dl){
   document.getElementById('gwbody').onclick=null;
   document.getElementById('gwback').onclick=()=>{location.hash='gw'};
   document.getElementById('btog').onclick=()=>{BENCHOPEN=!BENCHOPEN;renderGW()};
-  document.querySelectorAll('[data-xt]').forEach(b=>b.onclick=()=>{XPMODE=b.dataset.xt==='1';renderGW()});
   D.xpview=false; // never leak expected mode into other views
 }
 
@@ -2634,31 +2630,7 @@ function loadAll(quiet){
   });
 }
 loadAll();
-/* pull-to-refresh: drag down from the very top of any tab to re-pull the sheet.
-   Passive listeners so scrolling stays 60fps; only arms when the page is at scrollY 0. */
-(function(){
-  const el=document.getElementById('ptr');
-  let y0=null,armed=false;
-  document.addEventListener('touchstart',e=>{
-    y0=(window.scrollY<=0)?e.touches[0].clientY:null;armed=false;
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    if(y0===null)return;
-    const d=e.touches[0].clientY-y0;
-    if(d>34&&window.scrollY<=0){
-      el.classList.add('show');
-      armed=d>90;
-      el.textContent=armed?'↻ Release to refresh':'↓ Pull to refresh';
-    }else{el.classList.remove('show');armed=false;}
-  },{passive:true});
-  document.addEventListener('touchend',()=>{
-    if(armed&&!D.demo){
-      el.textContent='Refreshing…';el.classList.add('spin');
-      loadAll(true).finally(()=>{el.classList.remove('show','spin');});
-    }else el.classList.remove('show');
-    y0=null;armed=false;
-  },{passive:true});
-})();
+/* v11: refresh is the header button (v10-refresh.js); the pull gesture retired 13 Sep */
 /* iOS resumes the app frozen — refetch when it comes back into view, and every few minutes while open */
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Date.now()-LOADED>120000)loadAll(true);
