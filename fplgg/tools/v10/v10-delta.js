@@ -22,10 +22,13 @@ function buildNav(){
    '<button data-v="'+v[0]+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+v[2]+'"/></svg><span>'+v[1]+'</span><span class="bar"></span></button>').join('');
   document.getElementById('nav').onclick=e=>{const b=e.target.closest('[data-v]');if(b)location.hash=b.dataset.v;};
   const top=document.querySelector('.top .in')||document.querySelector('.top');
-  if(top&&!document.getElementById('hfaq')){
-    top.insertAdjacentHTML('beforeend','<button class="hbtn" id="hfaq" aria-label="How it works">?</button><span class="hav" id="hav" title="My team"></span>');
-    document.getElementById('hfaq').onclick=()=>{location.hash='faq'};
+  if(top&&!document.getElementById('hright')){
+    /* v11 header: brand · GW pill centred · ↻ refresh + avatar. The "?" moved to the page foot (help link). */
+    top.insertAdjacentHTML('beforeend','<span class="hright" id="hright"><button class="hbtn" id="hrefresh" aria-label="Refresh scores" title="Refresh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></button><span class="hav" id="hav" title="My team"></span></span>');
     document.getElementById('hav').onclick=()=>{location.hash='team'};
+    const ft=document.querySelector('.wrap > .foot');
+    if(ft&&!document.getElementById('hfaq'))ft.insertAdjacentHTML('beforebegin','<p class="helpfoot"><button id="hfaq" type="button"><b>?</b> How it works</button></p>');
+    const hq=document.getElementById('hfaq');if(hq)hq.onclick=()=>{location.hash='faq'};
   }
   updateHeader();
 }
@@ -156,7 +159,7 @@ function rowsFor(xi,mirror){
 function renderMatch(f,dl){
   __orig.renderMatch(f,dl);
   const st=document.querySelector('#gwbody .stage');if(!st)return;
-  const bb=document.getElementById('gwback');if(bb)bb.textContent='‹ Matchday';
+  const bb=document.getElementById('gwback');if(bb){bb.textContent='‹ Matchday';st.insertAdjacentElement('afterbegin',bb);} /* v11: the back button rides inside the stage (no light bar between header and stage) */
   const sides=st.querySelectorAll('.vs .side');
   if(sides[0])sides[0].insertAdjacentHTML('beforeend',formHTML(f.Home,'c'));
   if(sides[1])sides[1].insertAdjacentHTML('beforeend',formHTML(f.Away,'c'));
@@ -376,7 +379,7 @@ function oppToggle(){return '<div class="axtog om"><div class="in3"><button clas
 document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';const ps=b.closest('#sheet');if(ps&&ps.dataset.team){openProfile(ps.dataset.team);return}if((location.hash||'').startsWith('#team'))renderTeam();else renderGW();});
 /* ---- Matchweek plate in the top bar; the league name moves into the hero kickers ---- */
 function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))" role="img" aria-label="Matchweek"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="\'Archivo Black\',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>'}
-(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(74)+'<span class="lg">El Matador Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
+(function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(60)+'<span class="lg">El Matador<br>Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
   document.querySelectorAll('.hero .kick').forEach(k=>{if(!/El Matador/i.test(k.textContent))k.textContent='El Matador Tire · '+k.textContent;});})();
 const __hc=heroCopy;heroCopy=function(){__hc();const k=document.querySelector('#v-gw .hero .kick');if(k)k.textContent='El Matador Tire · Gameweek '+(D.gw||'');};
 /* ---- Players: the club view is gone (search + free agents + the wire stay) ---- */

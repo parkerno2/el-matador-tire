@@ -1,0 +1,31 @@
+/* ===== Matchday sub-tabs + the derbies list ===== */
+.gwtabs{display:inline-flex;border:1px solid #E8E4EE;border-radius:16px;overflow:hidden;margin:12px 0 0;background:#fff}
+.gwtabs button{background:#fff;border:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:.6rem;letter-spacing:.06em;padding:7px 14px;color:#665D72;cursor:pointer;text-transform:uppercase}
+.gwtabs button.on{background:#2E0F3A;color:#fff}
+.gwtabs button+button{border-left:1px solid #E8E4EE}
+.stack.derbies{gap:10px}
+.dcard{position:relative;background:#fff;border:1px solid #EBE7F0;border-radius:14px;padding:10px 12px 9px;box-shadow:0 1px 2px rgba(30,15,40,.05),0 5px 14px rgba(30,15,40,.06);overflow:hidden}
+.dcard:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--a) 0 50%,var(--b) 50% 100%)}
+.dcard.live{border-color:rgba(255,210,63,.9);box-shadow:0 0 0 1px rgba(255,210,63,.5),0 5px 14px rgba(30,15,40,.08);cursor:pointer}
+.dcard.unnamed{opacity:.92}
+.dcard .dk{display:flex;align-items:center;gap:8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#5B1A66;margin:2px 0 8px}
+.dcard.unnamed .dk{color:#8A8494}
+.dcard .dk .go{margin-left:auto;font-size:.6rem;letter-spacing:.04em;text-transform:none;color:#2E5BFF;display:inline-flex;align-items:center;gap:2px}
+.dcard .dvs{display:grid;grid-template-columns:minmax(0,1fr) minmax(88px,auto) minmax(0,1fr);align-items:center;gap:6px}
+.dcard .ds{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
+.dcard .ds .cr{width:40px;height:40px}.dcard .ds .cr svg{display:block;width:100%;height:100%}
+.dcard .ds b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.84rem;line-height:1.05;text-transform:uppercase;color:#1B1420;margin-top:3px;max-width:100%;overflow-wrap:anywhere}
+.dcard .ds i{font-style:normal;font-size:.62rem;font-weight:600;color:#665D72}
+.dcard .dsr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:6px 8px;background:#F6F5F8;border-radius:10px;max-width:150px;min-width:0}
+.dcard .dsr .k{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8494}
+.dcard .dsr b{font-size:.74rem;line-height:1.15;font-weight:700;color:#1B1420}
+.dcard .dsr i{font-style:normal;font-size:.58rem;color:#8A8494;font-weight:600}
+.dcard .dm{margin-top:8px;padding-top:7px;border-top:1px solid #EEEAF2;font-size:.68rem;color:#665D72;font-weight:500;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px}
+.dcard .dm b{color:#1B1420;font-weight:800;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase}
+.dcard .dm b.now{color:#0E8A5F}
+.dcard .dm .num{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.8rem;color:#1B1420}
+.dcard .dm i{font-style:normal;color:#8A8494;font-size:.6rem;text-transform:uppercase;letter-spacing:.06em}
+.dcard .dm .dot{color:#C9C2D0;padding:0 2px}
+details.acc.dun{margin-top:14px}
+details.acc.dun summary{font-size:.74rem;font-weight:700;color:#5B1A66;cursor:pointer;padding:8px 2px}
+details.acc.dun .stack{margin-top:8px}
