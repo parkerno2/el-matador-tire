@@ -302,3 +302,10 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 /* My team banner: match the phone wrap gutter (8px, not 12) — the 4px overhang let iOS pan the whole page sideways */
 @media(max-width:699px){.myhead{margin-left:-8px;margin-right:-8px}}
 html{overflow-x:clip}
+
+/* no rubber-band above the header (iOS standalone honours overscroll-behavior since 16); if a bounce still happens the canvas is header-dark, not page-grey */
+html{background:#31124A;overscroll-behavior-y:none}
+body{overscroll-behavior-y:none}
+/* matchup page: the purple stage sits flush under the header — no light seam */
+#v-gw.view.on:has(> #gwbody > .stage:first-child){padding-top:0}
+#gwbody > .stage:first-child{margin-top:0 !important}
