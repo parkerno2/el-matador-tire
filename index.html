@@ -2864,6 +2864,13 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 @media(max-width:699px){.myhead{margin-left:-8px;margin-right:-8px}}
 html{overflow-x:clip}
 
+/* no rubber-band above the header (iOS standalone honours overscroll-behavior since 16); if a bounce still happens the canvas is header-dark, not page-grey */
+html{background:#31124A;overscroll-behavior-y:none}
+body{overscroll-behavior-y:none}
+/* matchup page: the purple stage sits flush under the header — no light seam */
+#v-gw.view.on:has(> #gwbody > .stage:first-child){padding-top:0}
+#gwbody > .stage:first-child{margin-top:0 !important}
+
 /* ===== the matchup graphic ===== */
 .lgfx.mx{background:radial-gradient(90% 60% at 0% 20%,color-mix(in srgb,var(--hc) 45%,transparent),transparent 60%),radial-gradient(90% 60% at 100% 80%,color-mix(in srgb,var(--ac) 45%,transparent),transparent 60%),linear-gradient(160deg,#2E5BFF -50%,#4A1260 35%,#20104A 100%);overflow:hidden;padding:0}
 .mxhdr{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:max(14px,env(safe-area-inset-top)) 44px 8px;text-align:center;animation:lgin .6s ease both}
