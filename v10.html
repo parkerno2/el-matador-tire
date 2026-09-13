@@ -3781,7 +3781,13 @@ function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;h
   document.querySelectorAll('.hero .kick').forEach(k=>{if(!/El Matador/i.test(k.textContent))k.textContent='El Matador Tire · '+k.textContent;});})();
 const __hc=heroCopy;heroCopy=function(){__hc();const k=document.querySelector('#v-gw .hero .kick');if(k)k.textContent='El Matador Tire · Gameweek '+(D.gw||'');};
 /* ---- Players: the club view is gone (search + free agents + the wire stay) ---- */
-const __rx=renderXIs;renderXIs=function(){if(SUB&&SUB!=='all'){location.replace('#xis');return}__rx();};
+/* Only redirect a stale club sub-route when the Players view is the one showing. loadAll() re-renders every tab after
+   each refresh (visibility return, 5-min tick, pull), so on a matchup page (#gw/N) SUB is the matchup index — the old
+   unconditional replace('#xis') is what randomly threw people onto the Players tab. Off-view, render with SUB cleared. */
+const __rx=renderXIs;renderXIs=function(){const onXis=(location.hash||'#gw').slice(1).split('/')[0]==='xis';
+  if(onXis&&SUB&&SUB!=='all'){location.replace('#xis');return}
+  if(!onXis&&SUB){const s=SUB;SUB=null;try{__rx()}finally{SUB=s}return}
+  __rx();};
 /* ---- player sheet: league percentiles replace the FC27 six-stat grid ---- */
 function pctRank(v,arr){if(!arr.length)return 0;const below=arr.filter(x=>x<v).length,eq=arr.filter(x=>x===v).length;return Math.round(100*(below+eq*0.5)/arr.length)}
 function leagueStats(p){
