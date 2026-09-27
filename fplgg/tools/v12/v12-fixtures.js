@@ -72,7 +72,7 @@ function fbxFutureHTML(g,rows){
     const tail=t=>'<span class="fbx-nm"><b>'+esc(fbxShort(t))+'</b><em class="num">'+esc(fbxRec(t))+'</em></span>';
     let mid='<span class="fbx-sc fbx-v">v</span>';
     if(proj){let a=null,b=null;try{a=hpTeam(f.Home,g);b=hpTeam(f.Away,g);}catch(e){}
-      if(a!==null&&b!==null&&isFinite(a)&&isFinite(b))mid='<span class="fbx-sc fbx-pj"><span class="fbx-n"><b>'+fmt1(a)+'</b><i>–</i><b>'+fmt1(b)+'</b></span><small>Projected</small></span>';}
+      if(a!==null&&b!==null&&isFinite(a)&&isFinite(b))mid='<span class="fbx-sc fbx-pj"><span class="fbx-n"><b>'+(Math.round(a*10)/10).toFixed(1)+'</b><i>–</i><b>'+(Math.round(b*10)/10).toFixed(1)+'</b></span><small>Projected</small></span>';}
     h+='<div class="fbx-row fbx-fut">'
      +'<span class="fbx-k"><span class="fbx-dn">'+(nm?esc(nm):'')+'</span><span class="fbx-sr">'+esc(sr)+'</span></span>'
      +'<span class="fbx-ln">'+fbxSide(f.Home,'',tail(f.Home))+mid+fbxSide(f.Away,'fbx-rt',tail(f.Away))+'</span></div>';

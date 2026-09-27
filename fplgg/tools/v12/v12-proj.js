@@ -237,7 +237,7 @@ simulate=function(){
     const w=o.length/(o.length+6);
     const mean=.7*proj+.3*(w*om+(1-w)*lgAvg);
     M[k]={mean,sd:Math.max(9,hpTeamSd(t,g))};});});
-  const N=10000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
+  const N=5000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
   for(let s=0;s<N;s++){
     const p={...pts},q={...pf};
     for(const f of remain){const h=f.Home,a=f.Away,mh=M[h+'|'+num(f.GW)],ma=M[a+'|'+num(f.GW)];if(!mh||!ma)continue;

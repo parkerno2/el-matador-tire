@@ -101,8 +101,8 @@ function lkMatchHead(f,dl){
   const S=lkState(f),nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
   const sides=[...st.querySelectorAll('.vs .side')];
   const side=(el,t)=>{const rec=el&&el.querySelector('.mpxrec');
-    return '<div class="lkt" data-lkprof="'+esc(t)+'">'+crestOf(t,52)+'<b>'+esc(t)+'</b><span>'+esc(FIRSTOF(t))+'</span>'+(rec?'<span class="lkrec">'+rec.innerHTML+'</span>':'')+'</div>';};
-  const when=dl?dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}):'';
+    return '<div class="lkt" data-lkprof="'+esc(t)+'">'+crestOf(t,52)+'<b><span class="lkfull">'+esc(t)+'</span><span class="lkshort">'+esc(SHORTOF[t]||t)+'</span></b><span>'+esc(FIRSTOF(t))+'</span>'+(rec?'<span class="lkrec">'+rec.innerHTML.replace(/^\s*([\d-]+)/,'<span class="lknw">$1</span>')+'</span>':'')+'</div>';};
+  const when=dl?dl.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
   const stat=S.st==='pred'?'Projected'+(when?' · deadline '+when:''):S.st==='live'?'Live'+(S.sub?' · '+S.sub:''):S.cap+(S.sub?' · '+S.sub:'');
   const html='<div class="lkMH"><div class="lkk">Gameweek '+D.gw+(nm?' · '+esc(nm):'')+'</div><div class="lkrow">'+side(sides[0],f.Home)
    +'<div class="lkc"><div class="lkbig lkn">'+S.l+'<i>–</i>'+S.r+'</div><div class="lkst'+(S.st==='live'?' lklive':'')+'">'+esc(stat)+'</div>'+(sr?'<div class="lkal">'+esc(sr)+'</div>':'')+'</div>'
@@ -183,11 +183,60 @@ function lkTeam(root,team,page){
   });
 }
 
+
+/* ---------- speed: auto-subs and the title odds are pure functions of the loaded data, so compute them once per data load ----------
+   (the Premier League strip asked autoSubs ~2,350 times per Matchday render: ~0.5 s on a laptop, several seconds on a phone) */
+let lkKeyV=null,lkAS=new Map(),lkSim=null,lkApps=null;
+function lkFresh(){const k=[D.ro,D.gwsByGw,D.cf,D.fx,D.gw,D.dlPassed,D.provOver,D.pbonus];
+  if(!lkKeyV||k.some((v,i)=>v!==lkKeyV[i])){lkKeyV=k;lkAS=new Map();lkSim=null;lkApps=null;}}
+const lk_as=autoSubs;autoSubs=function(team,likely){lkFresh();const key=team+'|'+(likely?1:0);let c=lkAS.get(key);
+  if(!c){c=lk_as.call(this,team,likely);lkAS.set(key,c);}return {xi:c.xi.slice(),subs:c.subs.slice()};};
+const lk_sim=simulate;simulate=function(){lkFresh();if(!lkSim)lkSim=lk_sim.apply(this,arguments);return lkSim;};
+
+/* ---------- Players: "Average" = points per appearance (it divided everyone by the same gameweek count, so the toggle never changed the order) ---------- */
+function lkAppsOf(code){lkFresh();if(!lkApps){lkApps={};Object.values(D.gwsByGw||{}).forEach(g=>Object.entries(g||{}).forEach(([c,r])=>{if(r&&num(r.Mins)>0)lkApps[c]=(lkApps[c]||0)+1;}));}return lkApps[String(code)]||0;}
+plrAvg=function(p){return num(p['Season pts'])/Math.max(1,lkAppsOf(p.Code));};
+const lk_pr=plrRow;plrRow=function(p){const h=lk_pr.apply(this,arguments);
+  if(typeof FATOG!=='undefined'&&FATOG==='avg'&&!(typeof PQUERY!=='undefined'&&PQUERY)){const a=plrAvg(p).toFixed(1),n=lkAppsOf(p.Code);
+    return h.replace(/<span class="ptb"><b>[^<]*<\/b><span>[^<]*<\/span><\/span>/,'<span class="ptb"><b>'+a+'</b><span>'+num(p['Season pts'])+' pts · '+n+' '+(n===1?'game':'games')+'</span></span>');}
+  return h.replace(/(\d+\.\d) AVG</,'$1 per game<');};
+
+/* ---------- transactions: raw API codes and em dashes never reach the screen ---------- */
+function lkFixTx(){(D.tx||[]).forEach(t=>{if(!t||t.__lk)return;let r=String(t.Result||'').trim();
+  if(/^[a-z]{1,3}$/.test(r))r='Denied';t.Result=r.replace(/\s*[—–]\s*/g,', ');t.__lk=1;});}
+
+/* ---------- player sheet: the card stays in view on the two-column (desktop) sheet; the projection is said once ---------- */
+function lkSheetFix(){const L=sheet.querySelector('.sh-left');
+  if(L&&!L.querySelector(':scope > .lkstick')){const w=document.createElement('div');w.className='lkstick';while(L.firstChild)w.appendChild(L.firstChild);L.appendChild(w);}
+  const fx=sheet.querySelector('.fxst');if(fx&&/^Projected/.test(fx.textContent.trim())&&sheet.querySelector('.psx'))fx.remove();}
+
+/* ---------- Lab: sentence-case scope tabs, short names in the luck index ---------- */
+function lkLab(){const v=document.getElementById('v-ana');if(!v)return;
+  v.querySelectorAll('.labseg button').forEach(b=>{const t=b.textContent.trim();if(t==='MANAGERS')b.textContent='Managers';if(t==='LEAGUE')b.textContent='League';});
+  v.querySelectorAll('.lucks .lrow2[data-prof]').forEach(r=>{const m=r.querySelector('.lmid');const t=r.dataset.prof;if(m&&SHORTOF[t])m.textContent=SHORTOF[t];});}
+
+/* ---------- sign-in wording: a claimed team is signed into, not claimed ---------- */
+profileButtonHTML=function(){const mine=myTeam();
+  if(mine&&AUTH.team()===mine)return '<button class="watch" data-claim="1">Edit team</button>';
+  const cl=typeof authClaimedList==='function'?authClaimedList():null;
+  const claimed=mine&&((cl&&cl.indexOf(mine)>-1)||!!PROFILE[mine]);
+  return '<button class="watch" data-claim="1">'+(claimed?'Sign in':'Claim your team')+'</button>';};
+
+/* ---------- fixture difficulty: same five steps, no neon ---------- */
+Object.assign(FDRCOL,{1:'#CFEBDA',2:'#CFEBDA',3:'#EEEBF2',4:'#F4CACD',5:'#B3303A'});
+Object.assign(FDRTXT,{1:'#14532D',2:'#14532D',3:'#3B3346',4:'#7A1A20',5:'#FFFFFF'});
+
 /* ---------- wire it in (outermost wrappers) ---------- */
 const lk_uh=updateHeader;updateHeader=function(){const r=lk_uh.apply(this,arguments);const i=document.querySelector('#hav img');if(i)i.style.boxShadow='0 0 0 2px #CDBDF0';return r;};
 const lk_rg=renderGW;renderGW=function(){const r=lk_rg.apply(this,arguments);try{const body=document.getElementById('gwbody');lkBooth(body);lkMatchday(body);}catch(e){console.error(e)}return r;};
 const lk_rm=renderMatch;renderMatch=function(f,dl){const r=lk_rm.apply(this,arguments);try{lkMatchHead(f,dl)}catch(e){console.error(e)}return r;};
-const lk_rt=renderTeam;renderTeam=function(){const r=lk_rt.apply(this,arguments);try{lkTeam(document.getElementById('teampage'),myTeam(),1)}catch(e){console.error(e)}return r;};
-const lk_op=openProfile;openProfile=function(team,intoEl){const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
+const lk_rt=renderTeam;renderTeam=function(){lkFixTx();const r=lk_rt.apply(this,arguments);try{lkTeam(document.getElementById('teampage'),myTeam(),1)}catch(e){console.error(e)}return r;};
+const lk_op=openProfile;openProfile=function(team,intoEl){lkFixTx();const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
+const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix()}catch(e){console.error(e)}return r;};
+const lk_rx=renderXIs;renderXIs=function(){lkFixTx();return lk_rx.apply(this,arguments);};
+const lk_ra=renderAna;renderAna=function(){const r=lk_ra.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;};
+(function(){const p=document.getElementById('gwpill');if(!p||typeof MutationObserver==='undefined')return;
+  const fix=()=>{const m=/^GW(\d+) · (\d+d \d+h|\d+h \d+m|\d+m)$/.exec(p.textContent.trim());if(m)p.textContent='Deadline '+m[2];};
+  new MutationObserver(fix).observe(p,{childList:true,characterData:true,subtree:true});fix();})();
 if(D.ro&&D.ro.length){try{renderGW();renderTeam();renderTable();updateHeader();}catch(e){}}
 })();
