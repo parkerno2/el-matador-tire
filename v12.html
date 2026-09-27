@@ -5321,6 +5321,11 @@ button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#
 .sh-x{min-width:36px;min-height:36px}
 /* iOS zooms into any input under 16 px once pinch zoom is allowed */
 .pfind,#sheet input{font-size:16px !important}
+/* leftover blues and small layout fixes (27 Sep, second batch) */
+.chip.blue,.xlab.proj{background:#F0EBF8 !important;color:#3B2360 !important}
+.fxblk .fxs b,.fxs b{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;line-height:1.15}
+/* a wider sheet on desktop so the player's season table fits without a sideways scrollbar */
+@media(min-width:760px){.sheet{width:min(720px,100%) !important}}
 
 </style>
 <script id="v12js">
@@ -6649,6 +6654,7 @@ const lk_rt=renderTeam;renderTeam=function(){lkFixTx();const r=lk_rt.apply(this,
 const lk_op=openProfile;openProfile=function(team,intoEl){lkFixTx();const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
 const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix()}catch(e){console.error(e)}return r;};
 const lk_rx=renderXIs;renderXIs=function(){lkFixTx();return lk_rx.apply(this,arguments);};
+const lk_rtb=renderTable;renderTable=function(){const r=lk_rtb.apply(this,arguments);try{document.querySelectorAll('#tablebody details.acc').forEach(d=>{const m=d.querySelector('summary');if(m&&m.textContent.trim()==='Upcoming fixtures')d.remove();});}catch(e){}return r;}; /* the gameweek browser already shows every future week */
 const lk_ra=renderAna;renderAna=function(){const r=lk_ra.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;};
 (function(){const p=document.getElementById('gwpill');if(!p||typeof MutationObserver==='undefined')return;
   const fix=()=>{const m=/^GW(\d+) · (\d+d \d+h|\d+h \d+m|\d+m)$/.exec(p.textContent.trim());if(m)p.textContent='Deadline '+m[2];};
