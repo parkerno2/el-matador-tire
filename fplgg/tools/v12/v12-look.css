@@ -1,0 +1,212 @@
+/* ===== v12-look: the approved D2 design (27 Sep 2026) =====
+   Ink #17121D chrome, lavender-grey ground #F5F3F8, white cards, purple #5B2D8E for kickers and links only,
+   light purple #CDBDF0 on dark surfaces (replaces gold), green/red only for results.
+   Archivo for words, Barlow Condensed for every number. Plate cards (.fc) keep their own type. */
+:root{--uix-chrome:#17121D;--bg:#F5F3F8;--card:#fff;--line:#E7E2EE;--ink:#17121D;--mid:#7C7488;--p1:#17121D;--p2:#5B2D8E;
+  --lk-pu:#5B2D8E;--lk-pul:#CDBDF0;--lk-tint:#F0EBF8;--lk-good:#1F8A55;--lk-bad:#C23A3A;--lk-draw:#8C8496}
+html,body{background:#F5F3F8 !important}
+body,body *:not(.fc):not(.fc *):not(svg):not(svg *){font-family:'Archivo',system-ui,sans-serif !important}
+html body .lkn.lkn.lkn,html body .lkn.lkn.lkn *,html body .num.num.num:not(.fc *){font-family:'Barlow Condensed',sans-serif !important;font-variant-numeric:tabular-nums;letter-spacing:0}
+.top .brand{display:flex !important;align-items:center;gap:10px}
+/* chrome */
+.top{background:#17121D !important;border-bottom:1px solid #2A2332}
+#gwpill{background:transparent !important;border:1px solid #3B3345 !important;color:#E6E0EE !important;font-weight:700 !important}
+#gwpill.live{border-color:#1F8A55 !important;color:#7BE0A9 !important}
+nav{background:#fff !important;border-top:1px solid #E7E2EE !important;box-shadow:none !important}
+nav button{color:#8E869A !important}nav button.on{color:#17121D !important}
+nav button .bar{background:#5B2D8E !important}
+.helpfoot button{border:1px solid #E7E2EE !important;background:#fff !important;color:#17121D !important}
+/* type + surfaces */
+h2.v10{color:#17121D !important;font-size:1.1rem !important;font-weight:800 !important;letter-spacing:-.015em !important;text-transform:none !important;margin:24px 2px 10px !important}
+h2.v10:after{display:none !important}
+h2.v10 .lnk{color:#5B2D8E !important;font-weight:700 !important;font-size:.78rem !important}
+h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
+.plhead h2,#tablebody h2{text-transform:none !important;letter-spacing:-.01em !important;color:#17121D !important;font-size:1.1rem !important}
+.plhead h2:after,#tablebody h2:after{display:none !important}
+.card,.health .card,.fixt,.tsx,.psx,.acc,.pl{background:#fff !important;border-color:#E7E2EE !important}
+.gwtabs{border:none !important;background:transparent !important}
+.gwtabs button{background:transparent !important;color:#8E869A !important;font-weight:700 !important;font-size:.86rem !important;border:none !important;padding:6px 8px !important;text-transform:none !important;letter-spacing:0 !important}
+.gwtabs button.on{color:#17121D !important;box-shadow:inset 0 -2px 0 #5B2D8E}
+.gwtabs button+button{border-left:none !important}
+.axtog button.on,.labseg button.on,.labmet button.on,.labview button.on,.labpill.on,.fatog button.on{background:#17121D !important;color:#fff !important}
+.lkf{display:inline-flex;gap:4px}.lkf i{font-style:normal;font-weight:800;font-size:.66rem;line-height:1;background:none !important;width:auto !important;height:auto !important;border-radius:0 !important;padding:0 !important;box-shadow:none !important}
+.lkf i.W{color:#1F8A55}.lkf i.L{color:#C23A3A}.lkf i.D{color:#8C8496}
+.form span{background:transparent !important;font-weight:800 !important;font-size:.64rem !important;width:auto !important;height:auto !important}
+.form .W{color:#6FD39C !important}.form .L{color:#FF8378 !important}.form .D{color:#B9B1C4 !important}
+/* ---- Matchday: your match ---- */
+.lkD{background:#fff;border:1px solid #E7E2EE;border-radius:16px;padding:14px 14px 12px;cursor:pointer;color:#17121D;margin:0 0 6px}
+.lkD .lkhd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;color:#5B2D8E;margin-bottom:4px}
+.lkD .lkhd .lkst{margin-left:auto;color:#8E869A;letter-spacing:.02em;text-transform:none;font-weight:600;font-size:.74rem}
+.lkD .lkhd .lkst.lklive{color:#1F8A55;font-weight:800}
+.lkD .lktr{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 0}
+.lkD .lktr+.lktr{border-top:1px solid #F0ECF4}
+.lkD .lktr svg{display:block}
+.lkD .lktr .lknm{min-width:0}
+.lkD .lktr .lknm b{display:block;font-weight:800;font-size:1.06rem;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkD .lktr .lknm span{display:flex;align-items:center;gap:8px;font-size:.74rem;color:#8E869A;font-weight:600;margin-top:2px}
+.lkD .lktr .lkbig{font-weight:700;font-size:2.35rem;line-height:1;letter-spacing:-.01em}
+.lkD .lktr.lklo .lkbig,.lkD .lktr.lklo .lknm b{color:#A8A1B2}
+.lkD .lkwp{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:800;font-size:.8rem}
+.lkD .lkwp .lkbar{flex:1;display:flex;height:6px;border-radius:3px;overflow:hidden;background:#EEEAF3}
+.lkD .lkwp .lkbar i{display:block;height:100%}
+.lkD .lkwpl{display:flex;justify-content:space-between;font-size:.7rem;color:#8E869A;font-weight:600;margin-top:5px}
+.lkD .lkfact{font-size:.8rem;line-height:1.45;color:#4B4456;border-top:1px solid #F0ECF4;margin-top:11px;padding-top:10px}
+/* ---- Matchday: around the league, one card ---- */
+#gwbody .stack:has(.lkDrow){background:#fff;border:1px solid #E7E2EE;border-radius:16px;overflow:hidden;display:block}
+.lkDrow{padding:11px 14px 12px !important;cursor:pointer;border:none !important;border-top:1px solid #F0ECF4 !important;border-radius:0 !important;margin:0 !important;background:none !important;box-shadow:none !important;color:#17121D}
+.lkDrow:first-child{border-top:none !important}
+.lkDrow .lkdn{font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#5B2D8E;margin-bottom:6px}
+.lkDrow .lkln{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px}
+.lkDrow .lkt{display:flex;align-items:center;gap:8px;min-width:0}
+.lkDrow .lkt.lkr{flex-direction:row-reverse;text-align:right}
+.lkDrow .lkt b{font-weight:750;font-size:.92rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkDrow .lkt svg{flex:none;display:block}
+.lkDrow .lks{font-weight:700;font-size:1.45rem;line-height:1;display:flex;gap:8px}
+.lkDrow .lks i{font-style:normal;color:#CFC8D8}
+.lkDrow .lks .lklo{color:#A8A1B2}
+.lkDrow .lksub{display:flex;justify-content:space-between;margin-top:6px;font-size:.7rem;color:#8E869A;font-weight:600}
+/* ---- From the booth: previews and recaps always reachable ---- */
+.lkBooth{background:#fff;border:1px solid #E7E2EE;border-radius:16px;overflow:hidden}
+.lkBooth a,.lkBooth button.lkrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;border:none;border-top:1px solid #F0ECF4;background:none;width:100%;text-align:left;color:#17121D;text-decoration:none;cursor:pointer}
+.lkBooth>:first-child{border-top:none}
+.lkBooth .lkk{display:block;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#5B2D8E}
+.lkBooth b{display:block;font-weight:750;font-size:.94rem;letter-spacing:-.01em;line-height:1.3;margin-top:3px}
+.lkBooth .lkm{display:block;font-size:.72rem;color:#8E869A;font-weight:600;margin-top:3px}
+.lkBooth .lkgo{font-size:.76rem;font-weight:800;color:#5B2D8E;white-space:nowrap}
+.lkBooth .lkgo.lkplay{background:#17121D;color:#fff;border-radius:8px;padding:7px 10px}
+.lkBooth.lklead{border-color:#D9CDEF;background:#FBF9FE}
+/* ---- matchup page ---- */
+#gwbody .stage{background:#17121D !important}
+.lkMH{text-align:center;color:#fff;padding:4px 0 2px}
+.lkMH .lkk{font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#CDBDF0}
+.lkMH .lkrow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
+.lkMH .lkt{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.lkMH .lkt svg{display:block}
+.lkMH .lkt b{font-weight:800;font-size:.98rem;letter-spacing:-.015em;line-height:1.15}
+.lkMH .lkt span{font-size:.72rem;color:#B9B1C4;font-weight:600}
+.lkMH .lkt .lkrec{color:#fff;font-weight:700}
+.lkMH .lkt .lkrec em{font-style:normal;color:#CDBDF0}
+.lkMH .lkc{padding-top:10px}
+.lkMH .lkc .lkbig{font-weight:700;font-size:2.4rem;line-height:1;letter-spacing:-.01em;white-space:nowrap}
+.lkMH .lkc .lkbig i{font-style:normal;color:#5E5568;margin:0 4px}
+.lkMH .lkc .lkst{font-size:.7rem;font-weight:700;color:#B9B1C4;margin-top:6px}
+.lkMH .lkc .lkst.lklive{color:#7BE0A9}
+.lkMH .lkc .lkal{font-size:.7rem;color:#8E869A;margin-top:3px;font-weight:600}
+.mpxwin>b.hi,.side .mpxrec em,.mpxl span b{color:#CDBDF0 !important}
+.mpxnum{background:rgba(255,255,255,.05) !important}
+#gwbody .stage .backbtn{background:rgba(255,255,255,.08) !important;border-color:rgba(255,255,255,.14) !important}
+/* ---- team page ---- */
+.lkT{display:flex;flex-direction:column;gap:0}
+.lkTH{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:12px;background:#17121D;color:#fff;border-radius:16px;padding:14px}
+.lkTH .lkav{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block}
+.lkTH svg{display:block}
+.lkTH b{display:block;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;line-height:1.1}
+.lkTH .lkm{display:block;font-size:.76rem;color:#B9B1C4;font-weight:600;margin-top:3px}
+.lkTH .lkm strong{color:#fff;font-weight:700}
+.lkTH .lkfm{margin-top:6px}
+.lkTH .lkact{align-self:start}
+.lkTH .lkact .watch,.lkTH .lkact button{font-size:.7rem !important;padding:6px 9px !important;border-radius:8px !important;background:rgba(255,255,255,.1) !important;color:#fff !important;border:1px solid rgba(255,255,255,.18) !important;box-shadow:none !important}
+.lkNext{display:block;margin-top:10px;background:#fff;border:1px solid #E7E2EE;border-radius:16px;padding:12px 14px;cursor:pointer;color:#17121D}
+.lkNext .lkk{font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#5B2D8E}
+.lkNext .lkl{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:8px}
+.lkNext .lkl svg{display:block}
+.lkNext .lkl b{display:block;font-weight:800;font-size:.98rem;letter-spacing:-.015em}
+.lkNext .lkl span{display:block;font-size:.72rem;color:#8E869A;font-weight:600;margin-top:2px}
+.lkNext .lkp{text-align:right}
+.lkNext .lkp .lkn{font-weight:700;font-size:1.6rem;line-height:1}
+.lkNext .lkp span{font-size:.68rem;color:#8E869A;font-weight:700}
+.lkSched{background:#fff;border:1px solid #E7E2EE;border-radius:16px;overflow:hidden}
+.lkSched .lkr{display:grid;grid-template-columns:30px 24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #F0ECF4;cursor:pointer}
+.lkSched .lkr:first-child{border-top:none}
+.lkSched .lkg{font-size:.72rem;color:#8E869A;font-weight:700}
+.lkSched .lkr svg{display:block}
+.lkSched .lko b{display:block;font-weight:700;font-size:.88rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkSched .lko span{display:block;font-size:.68rem;color:#8E869A;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkSched .lksc{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem}
+.lkSched .lksc u{text-decoration:none;font-size:.62rem;font-weight:800;width:18px;height:18px;border-radius:4px;display:grid;place-items:center;color:#fff}
+.lkSched .lksc u.lkresW{background:#1F8A55}.lkSched .lksc u.lkresL{background:#C23A3A}.lkSched .lksc u.lkresD{background:#8C8496}
+.lkSched .lkwhen{font-size:.74rem;color:#8E869A;font-weight:600;text-align:right}
+.lkSched .lkr.lkfut{background:#FCFBFE}
+.lkLineupH{display:flex;align-items:center;justify-content:space-between}
+#teampage .mypitch,#sheet .mypitch{margin-top:4px}
+.lkT .watchrow{margin:0 0 8px !important}
+
+/* league rows: kicker only when the matchup has a name, bar carries the win chance */
+.lkDrow .lkwp{display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:800;font-size:.74rem;color:#4B4456}
+.lkDrow .lkwp .lkbar{flex:1;display:flex;height:4px;border-radius:2px;overflow:hidden;background:#EEEAF3}
+.lkDrow .lkwp .lkbar i{display:block;height:100%}
+.lkDrow .lksub:has(span:empty + span:empty){display:none}
+.lkD .lkwp .lkn,.lkDrow .lkwp .lkn{font-size:.95rem}
+.lkTH .lkcr{display:block;line-height:0}
+#gwbody .stage .mpxrec,#gwbody .stage .form.lkc{display:none}
+.lkMH .lkt .lkrec{display:inline-flex;gap:4px;align-items:center}
+.lkMH .lkt .lkrec i{font-style:normal;color:#8E869A}
+.lkMH .lkt{cursor:pointer}
+.lkSched .lkwhen{line-height:1.1}
+.lkSched .lkwhen .lkn{font-size:1.05rem;color:#17121D;font-weight:700}
+.tsx-n.num{font-size:1.35rem !important}
+
+/* sentence case controls */
+.axtog button,.btoggle,#btog,.watch{text-transform:none !important;letter-spacing:0 !important}
+.axtog button{font-weight:700 !important}
+.btoggle{background:transparent !important;border:1px solid rgba(255,255,255,.2) !important;color:#fff !important}
+/* My team: sections sit on the ground, not inside one long card */
+#teampage>.card{background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important;margin-top:0 !important}
+#teampage .lkNext{margin-bottom:0}
+#teampage .tsx,#teampage .card.fixt{background:#fff !important}
+.watchrow{display:flex;align-items:center;gap:8px}
+.watchrow .watch{background:#fff !important;color:#5B2D8E !important;border:1px solid #E7E2EE !important;box-shadow:none !important}
+/* header: Matchweek plate + league name left, the gameweek pill beside the actions */
+.top .in{grid-template-columns:auto 1fr auto !important}
+.top .gwpill,#gwpill{justify-self:end !important}
+/* team header: the name gets the full width, the claim button sits under it */
+.lkTH{grid-template-columns:56px minmax(0,1fr) !important}
+.lkTH .lkact{grid-column:2;margin-top:2px}
+.lkTH .lkact .profrow{margin:0 !important}
+h2.v10 .lnk.tsx-k{color:#8E869A !important;cursor:default}
+
+/* header: Matchweek plate + league name */
+.top .brand .lg{font-size:.8rem !important;font-weight:800 !important;letter-spacing:-.01em !important;text-transform:none !important;line-height:1.05 !important;color:#fff !important}
+/* sentence-case section heads everywhere */
+.plhead h2,#v-gw h2:not(.v10),#tablebody h2{font-size:1.1rem !important;font-weight:800 !important;letter-spacing:-.015em !important;text-transform:none !important;color:#17121D !important}
+.plhead button{text-transform:none !important;letter-spacing:0 !important;font-size:.74rem !important;color:#5B2D8E !important}
+
+/* ---------- the rest of the app ---------- */
+/* gold is retired outside the Plate cards: light purple on dark surfaces, a purple tint on light ones */
+body{--gold:#CDBDF0;--p3:#5B2D8E}
+.fc{--gold:#FFD23F}
+.view h2,#sheet h2,.sh2{font-size:1.1rem !important;font-weight:800 !important;letter-spacing:-.015em !important;text-transform:none !important;color:#17121D !important}
+.view h2:after,#sheet h2:after,.sh2:after,h2.v10:after{display:none !important}
+.hist h4:after{background:#E7E2EE !important}
+.provnote{border:1px solid #D9CDEF !important;border-left:1px solid #D9CDEF !important;background:#FBF9FE !important;border-radius:12px}
+.trow.lead{box-shadow:none !important}
+.sh-left,.myhead{background:#17121D !important}
+.hbtn.busy,.nextcard .k,.lghead .k,.mxhdr .d,.mx .intro .k,.mx .strip b.num,.mx .strip em.num,.mx .vsbug .lab,.mx .km em,.mx .mxov b,
+.mx .lgfoot .k .num,.mx .story .sk,.mx .sface .sv span,.mx .ptw .k,.mx .lt .k,.mx .lt.star .k,.mx .sopen .k,.mx .sofx .sc,.lgfx.mx.show .lt.hi .k,
+button.watch.elev .pl,.recapcard.show .rk{color:#CDBDF0 !important}
+.mx .intro .ph{box-shadow:0 0 0 4px #CDBDF0,0 14px 30px rgba(0,0,0,.45) !important}
+.mx .ptw .ph{box-shadow:0 0 0 2px #CDBDF0 !important}
+.mx .hit,.mx .lt,.mx .lt.star{border-left-color:#CDBDF0 !important}
+.money90 .tg,h2.v10 .lnk.hst .tg.ft,.hist td.pts b.p10,.hist.tres td.rs b.lv,.recapcard .new,.recapcard .go,.recapcard.show .new,.recapcard.show .go{background:#E4D9F5 !important;color:#17121D !important}
+.sgrid td.wk{box-shadow:inset 0 0 0 2px #5B2D8E !important}
+button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#17121D !important;color:#fff !important;box-shadow:none !important}
+.gwpill.final,#gwpill.final{background:transparent !important;border-color:#CDBDF0 !important;color:#CDBDF0 !important}
+/* segmented controls read in sentence case */
+.labview,.labseg button,.labmet button,.fatog button,.labpill,.axtog button{text-transform:none !important;letter-spacing:0 !important}
+/* gameweek browser: past results and future fixtures */
+.fbx-now,.fbx-k .fbx-go,.dcard .dk .go{color:#5B2D8E !important}
+.fbx-sd b,.fbx-ph .fbx-psd b,.dcard .ds b{font-family:'Archivo',sans-serif !important;text-transform:none !important;letter-spacing:-.01em !important;font-weight:800 !important}
+.fbx-sd b{font-size:.9rem !important}
+.fbx-sc.fbx-pj small{display:none !important}
+.fbx-r.fbx-W{background:#1F8A55 !important}.fbx-r.fbx-L{background:#C23A3A !important}
+.fbx-k .fbx-dn,.fbx-pm .fbx-pk,.fbx-pl .fbx-tp,.fbx-tot span{color:#5B2D8E !important}
+.fbx-list{border-color:#E7E2EE !important;border-radius:16px !important}
+/* derbies: one quiet card style; this week gets a light purple edge, no glow, no colour bar */
+.dcard{border-color:#E7E2EE !important;box-shadow:none !important;border-radius:16px !important}
+.dcard:before{display:none !important}
+.dcard.live{border-color:#CDBDF0 !important;background:#FBF9FE !important}
+.dcard .dk{color:#5B2D8E}
+.chip.gold{background:#E4D9F5 !important;color:#3B2360 !important}
+.chip.dark{color:#CDBDF0 !important}
+.fxblk .fxs.me i{color:#5B2D8E !important}
+.dlchip{background:#E4D9F5 !important;color:#3B2360 !important}

@@ -13,8 +13,10 @@ args = [a for a in sys.argv[1:] if not a.startswith('--')]
 PROD = '--prod' in sys.argv
 SRC = pathlib.Path(args[0]).resolve()
 OUT = pathlib.Path(args[1]).resolve() if PROD and len(args) > 1 else SRC.parent / 'v12.html'
-JS = ['v12-proj.js', 'v12-match.js', 'v12-stats.js', 'v12-fixtures.js', 'v12-ui.js']
-CSS = ['v12-match.css', 'v12-stats.css', 'v12-fixtures.css', 'v12-ui.css']
+JS = ['v12-proj.js', 'v12-match.js', 'v12-stats.js', 'v12-fixtures.js', 'v12-ui.js', 'v12-look.js']
+CSS = ['v12-match.css', 'v12-stats.css', 'v12-fixtures.css', 'v12-ui.css', 'v12-look.css']
+# the v12-look type: Archivo for words, Barlow Condensed for numbers (Manrope/Saira stay for the Plate cards)
+FONTS = '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">'
 tmp = tempfile.NamedTemporaryFile(suffix='.html', delete=False).name
 cmd = [sys.executable, str(V10 / 'build_v10.py'), str(SRC)] + (['--prod', tmp] if PROD else [])
 subprocess.run(cmd, check=True)
@@ -31,6 +33,8 @@ try: subprocess.run(['node', '--check', t2], check=True)
 finally: os.unlink(t2)
 tail = '\n<!-- v12 -->\n<style id="v12css">\n' + css + '\n</style>\n<script id="v12js">\n' + js + '\n</script>\n'
 i = s.rindex('</body>'); s = s[:i] + tail + s[i:]
+if FONTS not in s:
+    h = s.index('</head>'); s = s[:h] + FONTS + '\n' + s[h:]
 if not PROD:
     s = s.replace('<title>El Matador Tire · v10 preview</title>', '<title>El Matador Tire · v12 preview</title>')
 else:
