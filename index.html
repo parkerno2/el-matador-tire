@@ -788,7 +788,7 @@ const TEAMS={'Cold Palmers':{mgr:'Parker Nolan',ini:'PN',col:'#2E5BFF',xi:1185,l
 'Kobbie Mainoo Fan':{mgr:'Baha Kharoofa',ini:'BK',col:'#E8710A',xi:940,lo:703,hi:1177},
 'Team Jacob':{mgr:'Jacob Sodini',ini:'JS',col:'#795548',xi:1137,lo:871,hi:1403}, // colour changed from #1B7F79 (clashed with CJ's teal)
 'In It to McGinn It':{mgr:'Nate Grahn',ini:'NG',col:'#B5179E',xi:1051,lo:787,hi:1315}};
-const MATCH={'BS|PN':'The Mr. Marks Bowl','PJ|PN':'Nolan','PN|BK':'El Clásico','JS|PN':'The Gamer Derby',
+const MATCH={'BS|PN':'The Mr. Marks Bowl','PJ|PN':'The Nolan Derby','PN|BK':'El Clásico','JS|PN':'The Gamer Derby',
 'NG|PN':'The Fortnite Derby','BS|CT':'De Klassieker','BS|BK':'The Sacred Heart Derby','PJ|CT':'El Jlásico',
 'CT|BK':'The Cumtown Derby','PJ|BK':'Derby of the Eternal Enemies','PJ|NG':'The Hasbulla Derby',
 'BS|NG':'The Green Bus Brouhaha','BK|EG':'The Rooney Toons Derby','JS|EG':'The Besties Derby','BK|JS':'Red Card Ranked Invitational'};
@@ -6360,10 +6360,17 @@ Object.entries(TEAMS).forEach(([t,tm])=>{const s=LK_PAL[LK_DEF[tm.ini]];if(!s)re
   const d=CREST_DEFAULTS[tm.ini],c=CREST[tm.ini];[d,c].forEach(o=>{if(o){o.c1=s.f;o.c2=s.f2||s.f;}});});
 try{applyProfiles();}catch(e){}
 const lkPidOf=(c1,m)=>{const p=PALETTE.find(x=>x.c1===c1);return p?p.id:LK_DEF[m]};
+let lkCid=0;
 crestSVG=function(m,size,opt){
   size=size||64;const t=CREST[m];if(!t)return '';const o=opt||{};
   const s=LK_PAL[lkPidOf(o.c1||t.c1,m)]||LK_PAL.royal;const sh=SHAPE_BY[o.shape||t.shape||'shield']||SHAPES[0];
   const useIni=o.emblem!==undefined?o.emblem==='initials':t.useIni===true;
+  /* small badges (lists, schedule, header, next card) wear the team colour so they stay easy to tell apart; 33 px and up stay Mono */
+  if(size<=32){const id='lkc'+m+(lkCid++);
+    const body=s.f2?'<defs><clipPath id="'+id+'"><path d="'+sh.d+'"/></clipPath></defs><g clip-path="url(#'+id+')"><rect width="50" height="108" fill="'+s.f+'"/><rect x="50" width="50" height="108" fill="'+s.f2+'"/></g>'
+      :'<path d="'+sh.d+'" fill="'+s.f+'"/>';
+    const em2=useIni?'<text x="50" y="66" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700" font-size="'+(m.length>2?34:42)+'" fill="#fff">'+m+'</text>':t.emblem;
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 108" fill="none" aria-label="'+t.name+' crest">'+body+'<g transform="translate(0,6)">'+em2+'</g></svg>';}
   const ec=lkMix(s.col,'#ffffff',.28);
   const em=useIni?'<text x="50" y="66" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700" font-size="'+(m.length>2?34:42)+'" fill="'+ec+'">'+m+'</text>'
     :t.emblem.replace(/#fff\b/gi,ec).replace(/#(3B2A05|BFE0FF|CFF6EE|FFE2B8|FFD98F|F7CFF2)/gi,ec);
