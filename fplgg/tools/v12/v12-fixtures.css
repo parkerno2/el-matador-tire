@@ -1,0 +1,90 @@
+/* ===== v12 · gameweek browser, past-matchup sheet, team fixtures, news row ===== */
+/* the Gameweek tab gains plain chevrons either side (the v10 .gwtabs pill, one plum selected segment) */
+.fbx-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 0}
+.fbx-bar .gwtabs{margin:0}
+.gwtabs .fbx-ar{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;color:#5B1A66}
+.gwtabs .fbx-ar svg{display:block}
+.gwtabs .fbx-ar:disabled{color:#D5CEDC;cursor:default}
+.fbx-now{background:none;border:none;padding:6px 2px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;color:#2E5BFF;cursor:pointer}
+
+/* one list per gameweek: hairline rows in a single white card */
+.fbx-list{background:#fff;border:1px solid #E8E4EE;border-radius:14px;overflow:hidden}
+.fbx-row{display:block;width:100%;box-sizing:border-box;margin:0;text-align:left;background:#fff;border:0;border-top:1px solid #EEEAF2;border-radius:0;padding:9px 12px 11px;font:inherit;color:#1B1420;-webkit-tap-highlight-color:transparent}
+.fbx-row:first-child{border-top:0}
+button.fbx-row{cursor:pointer}
+.fbx-k{display:flex;align-items:center;gap:8px;min-height:14px;margin-bottom:6px}
+.fbx-k .fbx-dn{font-family:'Manrope',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#5B1A66;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbx-k .fbx-go{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:1px;font-size:.62rem;font-weight:700;color:#2E5BFF}
+.fbx-k .fbx-go svg{width:12px;height:12px}
+.fbx-k .fbx-sr{margin-left:auto;flex:none;font-size:.62rem;font-weight:600;color:#665D72;white-space:nowrap}
+.fbx-ln{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+.fbx-sd{display:flex;align-items:center;gap:7px;min-width:0}
+.fbx-sd.fbx-rt{flex-direction:row-reverse;text-align:right}
+.fbx-sd .fbx-cr{width:28px;height:28px;flex:none}
+.fbx-sd .fbx-cr svg{display:block;width:100%;height:100%}
+.fbx-sd b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.92rem;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;color:#1B1420;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fbx-sd .fbx-nm{display:flex;flex-direction:column;min-width:0}
+.fbx-sd.fbx-rt .fbx-nm{align-items:flex-end}
+.fbx-sd .fbx-nm em{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.74rem;color:#665D72;margin-top:1px;line-height:1}
+.fbx-r{flex:none;width:16px;height:16px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-family:'Saira Condensed',sans-serif;font-style:normal;font-weight:600;font-size:.6rem;line-height:1;color:#fff}
+.fbx-r.fbx-W{background:#19D27A}.fbx-r.fbx-L{background:#E5484D}.fbx-r.fbx-D{background:#8A8494}
+.fbx-sc{display:flex;align-items:baseline;justify-content:center;gap:4px;min-width:64px;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.34rem;line-height:1;color:#A39BAD;font-variant-numeric:tabular-nums}
+.fbx-sc b{font-weight:700}
+.fbx-sc b.fbx-w{color:#1B1420}
+.fbx-sc i{font-style:normal;font-size:.95rem;color:#C9C2D0}
+.fbx-sc.fbx-v{font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:700;color:#8A8494;text-transform:lowercase}
+.fbx-sc.fbx-pj{flex-direction:column;align-items:center;gap:3px}
+.fbx-sc.fbx-pj .fbx-n{display:flex;align-items:baseline;gap:4px;font-size:1.12rem;color:#1B1420}
+.fbx-sc.fbx-pj .fbx-n b{font-weight:600}
+.fbx-sc.fbx-pj small{font-family:'Manrope',sans-serif;font-size:.5rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#665D72}
+
+/* past matchup sheet */
+.sh-right.fbx-pm{padding:16px 16px 20px}
+.fbx-pm .fbx-pk{font-family:'Manrope',sans-serif;font-weight:800;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#5B1A66;padding-right:40px;margin:4px 0 12px;line-height:1.4}
+.fbx-ph{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid #EEEAF2}
+.fbx-ph .fbx-psd{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
+.fbx-ph .fbx-psd .fbx-cr{width:44px;height:44px}
+.fbx-ph .fbx-psd .fbx-cr svg{display:block;width:100%;height:100%}
+.fbx-ph .fbx-psd b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1rem;letter-spacing:.02em;text-transform:uppercase;color:#1B1420;margin-top:4px;line-height:1}
+.fbx-ph .fbx-psd i{font-style:normal;font-size:.64rem;font-weight:600;color:#665D72}
+.fbx-ph .fbx-psc{display:flex;flex-direction:column;align-items:center;gap:4px}
+.fbx-ph .fbx-psc .fbx-n{display:flex;align-items:baseline;gap:6px;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2.1rem;line-height:1;color:#A39BAD;font-variant-numeric:tabular-nums}
+.fbx-ph .fbx-psc .fbx-n b{font-weight:700}
+.fbx-ph .fbx-psc .fbx-n b.fbx-w{color:#1B1420}
+.fbx-ph .fbx-psc .fbx-n i{font-style:normal;font-size:1.3rem;color:#C9C2D0}
+.fbx-ph .fbx-psc small{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#665D72}
+.fbx-lu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px;margin-top:4px}
+.fbx-col{min-width:0}
+.fbx-lh{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8A8494;margin:12px 0 2px}
+.fbx-pl{display:flex;align-items:center;gap:5px;height:27px;border-bottom:1px solid #F1EEF4;cursor:pointer;min-width:0}
+.fbx-pl .fbx-ps{flex:none;width:23px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.64rem;letter-spacing:.04em;color:#8A8494}
+.fbx-pl img.crest{flex:none;height:14px;width:auto}
+.fbx-pl .fbx-pn{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.74rem;font-weight:600;color:#1B1420}
+.fbx-pl.fbx-top .fbx-pn{font-weight:800}
+.fbx-pl .fbx-tp{flex:none;font-size:.5rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5B1A66}
+.fbx-pl .fbx-pt{flex:none;min-width:18px;text-align:right;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.92rem;color:#1B1420;font-variant-numeric:tabular-nums}
+.fbx-pl.fbx-bn{opacity:.55}
+.fbx-tot{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:7px 0 0}
+.fbx-tot span{font-size:.56rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5B1A66}
+.fbx-tot b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:#1B1420;font-variant-numeric:tabular-nums}
+.fbx-tot.fbx-bn span{color:#665D72;letter-spacing:.06em}
+.fbx-tot.fbx-bn b{font-size:.96rem;color:#665D72}
+.fbx-none{font-size:.68rem;color:#8A8494;margin:12px 0 0;line-height:1.4}
+
+/* team page: results rows open the matchup; the next fixtures table links into the browser */
+.hist.tres tr.fbx-tap{cursor:pointer}
+.hist.tres.fbx-up table{min-width:0}
+.hist.tres.fbx-up td.fbx-dt{font-family:'Manrope',sans-serif;font-weight:600;font-size:.66rem;color:#665D72;text-align:right;padding-right:10px}
+.hist.tres.fbx-up th:last-child{text-align:right;padding-right:10px}
+
+/* Recent news: more than two articles wrap two to a row; with none recent, one row opens the archive */
+.program.fbx-n3{flex-wrap:wrap}
+.program.fbx-n3 .recapcard{flex:1 1 calc(50% - 4px)}
+.fbx-art{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;margin:14px 0 0;background:#fff;border:1px solid #E8E4EE;border-radius:12px;padding:11px 12px;font:inherit;text-align:left;cursor:pointer;color:#1B1420}
+.fbx-art span{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.fbx-art b{font-size:.78rem;font-weight:800}
+.fbx-art em{font-style:normal;font-size:.66rem;font-weight:600;color:#665D72}
+.fbx-art svg{flex:none;color:#5B1A66}
+.watchrow.fbx-wr{margin:10px 0}
+/* a past or future gameweek is short: keep the flat ground under it instead of the purple canvas */
+body[data-view="gw"]{min-height:100vh}

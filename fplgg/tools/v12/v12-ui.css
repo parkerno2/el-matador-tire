@@ -1,0 +1,169 @@
+/* ===== v12-ui · the anti-slop pass (26 Sep 2026). Appended last by build_v12.py. =====
+   Keeps: the Plate cards (.fc and everything inside), crests, the pitch, the manager colours, brand plum as the one
+   accent, the h2.v10 section header, the dark chrome (one gradient, calmed below).
+   Strips: radial orbs, stacked gradients on content surfaces, drop shadows (hairlines instead), coloured side
+   stripes, pastel fills, glass blur, hover lifts, pill-soft control radii, the second selected-control style.
+   Not touched here (other v12 modules own their layout): the gameweek browser (.fbx-*; .gwtabs only gets the 8px
+   control radius), .dcard (derbies list), the matchup tape, squad health, the xP grid, v12-stats' tiles. The recap,
+   preview and show cards only lose their stripe, shadow and gradient; v12-fixtures still decides which render. */
+:root{
+  --uix-chrome:linear-gradient(115deg,#302C86 -12%,#4A1A5F 46%,#37003C 100%);
+  --uix-line:#E8E4EE;
+  --uix-sel:#2E0F3A;
+  --uix-bug:#34104E;
+}
+
+/* ---- chrome: one gradient, calmer blue end; no glow under the bar ---- */
+.top{background:var(--uix-chrome) !important;box-shadow:none !important}
+#gwbody .stage{background:var(--uix-chrome) !important;box-shadow:none !important}
+.myhead{background:var(--uix-chrome)}
+.sh-left{background:var(--uix-chrome) !important;border-radius:14px 14px 0 0}
+.sh-left:before{display:none}
+@media(min-width:700px){.sh-left{border-radius:14px 0 0 14px}}
+.lgfx,.lgfx.mx{background:var(--uix-chrome) !important}
+.top .brand svg,.lgfoot svg{filter:none !important}
+/* the next-gameweek sheet header was a teal-blue gradient of its own */
+#sheet>div[style*="#07304F"]{background:var(--uix-chrome) !important;border-radius:14px 14px 0 0 !important}
+
+/* ---- surfaces: hairline borders, no drop shadows ---- */
+.card,.faqsec,.gwblk,.minirecs>div,.xstats div,.acc,.prw,.pfind,.pl,.m,.mcard,.stage .card,.health .card,.fixt{box-shadow:none !important}
+.faqsec,.gwblk,.minirecs>div,.acc,.prw,.pfind{border:1px solid var(--uix-line)}
+.card{border:1px solid var(--uix-line) !important}
+.race{border-top:1px solid var(--uix-line) !important}
+.helpfoot button{box-shadow:none;border-radius:8px}
+.sheet{box-shadow:none;border-radius:14px 14px 0 0}
+@media(min-width:700px){.sheet{border-radius:14px}}
+.ov{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:rgba(27,20,32,.62)}
+#ptr{box-shadow:none;border-radius:8px;background:var(--uix-sel);border:1px solid rgba(255,255,255,.14)}
+#ptr.spin{background:var(--uix-sel)}
+.fxs img,.fxblk .fxs img,.fixt .fr .fd img,.au-big svg{filter:none !important}
+
+/* ---- no hover lifts or press-scales on controls and panels (the cards keep theirs: locked) ---- */
+.faqsec,.gwblk,.minirecs>div,.xstats div,.mgrid .mt,.clubgrid button{transition:none !important}
+.faqsec:hover,.gwblk:hover,.minirecs>div:hover,.xstats div:hover{transform:none !important;box-shadow:none !important}
+.mgrid .mt:active,.clubgrid button:active{transform:none !important}
+
+/* ---- ONE selected-control style: plum, white text; unselected = white track, mid-grey text, hairline ---- */
+.fatog,.axtog .in3,.labseg{border:1px solid var(--uix-line) !important;border-radius:8px !important;background:#fff}
+.gwtabs{border-radius:8px}
+.fatog button,.axtog button,.labseg button,.watchrow .axtog button{background:#fff;color:var(--mid)}
+.fatog button.on,.labseg button.on,.labmet.on,.labview.on,.axtog button.on,.watchrow .axtog button.on{background:var(--uix-sel) !important;color:#fff !important;border-color:var(--uix-sel) !important}
+.labmet,.labview,.labclear{border-radius:8px !important}
+.labclear{background:#fff;border:1px solid var(--uix-line);color:var(--mid)}
+.btoggle,.plhead button,.allclubs,.backbtn,#gwbody .stage .backbtn{border-radius:8px !important}
+.btoggle{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28)}
+.pfind{border-radius:10px}
+.chip{border-radius:6px}
+.ownp{border-radius:6px}
+.fdr{border-radius:6px;box-shadow:none}
+
+/* ---- score bugs: the radial team-colour orbs go (v12-ui.js flattens the inline ground); flanks stay ---- */
+.mcard.bug{box-shadow:none !important}
+.bug .lab.live{color:#4FD08E}
+/* one live green for text on dark grounds (was mint #3DF59B / #5CF0A5 in places); the card's own LIVE bubble is untouched */
+.score em.live,.mcard.gx .st.live,.mpxg3>b u{color:#4FD08E}
+/* the next-gameweek card and the predicted matchups in its sheet */
+.mcard.gx.g5,.mcard.g5.ngwcard{background:var(--uix-sel) !important;box-shadow:none !important}
+.gwpill.final{background:#FFD23F;color:#37003C}
+.gwpill.live{background:#19D27A !important;color:#06331F !important}
+.provnote{background:#fff;border:1px solid var(--uix-line);border-left-width:1px;color:var(--ink)}
+.provnote b{color:#7A5E14}
+button.watch.elev{background:#FFD23F;box-shadow:none;border-radius:8px}
+/* recap / preview / show cards: flat plum like the bugs, hairline edge, no gold or green side stripe, no drop shadow
+   (the white preview card in Recent news keeps its white ground and hairline: v10's .program .recapcard.prev wins) */
+.recapcard,.recapcard.show{background:var(--uix-bug) !important;border:1px solid #4A1355 !important;box-shadow:none !important}
+.recapcard .go{border-radius:8px}
+button.watch.elev.sm{box-shadow:none}
+
+/* ---- Table ---- */
+.trow.lead{background:none;box-shadow:none}
+.trow.lead .nm2{color:var(--ink)}
+/* "Will Baha finish 8th?": a plain card under its question, not a purple stage */
+#tablebody .stage{background:none !important;box-shadow:none !important;padding:0 !important;color:var(--ink);border-radius:0}
+#tablebody .stage .sh2{color:var(--ink);font-size:.8rem;font-weight:700;letter-spacing:0;text-transform:none;margin:0 2px 8px}
+#tablebody .stage .sh2:after{display:none}
+
+/* ---- Players ---- */
+.prw{border-radius:10px}
+/* owner chip = the owner's crest (v12-ui.js); FREE stays in search results but is redundant under "Top free agents" */
+.prw .ownp{box-sizing:border-box;min-width:44px;text-align:center}
+.ownp.uix-own{background:none !important;padding:0;display:flex;align-items:center;justify-content:center;width:44px;height:26px}
+.ownp.uix-own svg{display:block;width:22px;height:22px}
+.fahead~.prw .ownp.free{display:none}
+
+/* ---- the Lab ---- */
+.labhead{background:#fff !important;color:var(--ink);border-bottom:1px solid var(--uix-line);padding:11px 14px}
+.labhead b{font-size:.7rem;letter-spacing:.14em;color:var(--p2)}
+/* manager filter: crests on white squares (v12-ui.js swaps the initials out); selected = plum */
+.labsub{gap:5px}
+.labmono{flex:1 1 0;min-width:0;max-width:46px;width:auto;height:38px;border-radius:8px;border:1px solid var(--uix-line) !important;background:#fff !important;padding:0;display:flex;align-items:center;justify-content:center}
+.labmono svg{display:block;width:24px;height:24px;flex:none}
+.labclear{flex:none}
+.labmono.on{background:var(--uix-sel) !important;border-color:var(--uix-sel) !important}
+/* manager tiles (Lab + the My team picker): flat team colour, no gradient, no sheen */
+.mgrid .mt{background:#3A1A48;background:color-mix(in srgb,var(--tc) 55%,#1B1420);box-shadow:none;border-radius:12px}
+.mgrid .mt:before{display:none}
+/* star man: label on its own line so the name and points wrap inside the tile instead of being cut */
+.mtstar{color:#fff;max-width:100%;white-space:normal;line-height:1.3}
+.mgrid .mt>*{max-width:100%}
+.mtstar i{display:block;margin:0 0 2px;color:rgba(255,255,255,.7)}
+
+/* ---- FAQ: no "How it works" button on the How it works page; the pot is a list, not a tile grid ---- */
+body[data-view="faq"] .helpfoot{display:none}
+.pot{display:block}
+.pot div{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:baseline;gap:10px;background:none;border:none;border-bottom:1px solid #F1EEF4;border-radius:0;box-shadow:none;padding:9px 2px}
+.pot div:last-child{border-bottom:none}
+.pot b{display:inline;font-size:1.1rem}
+
+/* ---- player sheet ---- */
+.fxblk .fxrow:before{display:none}
+.fxblk .fxmain{padding-left:12px}.fxblk .fxfoot{padding-left:12px}
+.chip{background:#F3F0F6;color:var(--ink)}
+.chip.gold{background:#FFD23F;color:#37003C}
+.chip.red{background:#F3F0F6;color:#C62828}
+.chip.dark{background:#1B1420;color:#FFD23F}
+.chip.rose{background:#6E1239;color:#fff}
+.chip.blue{background:#0B3E9E;color:#fff}
+#sheet .chiprow .chip.grn{display:none}
+/* manager sheet header: the form chips drop to their own line under the name (they sat under the close button and
+   squeezed the name line); the name line clears the close button */
+#sheet .sh-right>.sh-x+div{flex-wrap:wrap;row-gap:6px;padding-right:34px}
+#sheet .sh-right>.sh-x+div>span:last-child{margin-left:54px !important;flex:1 1 100%}
+#sheet .sh-right>.sh-x+div>span:last-child .form.r{justify-content:flex-start}
+/* the three headline numbers (manager sheet + My team): one hairline strip, not three grey tiles */
+.profstats{gap:0 !important;border:1px solid var(--uix-line);border-radius:12px;overflow:hidden;background:#fff}
+.profstats>div{background:#fff;border-radius:0}
+.profstats>div+div{border-left:1px solid var(--uix-line)}
+
+/* ---- lineup graphic + show overlay chrome ---- */
+.mx .lt,.mx .lt.star{background:rgba(20,8,30,.92);border:1px solid rgba(255,255,255,.14);border-left-width:1px;border-radius:10px;box-shadow:none}
+.mx .lt.star{border-color:rgba(255,210,63,.4)}
+.mx .hit{border-left:none;border-radius:10px}
+.mx .km,.mx .km.a{border-left:none;border-right:none}
+.mx .km .k:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--hc);margin-right:6px;vertical-align:1px}
+.mx .km.a .k:before{background:var(--ac)}
+.mx .vsbug{box-shadow:none}
+.mx .vsbug .tg.live{color:#4FD08E}
+.mx .intro .ph{box-shadow:0 0 0 3px #FFD23F}
+.mx .intro .cr.big svg,.mx .intro .cr.sm svg,.mx .fs .cr svg,.mx .sface .cr svg{filter:none !important}
+/* the star man still flips and grows; the gold glow around his card goes (no filters on card edges) */
+@keyframes starIn{0%{transform:none;z-index:20}45%{transform:perspective(700px) rotateY(180deg) scale(1.25);z-index:20}100%{transform:perspective(700px) rotateY(360deg) scale(1.5);z-index:20}}
+@keyframes starOut{to{transform:scale(1.1);z-index:20}}
+.lgfx.mx.done .deal.focus{filter:none}
+.lgfoot button.watch,.mx .lgfoot button.watch{border-radius:8px}
+
+/* ---- Matchday first paint: a static skeleton until renderScoreboard replaces it ---- */
+.uix-skel{display:flex;flex-direction:column;gap:10px;padding-top:12px;animation:uixPulse 1.2s ease-in-out infinite alternate}
+.uix-skel i{display:block;background:#ECE9F0;border-radius:10px}
+.uix-skel>.k{width:200px;height:30px;border-radius:8px}
+.uix-skel>.c{height:74px;border-radius:12px}
+.uix-skel>.b{display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:14px;background:#ECE9F0}
+.uix-skel>.b i{background:#E1DDE7;height:10px;width:38%}
+.uix-skel>.b i+i{height:52px;width:100%;border-radius:6px}
+.uix-skel>.b i+i+i{height:14px;width:100%;border-radius:6px}
+@keyframes uixPulse{from{opacity:1}to{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.uix-skel{animation:none}}
+
+/* ---- My team: the clubhouse banner sits flush under the header, like the matchup stage (no light strip between two dark bands) ---- */
+#v-team.view.on:has(#teampage > .myhead:first-child){padding-top:0}
+#teampage:has(> .myhead:first-child){margin-top:0 !important}

@@ -1,0 +1,45 @@
+/* ===== v12 · matchup page: records, matchup numbers, one-line bug label ===== */
+/* record under each manager on the stage */
+.side .mpxrec{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:.04em;color:#fff;line-height:1.1;white-space:nowrap}
+.side .mpxrec i{font-style:normal;color:#C9B8D6;margin:0 1px}
+.side .mpxrec em{font-style:normal;color:var(--gold)}
+
+/* matchup numbers: sits where the tale of the tape sat, same panel */
+.mpxnum{background:rgba(0,0,0,.22);border-radius:10px;padding:2px 10px;margin:10px auto 0;max-width:520px;color:#fff}
+.mpxr{padding:8px 0}
+.mpxr+.mpxr{border-top:1px solid rgba(255,255,255,.1)}
+.mpxr em{display:block;font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:#C9B8D6;text-align:center;line-height:1.2}
+.mpxr b{font-family:'Saira Condensed',sans-serif;font-weight:700}
+/* chance to win */
+.mpxwin{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px}
+.mpxwin>b{font-size:1rem;line-height:1}
+.mpxwin>b:first-child{text-align:right}
+.mpxwin>b.hi{color:var(--gold)}
+.mpxwin .mpxm{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mpxwin em span{letter-spacing:.12em}
+.mpxbar{display:flex;gap:3px;height:6px}
+.mpxbar i{display:block;border-radius:3px;min-width:3px}
+.mpxbar i.d{background:#8A8494}
+/* points left (live) */
+.mpxlft span{font-size:.7rem;font-weight:600;color:#E9DFF0;white-space:nowrap}
+.mpxlft span.r{text-align:right}
+.mpxlft span b{font-size:1rem;color:#fff;line-height:1}
+.mpxlft span i{font-style:normal;color:#C9B8D6}
+/* minutes risk */
+.mpxg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:5px}
+.mpxl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mpxl.r{align-items:flex-end;text-align:right}
+.mpxl span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mpxl span b{font-size:.8rem;color:var(--gold);margin-left:2px}
+.mpxl span.no{color:#C9B8D6;font-weight:500}
+/* who plays whom */
+.mpxg3{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);align-items:center;gap:8px;margin-top:5px}
+.mpxg3 span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mpxg3 span.r{text-align:right}
+.mpxg3 span i{font-style:normal;color:#C9B8D6;font-weight:600}
+.mpxg3>b{font-size:.8rem;letter-spacing:.06em;color:#fff;white-space:nowrap;text-align:center}
+.mpxg3>b i{font-style:normal;font-weight:600;color:#C9B8D6;font-size:.7rem}
+.mpxg3>b u{display:block;text-decoration:none;color:#4FD08E;font-size:.6rem;line-height:1;letter-spacing:.08em}
+
+/* score bug: the live / xP label never wraps */
+.bug .lab.mpxlab{white-space:nowrap;letter-spacing:.08em}

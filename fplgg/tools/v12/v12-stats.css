@@ -1,0 +1,49 @@
+/* ===== v12 · stats: Season numbers (team pages) + projection and form (player sheet) ===== */
+/* Season numbers: one white card, one stat per row, hairline dividers */
+h2.v10 .lnk.tsx-k{cursor:default;color:#8A8494;font-weight:700}
+.tsx{background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 10px;overflow:hidden}
+.tsx-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #F1EEF4}
+.tsx-row:first-child{border-top:none}
+.tsx-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tsx-l b{font-size:.78rem;font-weight:800;color:var(--ink);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tsx-l span{font-size:.66rem;color:var(--mid);line-height:1.4;font-weight:600}
+.tsx-n{flex:none;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.4rem;line-height:1;color:var(--ink);white-space:nowrap}
+.tsx-wide{flex-wrap:wrap}
+.tsx-wide .tsx-l{flex-basis:100%}
+.tsx-pcs{flex-basis:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:2px}
+.tsx-pc{display:flex;align-items:baseline;justify-content:center;gap:6px;border:1px solid #EEEAF2;border-radius:6px;padding:6px 4px}
+.tsx-pc i{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.62rem;letter-spacing:.1em;color:var(--mid)}
+.tsx-pc b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.05rem;color:var(--ink)}
+.tsx-up{color:#0E8A5F !important}.tsx-dn{color:#C62828 !important}
+.profstats.tsx-tiles span{line-height:1.35;display:block}
+
+/* player sheet: the engine's projection */
+.psx{background:#fff;border:1px solid #E6E0ED;border-radius:14px;margin:2px 0 10px;overflow:hidden}
+.psx-top{display:flex;align-items:flex-end;gap:12px;padding:10px 12px 10px}
+.psx-big{flex:none;min-width:0}
+.psx-k{display:block;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#665D72;margin-bottom:2px}
+.psx-big b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2.4rem;line-height:.95;color:var(--p1)}
+.psx-big em{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.8rem;color:#8A8494;margin-left:8px;letter-spacing:.04em}
+.psx-st{margin-left:auto;display:flex;gap:14px;text-align:right}
+.psx-st b{display:block;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.2rem;line-height:1;color:var(--ink)}
+.psx-st span{display:block;font-size:.52rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);margin-top:3px}
+.psx-parts{border-top:1px solid #EFEAF4;padding:2px 12px 4px}
+.psx-pr{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid #F4F1F7;font-size:.74rem;color:#3B3143}
+.psx-pr b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.92rem;color:var(--ink)}
+.psx-pr.psx-tot{border-bottom:none;border-top:1px solid #E7DEF0;font-weight:800;color:var(--ink)}
+.psx-pr.psx-tot b{color:var(--p1)}
+.psx-pr.psx-none{border-bottom:none;color:var(--mid)}
+.psx-note{margin:0 12px 10px;font-size:.62rem;line-height:1.45;color:#8A8494}
+.psx-state{padding:0 12px 10px;font-size:.7rem;font-weight:700;color:#0E8A5F}
+
+/* player sheet: form and value */
+.psx-form{margin:14px 0 6px}
+.psx-form h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#5B1A66}
+.psx-form h4:after{content:"";flex:1;height:1px;background:#E8E4EE}
+.psx-form h4 span{font-weight:700;font-size:.62rem;letter-spacing:.04em;text-transform:none;color:#8A8494}
+.psx-fg{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.psx-fg div{padding:9px 4px 8px;text-align:center;border-left:1px solid #F1EEF4;border-top:1px solid #F1EEF4}
+.psx-fg div:nth-child(3n+1){border-left:none}.psx-fg div:nth-child(-n+3){border-top:none}
+.psx-fg b{display:block;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.15rem;line-height:1.05;color:var(--ink)}
+.psx-fg span{display:block;font-size:.5rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mid);margin-top:3px}
+.psx-form .psx-note{margin:6px 2px 0}
