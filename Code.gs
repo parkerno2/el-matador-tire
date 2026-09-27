@@ -1,12 +1,29 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.5 (unified app backend; classic live overlay; manager logins; season-wide nations; on-demand refresh)
+ * Google Sheet + Apps Script · v3.6 (live 10-minute refresh during matches; readable waiver results; FPL club strengths)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
- *   2. Run setup() once and authorize
+ *   2. Run setup() once and authorize (installs the hourly refreshAll trigger AND the 10-minute liveTick trigger)
  *   3. Share the Sheet: Anyone with the link · Viewer
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
+ *
+ * CHANGELOG
+ * v3.6 · 26 Sep 2026
+ *   1. Live cadence. New liveTick() on a 10-minute trigger (install once: run installLiveTrigger(), or the
+ *      menu item). It reads the sheet's own Club Fixtures tab (no URL fetch) and only refreshes while a PL
+ *      match is live: kickoff - 5 min to kickoff + 2h15, and up to 3 h after the last kickoff of each UTC
+ *      matchday so provisional bonus and finished_provisional land. refreshAll() (hourly trigger, menu,
+ *      setup) and the app's refresh button now share ONE script lock + the EMT_LAST_REFRESH 90 s throttle
+ *      (emtGuardedRefresh), so no two refreshes ever overlap or repeat within 90 s. The old refreshAll
+ *      body is now refreshCore(). Quota maths next to liveTick(). setup() now re-creates both triggers.
+ *   2. Transactions: result code 'do' mapped ('Denied (drop gone)'); labels lose their em dashes
+ *      ('Denied (invalid)', 'Denied (priority)'); any unmapped code reads 'Denied' (and is logged),
+ *      never the raw letters.
+ *   3. Clubs tab gains FPL's own team strengths: Str att H, Str att A, Str def H, Str def A, Str H, Str A
+ *      (classic bootstrap-static teams, joined on short name like the badge codes). Appended after the
+ *      existing four columns; the app reads tabs by header name.
+ * v3.5 · unified app backend; classic live overlay; manager logins; season-wide nations; on-demand refresh
  *
  * v3 adds: Ratings tab (frozen FIFA-style OVRs, elite list),
  * player photo codes + nations on Rosters, Clubs tab with
@@ -60,11 +77,13 @@ function setup() {
   refreshAll();
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('refreshAll').timeBased().everyHours(1).create();
+  ScriptApp.newTrigger('liveTick').timeBased().everyMinutes(10).create(); // v3.6: re-running setup() keeps live refresh
 }
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('⚽ FPL Draft')
     .addItem('Refresh now', 'refreshAll')
+    .addItem('Install live refresh (every 10 min)', 'installLiveTrigger')
     .addToUi();
 }
 
@@ -142,8 +161,18 @@ function getLineups(teams, curGw) {
   return out;
 }
 
-/* ---------- main refresh ---------- */
+/* ---------- main refresh ----------
+ * refreshAll() is what the hourly trigger, the menu and setup() call. v3.6: it runs through
+ * emtGuardedRefresh (one script lock + the 90 s EMT_LAST_REFRESH throttle, shared with liveTick and the
+ * app's refresh button), so two refreshes never overlap or repeat within 90 s. The work is refreshCore(). */
 function refreshAll() {
+  var r = emtGuardedRefresh('refreshAll', EMT_TRIGGER_LOCK_MS);
+  if (r.ok === false) throw new Error(r.error); // failures stay visible in Executions, as before v3.6
+  if (!r.ran) Logger.log('refreshAll skipped: ' + (r.busy ? 'another refresh is running' : 'sheet refreshed ' + r.ageSec + ' s ago'));
+  return r;
+}
+
+function refreshCore() {
   var boot    = getJson('bootstrap-static');
   var details = getJson('league/' + LEAGUE_ID + '/details');
   var choices = getJson('draft/' + LEAGUE_ID + '/choices');
@@ -153,7 +182,7 @@ function refreshAll() {
 
   // classic API: club badge codes + TOTW from the LAST COMPLETED gameweek only
   // + ep_this/ep_next (FPL's own predicted points — classic-only fields, join on code)
-  var cByCode = {}, clubCodes = {}, classicByCode = {}, classicIdToCode = {};
+  var cByCode = {}, clubCodes = {}, classicByCode = {}, classicIdToCode = {}, classicTeams = {};
   try {
     var cboot = getUrl(CLASSIC + 'bootstrap-static/');
     var idToCode = {};
@@ -161,7 +190,7 @@ function refreshAll() {
       idToCode[e.id] = e.code; classicIdToCode[e.id] = e.code; cByCode[e.code] = { dream: false };
       classicByCode[e.code] = { ep_this: e.ep_this, ep_next: e.ep_next };
     });
-    cboot.teams.forEach(function (t) { clubCodes[t.short_name] = t.code; });
+    cboot.teams.forEach(function (t) { clubCodes[t.short_name] = t.code; classicTeams[t.short_name] = t; }); // v3.6: t carries strength_*
     var lastDone = null;
     (cboot.events || []).forEach(function (e) { if (e.finished) lastDone = e.id; });
     if (lastDone) {
@@ -218,7 +247,7 @@ function refreshAll() {
 
   var grades = gradeTeams(teams, picks);
   gradePicks(picks);
-  writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLive, cByCode, clubCodes, lineups, curEv);
+  writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLive, cByCode, clubCodes, lineups, curEv, classicTeams);
 
   // ownership map (element id -> team name) shared by the new tabs
   var ownerByEl = {};
@@ -597,8 +626,36 @@ function gradeTeams(teams, picks) {
   return rows;
 }
 
+/* ---------- v3.6 · waiver / free-agent result codes → the Transactions 'Result' column ----------
+ * The app shows these strings as written and only tests them with /accept/i and /pending/i (row dimming),
+ * so labels stay readable and em-dash free. An unmapped code reads 'Denied' (FPL only adds new codes for
+ * failure reasons) and is logged so it can be named here. */
+var TX_RESULT = { 'a': 'Accepted', 'di': 'Denied (invalid)', 'dp': 'Denied (priority)', 'do': 'Denied (drop gone)',
+  'pd': 'Pending', 'r': 'Rejected', 'o': 'Out-prioritised' };
+function txResultLabel(code) {
+  var c = String(code == null ? '' : code).trim();
+  if (!c) return '';
+  if (Object.prototype.hasOwnProperty.call(TX_RESULT, c)) return TX_RESULT[c];
+  Logger.log('Transactions: unmapped result code "' + c + '", shown as Denied');
+  return 'Denied';
+}
+
+/* ---------- v3.6 · FPL team strengths for the Clubs tab ----------
+ * FPL's own ratings (roughly 1000 to 1400). Source: classic bootstrap-static teams (the draft
+ * bootstrap's teams may not carry them), falling back per field to the draft team object. */
+var CLUB_STR_HEAD = ['Str att H', 'Str att A', 'Str def H', 'Str def A', 'Str H', 'Str A'];
+var CLUB_STR_FIELDS = ['strength_attack_home', 'strength_attack_away', 'strength_defence_home',
+  'strength_defence_away', 'strength_overall_home', 'strength_overall_away'];
+function clubStrengthRow(classicTeam, draftTeam) {
+  return CLUB_STR_FIELDS.map(function (k) {
+    var v = (classicTeam && classicTeam[k] != null && classicTeam[k] !== '') ? classicTeam[k] : (draftTeam && draftTeam[k]);
+    var n = Number(v);
+    return (v == null || v === '' || isNaN(n)) ? '' : n;
+  });
+}
+
 /* ---------- sheet writer ---------- */
-function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLive, cByCode, clubCodes, lineups, curEv) {
+function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLive, cByCode, clubCodes, lineups, curEv, classicTeams) {
   var ss = SpreadsheetApp.getActive();
   var put = function (name, header, rows) {
     var sh = ss.getSheetByName(name) || ss.insertSheet(name);
@@ -672,13 +729,14 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
   });
   put('Rosters', ['Team', 'Manager', 'Player', 'Pos', 'Club', 'FPL rank', 'Proj pts', 'Best XI', 'Status', 'News', 'Drafted', 'Season pts', 'GW pts', 'GW mins', 'Code', 'Nation', 'OVR', 'TOTW', 'GW XI', 'Slot'], rosterRows);
 
-  /* ----- clubs: official badge codes ----- */
+  /* ----- clubs: official badge codes + (v3.6) FPL's own team strengths ----- */
   var clubRows = boot.teams.map(function (t) {
     var code = clubCodes[t.short_name] || t.code || '';
     return [t.short_name, t.name, code,
-      code ? 'https://resources.premierleague.com/premierleague/badges/50/t' + code + '.png' : ''];
+      code ? 'https://resources.premierleague.com/premierleague/badges/50/t' + code + '.png' : '']
+      .concat(clubStrengthRow((classicTeams || {})[t.short_name], t));
   });
-  put('Clubs', ['Short', 'Name', 'Badge code', 'Badge URL'], clubRows);
+  put('Clubs', ['Short', 'Name', 'Badge code', 'Badge URL'].concat(CLUB_STR_HEAD), clubRows);
 
   /* ----- specials: POTM is set by hand, never overwritten ----- */
   if (!ss.getSheetByName('Specials')) {
@@ -718,7 +776,6 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
   /* ----- trades & waivers: league transactions feed ----- */
   try {
     var tk = { w: 'Waiver', f: 'Free agent' };
-    var tr2 = { a: 'Accepted', di: 'Denied — invalid', dp: 'Denied — priority', pd: 'Pending', r: 'Rejected', o: 'Out-prioritised' };
     var trans = (getJson('draft/league/' + LEAGUE_ID + '/transactions').transactions) || [];
     put('Transactions', ['GW', 'Team', 'Manager', 'In', 'Out', 'Type', 'Result', 'When (UTC)'],
       trans.slice().reverse().map(function (t) {
@@ -726,7 +783,7 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
         var pin = players2[t.element_in] || {}, pout = players2[t.element_out] || {};
         return [t.event || '', tm.name || '', tm.manager || '',
           pin.web_name || ('#' + t.element_in), pout.web_name || ('#' + t.element_out),
-          tk[t.kind] || t.kind || '', tr2[t.result] || t.result || '', "'" + (t.added || '')];
+          tk[t.kind] || t.kind || '', txResultLabel(t.result), "'" + (t.added || '')];
       }));
   } catch (e) { Logger.log('Transactions failed: ' + e); }
 
@@ -776,26 +833,124 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
   try { PropertiesService.getScriptProperties().setProperty('EMT_LAST_REFRESH', String(Date.now())); } catch (e) {}
 }
 
-/* ---------- app pull-to-refresh → refreshAll on demand ----------
- * The hourly trigger stays; the app's pull-to-refresh POSTs {action:'refresh'} and we re-run refreshAll
- * (≈30 s) if the sheet is older than EMT_REFRESH_MIN_MS. One script lock so eight managers pulling at once
- * cost one run; the rest get {ran:false, ageSec} and just re-read the sheet. */
+/* ---------- one gate for every refresh: app button, hourly trigger, live tick ----------
+ * The app's refresh button POSTs {action:'refresh'} → emtRefresh(); the hourly trigger and the menu call
+ * refreshAll(); the 10-minute trigger calls liveTick(). All three go through emtGuardedRefresh: one script
+ * lock (never two refreshes at once) and the EMT_LAST_REFRESH stamp (never twice within 90 s). Eight managers
+ * tapping at once cost one run; the rest get {ran:false, ageSec} or {ran:false, busy:true} and re-read the sheet.
+ * EMT_LAST_REFRESH is stamped when a run starts (and again by writeSheets near the end). */
 var EMT_REFRESH_MIN_MS = 90 * 1000;
-function emtRefresh() {
+var EMT_TRIGGER_LOCK_MS = 5000; // triggers wait 5 s for the lock; if a refresh holds it, that run's data is fresh enough
+function emtGuardedRefresh(source, waitMs) {
   var p = emtProps();
   var last = Number(p.getProperty('EMT_LAST_REFRESH') || 0), now = Date.now();
-  if (now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
+  if (now - last >= 0 && now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
   var lock = LockService.getScriptLock();
-  if (!lock.tryLock(4000)) return { ok: true, ran: false, busy: true };
+  if (!lock.tryLock(waitMs)) return { ok: true, ran: false, busy: true };
   try {
     last = Number(p.getProperty('EMT_LAST_REFRESH') || 0); now = Date.now();
-    if (now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
+    if (now - last >= 0 && now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
     p.setProperty('EMT_LAST_REFRESH', String(now));
-    refreshAll();
+    refreshCore();
+    Logger.log('Refresh (' + source + ') took ' + (Date.now() - now) + ' ms');
     return { ok: true, ran: true, ms: Date.now() - now };
   } catch (e) {
     return { ok: false, error: String((e && e.message) || e) };
   } finally { lock.releaseLock(); }
+}
+function emtRefresh() { return emtGuardedRefresh('app', 4000); }
+
+/* ---------- v3.6 · live cadence: liveTick() on a 10-minute trigger ----------
+ * Decides from the sheet's own Club Fixtures tab (no URL fetch, ~1 s) whether a PL match is live or just
+ * finished, and only then refreshes. A fixture's window is kickoff - 5 min to kickoff + 2h15; the last
+ * kickoff of each UTC matchday keeps refreshing to kickoff + 3h so provisional bonus and
+ * finished_provisional land. Only fixtures within one GW of Meta 'Current GW' count (all of them if Meta
+ * has no GW). Kickoffs move with TV picks; the hourly refresh keeps the tab current.
+ *
+ * QUOTA (consumer account: 90 min/day of trigger runtime; app-button refreshes run in the web app and do
+ * not count). Worst realistic day: kickoffs from 11:30 to 20:00 UTC with no gap over 2h15 (a packed
+ * Saturday or Boxing Day) keeps the window open 11:25 to 23:00, at most 70 refreshing ticks.
+ *     70 live ticks x 30 s (slow end of refreshCore)         = 35.0 min
+ *     24 hourly runs x 30 s                                   = 12.0 min
+ *     74 idle ticks x ~2 s (open sheet, read two tabs)        =  2.5 min
+ *     total                                                   ≈ 49.5 min  (73 min even if every refresh took 45 s)
+ * GW5's real Saturday (11:30, 14:00 x3, 16:30 UTC) gives 46 to 49 refreshing ticks ≈ 40 min all in.
+ * Hourly runs and app taps inside the 90 s throttle are skipped, which only lowers these numbers.
+ * URL fetches: ~20 per refresh plus ~11 pulselive pages (a few dozen FPL codes never map to a nation, so
+ * getNationMap pages every run) ≈ 30 x 95 refreshes ≈ 3,000 of the 20,000/day allowance. */
+var LIVE_PRE_MS = 5 * 60 * 1000;
+var LIVE_MATCH_MS = (2 * 60 + 15) * 60 * 1000;
+var LIVE_TAIL_MS = 3 * 60 * 60 * 1000;
+
+function liveTick() {
+  var why = liveWindowReason(Date.now());
+  if (!why) return { ok: true, ran: false, idle: true };
+  var r = emtGuardedRefresh('liveTick', EMT_TRIGGER_LOCK_MS);
+  if (r.ok === false) console.error('liveTick refresh failed (' + why + '): ' + r.error);
+  else Logger.log('liveTick (' + why + '): ' + (r.ran ? 'refreshed in ' + r.ms + ' ms' : r.busy ? 'skipped, refresh already running' : 'skipped, refreshed ' + r.ageSec + ' s ago'));
+  return r;
+}
+
+/* '' when no PL match is live or just finished at nowMs, else a short reason for the log */
+function liveWindowReason(nowMs) {
+  var ss = SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName('Club Fixtures');
+  if (!sh || sh.getLastRow() < 2) return '';
+  var vals = sh.getDataRange().getValues();
+  var head = vals[0].map(String);
+  var gi = head.indexOf('GW'), ki = head.indexOf('Kickoff (UTC)'), hi = head.indexOf('Home'), ai = head.indexOf('Away');
+  if (ki < 0) return '';
+  var cur = liveCurrentGw(ss);
+  var byDay = {}; // UTC date → [{ko, label}]
+  for (var i = 1; i < vals.length; i++) {
+    var gw = gi > -1 ? Number(vals[i][gi]) : NaN;
+    if (cur && !isNaN(gw) && Math.abs(gw - cur) > 1) continue;
+    var ko = liveKickoffMs(vals[i][ki]);
+    if (ko == null) continue;
+    var day = new Date(ko).toISOString().slice(0, 10);
+    (byDay[day] = byDay[day] || []).push({ ko: ko, label: (hi > -1 ? vals[i][hi] : '') + '-' + (ai > -1 ? vals[i][ai] : '') });
+  }
+  var days = Object.keys(byDay);
+  for (var d = 0; d < days.length; d++) {
+    var fx = byDay[days[d]], lastKo = 0;
+    fx.forEach(function (f) { if (f.ko > lastKo) lastKo = f.ko; });
+    for (var j = 0; j < fx.length; j++) {
+      var end = fx[j].ko === lastKo ? fx[j].ko + LIVE_TAIL_MS : fx[j].ko + LIVE_MATCH_MS;
+      if (nowMs >= fx[j].ko - LIVE_PRE_MS && nowMs <= end) {
+        return fx[j].label + ' ' + new Date(fx[j].ko).toISOString().slice(11, 16) + 'Z' + (fx[j].ko === lastKo ? ' (last of day)' : '');
+      }
+    }
+  }
+  return '';
+}
+
+/* Kickoff (UTC) holds text like '2026-09-19T14:00:00Z (written with a leading apostrophe; tolerate it, a Date, or blank) */
+function liveKickoffMs(v) {
+  if (v == null || v === '') return null;
+  if (Object.prototype.toString.call(v) === '[object Date]') return isNaN(v.getTime()) ? null : v.getTime();
+  var s = String(v).replace(/^'/, '').trim();
+  if (!s) return null;
+  var t = new Date(s).getTime();
+  return isNaN(t) ? null : t;
+}
+
+/* Meta 'Current GW' (col A label, col B value); 0 when missing */
+function liveCurrentGw(ss) {
+  var meta = ss.getSheetByName('Meta');
+  if (!meta || meta.getLastRow() < 1) return 0;
+  var mv = meta.getRange(1, 1, meta.getLastRow(), 2).getValues();
+  for (var i = 0; i < mv.length; i++) if (String(mv[i][0]) === 'Current GW') return Number(mv[i][1]) || 0;
+  return 0;
+}
+
+/* run once from the editor (or the FPL Draft menu): replaces any liveTick trigger with one every 10 minutes */
+function installLiveTrigger() {
+  var removed = 0;
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'liveTick') { ScriptApp.deleteTrigger(t); removed++; }
+  });
+  ScriptApp.newTrigger('liveTick').timeBased().everyMinutes(10).create();
+  Logger.log('installLiveTrigger: removed ' + removed + ' old liveTick trigger(s), created one every 10 min');
 }
 
 /* ---------- GW Log: append-only per-player history, one block per finished GW ----------

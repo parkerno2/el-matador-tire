@@ -5976,7 +5976,8 @@ if(typeof showWarm==='function'){
     const body=document.getElementById('gwbody');
     if(body&&f&&!body.querySelector('[data-mx],[data-watch],[data-mxall]')){
       const mi=fbxRows(D.gw).indexOf(f);const duel=body.querySelector('.duel');
-      const lab=typeof watchLabel==='function'?watchLabel(f):'Watch the matchup';
+      let lab=typeof watchLabel==='function'?watchLabel(f):'Watch the matchup';
+      if(lab==='Watch the preview'&&!fbxHasPreview())lab='Watch the lineups'; /* no written preview this week: it is the lineup reveal */
       if(mi>=0&&duel)duel.insertAdjacentHTML('beforebegin','<div class="watchrow fbx-wr"><button class="watch" data-mx="'+mi+'">'+esc(lab)+'</button></div>');
     }
     return r;

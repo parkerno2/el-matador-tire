@@ -723,7 +723,7 @@ h2{font-size:.62rem;letter-spacing:.12em}
   <section class="view" id="v-gw">
     <div class="hero"><span class="kick">Head to head</span><h1>Gameweek</h1>
     <p>Four matchups a week. Cards score live once the football kicks off.</p></div>
-    <div id="gwbody"><p class="state">Loading the gameweek…</p></div>
+    <div id="gwbody"><div class="uix-skel" role="status" aria-label="Loading the gameweek"><i class="k"></i><i class="c"></i><div class="b"><i></i><i></i><i></i></div><div class="b"><i></i><i></i><i></i></div><div class="b"><i></i><i></i><i></i></div></div></div>
   </section>
   <section class="view" id="v-table">
     <div class="hero gold-rule">
@@ -889,7 +889,7 @@ function bdOf(r){ // r = normalized GW Stats row → [{lbl,pts,x}]
   if(r.Mins>0)add('Appearance ('+r.Mins+'’)',r.Mins>=60?2:1,r.Mins>=60?2:1);
   if(r.G||r.xG>0.005)add('Goals '+r.G+' (xG '+r.xG.toFixed(2)+')',r.G*GOALPTS[pos],r.xG*GOALPTS[pos]);
   if(r.A||r.xA>0.005)add('Assists '+r.A+' (xA '+r.xA.toFixed(2)+')',r.A*3,r.xA*3);
-  if(CSPTS[pos]&&r.Mins>=60)add('Clean sheet '+(r.CS?'✓':'✗')+' (xGC '+r.xGC.toFixed(2)+')',r.CS?CSPTS[pos]:0,Math.exp(-r.xGC)*CSPTS[pos]);
+  if(CSPTS[pos]&&r.Mins>=60)add((r.CS?'Clean sheet':'No clean sheet')+' (xGC '+r.xGC.toFixed(2)+')',r.CS?CSPTS[pos]:0,Math.exp(-r.xGC)*CSPTS[pos]);
   if((pos==='GKP'||pos==='DEF')&&r.Mins>0&&(r.GC>=2||r.xGC>0.3))add('Goals conceded '+r.GC,-Math.floor(r.GC/2),-gcPen(r.xGC));
   if(r.Saves)add('Saves '+r.Saves,Math.floor(r.Saves/3),Math.floor(r.Saves/3));
   if(r.PS)add('Penalty saves',r.PS*5,r.PS*5);
@@ -919,7 +919,7 @@ function histRow(code,pos){
     Saves:Math.round(sv/n),Bonus:0,BPS:0,DefCon:Math.round(dc/n),
     xG:xg/n,xA:xa/n,xGC:xgc/n};
 }
-const projLbl=s=>s.replace(/^(Goals|Assists) \d+ /,'$1 ').replace('Clean sheet ✗ ','Clean sheet ').replace('Clean sheet ✓ ','Clean sheet ');
+const projLbl=s=>s.replace(/^(Goals|Assists) \d+ /,'$1 ').replace('No clean sheet ','Clean sheet ');
 const fmt1=n=>(Math.round(n*10)/10).toFixed(1).replace(/\.0$/,'');
 function gwsRow(code,gw){ // normalized GW Stats row for a player+GW
   const m=(gw===undefined||gw===D.gw)?D.gwsCur:(D.gwsByGw[gw]||{});
@@ -1252,12 +1252,12 @@ function gwsPlayed(p){ // finished GWs + the live one once this player's club ha
   return D.gwsDone+(fxStarted(p.Club)?1:0);
 }
 function avgOf(p){
-  if(!D.started)return'—';
+  if(!D.started)return'–';
   return(seasonTot(p)/Math.max(1,gwsPlayed(p))).toFixed(1);
 }
 function nextFixture(club){
   const f=D.cf.find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club));
-  if(!f)return'—';
+  if(!f)return'–';
   return f.Home===club?(f.Away+' (H)'):(f.Home+' (A)');
 }
 
@@ -1281,7 +1281,7 @@ const PREVIEWS=[
   {gw:3,href:'preview-gw3.html',title:'El Jl\u00e1sico\u2019s 26-point gap, 22 starters in Arsenal\u2013Chelsea, and the Fortnite Derby\u2019s first meeting',
    sub:'Who owns whom in every real game, predicted scores, and the last transfer clock of the window'},
   {gw:4,href:'preview-gw4.html',title:'A 17-shirt Manchester derby, Gakpo\u2019s 9.3 as the whole margin, and Hull\u2019s zero',
-   sub:'Who owns whom in every real game, predicted scores, and the injury clock \u2014 now with Malcolm Tyre in the booth'}
+   sub:'Who owns whom in every real game, predicted scores, and the injury clock, now with Malcolm Tyre in the booth'}
 ];
 const RECAP_HIDE_H=30;
 function gwDeadline(g){const w=D.mw.find(x=>num(x.GW)===g);return w?dt(w['Deadline (UTC)']):null}
@@ -1291,7 +1291,7 @@ function contentCardsHTML(){
   if(r){
     const ndl=gwDeadline(r.gw+1);
     if(!(ndl&&Date.now()>ndl.getTime()-RECAP_HIDE_H*36e5))
-      out+='<a class="recapcard" href="'+r.href+'"><div><div class="rk">📰 Gameweek '+r.gw+' recap<span class="new">NEW</span></div>'
+      out+='<a class="recapcard" href="'+r.href+'"><div><div class="rk">Gameweek '+r.gw+' recap<span class="new">NEW</span></div>'
         +'<div class="rt">'+r.title+'</div><div class="rs">'+r.sub+'</div></div><span class="go">READ</span></a>';
   }
   /* a preview lives until its own deadline passes — kickoff weekend switches the app to live mode anyway */
@@ -1299,7 +1299,7 @@ function contentCardsHTML(){
   if(p){
     const dl=gwDeadline(p.gw);
     if(!(dl&&Date.now()>dl.getTime()))
-      out+='<a class="recapcard prev" href="'+p.href+'"><div><div class="rk">🔭 Gameweek '+p.gw+' preview<span class="new">NEW</span></div>'
+      out+='<a class="recapcard prev" href="'+p.href+'"><div><div class="rk">Gameweek '+p.gw+' preview<span class="new">NEW</span></div>'
         +'<div class="rt">'+p.title+'</div><div class="rs">'+p.sub+'</div></div><span class="go">READ</span></a>';
   }
   return out;
@@ -1333,7 +1333,7 @@ function renderScoreboard(rows,dl){
    contentCardsHTML()
    +'<div class="gwlab" style="margin-top:14px">Gameweek '+D.gw
    +(dl?' <span class="dlchip">'+dlChipText(dl)+'</span>':'')+'</div>'
-   +(D.provOver?'<div class="provnote"><b>All matches finished — provisional result.</b> '
+   +(D.provOver?'<div class="provnote"><b>All matches finished. Provisional result.</b> '
      +(Object.keys(D.pbonus||{}).length?'Estimated bonus (from live BPS) is counted. ':'')
      +'FPL usually confirms within a few hours; bonus and late stat amendments can still move points.</div>':'')
    +rows.map((f,i)=>{
@@ -1352,7 +1352,7 @@ function renderScoreboard(rows,dl){
       +'<div class="mrow">'+mg(f.Home)+'<span class="tn2">'+esc(f.Home)+'<em>'+esc(TEAMS[f.Home]?.mgr||'')+'</em></span>'
       +'<span class="sc">'+s.score+'</span>'
       +'<span class="tn2 a">'+esc(f.Away)+'<em>'+esc(TEAMS[f.Away]?.mgr||'')+'</em></span>'+mg(f.Away)+'</div>'
-      +'<div class="st'+(s.liveNow&&!D.provOver?' live':'')+'">'+(s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'● LIVE'):'TAP FOR LINEUPS')+'</div>'
+      +'<div class="st'+(s.liveNow&&!D.provOver?' live':'')+'">'+(s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'LIVE'):'TAP FOR LINEUPS')+'</div>'
       +(sr?'<div class="msr">All-time: '+esc(sr)+'</div>':'')
       +xline
       +'</div>';
@@ -1385,10 +1385,10 @@ function renderMatch(f,dl){
     +'<b>'+(kind==='likely'?'Likely auto-subs':'Projected auto-subs')+'</b> '+L.map(s2=>'<span class="inn">▲ '+esc(s2.inn.Player)+'</span> for '+esc(s2.out.Player)+(kind==='likely'?reason(t,s2.out):'')).join(' · ')+'</div>':'';};
   const anyK=k=>hAS.subs.concat(aAS.subs).some(s2=>s2.kind===k);
   const asubs=asubStrip(f.Away,aAS,'locked')+asubStrip(f.Home,hAS,'locked')
-    +(anyK('locked')?'<div class="asubnote">Already counted in proj final — FPL makes auto-subs official when the gameweek ends.</div>':'')
+    +(anyK('locked')?'<div class="asubnote">Already counted in proj final. FPL makes auto-subs official when the gameweek ends.</div>':'')
     +asubStrip(f.Away,aAS,'likely')+asubStrip(f.Home,hAS,'likely')
-    +(anyK('likely')?'<div class="asubnote">Assumes starters FPL has flagged out don\'t play — counted in proj final only. If the flagged player logs a minute, he\'s back and the bench order re-settles.</div>':'');
-  const sub=s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'● LIVE'):(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
+    +(anyK('likely')?'<div class="asubnote">Assumes starters FPL has flagged out don\'t play. Counted in proj final only; if a flagged player logs a minute, the bench order re-settles.</div>':'');
+  const sub=s.done?'FULL TIME':s.liveNow?(D.provOver?'FULL TIME · PROVISIONAL':'LIVE'):(dl?('DEADLINE '+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()):'');
   D.xpview=XPMODE&&D.hasXP; // cards render xP/PROJ bubbles in expected mode
   const allPlayed=s.done||xiOf(f.Home).concat(xiOf(f.Away)).every(p=>fxStarted(p.Club));
   const scoreTxt=D.xpview?(fmt1(teamXPBlend(f.Home))+' – '+fmt1(teamXPBlend(f.Away))):s.score;
@@ -1403,7 +1403,7 @@ function renderMatch(f,dl){
     else if(D.hasEP)scsub='<div class="scsub">predicted <b>'+fmt1(teamProj(f.Home))+'</b> – <b>'+fmt1(teamProj(f.Away))+'</b></div>';
   }
   if(D.xpview)scsub='<div class="scsub">actual <b>'+s.hs+'</b> – <b>'+s.as2+'</b></div>';
-  const xnote=D.xpview?'<div class="scsub" style="opacity:.8;font-weight:500">Played → what the performance deserved (xP) · yet to play → projected (PROJ). Converges to pure xP when the gameweek ends.</div>':'';
+  const xnote=D.xpview?'<div class="scsub" style="opacity:.8;font-weight:500">Played: what the performance deserved (xP). Yet to play: projected (PROJ). All xP once the gameweek ends.</div>':'';
   document.getElementById('gwbody').innerHTML=
    '<button class="backbtn" id="gwback">‹ All matchups</button>'
    +'<div class="stage" style="margin-top:2px">'
@@ -1509,7 +1509,7 @@ function luckCard(){
       +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">'+fmt1(r.act)+' · xP '+fmt1(r.x)+'</span>'
       +'<span class="lbar">'+bar+'</span>'
       +'<span class="ld" style="color:'+(r.d>=0?'var(--good)':'var(--bad)')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('');
-    cap='<p class="mnote">Actual points vs expected points, season to date. <b style="color:var(--good)">+</b> = performances running hot, <b style="color:var(--bad)">−</b> = deserving more. Bonus excluded from both sides. Tap a manager for the full profile.</p>';
+    cap='<p class="mnote">Actual vs expected points, season to date, bonus excluded. <b style="color:var(--good)">+</b> running hot, <b style="color:var(--bad)">−</b> deserved more. Tap a manager for the full profile.</p>';
   } else {
     const rows=Object.keys(sched).map(t=>({t,...sched[t],d:sched[t].pts-sched[t].ap})).sort((a,b)=>b.d-a.d);
     const mx=Math.max(...rows.map(r=>Math.abs(r.d)),1);
@@ -1521,7 +1521,7 @@ function luckCard(){
       +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">beats '+fmt1(r.beat)+' of '+r.opp+close+'</span>'
       +'<span class="lbar">'+bar+'</span>'
       +'<span class="ld" style="color:'+(r.d>=0?'var(--good)':'var(--bad)')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('');
-    cap='<p class="mnote">League points banked vs an <b>all-play</b> schedule — your score against all seven rivals every week (win 3 · draw 1 · loss 0). <b style="color:var(--good)">+</b> = the fixture list has been kind: results better than the score earned. “Close” counts matches decided by ≤'+CLOSE_MARGIN+' — the ones that could have swung. Compounds week over week. Tap a manager for the full profile.</p>';
+    cap='<p class="mnote">League points banked vs an <b>all-play</b> schedule: your score against all seven rivals every week (win 3 · draw 1 · loss 0). <b style="color:var(--good)">+</b> means the fixture list has been kind. “Close” counts matches decided by ≤'+CLOSE_MARGIN+'. Tap a manager for the full profile.</p>';
   }
   return '<div class="fahead" style="margin:16px 2px 6px"><h2 style="margin:0">Luck index</h2>'+tog+'</div><div class="card lucks">'+rowsH+cap+'</div>';
 }
@@ -1592,15 +1592,15 @@ function openProfile(team,intoEl){
    +'<div class="sub" style="margin:0">'+esc(TEAMS[team]?.mgr||'')+'</div></div></div>'
    +'<div class="profstats" style="grid-template-columns:repeat(3,1fr);margin:0 0 12px;gap:8px">'
    +'<div><b style="font-size:1.9rem;color:var(--p2)">'+avg.toFixed(1)+'</b><span>Avg pts / GW</span></div>'
-   +'<div><b style="font-size:1.9rem">'+(best?best.p:'—')+'</b><span>Best GW'+(best?(' · GW'+best.g+(best.fin?'':' live')):'')+'</span></div>'
-   +'<div><b style="font-size:1.45rem;line-height:1.5">'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'—')+'</b><span>W – D – L</span></div>'
+   +'<div><b style="font-size:1.9rem">'+(best?best.p:'–')+'</b><span>Best GW'+(best?(' · GW'+best.g+(best.fin?'':' live')):'')+'</span></div>'
+   +'<div><b style="font-size:1.45rem;line-height:1.5">'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'–')+'</b><span>W – D – L</span></div>'
    +'</div>'
    +nxHtml
    +rosterHtml
    +'<div class="posh2" style="margin-top:16px">Actual vs expected, week by week'+(gws.length<2?' · one gameweek so far':'')+'</div>'
    +'<div style="overflow-x:auto">'+chart+'</div>'
-   +'<p class="sh-note"><span style="color:'+col+';font-weight:700">—</span> actual (excl. bonus) · <span style="color:'+colX+';font-weight:700">- -</span> expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.'
-   +(agg.bon?' Bonus points (+'+Math.round(agg.bon)+') sit outside both lines — with them, actual is '+fmt1(agg.act+agg.bon)+', matching the score up top.':'')+'</p>'
+   +'<p class="sh-note"><span style="display:inline-block;width:14px;border-top:2.5px solid '+col+';vertical-align:middle;margin-right:3px"></span>actual (excl. bonus) · <span style="display:inline-block;width:14px;border-top:2.5px dashed '+colX+';vertical-align:middle;margin-right:3px"></span>expected (xP). Season luck: <b>'+((agg.act-agg.x)>=0?'+':'')+fmt1(agg.act-agg.x)+'</b>.'
+   +(agg.bon?' Bonus points (+'+Math.round(agg.bon)+') sit outside both lines; with them, actual is '+fmt1(agg.act+agg.bon)+', matching the score up top.':'')+'</p>'
    +(hero?'<div class="profcard" style="max-width:200px;margin:14px auto 0"><div style="text-align:center;font-size:.56rem;font-weight:700;letter-spacing:.18em;color:var(--goldd);margin-bottom:6px">TOP SCORER · '+xiOfP(hero)+' PTS STARTED</div>'+card(hero,D.ro.indexOf(hero))+'</div>':'')
    +txHtml;
   const bindRows=el=>el.querySelectorAll('[data-pc]').forEach(r=>r.onclick=()=>{
@@ -1623,7 +1623,7 @@ function renderTeam(){
   const mine=myTeam();
   if(!mine){
     body.innerHTML='<h2 style="margin-top:14px">Who are you?</h2>'
-     +'<p class="mnote" style="padding:0 2px 10px;margin:0">Pick your team once — this phone remembers, and My team opens straight onto your squad. Switch any time.</p>'
+     +'<p class="mnote" style="padding:0 2px 10px;margin:0">Pick your team once. This phone remembers it.</p>'
      +'<div class="mgrid">'+Object.keys(TEAMS).map(t=>
        '<button class="mt" data-pick="'+esc(t)+'" style="--tc:'+(TEAMS[t].col||'#5B1A66')+'"><span class="mtn">'+esc(t)+'</span><em class="mtm">'+esc(TEAMS[t].mgr)+'</em></button>').join('')+'</div>';
     body.querySelectorAll('[data-pick]').forEach(b=>b.onclick=e=>{e.stopPropagation();
@@ -1799,7 +1799,7 @@ function labChart(){
           sub:perGw?'avg / GW':''};
       }).sort((a2,b2)=>b2.v-a2.v);
       return rankBars(rows,{fmt:v=>((S.metric==='luck'||S.metric==='margin')&&v>0?'+':'')+(Math.round(v*10)/10)})
-        +foot(S.metric==='luck'?'Actual − expected, bonus excluded both sides. Red = running hot.':S.metric==='bench'?'Points scored by benched players.':S.metric==='margin'?'Season sum of winning/losing margins — positive = won by more than you lost by.':'Tap a bar to focus that manager.');
+        +foot(S.metric==='luck'?'Actual − expected, bonus excluded both sides. Red = running hot.':S.metric==='bench'?'Points scored by benched players.':S.metric==='margin'?'Season sum of winning and losing margins. Positive means you won by more than you lost by.':'Tap a bar to focus that manager.');
     }
     const series=teams.slice(0,4).map(t=>({name:TEAMS[t].ini,color:TEAMS[t].col,vals:S.view==='race'?cumulate(serOf(t)):serOf(t),top:true}));
     /* trending one manager's Points? the expected (xP) line rides along automatically */
@@ -1811,7 +1811,7 @@ function labChart(){
       series.push({name:'expected',color:'#5B1A66',dash:true,vals:S.view==='race'?cumulate(xv):xv,top:true});
     }
     return svgLine(series,{endLabels:S.view==='race'})
-      +foot(S.metric==='pts'&&teams.length===1?'<span style="color:#2E5BFF;font-weight:700">—</span> actual score · <span style="color:#5B1A66;font-weight:700">- -</span> what the performances deserved (expected, bonus excluded).':S.view==='race'?'Cumulative season totals.':'Per-gameweek. Cyan ring = live.');
+      +foot(S.metric==='pts'&&teams.length===1?'<span style="display:inline-block;width:14px;border-top:2.5px solid #2E5BFF;vertical-align:middle;margin-right:3px"></span>actual score · <span style="display:inline-block;width:14px;border-top:2.5px dashed #5B1A66;vertical-align:middle;margin-right:3px"></span>what the performances deserved (expected, bonus excluded).':S.view==='race'?'Cumulative season totals.':'Per-gameweek. Cyan ring = live.');
   }
   if(S.scope==='league'){
     if(S.metric==='wins'){
@@ -1837,7 +1837,7 @@ function labChart(){
     });
     return '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:300px">'+out+'</svg></div>'
       +'<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:6px">'+anaOrder().map(t=>'<span style="display:inline-flex;align-items:center;gap:3px;font-size:.56rem;font-weight:700;color:var(--mid)">'+mg(t,1)+'</span>').join('')+'</div>'
-      +foot('Every manager’s score, one row per gameweek — how bunched is the league?');
+      +foot('Every manager’s score, one row per gameweek.');
   }
   const picks=S.sel.slice(0,2);
   if(!picks.length)return'<p class="state">Search a player above to draw his season.</p>';
@@ -1870,9 +1870,9 @@ function renderLab(){
   }
   const mets='<div class="labmets">'+LABMETS[LAB.scope].map(m=>'<button class="labmet'+(LAB.metric===m[0]?' on':'')+'" data-m="'+m[0]+'">'+m[1]+'</button>').join('')+'</div>';
   const vv=labValidViews();
-  const VN={trend:'〰 Trend',bars:'▮ Bars',race:'⛰ Race',spread:'⣿ Spread'};
+  const VN={trend:'Trend',bars:'Bars',race:'Race',spread:'Spread'};
   const views='<div class="labviews">'+(vv.length>1?vv.map(v=>'<button class="labview'+(LAB.view===v?' on':'')+'" data-v="'+v+'">'+VN[v]+'</button>').join(''):'')
-    +'<button class="labview" data-reset style="margin-left:auto">↺ Reset</button></div>';
+    +'<button class="labview" data-reset style="margin-left:auto">Reset</button></div>';
   ctl.innerHTML='<div class="labseg">'+segs.map(s2=>'<button class="'+(LAB.scope===s2[0]?'on':'')+'" data-s="'+s2[0]+'">'+s2[1]+'</button>').join('')+'</div>'+sub+mets+views;
   viz.innerHTML=labChart();
   ctl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>labSet({scope:b.dataset.s,sel:[]}));
@@ -1931,9 +1931,9 @@ function mgrTiles(){
     return '<button class="mt" data-prof="'+esc(t)+'" style="--tc:'+TEAMS[t].col+'">'
      +'<b class="mtn">'+esc(t)+'</b><em class="mtm">'+esc(TEAMS[t].mgr||'')+'</em>'
      +'<span class="mtrow">'
-     +'<span><b>'+(g?(pf/g).toFixed(1):'—')+'</b><i>pts / gw</i></span>'
-     +'<span><b>'+(best||'—')+'</b><i>best gw</i></span>'
-     +'<span><b>'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'—')+'</b><i>w · d · l</i></span></span>'
+     +'<span><b>'+(g?(pf/g).toFixed(1):'–')+'</b><i>pts / gw</i></span>'
+     +'<span><b>'+(best||'–')+'</b><i>best gw</i></span>'
+     +'<span><b>'+(st.W!==undefined?st.W+'–'+st.D+'–'+st.L:'–')+'</b><i>w · d · l</i></span></span>'
      +(star?'<span class="mtstar"><i>STAR MAN</i>'+esc(star.Player)+' · '+xiOfP(star)+' pts</span>':'')
      +'</button>';
   }).join('')+'</div>';
@@ -1941,13 +1941,13 @@ function mgrTiles(){
 function renderAna(){
   const body=document.getElementById('anabody');if(!body)return;
   body.innerHTML=
-   '<div class="card labcard"><div class="labhead"><b>THE LAB</b><span>pick who · pick what · the chart answers</span></div>'
+   '<div class="card labcard"><div class="labhead"><b>THE LAB</b></div>'
    +'<div id="labctl"></div><div id="labviz"></div></div>'
-   +'<h2>The managers <small>tap a name for the full profile</small></h2>'
+   +'<h2>The managers</h2>'
    +mgrTiles()
    +(luckCard()||'')
    +'<div class="faqsec" style="margin-top:14px"><h3>How to read this</h3>'
-   +'<p><b>Projected</b> = forecast before a match, frozen at the deadline. <b>Expected (xP)</b> = what a performance deserved once played — goals→xG, assists→xA, clean sheets→e<sup>−xGC</sup>. '
+   +'<p><b>Projected</b>: the forecast before a match. <b>Expected (xP)</b>: what a performance deserved once played, from xG, xA and clean-sheet odds (e<sup>−xGC</sup>). '
    +'Actual − xP is the luck index: positive means the ball keeps bouncing your way (bonus excluded from both sides). '
    +'Manager scoring here counts <b>started players only</b>.</p></div>';
   renderLab();
@@ -2030,7 +2030,7 @@ function renderTable(){
      +(ent.length?ent.map(([n,v],i)=>'<div class="rrow'+(i===0?' lead':'')+'">'+mg(n,1)
        +'<span class="rn">'+esc(n)+'</span><span class="rbar"><i style="width:'+Math.max(2,100*v/mx)+'%;background:'+(TEAMS[n]?.col||'#5B1A66')+'"></i></span><b>'+v+'</b>'+(i===0?'<span class="money">$30</span>':'')+'</div>').join('')
        :'<p class="mnote" style="margin:4px 0 2px">Race starts when the first scores land.</p>')
-     +(motmLive?'<p class="mnote" style="margin:6px 0 0">Includes this gameweek\'s live scores — same numbers as the scoreboard. Settles when FPL confirms the gameweek.</p>':'')
+     +(motmLive?'<p class="mnote" style="margin:6px 0 0">Includes this gameweek\'s live scores, same as the scoreboard. Settles when FPL confirms the gameweek.</p>':'')
      +'</div>';
   }
   document.getElementById('tablebody').innerHTML=
@@ -2045,7 +2045,7 @@ function renderTable(){
     +'<span class="lp">'+s['League Pts']+'</span>'
     +'<span class="odds"><span class="olab">Title</span><span class="obar"><i style="width:'+Math.max(1.5,v)+'%;background:'+tc+'"></i></span><b class="opct2">'+pctTxt(v)+'</b></span>'
     +'</div>'}).join('')
-   +'<p class="mnote" style="padding:6px 8px 8px;margin:0">Title odds from 10,000 simulated seasons · '+(D.started?'blends results so far with pre-season projections':'pre-season projections only — odds sharpen once real scores arrive')+'.</p></div>'
+   +'<p class="mnote" style="padding:6px 8px 8px;margin:0">Title odds from 10,000 simulated seasons · '+(D.started?'blends results so far with pre-season projections':'pre-season projections only until real scores arrive')+'.</p></div>'
    +recs
    +'<h2>The market</h2><div class="stage"><div class="sh2">Will Baha finish 8th?</div><div class="card"><div class="mkt">'
    +'<div class="dial" style="background:conic-gradient('+col+' '+(bv*3.6)+'deg,#F1EEF7 0)"><div class="in2"><b style="color:'+col+'">'+pctTxt(bv)+'</b><span>chance</span></div></div>'
@@ -2056,7 +2056,7 @@ function renderTable(){
      const complete=(()=>{for(let g=per[1];g<=per[2];g++)if(!done[g])return false;return true})();
      const t=tot(per);
      const ld=Object.entries(t).sort((a,b)=>b[1]-a[1])[0];
-     let who='<span class="who"><em>—</em></span>',tag='<span class="tag wait">Upcoming</span>',money='';
+     let who='<span class="who"><em>–</em></span>',tag='<span class="tag wait">Upcoming</span>',money='';
      if(ld){who='<span class="who">'+mg(ld[0],1)+'<span class="nm4">'+esc(ld[0])+' <em class="num">'+ld[1]+' pts</em></span></span>';
        if(complete){tag='<span class="tag won">Winner</span>';money='<span class="money">$30</span>';}
        else tag='<span class="tag lead">Leading</span>';}
@@ -2091,13 +2091,13 @@ function plrRow(p){
    +'" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface3>'+initials(p.Player)+'</span>\'}">';
   return '<div class="prw" data-pc="'+p.Code+'">'+img
    +'<span class="pw"><b>'+esc(p.Player)+'</b><em>'+flagImg(p.Nation,11)+esc(p.Pos)+' · '+esc(p.Club)
-   +' · OVR '+((D.fc27[String(p.Code)]||{}).ovr?Math.round(D.fc27[String(p.Code)].ovr):'–')+(p.News?' · ⚠':'')+'</em></span>'
+   +' · OVR '+((D.fc27[String(p.Code)]||{}).ovr?Math.round(D.fc27[String(p.Code)].ovr):'–')+(p.News?' · <b style="color:#C62828;font-weight:700">Flagged</b>':'')+'</em></span>'
    +'<span class="ptb"><b>'+num(p['Season pts'])+'</b><span>'+(D.gwsDone>1?plrAvg(p).toFixed(1)+' AVG':'PTS')+'</span></span>'+own+'</div>';
 }
 function renderXIs(){
   SUBMARK={}; // sub treatments only live inside a matchup detail
   const body=document.getElementById('xisbody');
-  if(!D.plr||!D.plr.length){body.innerHTML='<p class="state">The Players tab hasn’t landed in the sheet yet — repaste Code.gs and run refreshAll.</p>';return}
+  if(!D.plr||!D.plr.length){body.innerHTML='<p class="state">The Players tab hasn’t landed in the sheet yet. Repaste Code.gs and run refreshAll.</p>';return}
   const club=SUB&&SUB!=='all'?SUB.toUpperCase():null;
   if(club){ /* drill-in: one club's full squad */
     const squad=D.plr.filter(p=>p.Club===club);
@@ -2130,7 +2130,7 @@ function renderXIs(){
          +'<span class="txmain"><b>'+esc(t.Team||'')+'</b><em>'+(t.GW?('GW'+t.GW+' · '):'')+esc(t.Type||'')+' · '+esc(t.Result||'')+'</em></span>'
          +'<span class="txmove"><span class="in">↑ '+esc(t.In||'')+'</span><span class="out">↓ '+esc(t.Out||'')+'</span></span></div>';
        }).join('')
-       :'<p class="mnote" style="padding-bottom:10px">No moves yet — pickups, drops and denied claims land here.</p>')
+       :'<p class="mnote" style="padding-bottom:10px">No moves yet. Pickups, drops and denied claims land here.</p>')
      +'</details>';
     /* top free agents, toggle total / average */
     const fas=D.plr.filter(p=>(!p.Owner||p.Owner==='FREE')&&num(p['Season pts'])>0)
@@ -2138,10 +2138,9 @@ function renderXIs(){
     const faHtml=fas.length?'<div class="fahead"><h2 style="margin:0">Top free agents</h2>'
      +'<span class="fatog"><button data-ft="tot" class="'+(FATOG==='tot'?'on':'')+'">Total</button>'
      +'<button data-ft="avg" class="'+(FATOG==='avg'?'on':'')+'">Average</button></span></div>'
-     +fas.map(plrRow).join('')
-     +'<p class="mnote">The ten best unowned players this season — waiver ammunition.</p>':'';
+     +fas.map(plrRow).join(''):'';
     body.innerHTML=
-     '<input class="pfind" id="pfind" type="search" placeholder="Search any player — who owns him?" value="'+esc(PQUERY)+'">'
+     '<input class="pfind" id="pfind" type="search" placeholder="Search any player" value="'+esc(PQUERY)+'">'
      +'<div id="pres">'+res+'</div>'
      +(PQUERY?'':'<div class="clubgrid">'+list.map(c=>'<button data-club="'+c+'">'+badgeImg(c,32)+'<span>'+c+'</span></button>').join('')+'</div>'
        +'<button class="allclubs" id="allc">'+(ALLCLUBS?'Big 8 only ▴':'All 20 clubs ▾')+'</button>'
@@ -2221,7 +2220,7 @@ function renderXIs_legacy(){ /* PREVIEW: retired Manager XIs screen, kept for re
 function renderAct(){
   const tx=D.tx||[];
   if(!tx.length){document.getElementById('actbody').innerHTML=
-    '<p class="state">No trades or waivers yet — once the first moves process, every pickup, drop and denied claim shows up here.</p>';return}
+    '<p class="state">No trades or waivers yet. Every pickup, drop and denied claim shows up here.</p>';return}
   document.getElementById('actbody').innerHTML='<h2>League activity</h2>'
    +tx.map(t=>{
      const ok=/accept/i.test(t.Result||'');
@@ -2293,7 +2292,7 @@ function plSnapshot(rows){ // who has men on the pitch right now
   const per={};let tot=0;
   D.ro.forEach(p=>{if(clubs.has(p.Club)&&inEffXi(p.Team,p.Code)){per[p.Team]=(per[p.Team]||0)+1;tot++}});
   const chips=Object.keys(TEAMS).filter(t=>per[t]).sort((a,b)=>per[b]-per[a]).map(t=>'<span class="ch">'+mg(t,1)+per[t]+'</span>').join('');
-  return '<div class="plsnap"><span class="lv">● ON THE PITCH</span><span>'+tot+' XI player'+(tot===1?'':'s')+' in '+live.length+' live match'+(live.length===1?'':'es')+'</span>'+chips+'</div>';
+  return '<div class="plsnap"><span class="lv">ON THE PITCH</span><span>'+tot+' XI player'+(tot===1?'':'s')+' in '+live.length+' live match'+(live.length===1?'':'es')+'</span>'+chips+'</div>';
 }
 function plStrip(){
   const rows=(D.cf||[]).filter(f=>num(f.GW)===D.gw);
@@ -2352,43 +2351,45 @@ function demoCard(tier,ovr,pos,name,tag,desc,file){
    +'<span class="meta">'+fakeclub+'<span class="sep"></span>'+fakeflag+'</span>'
    +'</div><p>'+desc+'</p></div>';
 }
+/* v12-clean copy pass (patch_v12_clean.py, 26 Sep 2026) */
 function renderFAQ(){
   document.getElementById('faqbody').innerHTML=
    '<h2>The cards</h2><div class="gallery">'
-   +demoCard('silver',74,'MID','GRAHN','','<b>Silver</b> — rated under 78','487838.png')
-   +demoCard('gold',81,'DEF','TAUNT','','<b>Gold</b> — rated 78–84','492777.png')
-   +demoCard('elite',88,'GKP','GOULD','','<b>Elite</b> — rated 85+, earned not given','111234.png')
-   +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b> — round 1–2 picks, league colours all season','mgr-nolan.png')
-   +demoCard('spec',91,'MID','SCANTLEBURY','R2','<b>Round 2 vintage</b> — same colours, later letter','215413.png')
-   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b> — a 10+ point haul, lasts one week','mgr-baha.png')
-   +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b> — the league’s monthly pick','231416.png')
-   +demoCard('gold',82,'MID','PJ NOLAN','','<b>Gold</b> — the league’s broad middle class','493105.png')
+   +demoCard('silver',74,'MID','GRAHN','','<b>Silver</b>: rated under 78','487838.png')
+   +demoCard('gold',81,'DEF','TAUNT','','<b>Gold</b>: rated 78–84','492777.png')
+   +demoCard('elite',88,'GKP','GOULD','','<b>Elite</b>: rated 85+','111234.png')
+   +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b>: round 1–2 picks, league colours all season','mgr-nolan.png')
+   +demoCard('spec',91,'MID','SCANTLEBURY','R2','<b>Round 2 pick</b>: same colours, R2 tag','215413.png')
+   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b>: a 10+ point haul, lasts one week','mgr-baha.png')
+   +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b>: the Premier League award','231416.png')
+   +demoCard('gold',82,'MID','PJ NOLAN','','<b>Gold</b>: the most common tier','493105.png')
    +'</div>'
-   +'<h2>The pot — $1,200</h2><div class="card"><div class="pot">'
+   +'<h2>The pot: $1,200</h2><div class="card"><div class="pot">'
    +'<div><b>$600</b><span>1st place</span></div><div><b>$180</b><span>2nd place</span></div>'
    +'<div><b>$60</b><span>3rd place</span></div><div><b>$90</b><span>Leader after GW19</span></div>'
    +'<div><b>9 × $30</b><span>Manager of the Month</span></div><div><b>$150</b><span>Buy-in × 8</span></div>'
    +'</div></div>'
    +'<h2>The details</h2>'
-   +'<div class="faqsec"><h3>Ratings</h3><p>Every owned player carries a <b>base OVR</b> — career profile blended with the projection model, curated by the commissioner. On top of that, ratings now <b>breathe with form</b>: the last four performances, measured on real points scored, move the card by up to −3 or +5. A green ▲ means he’s outplaying his rating; a red ▼ means he’s coasting on reputation. Form can promote a Silver into Gold art — or relegate a Gold. The base never moves without the commissioner. Complaints are welcome and will be enjoyed.</p></div>'
-   +'<div class="faqsec"><h3>Points on cards</h3><p>Cards show live gameweek points from kickoff, updating hourly. Before the deadline you see each manager’s projected best XI; once the deadline passes, the real submitted lineup takes over.</p></div>'
-   +'<div class="faqsec"><h3>Special cards</h3><p><b>Team of the Week is earned, not imported:</b> haul 10+ points in a gameweek and the black &amp; gold appears the moment your match goes full time (bonus counts when it lands). It lasts one week — until your next match finishes, where you keep it with another haul or hand it back. The claret Player of the Month card follows the real Premier League award. If a player qualifies for more than one card, POTM beats TOTW beats the draft special.</p></div>'
-   +'<div class="faqsec"><h3>The money — $1,200</h3><p>$600 for first, $180 for second, $60 for third. The leader after GW19 banks $90. Nine Manager of the Month prizes at $30 each — most points in the period, August folds into September. Buy-in was $150.</p></div>'
+   +'<div class="faqsec"><h3>Ratings</h3><p>Every owned player carries a <b>base OVR</b>: career profile blended with the projection model, curated by the commissioner. On top of that, ratings now <b>breathe with form</b>: the last four performances, measured on real points scored, move the card by up to −3 or +5. A green ▲ means he’s outplaying his rating; a red ▼ means he’s coasting on reputation. Form can promote a Silver into Gold art, or relegate a Gold. The base never moves without the commissioner. Complaints are welcome and will be enjoyed.</p></div>'
+   +'<div class="faqsec"><h3>Points on cards</h3><p>Cards show live gameweek points from kickoff. Before the deadline you see each manager’s last lineup carried forward; once the deadline passes, the real submitted lineup takes over.</p></div>'
+   +'<div class="faqsec"><h3>Special cards</h3><p><b>Team of the Week:</b> haul 10+ points in a gameweek and the black &amp; gold appears the moment your match goes full time (bonus counts when it lands). It lasts one week, until your next match finishes: keep it with another haul or hand it back. The claret Player of the Month card follows the real Premier League award. If a player qualifies for more than one card, POTM beats TOTW beats the draft special.</p></div>'
+   +'<div class="faqsec"><h3>The money: $1,200</h3><p>$600 for first, $180 for second, $60 for third. The leader after GW19 banks $90. Nine Manager of the Month prizes at $30 each: most points in the period, with August folded into September. Buy-in was $150.</p></div>'
    +'<div class="faqsec"><h3>League rules</h3><p>Head-to-head, 3/1/0 scoring across 38 gameweeks. Waivers open all season, no transfer or injury restrictions. Points-for is the tiebreaker.</p></div>'
-   +'<div class="faqsec"><h3>Projected vs expected</h3><p>Before a player’s match kicks off you see his <b>projected</b> points — FPL’s forecast, frozen at the deadline. Once he’s played, that flips to <b>expected (xP)</b> — what his performance deserved: goals are scored as xG, assists as xA, clean sheets as the odds of one given the chances faced. The matchup scoreline does the same: a projected final while games are in play, then the xP scoreline when the gameweek closes — so “won 41–38 but deserved to lose 33–45” is now a thing your rivals can prove. Bonus points are left out of xP, on purpose.</p></div>'
-   +'<div class="faqsec"><h3>The data</h3><p>Scores and lineups flow from the FPL Draft API on a rolling refresh — the app re-pulls whenever you open it and every few minutes while it’s on screen. During live matches it can trail the TV by a few minutes; if you got a red card thirty seconds ago, the card doesn’t know yet.</p></div>';
+   +'<div class="faqsec"><h3>Projected vs expected</h3><p><b>Projected</b> points are the app’s forecast before a player’s match: his expected minutes, his underlying numbers and the fixture. <b>Expected (xP)</b> is what a finished performance deserved: goals scored as xG, assists as xA, clean sheets as the odds of one given the chances faced. The matchup scoreline follows the same path: a projected final while games are in play, then the xP scoreline when the gameweek closes, so “won 41–38 but deserved to lose 33–45” is something your rivals can prove. Bonus is left out of xP.</p></div>'
+   +'<div class="faqsec"><h3>The data</h3><p>Scores and lineups flow from the FPL Draft API on a rolling refresh: the app re-pulls whenever you open it and every few minutes while it’s on screen. During live matches it can trail the TV by a few minutes; if you got a red card thirty seconds ago, the card doesn’t know yet.</p></div>'
+   +'<div class="faqsec"><h3>Privacy</h3><p>No ads, no analytics. This phone remembers which team you follow and, if you claimed a team, your sign-in. A claimed team’s photo, colours, crest and display name are saved to the league’s Google Sheet, which anyone with the link can view. PINs are kept only as hashes on the league’s server, never in the sheet.</p></div>';
 }
 
 /* ================= player sheet ================= */
 const ov=document.getElementById('ov'),sheet=document.getElementById('sheet');
 function tierExplain(t,p){
   switch(t){
-    case'potm':return esc(p.Player)+' holds the Premier League Player of the Month award — this card lasts until the next one is announced.';
-    case'totw':return esc(p.Player)+' hauled 10+ points this gameweek — the black &amp; gold lasts until his next match finishes.';
+    case'potm':return esc(p.Player)+' holds the Premier League Player of the Month award. This card lasts until the next one is announced.';
+    case'totw':return esc(p.Player)+' hauled 10+ points this gameweek. The black &amp; gold lasts until his next match finishes.';
     case'spec':return'A round 1–2 draft pick carries the league colours all season.';
-    case'elite':return'Elite tier — rated 85+ on current form. Earned, not given.';
-    case'gold':return'Gold tier — rated 78–84.';
-    default:return'Silver tier — rated under 78.';
+    case'elite':return'Elite tier: rated 85+ on current form.';
+    case'gold':return'Gold tier: rated 78–84.';
+    default:return'Silver tier: rated under 78.';
   }
 }
 function openSheet(p){
@@ -2410,21 +2411,21 @@ function openSheet(p){
     /* hasn't kicked off yet → itemized PROJECTION from his season averages */
     const ep2=epOf(p.Code),hr=histRow(p.Code,p.Pos);
     xpHtml='<div class="xpgrid">'
-     +'<div><b style="color:#0B3E9E">'+(ep2!==null?fmt1(ep2):'—')+'</b><span>PROJ (FPL)</span></div>'
-     +'<div><b>'+(hr?hr.xG.toFixed(2):'—')+'</b><span>AVG xG</span></div>'
-     +'<div><b>'+(hr?hr.xA.toFixed(2):'—')+'</b><span>AVG xA</span></div>'
-     +'<div><b>'+(hr&&hr.Mins>=60&&p.Pos!=='FWD'?Math.round(Math.exp(-hr.xGC)*100)+'%':'—')+'</b><span>CS ODDS</span></div></div>';
+     +'<div><b style="color:#0B3E9E">'+(ep2!==null?fmt1(ep2):'–')+'</b><span>PROJ (FPL)</span></div>'
+     +'<div><b>'+(hr?hr.xG.toFixed(2):'–')+'</b><span>AVG xG</span></div>'
+     +'<div><b>'+(hr?hr.xA.toFixed(2):'–')+'</b><span>AVG xA</span></div>'
+     +'<div><b>'+(hr&&hr.Mins>=60&&p.Pos!=='FWD'?Math.round(Math.exp(-hr.xGC)*100)+'%':'–')+'</b><span>CS ODDS</span></div></div>';
     if(hr){
       const rows=bdOf(hr).filter(b=>b.x!=null&&Math.abs(b.x)>0.01);
       const tot=rows.reduce((s,b)=>s+b.x,0);
       if(rows.length)bdHtml='<div class="bdrow" style="border-bottom:2px solid #E7DEF0"><span style="font-weight:700">Projected gameweek</span><span class="a2"></span><span class="x2" style="font-size:.58rem;color:#0B3E9E">PROJ</span></div>'
        +rows.map(b=>'<div class="bdrow"><span>'+projLbl(b.lbl)+'</span><span class="a2"></span><span class="x2" style="color:#0B3E9E">'+(b.x>=0?'+':'')+b.x.toFixed(2)+'</span></div>').join('')
-       +'<div class="bdrow"><span style="font-weight:700">Itemized total · FPL says</span><span class="a2"></span><span class="x2" style="color:#0B3E9E">'+fmt1(tot)+' · '+(ep2!==null?fmt1(ep2):'—')+'</span></div>'
+       +'<div class="bdrow"><span style="font-weight:700">Itemized total · FPL says</span><span class="a2"></span><span class="x2" style="color:#0B3E9E">'+fmt1(tot)+' · '+(ep2!==null?fmt1(ep2):'–')+'</span></div>'
        +'<p class="sh-note" style="margin-top:6px">Itemized from his averages over '+hr.n+' appearance'+(hr.n>1?'s':'')+' this season, priced with the same math as xP. FPL’s own forecast shown alongside. Flips to the real breakdown at kickoff.</p>';
     }
   }
   else if(gr){
-    const csP=(p.Pos!=='FWD'&&gr.Mins>=60)?Math.round(Math.exp(-gr.xGC)*100)+'%':'—';
+    const csP=(p.Pos!=='FWD'&&gr.Mins>=60)?Math.round(Math.exp(-gr.xGC)*100)+'%':'–';
     xpHtml='<div class="xpgrid">'
      +'<div><b>'+fmt1(xpOf(gr))+'</b><span>GW xP</span></div>'
      +'<div><b>'+gr.xG.toFixed(2)+'</b><span>xG</span></div>'
@@ -2432,7 +2433,7 @@ function openSheet(p){
      +'<div><b>'+csP+'</b><span>CS ODDS</span></div></div>';
     const rows=bdOf(gr);
     if(rows.length)bdHtml='<div class="bdrow" style="border-bottom:2px solid #E7DEF0"><span style="font-weight:700">Gameweek '+D.gw+' breakdown</span><span class="a2" style="color:var(--mid);font-size:.58rem">PTS</span><span class="x2" style="font-size:.58rem">EXPECTED</span></div>'
-     +rows.map(b=>'<div class="bdrow"><span>'+b.lbl+'</span><span class="a2">'+(b.pts>0?'+':'')+b.pts+'</span><span class="x2">'+(b.x==null?'—':(b.x>=0?'+':'')+b.x.toFixed(2))+'</span></div>').join('');
+     +rows.map(b=>'<div class="bdrow"><span>'+b.lbl+'</span><span class="a2">'+(b.pts>0?'+':'')+b.pts+'</span><span class="x2">'+(b.x==null?'–':(b.x>=0?'+':'')+b.x.toFixed(2))+'</span></div>').join('');
   }
   const ep=epOf(p.Code);
   sheet.innerHTML='<div class="sh-grid">'
@@ -2454,7 +2455,7 @@ function openSheet(p){
    +'<div class="srow"><span>Average per GW</span><b>'+avgOf(p)+'</b></div>'
    +'<div class="srow"><span>Next fixture</span><b>'+esc(nextFixture(p.Club))+'</b></div>'
    +bdHtml
-   +'<p class="sh-note">'+tierExplain(t,p)+(gr?' Expected numbers swap luck for underlying stats — goals→xG, assists→xA, clean sheets→e<sup>−xGC</sup>, defensive contribution→his hit-rate in prior games. Bonus is left out of xP.':'')+'</p>'
+   +'<p class="sh-note">'+tierExplain(t,p)+(gr?' Expected numbers use underlying stats: xG for goals, xA for assists, e<sup>−xGC</sup> for clean sheets, his prior hit-rate for defensive contribution. Bonus is left out of xP.':'')+'</p>'
    +'</div></div>';
   ov.classList.add('on');sheet.classList.add('on');pushOverlay();
   sheet.querySelector('.sh-x').onclick=closeSheet;
@@ -2569,7 +2570,7 @@ function loadAll(quiet){
         Mins:num(r.Mins),Pts:num(r.Pts),G:num(r.G),A:num(r.A),CS:num(r.CS),GC:num(r.GC),
         OG:num(r.OG),PS:num(r.PS),PM:num(r.PM),YC:num(r.YC),RC:num(r.RC),
         Saves:num(r.Saves),Bonus:num(r.Bonus),BPS:num(r.BPS),DefCon:num(r.DefCon),
-        xG:num(r.xG),xA:num(r.xA),xGC:num(r.xGC),Final:fin(r.Final)};});
+        xG:num(r.xG),xA:num(r.xA),xGC:num(r.xGC),Starts:num(r.Starts),Final:fin(r.Final)};});
     D.plr=plr||[];
     D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;D.clubs={};
     clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
