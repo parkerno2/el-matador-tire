@@ -8,7 +8,7 @@ function mxScore(f){
   const s=mscore(f);let st,nums,lab;
   if(s.done||D.provOver){st=s.done?'ft':'prov';nums=[s.hs,s.as2];lab=s.done?'Full time':'Provisional';}
   else if(s.liveNow){st='live';nums=[s.hs,s.as2];lab=D.hasEP?'Proj final '+fmt1(teamProj(f.Home))+' – '+fmt1(teamProj(f.Away)):'Live';}
-  else{st='pred';nums=D.hasEP?[fmt1(teamProj(f.Home)),fmt1(teamProj(f.Away))]:['–','–'];lab='Predicted';}
+  else{st='pred';nums=D.hasEP?[teamProj(f.Home).toFixed(1),teamProj(f.Away).toFixed(1)]:['–','–'];lab='Projected';}
   return {st,nums,lab,s};
 }
 function mxKeyMan(team,xi){
