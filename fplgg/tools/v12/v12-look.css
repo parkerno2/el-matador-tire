@@ -253,3 +253,8 @@ button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#
 .sh-x{min-width:36px;min-height:36px}
 /* iOS zooms into any input under 16 px once pinch zoom is allowed */
 .pfind,#sheet input{font-size:16px !important}
+/* leftover blues and small layout fixes (27 Sep, second batch) */
+.chip.blue,.xlab.proj{background:#F0EBF8 !important;color:#3B2360 !important}
+.fxblk .fxs b,.fxs b{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;line-height:1.15}
+/* a wider sheet on desktop so the player's season table fits without a sideways scrollbar */
+@media(min-width:760px){.sheet{width:min(720px,100%) !important}}
