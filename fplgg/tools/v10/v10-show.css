@@ -1,0 +1,25 @@
+/* ===== the gameweek show ===== */
+.mx .scene.out{animation:sOut .45s ease forwards!important;pointer-events:none}
+.mx .sopen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:6px 4px 120px}
+.mx .sopen .wm{animation:crestIn .8s cubic-bezier(.2,.8,.2,1) both}
+.mx .sopen .k{font-family:'Manrope',sans-serif;font-weight:800;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:#FFD23F;animation:lgin .6s .3s ease both}
+.mx .sopen .ttl{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.7rem;line-height:1.05;text-transform:uppercase;letter-spacing:.02em;animation:lgin .6s .45s ease both}
+.mx .sopen .dl{font-size:.74rem;color:#E6DCEC;font-weight:600;animation:lgin .6s 1.6s ease both}
+.mx .sofxs{display:flex;flex-direction:column;gap:6px;width:100%;max-width:420px;margin-top:6px}
+.mx .sofx{display:grid;grid-template-columns:34px minmax(0,1fr) auto minmax(0,1fr) 34px;align-items:center;gap:8px;padding:7px 10px;background:rgba(0,0,0,.26);border-radius:12px;animation:lgin .5s ease both}
+.mx .sofx:nth-child(1){animation-delay:.7s}.mx .sofx:nth-child(2){animation-delay:.9s}.mx .sofx:nth-child(3){animation-delay:1.1s}.mx .sofx:nth-child(4){animation-delay:1.3s}
+.mx .sofx .cr{width:34px;height:34px}.mx .sofx .cr svg{display:block;width:100%;height:100%}
+.mx .sofx .tn{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.8rem;line-height:1;text-transform:uppercase;text-align:left;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mx .sofx .tn.r{text-align:right}
+.mx .sofx .sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.05rem;color:#FFD23F;white-space:nowrap}
+.mx .sofx .sc i{font-style:normal;color:#C9B8D6;padding:0 3px}
+.mx .sofx em{grid-column:1/-1;font-style:normal;font-family:'Manrope',sans-serif;font-weight:800;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:#C9B8D6;margin-top:-2px}
+.mx .sopen.close{padding-bottom:110px}
+.mx .sopen.close button.watch.elev{margin-top:8px;animation:lgin .6s 1.2s ease both}
+.mx .scene.art{padding:0;overflow:hidden}
+.mx .shart{display:block;width:100%;height:100%;border:0;background:#F6F5F8;border-radius:14px 14px 0 0;animation:lgin .6s ease both}
+.mx .lgfoot #shmute{padding-left:10px;padding-right:10px}
+.lgfx.mx.show .lt.hi .k{color:#FFD23F}
+.lgfx.mx.show .lt.hi .t{font-size:.86rem;font-weight:600}
+.lgfx.mx.show.done .scene{animation:none;opacity:0;visibility:hidden}
+.lgfx.mx.show.done .scene:last-child{opacity:1;visibility:visible;pointer-events:auto}

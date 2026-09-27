@@ -1,3 +1,4 @@
+/* v12-clean copy pass (patch_v12_clean.py) */
 /* ===== v10 · team results history: every gameweek's score for a manager, FPL-app style =====
    1) Team page (openProfile, sheet + My team page mode): "Results" table — GW · opponent (derby name, H/A) ·
       score · W/D/L · league position after that week · xP — with a season totals row and a form strip.
@@ -32,7 +33,7 @@ function teamResults(team){
 const resOrd=n=>n+(n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th');
 function resultsHTML(team){
   const rows=teamResults(team);
-  if(!rows.length)return '<div class="hist tres"><h4>Results</h4><p class="hnone">No gameweeks played yet — the season’s results build here from GW1.</p></div>';
+  if(!rows.length)return '<div class="hist tres"><h4>Results</h4><p class="hnone">No gameweeks played yet.</p></div>';
   const T={w:0,d:0,l:0,pf:0,pa:0};
   const tr=rows.map(r=>{if(!r.live){T[r.res.toLowerCase()]++;}T.pf+=r.my;T.pa+=r.their;
     const oc='<span class="oc">'+mg(r.opp,1)+esc(r.opp)+' <i>('+(r.home?'H':'A')+')</i>'+(r.nm?'<small>'+esc(r.nm)+'</small>':'')+'</span>';
@@ -40,7 +41,7 @@ function resultsHTML(team){
      +'<td class="sc"><b>'+r.my+'</b><i>–</i>'+r.their+'</td>'
      +'<td class="rs"><b class="'+(r.live?'lv':r.res)+'">'+(r.live?'LIVE':r.res)+'</b></td>'
      +'<td class="ps">'+resOrd(r.pos)+(r.live?'<i>*</i>':'')+'</td>'
-     +'<td class="xp">'+(r.xp===null?'—':r.xp.toFixed(1))+'</td></tr>';}).join('');
+     +'<td class="xp">'+(r.xp===null?'–':r.xp.toFixed(1))+'</td></tr>';}).join('');
   const form=rows.filter(r=>!r.live).slice(-5).map(r=>'<i class="'+r.res+'">'+r.res+'</i>').join('');
   const anyLive=rows.some(r=>r.live);
   return '<div class="hist tres"><h4>Results<span class="form">'+form+'</span></h4><div class="hwrap"><table>'
@@ -72,7 +73,7 @@ function gridHTML(){
     top[g]=Math.max(top[g]||0,h,a);});});
   const head='<tr><th class="tm">Team</th>'+gws.map(g=>'<th'+(g===D.gw&&cell[st[0]+'|'+g]?.live?' class="lv"':'')+'>'+g+'</th>').join('')+'<th class="tot">PF</th></tr>';
   const body=st.map(t=>{let pf=0;
-    const tds=gws.map(g=>{const c=cell[t+'|'+g];if(!c)return '<td class="none">—</td>';pf+=c.p;
+    const tds=gws.map(g=>{const c=cell[t+'|'+g];if(!c)return '<td class="none">–</td>';pf+=c.p;
       return '<td class="'+c.r+(c.p===top[g]?' wk':'')+(c.live?' live':'')+'">'+c.p+'</td>';}).join('');
     return '<tr><td class="tm" data-prof="'+esc(t)+'">'+mg(t,1)+'<span>'+esc(TEAMS[t].mgr.split(' ')[0])+'</span></td>'+tds+'<td class="tot">'+pf+'</td></tr>';}).join('');
   return '<h2>Scores by gameweek</h2><div class="card sgrid"><div class="gwrap"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'

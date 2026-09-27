@@ -1,3 +1,4 @@
+/* v12-clean copy pass (patch_v12_clean.py) */
 /* ===== v10 — Matchday frame. Overrides declared after the app script; everything else untouched. ===== */
 /*CREST*/
 
@@ -88,7 +89,7 @@ function bugHTML(f,i,o){
   if(s.done||D.provOver){st=s.done?'ft':'prov';nums=[s.hs,s.as2];lab=D.hasXP?'xP '+fmt1(teamXP(f.Home))+' – '+fmt1(teamXP(f.Away)):(s.done?'Full time':'Provisional');}
   else if(s.liveNow){st='live';nums=[s.hs,s.as2];lab=D.hasEP?'Proj final '+fmt1(teamProj(f.Home))+' – '+fmt1(teamProj(f.Away)):'Live';}
   else{st='pred';nums=D.hasEP?[fmt1(teamProj(f.Home)),fmt1(teamProj(f.Away))]:['–','–'];lab='Predicted';}
-  const tag={pred:'<span class="tg">Predicted</span>',live:'<span class="tg live">● Live</span>',prov:'<span class="tg prov">Provisional</span>',ft:'<span class="tg ft">Full time</span>'}[st];
+  const tag={pred:'<span class="tg">Predicted</span>',live:'<span class="tg live">Live</span>',prov:'<span class="tg prov">Provisional</span>',ft:'<span class="tg ft">Full time</span>'}[st];
   const winL=st==='ft'&&+nums[0]>+nums[1],winR=st==='ft'&&+nums[1]>+nums[0];
   const H=(TEAMS[f.Home]||{}).col||'#5B1A66',A=(TEAMS[f.Away]||{}).col||'#5B1A66';
   const bg='radial-gradient(120% 90% at 0% 0%,'+rgba(H,.42)+',transparent 55%),radial-gradient(120% 90% at 100% 100%,'+rgba(A,.42)+',transparent 55%),linear-gradient(140deg,#4A1260 0%,#34104E 48%,#20104A 100%)';
@@ -113,13 +114,13 @@ function renderScoreboard(rows,dl){
   const order=rows.map((f,i)=>i).sort((a,b)=>{const ma=mine&&(rows[a].Home===mine||rows[a].Away===mine)?0:1,mb=mine&&(rows[b].Home===mine||rows[b].Away===mine)?0:1;return ma-mb||a-b});
   const cc=contentCardsHTML();
   let html='';
-  if(D.provOver)html+='<div class="provnote" style="margin-top:12px"><b>All matches finished — provisional result.</b> '+(Object.keys(D.pbonus||{}).length?'Estimated bonus (from live BPS) is counted. ':'')+'FPL usually confirms within a few hours.</div>';
+  if(D.provOver)html+='<div class="provnote" style="margin-top:12px"><b>All matches finished. Provisional result.</b> '+(Object.keys(D.pbonus||{}).length?'Estimated bonus (from live BPS) is counted. ':'')+'FPL usually confirms within a few hours.</div>';
   const first=order[0];
   const yours=mine&&(rows[first].Home===mine||rows[first].Away===mine);
   const sts=rows.map(f=>bugState(f));const uniform=sts.every(x=>x===sts[0]);
-  const stTag={pred:'',live:'<span class="tg live">● Live</span>',prov:'<span class="tg prov">Provisional</span>',ft:'<span class="tg ft">Full time</span>'}[sts[0]]||'';
+  const stTag={pred:'',live:'<span class="tg live">Live</span>',prov:'<span class="tg prov">Provisional</span>',ft:'<span class="tg ft">Full time</span>'}[sts[0]]||'';
   const p3=(typeof PREVIEWS!=='undefined'?PREVIEWS:[]).find(x=>x.gw===D.gw);
-  html+='<a class="recapcard show" data-mxall="1" href="#" style="margin-top:12px"><div><div class="rk">🎬 Gameweek '+D.gw+' preview<span class="new">WATCH</span></div><div class="rt">'+(p3?esc(p3.title):'Every matchup, every lineup — the week in about a minute')+'</div><div class="rs">Lineups, the players to watch and the talking points · about 90 seconds</div></div><span class="go">▶ PLAY</span></a>';
+  html+='<a class="recapcard show" data-mxall="1" href="#" style="margin-top:12px"><div><div class="rk">Gameweek '+D.gw+' preview<span class="new">WATCH</span></div><div class="rt">'+(p3?esc(p3.title):'Every matchup and lineup in about a minute')+'</div><div class="rs">Lineups, the players to watch and the talking points · about 90 seconds</div></div><span class="go">PLAY</span></a>';
   html+='<div class="stack" style="margin-top:12px">';
   if(yours)html+=bugHTML(rows[first],first,{you:true,open:true,noTag:uniform});
   html+='</div>';
@@ -202,14 +203,14 @@ function squadHealth(team){
   const up=rows.filter(r=>r.d>0).sort((a,b)=>b.d-a.d).slice(0,3),dn=rows.filter(r=>r.d<0).sort((a,b)=>a.d-b.d).slice(0,3);
   const li=(r,c)=>'<div class="hr"><b>'+esc(r.p.Player)+'</b><span>'+fmt1(r.l3)+' / GW</span><span class="d '+c+'">'+(r.d>0?'+':'−')+fmt1(Math.abs(r.d))+'</span></div>';
   return '<h2 class="v10">Squad health<span class="lnk" style="cursor:default">last '+last.length+' GW'+(last.length>1?'s':'')+'</span></h2><div class="health">'
-   +'<div class="card"><span class="hk up">▲ Trending up</span>'+(up.length?up.map(r=>li(r,'up')).join(''):'<span class="hr"><span>—</span></span>')+'</div>'
-   +'<div class="card"><span class="hk dn">▼ Trending down</span>'+(dn.length?dn.map(r=>li(r,'dn')).join(''):'<span class="hr"><span>—</span></span>')+'</div></div>';
+   +'<div class="card"><span class="hk up">▲ Trending up</span>'+(up.length?up.map(r=>li(r,'up')).join(''):'<span class="hr"><span>–</span></span>')+'</div>'
+   +'<div class="card"><span class="hk dn">▼ Trending down</span>'+(dn.length?dn.map(r=>li(r,'dn')).join(''):'<span class="hr"><span>–</span></span>')+'</div></div>';
 }
 let FIXOPEN=true;
 function nextFive(team){
   const xi=effXiOf(team,true);const clubs=[...new Set(xi.map(p=>p.Club))];
   const gws=[0,1,2,3,4].map(i=>D.gw+i);
-  const cell=(c,g)=>{const fs=(D.cf||[]).filter(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!fs.length)return '<span class="x">—</span>';
+  const cell=(c,g)=>{const fs=(D.cf||[]).filter(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!fs.length)return '<span class="x">–</span>';
     return '<span class="fxc'+(fs.length>1?' dbl':'')+'">'+fs.map(f=>{const h=f.Home===c,opp=h?f.Away:f.Home,n=fdrOf(c,f);
       return '<span class="fd" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'" title="'+esc(clubName(opp))+' ('+(h?'H':'A')+') · difficulty '+n+'">'+badgeImg(opp,16)+'<i>'+(h?'H':'A')+'</i></span>';}).join('')+'</span>';};
   return '<div class="card fixt" style="padding:0;margin:0 0 10px"><div class="fh" id="fixh">Next five · your clubs'+(FIXOPEN?CHEVD:CHEV)+'</div>'
@@ -256,10 +257,10 @@ function renderTeam(){
   /* tiles: THIS GW · POINTS FOR · BEST GW (avg + W-D-L moved into the header) */
   if(tiles&&tiles.children.length>=3){
     const cur=D.fx.filter(f=>num(f.GW)===D.gw).find(f=>f.Home===mine||f.Away===mine);
-    let gwTxt='—',gwSub='This gameweek';
+    let gwTxt='–',gwSub='This gameweek';
     if(cur){const s=mscore(cur);const my=cur.Home===mine?s.hs:s.as2;const opp=cur.Home===mine?cur.Away:cur.Home;
       if(s.done||s.liveNow){gwTxt=my;gwSub='GW'+D.gw+(s.done?' · final':D.hasEP?' · proj '+fmt1(teamProj(mine)):' · live');}
-      else{gwTxt=D.hasEP?fmt1(teamProj(mine)):'—';gwSub='GW'+D.gw+' projected';}}
+      else{gwTxt=D.hasEP?fmt1(teamProj(mine)):'–';gwSub='GW'+D.gw+' projected';}}
     tiles.children[0].innerHTML='<b style="font-size:1.9rem;color:var(--p2)">'+gwTxt+'</b><span>'+esc(gwSub)+'</span>';
     tiles.children[2].innerHTML='<b style="font-size:1.9rem">'+num(row['Pts For'])+'</b><span>Points for'+(pos?' · '+ORD(pos):'')+'</span>';
     tiles.insertAdjacentHTML('beforebegin',teamNextLine(mine));
@@ -298,7 +299,7 @@ function renderTable(){
   const lead=st[0],sec=st[1];
   const togo=Math.max(0,19-D.gwsDone);
   const m90=lead?'<div class="card money90"><div><div class="k">Leader after GW19<span class="tg">$90</span></div><div class="who">'+mg(lead.Team,1)+'<div><b>'+esc(lead.Team)+'</b><em>'
-    +(sec?(num(lead['League Pts'])===num(sec['League Pts'])?'Level with '+esc(sec.Team)+' · ahead on PF '+lead['Pts For']+'–'+sec['Pts For']:(num(lead['League Pts'])-num(sec['League Pts']))+' pts clear of '+esc(sec.Team)):'')
+    +(sec?(num(lead['League Pts'])===num(sec['League Pts'])?'Level with '+esc(sec.Team)+' · ahead on PF '+lead['Pts For']+'–'+sec['Pts For']:((d=>d+(d===1?' pt':' pts'))(num(lead['League Pts'])-num(sec['League Pts'])))+' clear of '+esc(sec.Team)):'')
     +'</em></div></div></div><div class="big"><b>'+togo+'</b><span>GWs to go</span></div></div>':'';
   const money=document.createElement('div');money.innerHTML='<h2 class="v10">The money</h2>';
   standCard.insertAdjacentElement('afterend',money);
@@ -356,7 +357,7 @@ renderMatch=function(f,dl){
   __rm2(f,dl);
   if(lineupsLocked())return;
   const duel=document.querySelector('#gwbody .duel');
-  if(duel)duel.insertAdjacentHTML('afterend','<div class="asubnote" style="margin-top:8px">Projected lineups — FPL publishes picks at the deadline'+(dl?' ('+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})+')':'')+'. Until then this is each manager’s last lineup carried forward, with new signings slotted by projection and flagged players covered.</div>');
+  if(duel)duel.insertAdjacentHTML('afterend','<div class="asubnote" style="margin-top:8px">Projected lineups. FPL publishes picks at the deadline'+(dl?' ('+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})+')':'')+'; until then each manager’s last lineup carries forward, with new signings and flagged players covered by projection.</div>');
 };
 
 /* ---- fixture difficulty: FPL's own team strengths (bootstrap-static), keyed by the sheet's short codes.
@@ -475,7 +476,7 @@ function openLineup(team){
    +'<button class="lgx" id="lgx" aria-label="Close">×</button>'
    +'<div class="lghead"><span class="cr">'+crestOf(team,64)+'</span><div class="t"><span class="k">Gameweek '+D.gw+(nm?' · '+esc(nm):'')+'</span><span class="n">'+esc(team)+'</span><span class="r">'+esc((TEAMS[team]||{}).mgr||'')+' · '+formation(xi)+(row.W!==undefined?' · <span class="num">'+row.W+'–'+row.D+'–'+row.L+'</span>':'')+(pos?' · '+ORD(pos):'')+'</span>'+formHTML(team,'')+'</div></div>'
    +'<div class="lgpitch"><div class="in">'+rows+'</div></div>'
-   +'<div class="lgfoot">'+mwWordmark(120)+'<span class="k">'+(opp?(nxf.Home===team?'vs ':'at ')+esc(opp)+' · ':'')+'El Matador Tire</span><button class="watch" id="lgre">↻ Replay</button></div>'
+   +'<div class="lgfoot">'+mwWordmark(120)+'<span class="k">'+(opp?(nxf.Home===team?'vs ':'at ')+esc(opp)+' · ':'')+'El Matador Tire</span><button class="watch" id="lgre">Replay</button></div>'
    +'</div>');
   OPPMODE=saveOpp;
   setTimeout(()=>{const g=document.getElementById('lgfx');if(g)g.classList.add('done')},5200); /* guaranteed final frame (throttled/occluded tabs strand CSS animations) */
@@ -494,11 +495,11 @@ function contentCardsHTML(){
   const r=RECAPS.find(r=>r.gw===D.gw&&D.provOver)||RECAPS.find(r=>r.gw===D.gwsDone);
   if(r){const ndl=gwDeadline(r.gw+1);
     if(!(ndl&&Date.now()>ndl.getTime()-RECAP_HIDE_H*36e5))
-      out+='<a class="recapcard" href="'+r.href+'"><div><div class="rk">📰 Gameweek '+r.gw+' recap<span class="new">NEW</span></div><div class="rt">'+r.title+'</div><div class="rs">'+r.sub+'</div></div><span class="go">READ</span></a>';}
+      out+='<a class="recapcard" href="'+r.href+'"><div><div class="rk">Gameweek '+r.gw+' recap<span class="new">NEW</span></div><div class="rt">'+r.title+'</div><div class="rs">'+r.sub+'</div></div><span class="go">READ</span></a>';}
   const p=PREVIEWS.find(p=>p.gw===D.gw||p.gw===D.gwsDone+1);
   if(p){const hide=previewHideAt(p.gw);
     if(!(hide&&Date.now()>hide.getTime()))
-      out+='<a class="recapcard prev" href="'+p.href+'"><div><div class="rk">🔭 Gameweek '+p.gw+' preview<span class="new">NEW</span></div><div class="rt">'+p.title+'</div><div class="rs">'+p.sub+'</div></div><span class="go">READ</span></a>';}
+      out+='<a class="recapcard prev" href="'+p.href+'"><div><div class="rk">Gameweek '+p.gw+' preview<span class="new">NEW</span></div><div class="rt">'+p.title+'</div><div class="rs">'+p.sub+'</div></div><span class="go">READ</span></a>';}
   return out;
 }
 
@@ -530,8 +531,8 @@ const __uh=updateHeader;updateHeader=function(){__uh();const hv=document.getElem
 const __rt3=renderTeam;renderTeam=function(){__rt3();const mine=myTeam();const page=document.getElementById('teampage');
   if(!page){const body=document.getElementById('teambody');const grid=body&&body.querySelector('.mgrid');
     if(grid){grid.querySelectorAll('.mt').forEach(b=>{b.insertAdjacentHTML('afterbegin','<span class="mtc">'+crestOf(b.dataset.pick,34)+'</span>')});
-      const note=body.querySelector('.mnote');if(note)note.textContent='Claim your team with a 4-digit PIN to set your photo, colours and crest — or just pick one to follow.';
-      grid.insertAdjacentHTML('beforebegin','<div class="claimrow"><button class="watch elev" data-claim="1"><span class="pl">★</span>Claim your team</button></div>');}
+      const note=body.querySelector('.mnote');if(note)note.textContent='Claim your team with a 4-digit PIN to set your photo, colours and crest, or pick one to follow.';
+      grid.insertAdjacentHTML('beforebegin','<div class="claimrow"><button class="watch elev" data-claim="1">Claim your team</button></div>');}
     return;}
   const head=page.querySelector('.myhead');if(!head)return;
   const pr=mine&&PROFILE[mine]||{};

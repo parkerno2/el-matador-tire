@@ -1,3 +1,4 @@
+/* v12-clean copy pass (patch_v12_clean.py) */
 /* ===== v10 · Matchday sub-tabs: This week | Derbies =====
    The Derbies tab lists every named rivalry (MATCH map) with the all-time series, the last result and the next
    meeting, plus the still-unnamed pairings. Tap a derby that plays this week to open the matchup. ===== */
@@ -40,7 +41,7 @@ function derbiesHTML(){
   const thisWeek=named.filter(r=>r.thisGw).length;
   return '<h2 class="v10">The derbies<span class="lnk hst">'+named.length+' named'+(thisWeek?' · '+thisWeek+' this week':'')+'</span></h2>'
    +'<div class="stack derbies">'+named.map(derbyCard).join('')+'</div>'
-   +(un.length?'<details class="acc dun"><summary>Still unnamed · '+un.length+' pairings — the naming committee has work to do</summary><div class="stack derbies">'+un.map(derbyCard).join('')+'</div></details>':'');
+   +(un.length?'<details class="acc dun"><summary>Still unnamed · '+un.length+' pairings</summary><div class="stack derbies">'+un.map(derbyCard).join('')+'</div></details>':'');
 }
 function gwTabsHTML(){
   return '<div class="gwtabs"><button class="'+(GWTAB==='week'?'on':'')+'" data-gwtab="week">Gameweek '+D.gw+'</button><button class="'+(GWTAB==='derbies'?'on':'')+'" data-gwtab="derbies">Derbies</button></div>';

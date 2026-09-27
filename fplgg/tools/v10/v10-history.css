@@ -1,0 +1,27 @@
+/* ===== player score history (player sheet) ===== */
+.hist{margin:14px 0 6px}
+.hist h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#5B1A66}
+.hist h4:after{content:"";flex:1;height:2px;background:linear-gradient(90deg,#FFD23F,rgba(255,210,63,0))}
+.hist h4 span{font-weight:700;font-size:.62rem;letter-spacing:.04em;text-transform:none;color:#8A8494}
+.hist .hwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #EBE7F0;border-radius:12px;background:#fff}
+.hist table{width:100%;border-collapse:collapse;font-size:.72rem;color:#1B1420;min-width:300px}
+.hist th{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:#8A8494;text-align:center;padding:8px 3px 6px;border-bottom:1px solid #EEEAF2;white-space:nowrap}
+.hist th.l,.hist td.l{text-align:left}
+.hist td{text-align:center;padding:7px 3px;border-bottom:1px solid #F1EEF4;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.82rem;color:#3B3143;white-space:nowrap}
+.hist tbody tr:last-child td{border-bottom:none}
+.hist td.gw{color:#8A8494;font-weight:600;width:28px}
+.hist td.opp{text-align:left;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;color:#1B1420;padding-left:6px;line-height:1.35}
+.hist td.opp img{height:14px;width:auto;vertical-align:-3px;margin-right:4px}
+.hist td.opp .oc i{font-style:normal;color:#8A8494;font-weight:600}
+.hist td.opp .oc em{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.8rem;color:#3B3143;margin-left:2px}
+.hist td.opp .oc u{text-decoration:none;color:#0E8A5F;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800;margin-left:3px}
+.hist td.pts b{display:inline-block;min-width:26px;padding:2px 5px;border-radius:7px;font-weight:700;font-size:.86rem;color:#1B1420;background:#F1EEF4}
+.hist td.pts b.p10{background:#FFD23F;color:#37003C}
+.hist td.pts b.p6{background:#D6F5E6;color:#0B5C3E}
+.hist td.pts b.p1{background:#F7E4E5;color:#8E2C33}
+.hist td.xp{color:#0B3E9E}
+.hist tr.cur td{background:#FBF7FF}
+.hist tfoot td{border-top:2px solid #E7DEF0;border-bottom:none;font-weight:700;color:#1B1420;background:#FAF8FC}
+.hist tfoot td.l{font-family:'Manrope',sans-serif;font-weight:800;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:#5B1A66;padding-left:6px}
+.hist tfoot td.pts b{background:#2E0F3A;color:#fff}
+.hist .hnote,.hist .hnone{margin:6px 2px 0;font-size:.66rem;line-height:1.45;color:#8A8494}
