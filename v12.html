@@ -8,6 +8,10 @@
      no manifest / no service worker.
      ============================================================ -->
 <meta name="theme-color" content="#17121D">
+<meta property="og:title" content="El Matador Tire">
+<meta property="og:description" content="Live matchups, projections, the table and the title odds for the El Matador Tire draft league.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <link rel="icon" type="image/png" href="icons/icon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -410,7 +414,7 @@ padding:3px 9px;border-radius:20px}
 .chip.grn{background:#E2F5EC;color:#0E8A5F}
 .chip.dark{background:#1B1420;color:var(--gold)}
 .chip.rose{background:#F7E0EA;color:#7A1440}
-.chip.blue{background:#E0EDFF;color:#0B3E9E}
+.chip.blue{background:#E0EDFF;color:#5B2D8E}
 /* ---------- gameweek scoreboard ---------- */
 .mcard{background:var(--card);border-radius:14px;box-shadow:0 6px 18px rgba(55,0,60,.12);padding:12px 14px;margin:10px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mcard .mname{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--p2);text-align:center;margin-bottom:6px}
@@ -508,7 +512,7 @@ body{padding-top:14px}
 /* ---------- xP additions ---------- */
 .mcard .xline{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:.66rem}
 .xlab{font-size:.52rem;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:12px}
-.xlab.proj{background:#E0EDFF;color:#0B3E9E}
+.xlab.proj{background:#E0EDFF;color:#5B2D8E}
 .xlab.xp{background:#E2F5EC;color:#0E8A5F}
 .xlab.pred{background:#F1ECF5;color:var(--p2)}
 .xline b{font-family:'Saira Condensed';font-size:.86rem;color:var(--ink)}
@@ -568,7 +572,7 @@ body{padding-top:14px}
 .lucks .lrow2{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #F1EEF7;font-size:.74rem;font-weight:700;cursor:pointer}
 .lucks .lrow2:last-child{border-bottom:none}
 .lucks .ld{font-family:'Saira Condensed';width:52px;text-align:right;font-weight:700}
-.lucks .ld.hot{color:var(--bad)}.lucks .ld.cold{color:#0B3E9E}
+.lucks .ld.hot{color:var(--bad)}.lucks .ld.cold{color:#5B2D8E}
 .lucks .lmid{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lucks .lnum{font-family:'Saira Condensed';font-size:.72rem;color:var(--mid);font-weight:600}
 .lucks .lbar{height:6px;border-radius:99px;background:#F1EEF7;flex:0 0 84px;overflow:hidden;position:relative}
@@ -1535,7 +1539,7 @@ function openProfile(team,intoEl){
     if(f.Home!==team&&f.Away!==team)return;
     const pt=effPtsOf(f,team);
     if((fin(f.Finished)||pt>0)&&(!best||pt>best.p))best={p:pt,g:num(f.GW),fin:fin(f.Finished)};});
-  const col='#2E5BFF',colX='#5B1A66'; // brand blue = actual, brand purple = expected
+  const col='#17121D',colX='#5B2D8E'; // ink = actual, purple = expected (v12 look)
   /* line chart: actual (solid blue) vs xP (dashed purple) */
   const W=440,PX=30,PY=26,n=gws.length,H=n<2?112:150;
   const maxv=Math.max(...gws.map(g=>Math.max(agg.gws[g].act,agg.gws[g].x)),10);
@@ -1795,8 +1799,8 @@ function labChart(){
         const vals=serOf(t),sum=vals.reduce((s2,v)=>s2+v.v,0);
         const v=perGw&&vals.length?sum/vals.length:sum;
         return{label:t,team:t,v,tap:t,
-          barColor:S.metric==='luck'?(v>=0?'var(--bad)':'#0B3E9E'):S.metric==='bench'?'var(--bad)':TEAMS[t].col,
-          vColor:S.metric==='luck'?(v>=0?'var(--bad)':'#0B3E9E'):'',
+          barColor:S.metric==='luck'?(v>=0?'var(--bad)':'#5B2D8E'):S.metric==='bench'?'var(--bad)':TEAMS[t].col,
+          vColor:S.metric==='luck'?(v>=0?'var(--bad)':'#5B2D8E'):'',
           sub:perGw?'avg / GW':''};
       }).sort((a2,b2)=>b2.v-a2.v);
       return rankBars(rows,{fmt:v=>((S.metric==='luck'||S.metric==='margin')&&v>0?'+':'')+(Math.round(v*10)/10)})
@@ -1806,13 +1810,13 @@ function labChart(){
     /* trending one manager's Points? the expected (xP) line rides along automatically */
     if(S.metric==='pts'&&teams.length===1){
       /* single-manager actual-vs-expected wears the brand colors: blue actual, purple expected */
-      series[0].color='#2E5BFF';
+      series[0].color='#17121D';
       const a=(agg[teams[0]]||{gws:{}}).gws;
       const xv=Object.keys(a).map(g=>({gw:num(g),v:a[g].x})).sort((x,y)=>x.gw-y.gw);
       series.push({name:'expected',color:'#5B1A66',dash:true,vals:S.view==='race'?cumulate(xv):xv,top:true});
     }
     return svgLine(series,{endLabels:S.view==='race'})
-      +foot(S.metric==='pts'&&teams.length===1?'<span style="display:inline-block;width:14px;border-top:2.5px solid #2E5BFF;vertical-align:middle;margin-right:3px"></span>actual score · <span style="display:inline-block;width:14px;border-top:2.5px dashed #5B1A66;vertical-align:middle;margin-right:3px"></span>what the performances deserved (expected, bonus excluded).':S.view==='race'?'Cumulative season totals.':'Per-gameweek. Cyan ring = live.');
+      +foot(S.metric==='pts'&&teams.length===1?'<span style="display:inline-block;width:14px;border-top:2.5px solid #17121D;vertical-align:middle;margin-right:3px"></span>actual score · <span style="display:inline-block;width:14px;border-top:2.5px dashed #5B1A66;vertical-align:middle;margin-right:3px"></span>what the performances deserved (expected, bonus excluded).':S.view==='race'?'Cumulative season totals.':'Per-gameweek. Cyan ring = live.');
   }
   if(S.scope==='league'){
     if(S.metric==='wins'){
@@ -2412,16 +2416,16 @@ function openSheet(p){
     /* hasn't kicked off yet → itemized PROJECTION from his season averages */
     const ep2=epOf(p.Code),hr=histRow(p.Code,p.Pos);
     xpHtml='<div class="xpgrid">'
-     +'<div><b style="color:#0B3E9E">'+(ep2!==null?fmt1(ep2):'–')+'</b><span>PROJ (FPL)</span></div>'
+     +'<div><b style="color:#5B2D8E">'+(ep2!==null?fmt1(ep2):'–')+'</b><span>PROJ (FPL)</span></div>'
      +'<div><b>'+(hr?hr.xG.toFixed(2):'–')+'</b><span>AVG xG</span></div>'
      +'<div><b>'+(hr?hr.xA.toFixed(2):'–')+'</b><span>AVG xA</span></div>'
      +'<div><b>'+(hr&&hr.Mins>=60&&p.Pos!=='FWD'?Math.round(Math.exp(-hr.xGC)*100)+'%':'–')+'</b><span>CS ODDS</span></div></div>';
     if(hr){
       const rows=bdOf(hr).filter(b=>b.x!=null&&Math.abs(b.x)>0.01);
       const tot=rows.reduce((s,b)=>s+b.x,0);
-      if(rows.length)bdHtml='<div class="bdrow" style="border-bottom:2px solid #E7DEF0"><span style="font-weight:700">Projected gameweek</span><span class="a2"></span><span class="x2" style="font-size:.58rem;color:#0B3E9E">PROJ</span></div>'
-       +rows.map(b=>'<div class="bdrow"><span>'+projLbl(b.lbl)+'</span><span class="a2"></span><span class="x2" style="color:#0B3E9E">'+(b.x>=0?'+':'')+b.x.toFixed(2)+'</span></div>').join('')
-       +'<div class="bdrow"><span style="font-weight:700">Itemized total · FPL says</span><span class="a2"></span><span class="x2" style="color:#0B3E9E">'+fmt1(tot)+' · '+(ep2!==null?fmt1(ep2):'–')+'</span></div>'
+      if(rows.length)bdHtml='<div class="bdrow" style="border-bottom:2px solid #E7DEF0"><span style="font-weight:700">Projected gameweek</span><span class="a2"></span><span class="x2" style="font-size:.58rem;color:#5B2D8E">PROJ</span></div>'
+       +rows.map(b=>'<div class="bdrow"><span>'+projLbl(b.lbl)+'</span><span class="a2"></span><span class="x2" style="color:#5B2D8E">'+(b.x>=0?'+':'')+b.x.toFixed(2)+'</span></div>').join('')
+       +'<div class="bdrow"><span style="font-weight:700">Itemized total · FPL says</span><span class="a2"></span><span class="x2" style="color:#5B2D8E">'+fmt1(tot)+' · '+(ep2!==null?fmt1(ep2):'–')+'</span></div>'
        +'<p class="sh-note" style="margin-top:6px">Itemized from his averages over '+hr.n+' appearance'+(hr.n>1?'s':'')+' this season, priced with the same math as xP. FPL’s own forecast shown alongside. Flips to the real breakdown at kickoff.</p>';
     }
   }
