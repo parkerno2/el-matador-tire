@@ -1,8 +1,8 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>FPL Companion · El Matador Tire</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#37003C">
+<meta name="theme-color" content="#17121D">
 <link rel="icon" type="image/png" href="icons/icon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3885,7 +3885,7 @@ function mxScore(f){
   const s=mscore(f);let st,nums,lab;
   if(s.done||D.provOver){st=s.done?'ft':'prov';nums=[s.hs,s.as2];lab=s.done?'Full time':'Provisional';}
   else if(s.liveNow){st='live';nums=[s.hs,s.as2];lab=D.hasEP?'Proj final '+fmt1(teamProj(f.Home))+' – '+fmt1(teamProj(f.Away)):'Live';}
-  else{st='pred';nums=D.hasEP?[fmt1(teamProj(f.Home)),fmt1(teamProj(f.Away))]:['–','–'];lab='Predicted';}
+  else{st='pred';nums=D.hasEP?[teamProj(f.Home).toFixed(1),teamProj(f.Away).toFixed(1)]:['–','–'];lab='Projected';}
   return {st,nums,lab,s};
 }
 function mxKeyMan(team,xi){
@@ -4995,19 +4995,19 @@ html body .lkn.lkn.lkn,html body .lkn.lkn.lkn *,html body .num.num.num:not(.fc *
 #gwpill{background:transparent !important;border:1px solid #3B3345 !important;color:#E6E0EE !important;font-weight:700 !important}
 #gwpill.live{border-color:#1F8A55 !important;color:#7BE0A9 !important}
 nav{background:#fff !important;border-top:1px solid #E7E2EE !important;box-shadow:none !important}
-nav button{color:#8E869A !important}nav button.on{color:#17121D !important}
+nav button{color:#6F6880 !important}nav button.on{color:#17121D !important}
 nav button .bar{background:#5B2D8E !important}
 .helpfoot button{border:1px solid #E7E2EE !important;background:#fff !important;color:#17121D !important}
 /* type + surfaces */
 h2.v10{color:#17121D !important;font-size:1.1rem !important;font-weight:800 !important;letter-spacing:-.015em !important;text-transform:none !important;margin:24px 2px 10px !important}
 h2.v10:after{display:none !important}
 h2.v10 .lnk{color:#5B2D8E !important;font-weight:700 !important;font-size:.78rem !important}
-h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
+h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .plhead h2,#tablebody h2{text-transform:none !important;letter-spacing:-.01em !important;color:#17121D !important;font-size:1.1rem !important}
 .plhead h2:after,#tablebody h2:after{display:none !important}
 .card,.health .card,.fixt,.tsx,.psx,.acc,.pl{background:#fff !important;border-color:#E7E2EE !important}
 .gwtabs{border:none !important;background:transparent !important}
-.gwtabs button{background:transparent !important;color:#8E869A !important;font-weight:700 !important;font-size:.86rem !important;border:none !important;padding:6px 8px !important;text-transform:none !important;letter-spacing:0 !important}
+.gwtabs button{background:transparent !important;color:#6F6880 !important;font-weight:700 !important;font-size:.86rem !important;border:none !important;padding:6px 8px !important;text-transform:none !important;letter-spacing:0 !important}
 .gwtabs button.on{color:#17121D !important;box-shadow:inset 0 -2px 0 #5B2D8E}
 .gwtabs button+button{border-left:none !important}
 .axtog button.on,.labseg button.on,.labmet button.on,.labview button.on,.labpill.on,.fatog button.on{background:#17121D !important;color:#fff !important}
@@ -5018,20 +5018,20 @@ h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
 /* ---- Matchday: your match ---- */
 .lkD{background:#fff;border:1px solid #E7E2EE;border-radius:16px;padding:14px 14px 12px;cursor:pointer;color:#17121D;margin:0 0 6px}
 .lkD .lkhd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;color:#5B2D8E;margin-bottom:4px}
-.lkD .lkhd .lkst{margin-left:auto;color:#8E869A;letter-spacing:.02em;text-transform:none;font-weight:600;font-size:.74rem}
+.lkD .lkhd .lkst{margin-left:auto;color:#6F6880;letter-spacing:.02em;text-transform:none;font-weight:600;font-size:.74rem}
 .lkD .lkhd .lkst.lklive{color:#1F8A55;font-weight:800}
 .lkD .lktr{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 0}
 .lkD .lktr+.lktr{border-top:1px solid #F0ECF4}
 .lkD .lktr svg{display:block}
 .lkD .lktr .lknm{min-width:0}
 .lkD .lktr .lknm b{display:block;font-weight:800;font-size:1.06rem;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lkD .lktr .lknm span{display:flex;align-items:center;gap:8px;font-size:.74rem;color:#8E869A;font-weight:600;margin-top:2px}
+.lkD .lktr .lknm span{display:flex;align-items:center;gap:8px;font-size:.74rem;color:#6F6880;font-weight:600;margin-top:2px}
 .lkD .lktr .lkbig{font-weight:700;font-size:2.35rem;line-height:1;letter-spacing:-.01em}
-.lkD .lktr.lklo .lkbig,.lkD .lktr.lklo .lknm b{color:#A8A1B2}
+.lkD .lktr.lklo .lkbig,.lkD .lktr.lklo .lknm b{color:#8C8496}
 .lkD .lkwp{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:800;font-size:.8rem}
 .lkD .lkwp .lkbar{flex:1;display:flex;height:6px;border-radius:3px;overflow:hidden;background:#EEEAF3}
 .lkD .lkwp .lkbar i{display:block;height:100%}
-.lkD .lkwpl{display:flex;justify-content:space-between;font-size:.7rem;color:#8E869A;font-weight:600;margin-top:5px}
+.lkD .lkwpl{display:flex;justify-content:space-between;font-size:.7rem;color:#6F6880;font-weight:600;margin-top:5px}
 .lkD .lkfact{font-size:.8rem;line-height:1.45;color:#4B4456;border-top:1px solid #F0ECF4;margin-top:11px;padding-top:10px}
 /* ---- Matchday: around the league, one card ---- */
 #gwbody .stack:has(.lkDrow){background:#fff;border:1px solid #E7E2EE;border-radius:16px;overflow:hidden;display:block}
@@ -5045,15 +5045,15 @@ h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
 .lkDrow .lkt svg{flex:none;display:block}
 .lkDrow .lks{font-weight:700;font-size:1.45rem;line-height:1;display:flex;gap:8px}
 .lkDrow .lks i{font-style:normal;color:#CFC8D8}
-.lkDrow .lks .lklo{color:#A8A1B2}
-.lkDrow .lksub{display:flex;justify-content:space-between;margin-top:6px;font-size:.7rem;color:#8E869A;font-weight:600}
+.lkDrow .lks .lklo{color:#8C8496}
+.lkDrow .lksub{display:flex;justify-content:space-between;margin-top:6px;font-size:.7rem;color:#6F6880;font-weight:600}
 /* ---- From the booth: previews and recaps always reachable ---- */
 .lkBooth{background:#fff;border:1px solid #E7E2EE;border-radius:16px;overflow:hidden}
 .lkBooth a,.lkBooth button.lkrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;border:none;border-top:1px solid #F0ECF4;background:none;width:100%;text-align:left;color:#17121D;text-decoration:none;cursor:pointer}
 .lkBooth>:first-child{border-top:none}
 .lkBooth .lkk{display:block;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#5B2D8E}
 .lkBooth b{display:block;font-weight:750;font-size:.94rem;letter-spacing:-.01em;line-height:1.3;margin-top:3px}
-.lkBooth .lkm{display:block;font-size:.72rem;color:#8E869A;font-weight:600;margin-top:3px}
+.lkBooth .lkm{display:block;font-size:.72rem;color:#6F6880;font-weight:600;margin-top:3px}
 .lkBooth .lkgo{font-size:.76rem;font-weight:800;color:#5B2D8E;white-space:nowrap}
 .lkBooth .lkgo.lkplay{background:#17121D;color:#fff;border-radius:8px;padding:7px 10px}
 .lkBooth.lklead{border-color:#D9CDEF;background:#FBF9FE}
@@ -5073,7 +5073,7 @@ h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
 .lkMH .lkc .lkbig i{font-style:normal;color:#5E5568;margin:0 4px}
 .lkMH .lkc .lkst{font-size:.7rem;font-weight:700;color:#B9B1C4;margin-top:6px}
 .lkMH .lkc .lkst.lklive{color:#7BE0A9}
-.lkMH .lkc .lkal{font-size:.7rem;color:#8E869A;margin-top:3px;font-weight:600}
+.lkMH .lkc .lkal{font-size:.7rem;color:#6F6880;margin-top:3px;font-weight:600}
 .mpxwin>b.hi,.side .mpxrec em,.mpxl span b{color:#CDBDF0 !important}
 .mpxnum{background:rgba(255,255,255,.05) !important}
 #gwbody .stage .backbtn{background:rgba(255,255,255,.08) !important;border-color:rgba(255,255,255,.14) !important}
@@ -5093,21 +5093,21 @@ h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
 .lkNext .lkl{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:8px}
 .lkNext .lkl svg{display:block}
 .lkNext .lkl b{display:block;font-weight:800;font-size:.98rem;letter-spacing:-.015em}
-.lkNext .lkl span{display:block;font-size:.72rem;color:#8E869A;font-weight:600;margin-top:2px}
+.lkNext .lkl span{display:block;font-size:.72rem;color:#6F6880;font-weight:600;margin-top:2px}
 .lkNext .lkp{text-align:right}
 .lkNext .lkp .lkn{font-weight:700;font-size:1.6rem;line-height:1}
-.lkNext .lkp span{font-size:.68rem;color:#8E869A;font-weight:700}
+.lkNext .lkp span{font-size:.68rem;color:#6F6880;font-weight:700}
 .lkSched{background:#fff;border:1px solid #E7E2EE;border-radius:16px;overflow:hidden}
 .lkSched .lkr{display:grid;grid-template-columns:30px 24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #F0ECF4;cursor:pointer}
 .lkSched .lkr:first-child{border-top:none}
-.lkSched .lkg{font-size:.72rem;color:#8E869A;font-weight:700}
+.lkSched .lkg{font-size:.72rem;color:#6F6880;font-weight:700}
 .lkSched .lkr svg{display:block}
 .lkSched .lko b{display:block;font-weight:700;font-size:.88rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lkSched .lko span{display:block;font-size:.68rem;color:#8E869A;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkSched .lko span{display:block;font-size:.68rem;color:#6F6880;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lkSched .lksc{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem}
 .lkSched .lksc u{text-decoration:none;font-size:.62rem;font-weight:800;width:18px;height:18px;border-radius:4px;display:grid;place-items:center;color:#fff}
 .lkSched .lksc u.lkresW{background:#1F8A55}.lkSched .lksc u.lkresL{background:#C23A3A}.lkSched .lksc u.lkresD{background:#8C8496}
-.lkSched .lkwhen{font-size:.74rem;color:#8E869A;font-weight:600;text-align:right}
+.lkSched .lkwhen{font-size:.74rem;color:#6F6880;font-weight:600;text-align:right}
 .lkSched .lkr.lkfut{background:#FCFBFE}
 .lkLineupH{display:flex;align-items:center;justify-content:space-between}
 #teampage .mypitch,#sheet .mypitch{margin-top:4px}
@@ -5122,7 +5122,7 @@ h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
 .lkTH .lkcr{display:block;line-height:0}
 #gwbody .stage .mpxrec,#gwbody .stage .form.lkc{display:none}
 .lkMH .lkt .lkrec{display:inline-flex;gap:4px;align-items:center}
-.lkMH .lkt .lkrec i{font-style:normal;color:#8E869A}
+.lkMH .lkt .lkrec i{font-style:normal;color:#6F6880}
 .lkMH .lkt{cursor:pointer}
 .lkSched .lkwhen{line-height:1.1}
 .lkSched .lkwhen .lkn{font-size:1.05rem;color:#17121D;font-weight:700}
@@ -5145,7 +5145,7 @@ h2.v10 .lnk.lkq{color:#8E869A !important;cursor:default}
 .lkTH{grid-template-columns:56px minmax(0,1fr) !important}
 .lkTH .lkact{grid-column:2;margin-top:2px}
 .lkTH .lkact .profrow{margin:0 !important}
-h2.v10 .lnk.tsx-k{color:#8E869A !important;cursor:default}
+h2.v10 .lnk.tsx-k{color:#6F6880 !important;cursor:default}
 
 /* header: Matchweek plate + league name */
 .top .brand .lg{font-size:.8rem !important;font-weight:800 !important;letter-spacing:-.01em !important;text-transform:none !important;line-height:1.05 !important;color:#fff !important}
@@ -5192,6 +5192,49 @@ button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#
 .chip.dark{color:#CDBDF0 !important}
 .fxblk .fxs.me i{color:#5B2D8E !important}
 .dlchip{background:#E4D9F5 !important;color:#3B2360 !important}
+
+/* ---------- fixes, 27 Sep (interaction pass) ---------- */
+/* player sheet on the two-column layout: the card sits at the top of its column and stays in view while the details scroll */
+.lkstick{display:contents}
+@media(min-width:700px){
+  #sheet .sh-left{justify-content:flex-start !important;overflow:visible !important}
+  #sheet .lkstick{display:flex;flex-direction:column;align-items:center;width:100%;position:sticky;top:16px}
+}
+/* Premier League fixture panel: the columns picked up the matchup header's centred .side layout and spilled past the card */
+.plx .side{display:block !important}
+.plx .plp .pv.proj i{display:none}
+/* the leader's position number was still gold */
+.trow.lead .rk{color:#17121D !important}
+/* Lab: the metric chips scroll sideways without a desktop scrollbar */
+#v-ana .labmets,#v-ana .labmet{scrollbar-width:none}
+#v-ana ::-webkit-scrollbar{display:none}
+/* narrow phones (320 to 360 px): names stay readable, records never break, the header does not collide */
+.lknw,.lkD .lktr .lknm span,.lkNext .lkl span{white-space:nowrap}
+.lkMH .lkt .lkrec{display:inline;text-align:center}
+.lkshort{display:none}
+@media(max-width:360px){
+  .top .brand .lg{display:none !important}
+  .lkDrow .lkln{gap:6px}
+  .lkDrow .lks{font-size:1.15rem;gap:5px}
+  .lkDrow .lkt{gap:5px}
+  .lkDrow .lkt b{font-size:.82rem}
+  .lkDrow .lkt svg{width:20px;height:20px}
+  .lkMH .lkt b{font-size:.9rem}
+  .lkMH .lkt .lkfull{display:none}
+  .lkMH .lkt .lkshort{display:inline}
+  .lkMH .lkc .lkbig{font-size:2rem}
+  .lkD .lktr .lkbig{font-size:2rem}
+  .lkD .lktr .lknm span .lkf{display:none}
+}
+/* tap targets: nothing a thumb needs is under ~36 px */
+.hbtn{width:34px !important;height:34px !important}
+.gwtabs button{min-height:36px}
+[data-fbxstep]{min-width:36px;min-height:36px}
+.axtog button{min-height:32px}
+#plall{padding:8px 12px !important}
+.sh-x{min-width:36px;min-height:36px}
+/* iOS zooms into any input under 16 px once pinch zoom is allowed */
+.pfind,#sheet input{font-size:16px !important}
 
 </style>
 <script id="v12js">
@@ -5434,7 +5477,7 @@ simulate=function(){
     const w=o.length/(o.length+6);
     const mean=.7*proj+.3*(w*om+(1-w)*lgAvg);
     M[k]={mean,sd:Math.max(9,hpTeamSd(t,g))};});});
-  const N=10000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
+  const N=5000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
   for(let s=0;s<N;s++){
     const p={...pts},q={...pf};
     for(const f of remain){const h=f.Home,a=f.Away,mh=M[h+'|'+num(f.GW)],ma=M[a+'|'+num(f.GW)];if(!mh||!ma)continue;
@@ -5977,7 +6020,7 @@ function fbxFutureHTML(g,rows){
     const tail=t=>'<span class="fbx-nm"><b>'+esc(fbxShort(t))+'</b><em class="num">'+esc(fbxRec(t))+'</em></span>';
     let mid='<span class="fbx-sc fbx-v">v</span>';
     if(proj){let a=null,b=null;try{a=hpTeam(f.Home,g);b=hpTeam(f.Away,g);}catch(e){}
-      if(a!==null&&b!==null&&isFinite(a)&&isFinite(b))mid='<span class="fbx-sc fbx-pj"><span class="fbx-n"><b>'+fmt1(a)+'</b><i>–</i><b>'+fmt1(b)+'</b></span><small>Projected</small></span>';}
+      if(a!==null&&b!==null&&isFinite(a)&&isFinite(b))mid='<span class="fbx-sc fbx-pj"><span class="fbx-n"><b>'+(Math.round(a*10)/10).toFixed(1)+'</b><i>–</i><b>'+(Math.round(b*10)/10).toFixed(1)+'</b></span><small>Projected</small></span>';}
     h+='<div class="fbx-row fbx-fut">'
      +'<span class="fbx-k"><span class="fbx-dn">'+(nm?esc(nm):'')+'</span><span class="fbx-sr">'+esc(sr)+'</span></span>'
      +'<span class="fbx-ln">'+fbxSide(f.Home,'',tail(f.Home))+mid+fbxSide(f.Away,'fbx-rt',tail(f.Away))+'</span></div>';
@@ -6387,8 +6430,8 @@ function lkMatchHead(f,dl){
   const S=lkState(f),nm=derbyName(f.Home,f.Away),sr=series(f.Home,f.Away);
   const sides=[...st.querySelectorAll('.vs .side')];
   const side=(el,t)=>{const rec=el&&el.querySelector('.mpxrec');
-    return '<div class="lkt" data-lkprof="'+esc(t)+'">'+crestOf(t,52)+'<b>'+esc(t)+'</b><span>'+esc(FIRSTOF(t))+'</span>'+(rec?'<span class="lkrec">'+rec.innerHTML+'</span>':'')+'</div>';};
-  const when=dl?dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'}):'';
+    return '<div class="lkt" data-lkprof="'+esc(t)+'">'+crestOf(t,52)+'<b><span class="lkfull">'+esc(t)+'</span><span class="lkshort">'+esc(SHORTOF[t]||t)+'</span></b><span>'+esc(FIRSTOF(t))+'</span>'+(rec?'<span class="lkrec">'+rec.innerHTML.replace(/^\s*([\d-]+)/,'<span class="lknw">$1</span>')+'</span>':'')+'</div>';};
+  const when=dl?dl.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
   const stat=S.st==='pred'?'Projected'+(when?' · deadline '+when:''):S.st==='live'?'Live'+(S.sub?' · '+S.sub:''):S.cap+(S.sub?' · '+S.sub:'');
   const html='<div class="lkMH"><div class="lkk">Gameweek '+D.gw+(nm?' · '+esc(nm):'')+'</div><div class="lkrow">'+side(sides[0],f.Home)
    +'<div class="lkc"><div class="lkbig lkn">'+S.l+'<i>–</i>'+S.r+'</div><div class="lkst'+(S.st==='live'?' lklive':'')+'">'+esc(stat)+'</div>'+(sr?'<div class="lkal">'+esc(sr)+'</div>':'')+'</div>'
@@ -6469,12 +6512,61 @@ function lkTeam(root,team,page){
   });
 }
 
+
+/* ---------- speed: auto-subs and the title odds are pure functions of the loaded data, so compute them once per data load ----------
+   (the Premier League strip asked autoSubs ~2,350 times per Matchday render: ~0.5 s on a laptop, several seconds on a phone) */
+let lkKeyV=null,lkAS=new Map(),lkSim=null,lkApps=null;
+function lkFresh(){const k=[D.ro,D.gwsByGw,D.cf,D.fx,D.gw,D.dlPassed,D.provOver,D.pbonus];
+  if(!lkKeyV||k.some((v,i)=>v!==lkKeyV[i])){lkKeyV=k;lkAS=new Map();lkSim=null;lkApps=null;}}
+const lk_as=autoSubs;autoSubs=function(team,likely){lkFresh();const key=team+'|'+(likely?1:0);let c=lkAS.get(key);
+  if(!c){c=lk_as.call(this,team,likely);lkAS.set(key,c);}return {xi:c.xi.slice(),subs:c.subs.slice()};};
+const lk_sim=simulate;simulate=function(){lkFresh();if(!lkSim)lkSim=lk_sim.apply(this,arguments);return lkSim;};
+
+/* ---------- Players: "Average" = points per appearance (it divided everyone by the same gameweek count, so the toggle never changed the order) ---------- */
+function lkAppsOf(code){lkFresh();if(!lkApps){lkApps={};Object.values(D.gwsByGw||{}).forEach(g=>Object.entries(g||{}).forEach(([c,r])=>{if(r&&num(r.Mins)>0)lkApps[c]=(lkApps[c]||0)+1;}));}return lkApps[String(code)]||0;}
+plrAvg=function(p){return num(p['Season pts'])/Math.max(1,lkAppsOf(p.Code));};
+const lk_pr=plrRow;plrRow=function(p){const h=lk_pr.apply(this,arguments);
+  if(typeof FATOG!=='undefined'&&FATOG==='avg'&&!(typeof PQUERY!=='undefined'&&PQUERY)){const a=plrAvg(p).toFixed(1),n=lkAppsOf(p.Code);
+    return h.replace(/<span class="ptb"><b>[^<]*<\/b><span>[^<]*<\/span><\/span>/,'<span class="ptb"><b>'+a+'</b><span>'+num(p['Season pts'])+' pts · '+n+' '+(n===1?'game':'games')+'</span></span>');}
+  return h.replace(/(\d+\.\d) AVG</,'$1 per game<');};
+
+/* ---------- transactions: raw API codes and em dashes never reach the screen ---------- */
+function lkFixTx(){(D.tx||[]).forEach(t=>{if(!t||t.__lk)return;let r=String(t.Result||'').trim();
+  if(/^[a-z]{1,3}$/.test(r))r='Denied';t.Result=r.replace(/\s*[—–]\s*/g,', ');t.__lk=1;});}
+
+/* ---------- player sheet: the card stays in view on the two-column (desktop) sheet; the projection is said once ---------- */
+function lkSheetFix(){const L=sheet.querySelector('.sh-left');
+  if(L&&!L.querySelector(':scope > .lkstick')){const w=document.createElement('div');w.className='lkstick';while(L.firstChild)w.appendChild(L.firstChild);L.appendChild(w);}
+  const fx=sheet.querySelector('.fxst');if(fx&&/^Projected/.test(fx.textContent.trim())&&sheet.querySelector('.psx'))fx.remove();}
+
+/* ---------- Lab: sentence-case scope tabs, short names in the luck index ---------- */
+function lkLab(){const v=document.getElementById('v-ana');if(!v)return;
+  v.querySelectorAll('.labseg button').forEach(b=>{const t=b.textContent.trim();if(t==='MANAGERS')b.textContent='Managers';if(t==='LEAGUE')b.textContent='League';});
+  v.querySelectorAll('.lucks .lrow2[data-prof]').forEach(r=>{const m=r.querySelector('.lmid');const t=r.dataset.prof;if(m&&SHORTOF[t])m.textContent=SHORTOF[t];});}
+
+/* ---------- sign-in wording: a claimed team is signed into, not claimed ---------- */
+profileButtonHTML=function(){const mine=myTeam();
+  if(mine&&AUTH.team()===mine)return '<button class="watch" data-claim="1">Edit team</button>';
+  const cl=typeof authClaimedList==='function'?authClaimedList():null;
+  const claimed=mine&&((cl&&cl.indexOf(mine)>-1)||!!PROFILE[mine]);
+  return '<button class="watch" data-claim="1">'+(claimed?'Sign in':'Claim your team')+'</button>';};
+
+/* ---------- fixture difficulty: same five steps, no neon ---------- */
+Object.assign(FDRCOL,{1:'#CFEBDA',2:'#CFEBDA',3:'#EEEBF2',4:'#F4CACD',5:'#B3303A'});
+Object.assign(FDRTXT,{1:'#14532D',2:'#14532D',3:'#3B3346',4:'#7A1A20',5:'#FFFFFF'});
+
 /* ---------- wire it in (outermost wrappers) ---------- */
 const lk_uh=updateHeader;updateHeader=function(){const r=lk_uh.apply(this,arguments);const i=document.querySelector('#hav img');if(i)i.style.boxShadow='0 0 0 2px #CDBDF0';return r;};
 const lk_rg=renderGW;renderGW=function(){const r=lk_rg.apply(this,arguments);try{const body=document.getElementById('gwbody');lkBooth(body);lkMatchday(body);}catch(e){console.error(e)}return r;};
 const lk_rm=renderMatch;renderMatch=function(f,dl){const r=lk_rm.apply(this,arguments);try{lkMatchHead(f,dl)}catch(e){console.error(e)}return r;};
-const lk_rt=renderTeam;renderTeam=function(){const r=lk_rt.apply(this,arguments);try{lkTeam(document.getElementById('teampage'),myTeam(),1)}catch(e){console.error(e)}return r;};
-const lk_op=openProfile;openProfile=function(team,intoEl){const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
+const lk_rt=renderTeam;renderTeam=function(){lkFixTx();const r=lk_rt.apply(this,arguments);try{lkTeam(document.getElementById('teampage'),myTeam(),1)}catch(e){console.error(e)}return r;};
+const lk_op=openProfile;openProfile=function(team,intoEl){lkFixTx();const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
+const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix()}catch(e){console.error(e)}return r;};
+const lk_rx=renderXIs;renderXIs=function(){lkFixTx();return lk_rx.apply(this,arguments);};
+const lk_ra=renderAna;renderAna=function(){const r=lk_ra.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;};
+(function(){const p=document.getElementById('gwpill');if(!p||typeof MutationObserver==='undefined')return;
+  const fix=()=>{const m=/^GW(\d+) · (\d+d \d+h|\d+h \d+m|\d+m)$/.exec(p.textContent.trim());if(m)p.textContent='Deadline '+m[2];};
+  new MutationObserver(fix).observe(p,{childList:true,characterData:true,subtree:true});fix();})();
 if(D.ro&&D.ro.length){try{renderGW();renderTeam();renderTable();updateHeader();}catch(e){}}
 })();
 
