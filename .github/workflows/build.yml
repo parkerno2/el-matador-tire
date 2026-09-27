@@ -1,0 +1,40 @@
+# El Matador Tire: build the app from its sources, no PC needed.
+#   Every push that touches the sources rebuilds the hidden preview page v12.html (production untouched).
+#   "Ship to production" (Actions tab → Build app → Run workflow → ship: yes) builds index.html from the same
+#   sources and commits it. Only run it after Parker has approved the preview.
+name: Build app
+on:
+  push:
+    branches: [main]
+    paths: ['index-PREVIEW.html', 'fplgg/tools/v10/**', 'fplgg/tools/v12/**', 'fplgg/tools/port_preview_to_prod.py']
+  workflow_dispatch:
+    inputs:
+      ship:
+        description: 'Also build production index.html (type yes)'
+        required: false
+        default: 'no'
+permissions:
+  contents: write
+concurrency: { group: build-app, cancel-in-progress: false }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Build preview (v12.html)
+        run: python3 fplgg/tools/v12/build_v12.py index-PREVIEW.html
+      - name: Build production (index.html)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.ship == 'yes'
+        run: python3 fplgg/tools/v12/build_v12.py index-PREVIEW.html --prod index.html
+      - name: Commit build output
+        run: |
+          git config user.name "el-matador-build"
+          git config user.email "actions@users.noreply.github.com"
+          git add v12.html index.html
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git commit -m "build: $( [ '${{ github.event.inputs.ship }}' = 'yes' ] && echo 'ship production + preview' || echo 'preview v12.html' ) from ${GITHUB_SHA::7}"
+          git push
