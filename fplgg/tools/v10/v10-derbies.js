@@ -18,13 +18,15 @@ function derbyRows(){
   return out;
 }
 function derbyMeta(r){
+  /* scores read in the card's column order (r.a left, r.b right), whichever side was at home that week */
   const bits=[];
-  if(r.thisGw){const {st,nums,lab}=mxScore(r.thisGw);const h=r.thisGw.Home,a=r.thisGw.Away;
-    bits.push('<b class="now">This week</b> · '+esc(FIRSTOF(h))+' <span class="num">'+nums[0]+'</span> – <span class="num">'+nums[1]+'</span> '+esc(FIRSTOF(a))+' <i>'+esc(lab)+'</i>');}
+  if(r.thisGw){const {st,nums,lab}=mxScore(r.thisGw);const flip=r.thisGw.Home!==r.a;const l=flip?nums[1]:nums[0],rt=flip?nums[0]:nums[1];
+    bits.push('<b class="now">This week</b> · '+esc(FIRSTOF(r.a))+' <span class="num">'+l+'</span> – <span class="num">'+rt+'</span> '+esc(FIRSTOF(r.b))+' <i>'+esc(lab)+'</i>');}
   else if(r.next){const d=gwDeadline(num(r.next.GW));bits.push('<b>Next</b> · GW'+num(r.next.GW)+(d?' · '+esc(d.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})):''));}
   else bits.push('<b>Next</b> · not scheduled this season');
   if(r.last&&!(r.thisGw&&r.last===r.thisGw)){const hp=num(r.last['Home pts']),ap=num(r.last['Away pts']);const w=hp===ap?'draw':(hp>ap?FIRSTOF(r.last.Home):FIRSTOF(r.last.Away))+' won';
-    bits.push('<b>Last</b> · GW'+num(r.last.GW)+' · <span class="num">'+hp+'–'+ap+'</span> '+esc(w));}
+    const flip=r.last.Home!==r.a;
+    bits.push('<b>Last</b> · GW'+num(r.last.GW)+' · <span class="num">'+(flip?ap+'–'+hp:hp+'–'+ap)+'</span> '+esc(w));}
   return bits.join('<span class="dot">·</span>');
 }
 function derbyCard(r,idx){
@@ -33,7 +35,7 @@ function derbyCard(r,idx){
   const side=(t,cls)=>'<div class="ds '+cls+'"><span class="cr">'+crestOf(t,40)+'</span><b>'+esc(t)+'</b><i>'+esc(FIRSTOF(t))+'</i></div>';
   return '<div class="dcard'+(r.thisGw?' live':'')+(r.nm?'':' unnamed')+'"'+(mi>=0?' data-mi="'+mi+'" role="button" tabindex="0"':'')+' style="--a:'+A+';--b:'+B+'">'
    +'<div class="dk">'+(r.nm?esc(r.nm):'Unnamed pairing')+(mi>=0?'<span class="go">Open '+CHEV+'</span>':'')+'</div>'
-   +'<div class="dvs">'+side(r.a,'l')+'<div class="dsr"><span class="k">All-time</span><b>'+esc(r.sr||'First ever meeting')+'</b><i>'+(r.played?r.played+(r.played===1?' meeting':' meetings')+' this season':'')+'</i></div>'+side(r.b,'r')+'</div>'
+   +'<div class="dvs">'+side(r.a,'l')+'<div class="dsr"><span class="k">All-time</span><b>'+esc(r.sr||'First ever meeting').replace(/ (\([^)]*\))$/,' <span class="nw">$1</span>')+'</b><i>'+(r.played?r.played+(r.played===1?' meeting':' meetings')+' this season':'')+'</i></div>'+side(r.b,'r')+'</div>'
    +'<div class="dm">'+derbyMeta(r)+'</div></div>';
 }
 function derbiesHTML(){
@@ -54,7 +56,10 @@ function gwTabsHTML(){
     if(GWTAB==='derbies'){body.innerHTML=gwTabsHTML()+derbiesHTML();
       body.onclick=e=>{const t=e.target.closest('[data-gwtab]');if(t){GWTAB=t.dataset.gwtab;renderGW();return}
         const c=e.target.closest('.dcard[data-mi]');if(c){location.hash='gw/'+c.dataset.mi;}};
+      /* the cards are role=button tabindex=0: Enter and Space open them too */
+      body.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;const c=e.target.closest&&e.target.closest('.dcard[data-mi]');if(c){e.preventDefault();location.hash='gw/'+c.dataset.mi;}};
       v10clock&&v10clock();return;}
+    body.onkeydown=null;
     body.insertAdjacentHTML('afterbegin',gwTabsHTML());
     const prev=body.onclick;
     body.onclick=e=>{const t=e.target.closest('[data-gwtab]');if(t){GWTAB=t.dataset.gwtab;renderGW();return}if(prev)return prev.call(body,e);};

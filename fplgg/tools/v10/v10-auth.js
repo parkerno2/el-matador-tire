@@ -60,7 +60,7 @@ function openClaim(){
    +'<span class="au-k">Your team</span><h3 id="au-title">'+(off?'Your team':'Claim your team')+'</h3>'
    +(off?'<div class="au-off"><b>Logins aren’t switched on yet</b><span>Parker still has to deploy the web app. You can still pick a team to follow.</span></div>':'<p class="au-sub" id="au-sub">Pick your team and set a 4-digit PIN. Nobody else can claim it after that.</p>')
    +authTeamGrid(sel)
-   +(off?'':'<label class="au-pinlab" for="au-pin">PIN</label><input id="au-pin" class="au-pin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">'
+   +(off?'':'<label class="au-pinlab" for="au-pin">PIN</label><input id="au-pin" class="au-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">'
      +'<div class="au-err" id="au-err" hidden></div><button type="button" class="au-btn" id="au-go">Claim team</button>')
    +'<button type="button" class="au-link" id="au-browse">'+(off?'Pick this team without a PIN':'Just browsing? Pick a team without a PIN')+'</button>'
    +'</div>';

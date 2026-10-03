@@ -18,7 +18,8 @@ function kickRefresh(el){
      if(r&&r.ran){say('Sheet updated. Loading…');return loadAll(true).then(()=>say('Up to date'));}
      if(r&&r.busy){say('Already updating. Try again in a moment');return loadAll(true);}
      if(r&&r.ageSec!==undefined){say('Updated '+(r.ageSec<60?r.ageSec+' s':Math.round(r.ageSec/60)+' min')+' ago');return loadAll(true);}
-     say('Couldn’t update the sheet. Showing the last update');
+     /* answered, but not usefully ({ok:false}, an unknown action …): still re-read the sheet before saying so */
+     return loadAll(true).catch(()=>{}).then(()=>say('Couldn’t update the sheet. Showing the last update'));
    })
    .catch(()=>{say('Couldn’t reach the sheet updater. Showing the last update');return loadAll(true).catch(()=>{});})
    .finally(()=>{clearTimeout(to);done();});

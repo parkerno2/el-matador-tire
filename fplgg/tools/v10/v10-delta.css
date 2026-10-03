@@ -126,7 +126,7 @@ h2.v10 .lnk{font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;let
 .health .hr .d{font-family:'Saira Condensed',sans-serif;font-weight:700}
 .health .hr .d.up{color:#0B6B3F}.health .hr .d.dn{color:#C8324A}
 .fixt{padding:0 0 4px}
-.fixt .fh{display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#665D72;cursor:pointer}
+.fixt .fh{display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:#665D72;cursor:default}
 .fixt .fh svg{margin-left:auto}
 .fixt .fg{display:grid;grid-template-columns:40px repeat(5,minmax(0,1fr));gap:5px;padding:0 12px 4px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.52rem;letter-spacing:.1em;color:#665D72;text-align:center}
 .fixt .fg{grid-template-columns:30px repeat(5,minmax(0,1fr))}
@@ -152,7 +152,7 @@ h2.v10 .lnk{font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;let
 .money90 .big b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.7rem;line-height:1}
 .money90 .big span{font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:#665D72}
 .card.race .money,.rrow .money{border-radius:7px}
-#tablebody .card>.mnote{display:none}
+#tablebody .card:not(.race)>.mnote{display:none} /* the standings' odds footnote; the MOTM card keeps its own note */
 /* articles sheet */
 .artl{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .artl a{display:flex;flex-direction:column;gap:3px;padding:11px 12px;border:1px solid #E8E4EE;border-radius:12px;text-decoration:none;color:#1B1420;background:#fff}
@@ -250,7 +250,8 @@ button.watch.gold{background:#FFD23F;border-color:#FFD23F;color:#37003C}
 /* who-are-you picker: crests on the tiles + the claim button */
 .mgrid .mt{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .mgrid .mt .mtc{width:34px;height:34px;margin-bottom:4px}.mgrid .mt .mtc svg{display:block;width:100%;height:100%}
-.claimrow{display:flex;justify-content:center;margin:2px 0 14px}
+.claimrow{display:flex;flex-direction:column;align-items:center;gap:6px;margin:2px 0 14px}
+.claimrow .claimnote{font-size:.7rem;font-weight:600;color:#665D72}
 /* round 5 declutter */
 button.watch.elev.sm{padding:8px 14px;font-size:.62rem;border-radius:10px;box-shadow:0 4px 12px rgba(255,210,63,.28)}
 button.watch.elev.sm .pl{width:18px;height:18px;font-size:.5rem}
@@ -285,7 +286,7 @@ h2.v10 .lnk.hst .tg.live{background:#19D27A;color:#063}h2.v10 .lnk.hst .tg.ft{ba
 .hright{justify-self:end;display:flex;align-items:center;gap:6px}
 .hright .hbtn,.hright .hav{margin-left:0}
 .hbtn svg{display:block}
-.hbtn.busy{background:rgba(255,210,63,.22);border-color:rgba(255,210,63,.6);color:#FFD23F}
+.hbtn.busy{background:rgba(205,189,240,.18);border-color:rgba(205,189,240,.6);color:#CDBDF0}
 .hbtn.busy svg{animation:hspin 1s linear infinite}
 @keyframes hspin{to{transform:rotate(360deg)}}
 .hero{display:none !important}
@@ -309,3 +310,27 @@ body{overscroll-behavior-y:none}
 /* matchup page: the purple stage sits flush under the header — no light seam */
 #v-gw.view.on:has(> #gwbody > .stage:first-child){padding-top:0}
 #gwbody > .stage:first-child{margin-top:0 !important}
+
+/* ===== bugfix build, 3 Oct ===== */
+/* nav: the active bar always takes its space, so the bar never grows 5 px when a tab lights up (or shrinks on the FAQ) */
+nav button .bar{display:block;visibility:hidden;width:18px;height:3px;border-radius:2px;margin:2px auto 0}
+nav button.on .bar{visibility:visible}
+/* desktop side rail: icon column, label column, bar at the end; the ink header runs across the rail's top */
+@media(min-width:940px){
+  nav{z-index:29}
+  .top{margin-left:calc(-1 * var(--railw));padding-left:calc(var(--railw) + 14px) !important}
+  nav button{justify-content:flex-start;gap:12px}
+  nav button svg{margin:0;flex:none}
+  nav button span:not(.bar){flex:1;text-align:left;font-size:.82rem !important}
+  nav button .bar{width:3px;height:18px;margin:0;flex:none}
+}
+/* How it works: the back control at the top of the page */
+.faqtop{display:flex;align-items:center;margin:4px 0 2px}
+.faqtop .backbtn{min-height:40px;padding:8px 10px 8px 4px;font-size:.78rem}
+/* player sheet fixture block on narrow phones: the kickoff wraps to two lines so long club names (Sunderland, Bournemouth) keep clear of it */
+@media(max-width:360px){
+  .fxblk .fxmain{gap:8px}
+  .fxblk .fxc{min-width:0}
+  .fxblk .fxc .ko{max-width:78px}
+  .fxblk .fxs b{font-size:.84rem}
+}

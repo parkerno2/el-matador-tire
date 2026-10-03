@@ -8,6 +8,9 @@ let SHOW=null,SHOW_TRIED=0,SHOWA=null;
 function showBase(){return 'show/gw'+D.gw+'/'}
 function loadShow(){
   if(SHOW_TRIED===D.gw||!D.gw)return;SHOW_TRIED=D.gw;SHOW=null;
+  /* a show is published together with its written preview (PREVIEWS entry), so only ask for the payload when one exists:
+     every other load logged a 404 for show/gwN.json */
+  if(!(typeof PREVIEWS!=='undefined'&&PREVIEWS.some(p=>p.gw===D.gw)))return;
   fetch('show/gw'+D.gw+'.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.gw===D.gw&&j.chapters){SHOW=j;showWarm();}}).catch(()=>{});
 }
 function showWarm(){ /* warm the HTTP cache so clips start without a gap */
@@ -75,8 +78,9 @@ function openShow(only){
    +'</div>');
   const g=document.getElementById('lgfx');
   SHOWQ={items,i:-1,only,g};
-  const close=()=>{clearTimeout(g._t);showAudioOff();g.remove();SHOWQ=null;};
+  const close=()=>{clearTimeout(g._t);showAudioOff();g.remove();SHOWQ=null;lgfxGone();};
   document.getElementById('lgx').onclick=close;document.getElementById('lgcl').onclick=close;
+  lgfxArm(close); /* Esc and the phone back button close it like a sheet */
   document.getElementById('shmute').onclick=e=>{if(!SHOWA)return;SHOWA.muted=!SHOWA.muted;e.currentTarget.textContent=SHOWA.muted?'Unmute':'Mute';};
   document.getElementById('shnx').onclick=()=>showSkipChapter();
   g.querySelector('.mxbody').onclick=e=>{if(e.target.closest('button,a,iframe'))return;showNext();};
@@ -117,7 +121,7 @@ function showNext(){
     const star=it.j===1?c.star&&c.star.h:it.j===3?c.star&&c.star.a:null;
     if(it.j===0||it.j===2){cls='s'+(it.j+1)+' '+sd;html=mxIntro(side,sd,{k:FIRSTOF(side)+'’s week',t:it.cap},0);}
     else if(it.j===1||it.j===3){cls='s'+(it.j+1)+' '+sd;SHOWSTAR=star||null;SHOWCAP=it.cap;html=mxXI(side,sd,0,art,{k:'The eleven',t:it.cap});SHOWSTAR=null;SHOWCAP=null;}
-    else{cls='s5';html=mxFinal(f,art,0,{k:'Predicted',t:it.cap});}
+    else{cls='s5';html=mxFinal(f,art,0,{k:'Projected',t:it.cap});}
   }
   OPPMODE=saveOpp;
   body.insertAdjacentHTML('beforeend','<div class="scene '+cls+'" style="--t0:0s;--t1:999s">'+html+'</div>');
@@ -157,6 +161,6 @@ document.addEventListener('click',e=>{
   openShow(ci);
 },true);
 /* leaving the app (home screen, lock) ends the show — no orphaned lock-screen card; ▶ PLAY restarts it */
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&SHOWQ){const g=SHOWQ.g;clearTimeout(g._t);showAudioOff();g.remove();SHOWQ=null;}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&SHOWQ){const g=SHOWQ.g;clearTimeout(g._t);showAudioOff();g.remove();SHOWQ=null;lgfxGone();}});
 /* fetch the payload once the gameweek is known */
 (function(){const __rs=renderScoreboard;renderScoreboard=function(){try{loadShow();}catch(e){}return __rs.apply(this,arguments);};})();

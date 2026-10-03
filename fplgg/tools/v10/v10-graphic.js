@@ -82,7 +82,7 @@ function mxFinal(f,art,t0){
   const hxi=effXiOf(f.Home,true),axi=effXiOf(f.Away,true);
   const kh=mxKeyMan(f.Home,hxi),ka=mxKeyMan(f.Away,axi);
   const fact=factFor(f),sr=series(f.Home,f.Away);
-  const tag={pred:'Predicted',live:'Live',prov:'Provisional',ft:'Full time'}[st];
+  const tag={pred:'Projected',live:'Live',prov:'Provisional',ft:'Full time'}[st];
   const side=(t,cls)=>'<div class="fs '+cls+'"><span class="cr">'+crestOf(t,92)+'</span><b>'+esc(t)+'</b><i>'+esc(FIRSTOF(t))+'</i></div>';
   return '<div class="faceoff">'+side(f.Home,'h')+'<div class="vsbug">'+(tag===lab?'':'<span class="tg'+(st==='live'?' live':'')+'">'+tag+'</span>')+'<div class="sc"><span class="num">'+nums[0]+'</span><i>–</i><span class="num">'+nums[1]+'</span></div><span class="lab">'+esc(lab)+'</span></div>'+side(f.Away,'a')+'</div>'
    +'<div class="frow">'+formHTML(f.Home)+'<span class="srs">'+esc(sr||'First meeting')+'</span>'+formHTML(f.Away,'r')+'</div>'
@@ -154,12 +154,13 @@ function openMatchGraphic(f,q){
   const next=()=>{if(MXQ&&MXQ.i<MXQ.list.length-1){const q={list:MXQ.list,i:MXQ.i+1};const nf=rows[q.list[q.i]];if(nf){openMatchGraphic(nf,q);return true;}}return false;};
   const finish=()=>{clearTimeout(g._t);g.classList.add('done');if(MXQ&&MXQ.i<MXQ.list.length-1){clearTimeout(g._n);g._n=setTimeout(next,1200);}};
   g._t=setTimeout(finish,LEN*1000);
-  const close=()=>{clearTimeout(g._t);clearTimeout(g._n);g.remove();MXQ=null;};
+  const close=()=>{clearTimeout(g._t);clearTimeout(g._n);g.remove();MXQ=null;lgfxGone();};
   document.getElementById('lgx').onclick=close;document.getElementById('lgcl').onclick=close;
   const re=document.getElementById('lgre');if(re)re.onclick=()=>openMatchGraphic(f,MXQ);
   const nx=document.getElementById('lgnx');if(nx)nx.onclick=()=>{clearTimeout(g._t);clearTimeout(g._n);next();};
   /* tap the body to skip to the end of this matchup */
   g.querySelector('.mxbody').onclick=finish;
+  lgfxArm(close); /* Esc and the phone back button close it like a sheet */
 }
 /* watch every matchup back to back — yours first */
 function openAllGraphics(){

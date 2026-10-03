@@ -22,6 +22,9 @@ function buildNav(){
   document.getElementById('nav').innerHTML=V10_VIEWS.map(v=>
    '<button data-v="'+v[0]+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+v[2]+'"/></svg><span>'+v[1]+'</span><span class="bar"></span></button>').join('');
   document.getElementById('nav').onclick=e=>{const b=e.target.closest('[data-v]');if(b)location.hash=b.dataset.v;};
+  /* the base route() marked the current tab before this rebuild; mark it again (cold load and deep links showed five idle tabs) */
+  const curV=(location.hash||'#gw').slice(1).split('/')[0];
+  document.querySelectorAll('nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===curV));
   const top=document.querySelector('.top .in')||document.querySelector('.top');
   if(top&&!document.getElementById('hright')){
     /* v11 header: brand · GW pill centred · ↻ refresh + avatar. The "?" moved to the page foot (help link). */
@@ -29,10 +32,38 @@ function buildNav(){
     document.getElementById('hav').onclick=()=>{location.hash='team'};
     const ft=document.querySelector('.wrap > .foot');
     if(ft&&!document.getElementById('hfaq'))ft.insertAdjacentHTML('beforebegin','<p class="helpfoot"><button id="hfaq" type="button"><b>?</b> How it works</button></p>');
-    const hq=document.getElementById('hfaq');if(hq)hq.onclick=()=>{location.hash='faq'};
+    const hq=document.getElementById('hfaq');if(hq)hq.onclick=()=>{FAQ_FROM=(location.hash||'#gw').slice(1).split('/')[0];location.hash='faq'};
   }
   updateHeader();
 }
+/* ---- How it works: the FAQ left the nav, so the page itself carries the way back (‹ Table, ‹ Matchday …) ---- */
+let FAQ_FROM=null;
+const FAQ_NAMES={gw:'Matchday',team:'My team',table:'Table',xis:'Players',ana:'Lab'};
+function faqBack(){
+  const v=document.getElementById('v-faq');if(!v)return;
+  let b=document.getElementById('faqback');
+  if(!b){v.insertAdjacentHTML('afterbegin','<div class="faqtop"><button class="backbtn" id="faqback" type="button"></button></div>');b=document.getElementById('faqback');
+    b.onclick=()=>{if(FAQ_FROM){FAQ_FROM=null;history.back();}else location.hash='gw';};}
+  b.textContent='‹ '+(FAQ_NAMES[FAQ_FROM]||'Matchday');
+}
+addEventListener('hashchange',()=>{if((location.hash||'').slice(1).split('/')[0]==='faq')faqBack();});
+if((location.hash||'').slice(1).split('/')[0]==='faq')faqBack();
+/* ---- full-screen overlays (#lgfx: lineup graphic, matchup graphic, the show): Esc and the phone back button close
+   them the way they close sheets. One history entry per open; the overlay's own × goes through the same path. ---- */
+let LGFX_PUSHED=false;
+function lgfxArm(close){
+  const g=document.getElementById('lgfx');if(!g)return;g._close=close;
+  if(!LGFX_PUSHED){try{history.pushState({emtLg:1},'');LGFX_PUSHED=true;}catch(e){}}
+}
+function lgfxGone(){if(LGFX_PUSHED){LGFX_PUSHED=false;try{history.back()}catch(e){}}}
+window.addEventListener('popstate',()=>{
+  if(!LGFX_PUSHED)return;LGFX_PUSHED=false;
+  const g=document.getElementById('lgfx');if(g){if(g._close)g._close();else g.remove();}
+});
+addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;const g=document.getElementById('lgfx');if(!g)return;
+  if(g._close)g._close();else{g.remove();lgfxGone();}
+});
 function heroCopy(){const k=document.querySelector('#v-gw .hero .kick'),h=document.querySelector('#v-gw .hero h1');if(k)k.textContent='Gameweek '+(D.gw||'');if(h)h.textContent='Matchday';const a=document.querySelector('#v-ana .hero h1');if(a)a.textContent='The Lab';}
 function updateHeader(){
   const hv=document.getElementById('hav');if(!hv)return;
@@ -40,12 +71,17 @@ function updateHeader(){
   hv.innerHTML=mine?crestOf(mine,28):'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9B8D6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21v-.5a8 8 0 0 1 16 0v.5"/></svg>';
 }
 /* ---- the league clock: the header pill states the present tense ---- */
+let V10_DLT=0,V10_DLKICK=0;
 function v10clock(){
   const p=document.getElementById('gwpill');if(!p||!D.mw||!D.mw.length)return;
   const dl=gwDeadline(D.gw);
   if(!D.dlPassed&&dl){const ms=dl-Date.now();
     if(ms>0){const d2=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
-      p.textContent='GW'+D.gw+' · '+(d2>0?d2+'d '+h+'h':h>0?h+'h '+m+'m':m+'m');p.className='gwpill';}}
+      p.textContent='GW'+D.gw+' · '+(d2>0?d2+'d '+h+'h':h>0?h+'h '+m+'m':Math.max(1,m)+'m');p.className='gwpill';
+      /* the last half-minute: tick again right at the deadline instead of waiting for the 30-second interval */
+      if(ms<35000){clearTimeout(V10_DLT);V10_DLT=setTimeout(v10clock,ms+300);}}
+    /* the deadline passed while the app was open: re-read the sheet now (the same re-render a reload does), once per deadline */
+    else if(V10_DLKICK!==dl.getTime()){V10_DLKICK=dl.getTime();loadAll(true);}}
 }
 setInterval(v10clock,30000);
 
@@ -206,16 +242,17 @@ function squadHealth(team){
    +'<div class="card"><span class="hk up">▲ Trending up</span>'+(up.length?up.map(r=>li(r,'up')).join(''):'<span class="hr"><span>–</span></span>')+'</div>'
    +'<div class="card"><span class="hk dn">▼ Trending down</span>'+(dn.length?dn.map(r=>li(r,'dn')).join(''):'<span class="hr"><span>–</span></span>')+'</div></div>';
 }
-let FIXOPEN=true;
+let FIXOPEN=true; /* the grid no longer collapses (the heading is a heading); kept so nothing that reads it breaks */
 function nextFive(team){
-  const xi=effXiOf(team,true);const clubs=[...new Set(xi.map(p=>p.Club))];
+  /* every club in the 15-man squad, XI slots first (the label promises your players' clubs, not your XI's) */
+  const sq=squadOf(team).slice().sort((a,b)=>(num(a.Slot)||99)-(num(b.Slot)||99));const clubs=[...new Set(sq.map(p=>p.Club))];
   const gws=[0,1,2,3,4].map(i=>D.gw+i);
   const cell=(c,g)=>{const fs=(D.cf||[]).filter(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!fs.length)return '<span class="x">–</span>';
     return '<span class="fxc'+(fs.length>1?' dbl':'')+'">'+fs.map(f=>{const h=f.Home===c,opp=h?f.Away:f.Home,n=fdrOf(c,f);
       return '<span class="fd" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'" title="'+esc(clubName(opp))+' ('+(h?'H':'A')+') · difficulty '+n+'">'+badgeImg(opp,16)+'<i>'+(h?'H':'A')+'</i></span>';}).join('')+'</span>';};
-  return '<div class="card fixt" style="padding:0;margin:0 0 10px"><div class="fh" id="fixh">Next five · your clubs'+(FIXOPEN?CHEVD:CHEV)+'</div>'
-   +(FIXOPEN?'<div class="fg"><span></span>'+gws.map(g=>'<span>GW'+g+'</span>').join('')+'</div>'+clubs.map(c=>'<div class="fr"><b title="'+esc(clubName(c))+'">'+badgeImg(c,22)+'</b>'+gws.map(g=>cell(c,g)).join('')+'</div>').join('')
-     +'<div class="fleg"><span style="background:#01FC7A"></span>Easy<span style="background:#E7E7E7"></span>Medium<span style="background:#FF1751"></span>Hard<span style="background:#80072D"></span>Very hard</div>':'')+'</div>';
+  return '<div class="card fixt" style="padding:0;margin:0 0 10px"><div class="fh" id="fixh">Next five · your clubs</div>'
+   +'<div class="fg"><span></span>'+gws.map(g=>'<span>GW'+g+'</span>').join('')+'</div>'+clubs.map(c=>'<div class="fr"><b title="'+esc(clubName(c))+'">'+badgeImg(c,22)+'</b>'+gws.map(g=>cell(c,g)).join('')+'</div>').join('')
+   +'<div class="fleg">'+[[2,'Easy'],[3,'Medium'],[4,'Hard'],[5,'Very hard']].map(([n,l])=>'<span style="background:'+FDRCOL[n]+'"></span>'+l).join('')+'</div></div>';
 }
 /* shared team-page parts: pitch + bench, next-fixture line — used by My team AND every manager's profile sheet */
 function teamPitchHTML(team){
@@ -268,7 +305,6 @@ function renderTeam(){
   const extra=teamPitchHTML(mine)+squadHealth(mine)+nextFive(mine);
   if(tiles)tiles.insertAdjacentHTML('afterend',extra);else page.insertAdjacentHTML('beforeend',extra);
   const nl=page.querySelector('.nextline[data-go]');if(nl)nl.onclick=()=>{location.hash=nl.dataset.go};
-  const fh=document.getElementById('fixh');if(fh)fh.onclick=()=>{FIXOPEN=!FIXOPEN;renderTeam()};
 }
 /* every manager's profile sheet gets the same treatment: cards on a pitch, form, who's hot, who they play and when */
 const __op=openProfile;openProfile=function(team,intoEl){
@@ -278,12 +314,14 @@ const __op=openProfile;openProfile=function(team,intoEl){
   const sq=heads.find(h=>/Current squad/.test(h.textContent));
   if(sq){let n=sq;const stop=heads.find(h=>/Actual vs expected/.test(h.textContent));while(n&&n!==stop){const nx=n.nextElementSibling;n.remove();n=nx;}}
   const nx=sh.querySelector('.sub+.sub, .profstats + .sub');const old=[...sh.querySelectorAll('.sub')].find(x=>/^Next:/.test(x.textContent));if(old)old.remove();
-  const hdr=sh.querySelector('h3');if(hdr&&hdr.parentElement&&hdr.parentElement.parentElement){const hd=hdr.parentElement.parentElement;const cr=hd.querySelector('.mg');if(cr)cr.outerHTML='<span class="cr" style="width:44px;height:44px;flex:none">'+crestOf(team,44)+'</span>';hd.insertAdjacentHTML('beforeend','<span style="margin-left:auto">'+formHTML(team,'r')+'</span>');}
+  const hdr=sh.querySelector('h3');if(hdr&&hdr.parentElement&&hdr.parentElement.parentElement){const hd=hdr.parentElement.parentElement;const cr=hd.querySelector('.mg');
+    /* the manager photo when there is one (My team already shows it); the crest otherwise */
+    const ph=(typeof PROFILE!=='undefined'&&PROFILE[team]||{}).photo;
+    if(cr)cr.outerHTML='<span class="cr" style="width:44px;height:44px;flex:none">'+(ph?'<img src="'+ph+'" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;display:block">':crestOf(team,44))+'</span>';hd.insertAdjacentHTML('beforeend','<span style="margin-left:auto">'+formHTML(team,'r')+'</span>');}
   const tiles=sh.querySelector('.profstats');
   const extra=teamNextLine(team)+teamPitchHTML(team)+squadHealth(team)+nextFive(team);
   if(tiles)tiles.insertAdjacentHTML('afterend',extra);
   const nl=sh.querySelector('.nextline[data-go]');if(nl)nl.onclick=()=>{closeSheet();location.hash=nl.dataset.go};
-  const fh=sh.querySelector('#fixh');if(fh)fh.onclick=()=>{FIXOPEN=!FIXOPEN;openProfile(team)};
 };
 
 /* ---- Table: standings first, then the money ---- */
@@ -384,7 +422,21 @@ function card(p,i){
   return h.replace(/<span class="pts proj">.*?<\/i><\/span>/,'<span class="pts opp" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'" title="'+esc(clubName(opp))+' ('+(home?'H':'A')+') · difficulty '+n+'">'+badgeImg(opp,0)+'<i>'+(home?'H':'A')+'</i></span>');
 }
 function oppToggle(){return '<div class="axtog om"><div class="in3"><button class="'+(OPPMODE?'':'on')+'" data-om="0">Projected</button><button class="'+(OPPMODE?'on':'')+'" data-om="1">Fixture</button></div></div>'}
-document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';const ps=b.closest('#sheet');if(ps&&ps.dataset.team){openProfile(ps.dataset.team);return}if((location.hash||'').startsWith('#team'))renderTeam();else renderGW();});
+/* team page / manager sheet: the toggle only changes the card bubbles, so re-deal the pitch and bench in place
+   (the full renderTeam/openProfile rebuilt the whole page and nudged the sheet's scroll) */
+function repaintPitch(root,team){
+  const pin=root&&root.querySelector('.mypitch .in'),ben=root&&root.querySelector('.mybench');if(!pin||!ben)return false;
+  const tmp=document.createElement('div');tmp.innerHTML=teamPitchHTML(team);
+  const rows=tmp.querySelectorAll('.mypitch .in > .prow'),nb=tmp.querySelector('.mybench .prow'),ob=ben.querySelector('.prow');
+  if(!rows.length||!nb||!ob)return false;
+  pin.querySelectorAll(':scope > .prow').forEach(x=>x.remove());rows.forEach(r=>pin.appendChild(r));ob.replaceWith(nb);
+  root.querySelectorAll('.axtog.om button').forEach(x=>x.classList.toggle('on',(x.dataset.om==='1')===OPPMODE));
+  return true;
+}
+document.body.addEventListener('click',e=>{const b=e.target.closest('[data-om]');if(!b)return;OPPMODE=b.dataset.om==='1';const ps=b.closest('#sheet');
+  if(ps&&ps.dataset.team){if(!repaintPitch(ps,ps.dataset.team))openProfile(ps.dataset.team);return}
+  if((location.hash||'').startsWith('#team')){const mine=myTeam();if(!(mine&&repaintPitch(document.getElementById('teampage'),mine)))renderTeam();}
+  else renderGW();});
 /* ---- Matchweek plate in the top bar; the league name moves into the hero kickers ---- */
 function mwWordmark(w){return '<svg viewBox="0 0 564 152" style="width:'+w+'px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))" role="img" aria-label="Matchweek"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="\'Archivo Black\',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>'}
 (function(){const b=document.querySelector('.top .brand');if(b){b.innerHTML=mwWordmark(60)+'<span class="lg">El Matador<br>Tire</span>';b.style.letterSpacing='0';b.style.display='flex';b.style.alignItems='center';b.style.gap='8px';}
@@ -452,7 +504,7 @@ const __os=openSheet;openSheet=function(p){
   const g=document.querySelector('#sheet .statgrid');const left=document.querySelector('#sheet .sh-left');if(!left)return;
   if(!own){if(g)g.remove();return}
   const s=leagueStats(own);
-  const col=v=>v>=75?'#19D27A':v>=40?'#F5B942':'#E5484D';
+  const col=v=>v>=75?'#CDBDF0':v>=40?'#A98DDA':'#7D5FB5'; /* one purple scale on the ink card, lighter = higher percentile */
   const tile=(lab,val,pct)=>'<div class="sg">'+lab+'<b>'+val+'</b><div class="bar"><i style="width:'+Math.max(2,pct)+'%;background:'+col(pct)+'"></i></div><em class="pc">'+ORD(pct)+' pct</em></div>';
   const html='<div class="statgrid lg">'+tile('PTS',s.pts,s.pc.pts)+tile('AVG',fmt1(s.avg),s.pc.avg)+tile('TOTW',s.totw,s.pc.totw)+tile('IMPACT',s.imp,s.imp)+'</div><div class="lgnote">vs the league’s '+s.n+' rostered '+(own.Pos==='GKP'?'keepers':own.Pos==='DEF'?'defenders':own.Pos==='MID'?'midfielders':'forwards')+'</div>';
   if(g)g.outerHTML=html;else left.insertAdjacentHTML('beforeend',html);
@@ -480,8 +532,10 @@ function openLineup(team){
    +'</div>');
   OPPMODE=saveOpp;
   setTimeout(()=>{const g=document.getElementById('lgfx');if(g)g.classList.add('done')},5200); /* guaranteed final frame (throttled/occluded tabs strand CSS animations) */
-  document.getElementById('lgx').onclick=()=>{document.getElementById('lgfx').remove();};
+  const close=()=>{const g=document.getElementById('lgfx');if(g)g.remove();lgfxGone();};
+  document.getElementById('lgx').onclick=close;
   document.getElementById('lgre').onclick=()=>openLineup(team);
+  lgfxArm(close); /* Esc and the phone back button close it like a sheet */
 }
 
 /* ---- the preview card stays up through the deadline until the gameweek's first Saturday kickoff (Friday games don't take it down) ---- */
@@ -532,7 +586,9 @@ const __rt3=renderTeam;renderTeam=function(){__rt3();const mine=myTeam();const p
   if(!page){const body=document.getElementById('teambody');const grid=body&&body.querySelector('.mgrid');
     if(grid){grid.querySelectorAll('.mt').forEach(b=>{b.insertAdjacentHTML('afterbegin','<span class="mtc">'+crestOf(b.dataset.pick,34)+'</span>')});
       const note=body.querySelector('.mnote');if(note)note.textContent='Claim your team with a 4-digit PIN to set your photo, colours and crest, or pick one to follow.';
-      grid.insertAdjacentHTML('beforebegin','<div class="claimrow"><button class="watch elev" data-claim="1">Claim your team</button></div>');}
+      /* a phone that is still signed in says so, and its button opens what it names (the editor, with Sign out) */
+      const at=typeof AUTH!=='undefined'&&AUTH.team&&AUTH.team();const signed=at&&TEAMS[at]?at:null;
+      grid.insertAdjacentHTML('beforebegin','<div class="claimrow">'+(signed?'<span class="claimnote">Signed in as '+esc(signed)+'</span>':'')+'<button class="watch elev" data-claim="1">'+(signed?'Edit team':'Claim your team')+'</button></div>');}
     return;}
   const head=page.querySelector('.myhead');if(!head)return;
   const pr=mine&&PROFILE[mine]||{};
