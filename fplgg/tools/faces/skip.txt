@@ -1,0 +1,2 @@
+# FPL codes the face fetcher should leave alone, one per line ("code  # note"). Use it for players
+# every source keeps failing for, so the daily run stops asking the same hosts for them.
