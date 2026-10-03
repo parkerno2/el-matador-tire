@@ -1,0 +1,43 @@
+# El Matador Tire: fetch face cutouts for rostered players that have none, no PC needed.
+#   Daily at 09:17 UTC, or Actions tab → Fetch faces → Run workflow. Reads the Rosters and EA Map tabs,
+#   tries futwiz FC27/FC26 renders (grey background keyed out), EA portraits, then the PL photo, and commits
+#   any new faces/{code}.png. Touches nothing else. The run summary lists who was fetched and who failed and why;
+#   chronic failures go in fplgg/tools/faces/skip.txt. Details: fplgg/tools/faces/README.md
+name: Fetch faces
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Only these FPL codes, comma separated (blank = every rostered player without a face)'
+        required: false
+        default: ''
+permissions:
+  contents: write
+concurrency: { group: fetch-faces, cancel-in-progress: false }
+jobs:
+  faces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pillow requests
+      - name: Fetch missing faces
+        id: fetch
+        env:
+          ONLY: ${{ github.event.inputs.only }}
+        run: python3 fplgg/tools/faces/fetch_faces.py ${ONLY:+--only "$ONLY"}
+      - name: Commit new faces
+        if: steps.fetch.outputs.count != '0' && steps.fetch.outputs.count != ''
+        env:
+          FETCHED: ${{ steps.fetch.outputs.fetched }}
+        run: |
+          git config user.name "el-matador-build"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- 'faces/*.png'
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git commit -m "faces: $FETCHED"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push
