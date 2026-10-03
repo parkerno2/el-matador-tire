@@ -4,122 +4,245 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>El Matador Tire · GW1 Recap</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Saira+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<!-- article:head -->
+<meta name="theme-color" content="#17121D">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="El Matador Tire">
+<meta property="og:title" content="El Matador Tire · GW1 Recap">
+<meta property="og:description" content="Five clubs debuted new managers, 11 of the league&#x27;s 88 starters never played, and the auto-subs quietly scored 39 points. Oh, and somebody dropped a 66.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+<!-- /article:head -->
+<!-- article:css -->
 <style>
-:root{--p1:#37003C;--p2:#5B1A66;--p3:#2E5BFF;--gold:#FFD23F;--goldd:#B8860B;--cyan:#04F5FF;
---bg:#F4F1F6;--card:#fff;--ink:#1B1420;--mid:#6B6076;--sub:#575E6C;--line:#E4DEE9;--bad:#C62828;--good:#0E8A5F}
+/* ===== El Matador Tire articles (gameweek previews and recaps) =====
+   Source of truth for every recap-gwN.html / preview-gwN.html page. build_articles.py inlines this file
+   between the article:css markers of each page: edit here, never in a page.
+   Same look as the app (fplgg/tools/v12/v12-look.css, the D2 "Arena" design): ink #17121D chrome, ground #F5F3F8,
+   white cards with hairline borders, purple #5B2D8E for kickers, links and focus only, light purple #CDBDF0 on dark,
+   green/red for results only. Archivo for words, Barlow Condensed for every number. No gold, no gradients. */
+:root{--ink:#17121D;--ground:#F5F3F8;--card:#fff;--line:#E7E2EE;--line2:#F0ECF4;--mid:#6F6880;--body:#4B4456;
+  --pu:#5B2D8E;--pul:#CDBDF0;--onink:#B9B1C4;--good:#1F8A55;--bad:#C23A3A;--draw:#8C8496;color-scheme:light}
 *{box-sizing:border-box;margin:0}
-body{font-family:'Chakra Petch',system-ui,sans-serif;color:var(--ink);font-size:16px;
-background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed}
-.wrap{max-width:700px;margin:0 auto;padding:0 12px 40px}
-/* header */
-.hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;
-padding:calc(12px + env(safe-area-inset-top)) 14px 11px 18px;display:flex;align-items:center;gap:10px;
-position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(30,0,40,.35)}
-.sh-x{background:rgba(255,255,255,.16);border:none;color:#fff;width:28px;height:28px;flex:none;
-border-radius:50%;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;text-decoration:none}
-.hero h1{font-size:1.02rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
-.gwpill{margin-left:auto;flex:none;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
-letter-spacing:.06em;padding:3px 10px;border-radius:12px;white-space:nowrap}
-.stand{background:linear-gradient(115deg,#31054E,#37003C);color:#fff;padding:9px 18px 11px;font-size:.72rem;
-color:#D9CCE3;line-height:1.5;border-bottom:2px solid rgba(255,210,63,.5)}
-.stand b{color:#fff}
-h2{font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin:16px 2px 6px}
-/* match card */
-.card{background:var(--card);border:1px solid #E7DEF0;border-radius:14px;
-box-shadow:0 1px 3px rgba(55,0,60,.06),0 4px 14px rgba(55,0,60,.09);padding:0;margin-bottom:12px;overflow:hidden}
-.mhead{background:linear-gradient(115deg,#2E5BFF -40%,#5B1A66 40%,#37003C 110%);color:#fff;padding:10px 14px 9px}
-.kick{font-size:.56rem;font-weight:700;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase}
-.srow{display:flex;align-items:center;gap:10px;margin-top:6px}
-.tm{flex:1;min-width:0}
-.tm .tn{font-size:.78rem;font-weight:700;line-height:1.15}
-.tm.win .tn{color:var(--gold)}
-.tm .mg{font-size:.6rem;color:#C9BAD6;letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
-.tm.away{text-align:right}
-.sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:.02em;
-white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
-.sc .w{color:var(--gold)}.sc .d{opacity:.45;font-size:1.3rem;vertical-align:6px;padding:0 4px}
-/* player strip */
-.pstrip{display:flex;align-items:center;gap:12px;padding:11px 14px 10px;border-bottom:1px solid var(--line);
-background:linear-gradient(180deg,#FBF9FD,#fff)}
-.pk{font-size:.5rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--goldd);margin-bottom:2px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{background:var(--ground)}
+body{font-family:'Archivo',system-ui,sans-serif;font-size:15px;line-height:1.45;color:var(--ink);
+  -webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+b{font-weight:750}
+a{color:var(--pu)}
+:focus:not(:focus-visible){outline:none}
+:focus-visible{outline:2px solid var(--pu);outline-offset:2px}
+.ah :focus-visible,.mast :focus-visible,.mhead :focus-visible{outline-color:var(--pul)}
+
+/* ---- chrome: the app's header bar (Matchweek plate + league name), close on the right ---- */
+.ah{position:sticky;top:0;z-index:20;background:var(--ink);border-bottom:1px solid #2A2332;
+  padding:calc(7px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 7px max(14px,env(safe-area-inset-left))}
+.ah .in{max-width:1020px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:40px}
+.ah .brand{display:flex;align-items:center;gap:8px;min-width:0;color:#fff;text-decoration:none}
+.ah .brand svg{display:block;width:60px;height:auto;flex:none}
+.ah h1{font-size:.8rem;font-weight:800;letter-spacing:-.01em;line-height:1.05;color:#fff;max-width:5.6em}
+.sh-x{margin-left:auto;flex:none;position:relative;width:40px;height:40px;display:grid;place-items:center;color:#fff;
+  text-decoration:none;border-radius:50%;margin-right:-6px;-webkit-tap-highlight-color:transparent}
+.sh-x::before{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.sh-x svg{position:relative;display:block}
+@media(hover:hover){.sh-x:hover::before{background:rgba(255,255,255,.2)}}
+
+/* ---- masthead: kicker over the standfirst, on ink like the matchup page's stage ---- */
+.mast{background:var(--ink);color:#fff;padding:18px 16px 24px}
+.mast>*{max-width:720px;margin-left:auto;margin-right:auto}
+.mk{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pul)}
+.stand{margin-top:8px;font-size:1.16rem;line-height:1.45;font-weight:500;color:#D9D3E2;letter-spacing:-.005em}
+.stand b{color:#fff;font-weight:750}
+
+/* ---- page ---- */
+.wrap{max-width:736px;margin:0 auto;padding:0 8px calc(40px + env(safe-area-inset-bottom))}
+h2{font-size:1.1rem;font-weight:800;letter-spacing:-.015em;line-height:1.3;color:var(--ink);margin:24px 2px 10px}
+
+/* ---- matchup card ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px}
+/* score block = the app's matchup header (ink, kicker, crest + name + manager either side, Barlow score) */
+.mhead{background:var(--ink);color:#fff;padding:14px 12px 16px;text-align:center}
+.kick{font-size:.68rem;font-weight:800;letter-spacing:.08em;line-height:1.35;text-transform:uppercase;color:var(--pul);padding:0 4px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
+.tm{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.tn{font-weight:800;font-size:.98rem;letter-spacing:-.015em;line-height:1.15;color:#fff;text-wrap:balance}
+.mg{font-size:.74rem;font-weight:600;color:var(--onink)}
+.srow:has(.win) .tm:not(.win) .tn{color:var(--onink)}
+.srow>:not(.tm){padding-top:6px;min-width:0}
+.sc{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.4rem;line-height:1;letter-spacing:0;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:#fff}
+.sc .d{color:#5E5568;margin:0 4px}
+.sc:has(.w){color:var(--draw)}
+.sc .w{color:#fff}
+.sc.pred{font-size:2.05rem}
+.predlab{font-size:.72rem;font-weight:700;color:var(--onink);margin-top:6px;text-transform:lowercase}
+.predlab::first-letter{text-transform:uppercase}
+
+/* team badges: Mono on the ink header, team-colour fill at 32 px and under (the app's rule) */
+.cr{display:inline-block;flex:none;line-height:0;vertical-align:middle}
+.cr svg{display:block;width:20px;height:22px}
+.cr.lg svg{width:44px;height:48px}
+
+/* featured player: the star of the match, the player to watch, or the zero */
+.pstrip{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--line2)}
+.ph{width:56px;height:56px;border-radius:50%;overflow:hidden;background:#F0EBF8;display:grid;place-items:center;
+  font-weight:800;font-size:.95rem;color:var(--mid);box-shadow:0 0 0 1px var(--line)}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.ph.low{box-shadow:0 0 0 2px var(--bad)}
+.pinfo{min-width:0}
+.pk{font-size:.66rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--pu)}
 .pk.low{color:var(--bad)}
-.ph{width:56px;height:56px;box-shadow:0 3px 8px rgba(55,0,60,.18);border-radius:50%;flex:none;background:#EDE5F3 center/cover no-repeat;
-border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
-font-weight:700;color:var(--p2);font-size:1rem;overflow:hidden}
-.ph img{width:100%;height:100%;object-fit:cover;object-position:top}
-.ph.low{border-color:var(--bad)}
-.pinfo{flex:1;min-width:0}
-.pname{font-weight:700;font-size:.86rem}
-.pname span{color:var(--mid);font-weight:600;font-size:.68rem}
-.pline{font-size:.68rem;color:var(--sub);margin-top:2px;line-height:1.35}
-.ppts{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;color:var(--p1);flex:none;line-height:1}
-.ppts small{display:block;font-family:'Chakra Petch';font-size:.5rem;font-weight:700;letter-spacing:.14em;
-color:var(--mid);text-align:center;margin-top:1px}
+.pname{font-weight:800;font-size:.92rem;line-height:1.25;margin-top:2px;color:var(--ink)}
+.pname span{font-weight:600;font-size:.74rem;color:var(--mid);white-space:nowrap}
+.pline{font-size:.88rem;line-height:1.45;color:var(--body);margin-top:4px}
+.ppts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.2rem;line-height:1;text-align:center;color:var(--ink);
+  font-variant-numeric:tabular-nums;min-width:34px}
+.ppts small{display:block;font-family:'Archivo',sans-serif;font-size:.6rem;font-weight:800;letter-spacing:.08em;color:var(--mid);margin-top:3px}
 .ppts.low{color:var(--bad)}
-/* body */
-.mbody{padding:11px 14px 13px}
-.story{font-size:.8rem;line-height:1.55;color:#2A2230}
-.hits{margin:10px 0 0;padding:0;list-style:none}
-.hits li{font-size:.74rem;line-height:1.45;color:#3A3142;padding:5px 0 5px 16px;position:relative;border-top:1px solid #F0EAF5}
-.hits li::before{content:'▸';position:absolute;left:2px;color:var(--goldd);font-size:.7rem}
-.hits b{color:var(--p1)}
-/* chips + number */
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
-.chip{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:4px 9px;font-size:.6rem;
-font-weight:600;color:var(--sub);letter-spacing:.03em}
-.chip b{color:var(--p1);font-weight:700}
-.chip.gold{background:linear-gradient(160deg,#FBE9A6,#FFD23F);border-color:#E3BC2E;color:#5C4A12}
-.chip.gold b{color:var(--p1)}
-.notm{display:flex;align-items:center;gap:12px;margin-top:12px;background:linear-gradient(115deg,#FFF6DC,#FDEFC4);
-border:1px solid #EDDB9C;border-left:4px solid var(--gold);border-radius:12px;padding:8px 12px}
-.notm .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2rem;color:var(--p1);flex:none;min-width:44px;text-align:center}
-.notm .c{font-size:.66rem;line-height:1.4;color:#5C4A12}
-/* around the league */
-table{width:100%;border-collapse:collapse;font-size:.74rem}
-th{font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)}
-td{padding:5px 6px;border-bottom:1px solid #F0EAF5}
-td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
-tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);font-weight:700}
-.res{font-size:.56rem;font-weight:700;padding:1px 6px;border-radius:8px}
-.res.w{background:#DDF2E7;color:var(--good)}.res.l{background:#F8E1E1;color:var(--bad)}
-.fxg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.fx{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:7px 9px;font-size:.66rem;line-height:1.4}
-.fx b{color:var(--p1)}
-.fx .tag{font-size:.52rem;color:var(--goldd);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-.foot{font-size:.62rem;color:var(--mid);line-height:1.55;margin-top:14px;padding:0 4px}
-@media(max-width:390px){.sc{font-size:1.6rem}.tm .tn{font-size:.72rem}}
+
+/* the write-up */
+.mbody{padding:14px 14px 16px}
+.story{font-size:1rem;line-height:1.6;color:#231D2B}
+.hits{list-style:none;padding:0;margin:12px 0 0}
+.hits li{font-size:.94rem;line-height:1.5;color:var(--body);padding:10px 0;border-top:1px solid var(--line2)}
+.hits li:last-child{padding-bottom:4px}
+.hits b{color:var(--ink)}
+.mbody>.hits:first-child{margin-top:0}
+.mbody>.hits:first-child li:first-child{border-top:0;padding-top:0}
+
+/* numbers row: label over a Barlow value, hairline dividers (was the chips) */
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));border-top:1px solid var(--line2);margin-top:12px;padding-top:12px}
+.chip{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:0 10px;border-left:1px solid var(--line2);min-width:0}
+.chip:first-child{padding-left:0;border-left:0}
+.ck{font-size:.72rem;font-weight:600;line-height:1.3;color:var(--mid)}
+.cv{font-size:.86rem;font-weight:700;line-height:1.25;color:var(--ink)}
+.cv b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;line-height:1.05;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* the number of the match */
+.notm{display:flex;align-items:center;gap:14px;margin-top:14px;background:var(--ground);border-radius:12px;padding:12px 14px}
+.notm .n{flex:none;min-width:48px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.3rem;
+  line-height:1;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.notm .c{font-size:.88rem;line-height:1.45;color:var(--body)}
+
+/* ---- around the league ---- */
+table{width:100%;border-collapse:collapse}
+th{font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);text-align:left;padding:0 6px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line2);font-size:.92rem;font-weight:700;vertical-align:middle}
+th:first-child,td:first-child{padding-left:0;width:22px}
+th:last-child,td:last-child{padding-right:0}
+td:first-child,td.r{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;font-size:1.08rem}
+td:first-child{color:var(--mid)}
+td.r,th.r{text-align:right}
+td.r:nth-child(4){color:var(--mid);font-weight:600}
+td:has(>.cr){position:relative;padding-left:36px;line-height:1.2;text-wrap:balance}
+td>.cr{position:absolute;left:6px;top:50%;transform:translateY(-50%)}
+tr.top td:first-child{color:var(--ink)}
+tr.top td:nth-child(2){font-weight:800}
+.res{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;font-family:'Archivo',sans-serif;
+  font-size:.66rem;font-weight:800;color:#fff;vertical-align:middle}
+.res.w{background:var(--good)}.res.l{background:var(--bad)}.res.d{background:var(--draw)}
+table+.hits{margin-top:8px}
+table+.hits li:first-child{border-top:0}
+/* next week's fixtures, one row each like the app's league list */
+.fxg{margin-top:12px;border-top:1px solid var(--line)}
+.fx{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:10px;padding:11px 0 12px;
+  border-top:1px solid var(--line2);font-size:.74rem;font-weight:700;color:var(--draw)}
+.fx:first-child{border-top:0}
+.fx br{display:none}
+.fx .tag{grid-column:1/-1;margin-bottom:7px;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--pu)}
+.fx .ft{display:flex;align-items:center;gap:8px;min-width:0;font-size:.92rem;font-weight:750;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+.fx .ft.a{flex-direction:row-reverse;text-align:right}
+
+.foot{font-size:.78rem;line-height:1.55;color:var(--mid);margin:16px 4px 0}
+.stand,.story,.pline,.hits li,.notm .c,.foot{text-wrap:pretty}
+.nw{white-space:nowrap}
+
+/* ---- narrow phones (320 to 360 px): the centre column shrinks first so both teams keep room ---- */
+@media(max-width:360px){
+  .srow{gap:6px}
+  .sc{font-size:2.05rem}
+  .sc.pred{font-size:1.72rem}
+  .sc .d{margin:0 3px}
+  .tn{font-size:.9rem}
+  .cr.lg svg{width:38px;height:41px}
+  .stand{font-size:1.08rem}
+  .pstrip{grid-template-columns:48px minmax(0,1fr) auto;gap:10px;padding:14px 12px}
+  .ph{width:48px;height:48px}
+  .mbody{padding:14px 12px 16px}
+  .chip{padding:0 8px}
+  .cv b{font-size:1.18rem}
+  td{font-size:.88rem}
+  td:has(>.cr){padding-left:32px}
+}
+/* tablets and desktop: a reading column, more air */
+@media(min-width:700px){
+  .wrap{padding:0 22px 48px}
+  .mast{padding:28px 22px 32px}
+  .mast>*{max-width:692px}
+  .stand{font-size:1.3rem}
+  .mhead{padding:18px 20px 20px}
+  .pstrip{padding:16px 20px}
+  .mbody{padding:16px 20px 20px}
+  .card{margin-bottom:16px}
+}
 </style>
+<!-- /article:css -->
 </head>
 <body>
-<div class="hero"><h1>El Matador Tire</h1><span class="gwpill">GW1 · RECAP</span><a class="sh-x" href="index.html" aria-label="Close" onclick="if(document.referrer&&document.referrer.indexOf(location.origin)===0&&history.length>1){history.back();return false}">×</a></div>
-<div class="stand">Five clubs debuted new managers, <b>11 of the league's 88 starters never played</b>, and the auto-subs quietly scored 39 points. Oh, and somebody dropped a 66.</div>
+<!-- article:header -->
+<header class="ah"><div class="in"><div class="brand"><svg viewBox="0 0 564 152" width="60" height="16" role="img" aria-label="Matchweek" style="filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="'Archivo Black',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg><h1>El Matador Tire</h1></div><a class="sh-x" href="index.html" aria-label="Close" onclick="if(document.referrer&amp;&amp;document.referrer.indexOf(location.origin)===0&amp;&amp;history.length&gt;1){history.back();return false}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></a></div></header>
+<!-- /article:header -->
+<!-- article:sprite -->
+<svg class="sprite" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false"><defs><clipPath id="crPNs0"><path d="M14 8 H86 V60 L50 105 L14 60 Z"/></clipPath></defs>
+<symbol id="cr-BK-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#d88c61" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <path d="M50 22 C 60 32, 64 40, 64 50 a14 14 0 0 1 -28 0 c0 -7 3 -11 7 -16 c0 6 2 9 6 11 c-1 -8 0 -16 11 -23z" fill="#d88c61" opacity=".95"/> <path d="M50 56 l2.7 5.6 6.2.8 -4.5 4.3 1.1 6.1 -5.5 -2.9 -5.5 2.9 1.1 -6.1 -4.5 -4.3 6.2 -.8z" fill="#d88c61"/></g></symbol>
+<symbol id="cr-BK-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#C2571F"/><g transform="translate(0,6)"> <path d="M50 22 C 60 32, 64 40, 64 50 a14 14 0 0 1 -28 0 c0 -7 3 -11 7 -16 c0 6 2 9 6 11 c-1 -8 0 -16 11 -23z" fill="#fff" opacity=".95"/> <path d="M50 56 l2.7 5.6 6.2.8 -4.5 4.3 1.1 6.1 -5.5 -2.9 -5.5 2.9 1.1 -6.1 -4.5 -4.3 6.2 -.8z" fill="#FFE2B8"/></g></symbol>
+<symbol id="cr-BS-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#9478bb" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <circle cx="50" cy="47" r="26" fill="none" stroke="#9478bb" stroke-width="3" opacity=".55"/> <g stroke="#9478bb" stroke-width="3" stroke-linecap="round" opacity=".55"> <path d="M50 15 v9 M50 70 v9 M18 47 h9 M73 47 h9"/> </g> <g fill="#9478bb"> <path d="M40 34 h20 v8 a10 10 0 0 1 -20 0 z"/> <path d="M38 36 a6 6 0 0 1 -6 6 M62 36 a6 6 0 0 0 6 6" stroke="#9478bb" stroke-width="3.4" fill="none" stroke-linecap="round"/> <rect x="47" y="50" width="6" height="7" rx="1"/> <rect x="42" y="57" width="16" height="4.5" rx="2"/> </g></g></symbol>
+<symbol id="cr-BS-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#5A3889"/><g transform="translate(0,6)"> <circle cx="50" cy="47" r="26" fill="none" stroke="#fff" stroke-width="3" opacity=".55"/> <g stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"> <path d="M50 15 v9 M50 70 v9 M18 47 h9 M73 47 h9"/> </g> <g fill="#fff"> <path d="M40 34 h20 v8 a10 10 0 0 1 -20 0 z"/> <path d="M38 36 a6 6 0 0 1 -6 6 M62 36 a6 6 0 0 0 6 6" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/> <rect x="47" y="50" width="6" height="7" rx="1"/> <rect x="42" y="57" width="16" height="4.5" rx="2"/> </g></g></symbol>
+<symbol id="cr-CT-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#589f98" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#589f98" stroke-width="5" stroke-linecap="round" fill="none"> <path d="M26 40 C 34 30, 44 30, 50 38 C 56 30, 66 30, 74 40"/> </g> <g stroke="#589f98" stroke-width="3.6" stroke-linecap="round" fill="none"> <path d="M28 60 q6 -6 12 0 t12 0 t12 0 t12 0" opacity=".9"/> <path d="M33 69 q6 -6 12 0 t12 0 t12 0" opacity=".55"/> </g></g></symbol>
+<symbol id="cr-CT-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#136862"/><g transform="translate(0,6)"> <g stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none"> <path d="M26 40 C 34 30, 44 30, 50 38 C 56 30, 66 30, 74 40"/> </g> <g stroke="#CFF6EE" stroke-width="3.6" stroke-linecap="round" fill="none"> <path d="M28 60 q6 -6 12 0 t12 0 t12 0 t12 0" opacity=".9"/> <path d="M33 69 q6 -6 12 0 t12 0 t12 0" opacity=".55"/> </g></g></symbol>
+<symbol id="cr-EG-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#cdab63" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <circle cx="50" cy="47" r="24" fill="none" stroke="#cdab63" stroke-width="4" opacity=".85"/> <path d="M55 20 L38 50 h10 L45 74 L64 42 h-11 z" fill="#cdab63"/></g></symbol>
+<symbol id="cr-EG-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#C4952F"/><g transform="translate(0,6)"> <circle cx="50" cy="47" r="24" fill="none" stroke="#3B2A05" stroke-width="4" opacity=".85"/> <path d="M55 20 L38 50 h10 L45 74 L64 42 h-11 z" fill="#3B2A05"/></g></symbol>
+<symbol id="cr-JS-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#ab8e7b" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#ab8e7b" stroke-width="4.4" stroke-linecap="round"> <path d="M38 78 L46 26 M62 78 L54 26"/> <path d="M40.5 66 h19 M43 52 h16.5 M45.5 38 h13"/> </g> <path d="M50 14 l2.4 5 5.6.7 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.6 -.7z" fill="#ab8e7b"/></g></symbol>
+<symbol id="cr-JS-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#6F4E39"/><g transform="translate(0,6)"> <g stroke="#fff" stroke-width="4.4" stroke-linecap="round"> <path d="M38 78 L46 26 M62 78 L54 26"/> <path d="M40.5 66 h19 M43 52 h16.5 M45.5 38 h13"/> </g> <path d="M50 14 l2.4 5 5.6.7 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.6 -.7z" fill="#FFD98F"/></g></symbol>
+<symbol id="cr-NG-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#be6ea0" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g fill="#be6ea0"> <path d="M50 30 c9 0 14 6 14 13 c0 8 -6 13 -14 13 c-8 0 -14 -5 -14 -13 c0 -7 5 -13 14 -13z" opacity=".95"/> <path d="M50 24 l3 7 h-6z"/> </g> <g stroke="#be6ea0" stroke-width="2.6" stroke-linecap="round"> <path d="M42 38 v14 M50 36 v18 M58 38 v14"/> </g> <g stroke="#be6ea0" stroke-width="4" stroke-linecap="round" fill="none"> <path d="M50 56 V76 M50 66 C 44 64, 40 60, 39 56 M50 70 C 56 68, 60 64, 61 60"/> </g></g></symbol>
+<symbol id="cr-NG-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#942E6D"/><g transform="translate(0,6)"> <g fill="#fff"> <path d="M50 30 c9 0 14 6 14 13 c0 8 -6 13 -14 13 c-8 0 -14 -5 -14 -13 c0 -7 5 -13 14 -13z" opacity=".95"/> <path d="M50 24 l3 7 h-6z"/> </g> <g stroke="#F7CFF2" stroke-width="2.6" stroke-linecap="round"> <path d="M42 38 v14 M50 36 v18 M58 38 v14"/> </g> <g stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none"> <path d="M50 56 V76 M50 66 C 44 64, 40 60, 39 56 M50 70 C 56 68, 60 64, 61 60"/> </g></g></symbol>
+<symbol id="cr-PJ-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#c66370" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#c66370" stroke-width="4.4" stroke-linecap="round" fill="none"> <path d="M50 76 V38"/> <path d="M38 34 v8 a12 12 0 0 0 24 0 v-8"/> <path d="M38 34 l-3 -7 M62 34 l3 -7"/> <path d="M50 38 l-6 -9 M50 38 l6 -9"/> </g> <path d="M44 29 l6 -11 6 11" stroke="#c66370" stroke-width="4.4" stroke-linejoin="round" fill="none"/></g></symbol>
+<symbol id="cr-PJ-s" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#A3202F"/><g transform="translate(0,6)"> <g stroke="#fff" stroke-width="4.4" stroke-linecap="round" fill="none"> <path d="M50 76 V38"/> <path d="M38 34 v8 a12 12 0 0 0 24 0 v-8"/> <path d="M38 34 l-3 -7 M62 34 l3 -7"/> <path d="M50 38 l-6 -9 M50 38 l6 -9"/> </g> <path d="M44 29 l6 -11 6 11" stroke="#fff" stroke-width="4.4" stroke-linejoin="round" fill="none"/></g></symbol>
+<symbol id="cr-PN-l" viewBox="0 0 100 108"><path d="M14 8 H86 V60 L50 105 L14 60 Z" fill="#221B2B"/><path d="M14 8 H86 V60 L50 105 L14 60 Z" fill="none" stroke="#6c8eae" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#6c8eae" stroke-width="4.6" stroke-linecap="round" fill="none"> <path d="M50 74 L50 46"/> <path d="M50 46 C 42 38, 32 36, 24 40"/> <path d="M50 46 C 44 34, 36 28, 26 28"/> <path d="M50 46 C 50 32, 46 24, 40 20"/> <path d="M50 46 C 56 32, 64 26, 74 26"/> <path d="M50 46 C 58 38, 68 36, 76 41"/> </g> <g stroke="#6c8eae" stroke-width="3" stroke-linecap="round"> <path d="M63 60 v12 M57 66 h12 M58.8 61.8 l8.4 8.4 M67.2 61.8 l-8.4 8.4"/> </g></g></symbol>
+<symbol id="cr-PN-s" viewBox="0 0 100 108"><g clip-path="url(#crPNs0)"><rect width="50" height="108" fill="#23798C"/><rect x="50" width="50" height="108" fill="#46337F"/></g><g transform="translate(0,6)"> <g stroke="#fff" stroke-width="4.6" stroke-linecap="round" fill="none"> <path d="M50 74 L50 46"/> <path d="M50 46 C 42 38, 32 36, 24 40"/> <path d="M50 46 C 44 34, 36 28, 26 28"/> <path d="M50 46 C 50 32, 46 24, 40 20"/> <path d="M50 46 C 56 32, 64 26, 74 26"/> <path d="M50 46 C 58 38, 68 36, 76 41"/> </g> <g stroke="#BFE0FF" stroke-width="3" stroke-linecap="round"> <path d="M63 60 v12 M57 66 h12 M58.8 61.8 l8.4 8.4 M67.2 61.8 l-8.4 8.4"/> </g></g></symbol>
+</svg>
+<!-- /article:sprite -->
+<div class="mast"><div class="mk">GW1 · RECAP</div>
+<div class="stand">Five clubs debuted new managers, <b>11 of the league's 88 starters never played</b>, and the auto-subs quietly scored 39 points. Oh, and somebody dropped a 66.</div></div>
 <div class="wrap">
 
-<h2>Matchweek 1 · Aug 22–24</h2>
+<h2>Matchweek 1 · Aug <span class="nw">22–24</span></h2>
 
 <!-- EL CLASICO -->
 <div class="card">
- <div class="mhead"><div class="kick">El Clásico · Series 8–1</div>
+ <div class="mhead"><div class="kick">El Clásico · Series <span class="nw">8–1</span></div>
   <div class="srow">
-   <div class="tm"><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
+   <div class="tm"><i class="cr lg" data-team="Kobbie Mainoo Fan"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BK-l"/></svg></i><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
    <div class="sc">36<span class="d">–</span><span class="w">46</span></div>
-   <div class="tm away win"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
+   <div class="tm away win"><i class="cr lg" data-team="Cold Palmers"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PN-l"/></svg></i><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="244851">CP</div>
   <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">COLE PALMER <span>· MID · CHE</span></div>
    <div class="pline">Set up the opener, released Lacroix for the second, finished the third through Leno's legs. All three bonus.</div></div>
   <div class="ppts">13<small>PTS</small></div></div>
  <div class="mbody">
-  <div class="story">Baha led 29–20 from Friday to Monday behind Ødegaard's 11 against Coventry. Then Chelsea won Xabi Alonso's debut 3–2 at Fulham, and Parker's two Chelsea starters added 19 on their own.</div>
+  <div class="story">Baha led <span class="nw">29–20</span> from Friday to Monday behind Ødegaard's 11 against Coventry. Then Chelsea won Xabi Alonso's debut <span class="nw">3–2</span> at Fulham, and Parker's two Chelsea starters added 19 on their own.</div>
   <ul class="hits">
-   <li><b>Isak, 2 pts</b> — booed all night on his Newcastle return, put a full xG of chances over the bar.</li>
+   <li><b>Isak, 2 pts</b>: booed all night on his Newcastle return, put a full xG of chances over the bar.</li>
    <li><b>Timber never left the bench</b>; Branthwaite's clean sheet auto-subbed in for Baha's 6.</li>
    <li><b>No luck excuse:</b> 46 scored on 46.3 expected. The most honest score of the week.</li>
   </ul>
-  <div class="chips"><span class="chip">xP <b>31.9 – 46.3</b></span><span class="chip">Bonus <b>3 – 3</b></span><span class="chip gold">Series <b>8–1</b> Parker</span></div>
-  <div class="notm"><div class="n">26</div><div class="c">Points Parker added after the scoreboard had read 29–20 for three straight days.</div></div>
+  <div class="chips"><span class="chip"><span class="ck">xP</span> <span class="cv"><b>31.9 – 46.3</b></span></span><span class="chip"><span class="ck">Bonus</span> <span class="cv"><b>3 – 3</b></span></span><span class="chip gold"><span class="ck">Series</span> <span class="cv"><b><span class="nw">8–1</span></b> Parker</span></span></div>
+  <div class="notm"><div class="n">26</div><div class="c">Points Parker added after the scoreboard had read <span class="nw">29–20</span> for three straight days.</div></div>
  </div>
 </div>
 
@@ -127,23 +250,23 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
 <div class="card">
  <div class="mhead"><div class="kick">Matchweek 1</div>
   <div class="srow">
-   <div class="tm"><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
+   <div class="tm"><i class="cr lg" data-team="In It to McGinn It"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-NG-l"/></svg></i><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
    <div class="sc">25<span class="d">–</span><span class="w">34</span></div>
-   <div class="tm away win"><div class="tn">Maize 'n' Mount</div><div class="mg">Ethan</div></div>
+   <div class="tm away win"><i class="cr lg" data-team="Maize 'n' Mount"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-EG-l"/></svg></i><div class="tn">Maize 'n' Mount</div><div class="mg">Ethan</div></div>
   </div></div>
  <div class="pstrip"><div class="ph low" data-code="502500">IT</div>
   <div class="pinfo"><div class="pk low">The zero</div><div class="pname">IGOR THIAGO <span>· FWD · BRE</span></div>
-   <div class="pline">82 minutes, a headed goal ruled offside, then a 55th-minute penalty off the post — a penalty won by Parker's Schade.</div></div>
+   <div class="pline">82 minutes, a headed goal ruled offside, then a 55th-minute penalty off the post, a penalty won by Parker's Schade.</div></div>
   <div class="ppts low">0<small>PTS</small></div></div>
  <div class="mbody">
-  <div class="story">Nate's week died on the team sheets: Porro and Kudus never played in Spurs' 3–0 loss, and Marmoush was left out at City — with reports Spurs have agreed to sign him. Ethan won it in the 99th minute.</div>
+  <div class="story">Nate's week died on the team sheets: Porro and Kudus never played in Spurs' <span class="nw">3–0</span> loss, and Marmoush was left out at City, with reports Spurs have agreed to sign him. Ethan won it in the 99th minute.</div>
   <ul class="hits">
-   <li><b>Cherki, 8 pts</b> — two assists in 27 minutes off City's bench. Maresca: "unbelievable."</li>
+   <li><b>Cherki, 8 pts</b>: two assists in 27 minutes off City's bench. Maresca: "unbelievable."</li>
    <li><b>Szoboszlai's winner</b> was a penalty soft enough that Newcastle's boss promised "many, many penalties" by that standard.</li>
    <li><b>Trafford's 9</b> (CS, 2 bonus) sat on Ethan's bench behind Pickford's 7. Didn't matter.</li>
   </ul>
-  <div class="chips"><span class="chip">xP <b>24.0 – 38.3</b></span><span class="chip">Bonus <b>0 – 2</b></span><span class="chip">Nate's zero-min starters: <b>3</b></span></div>
-  <div class="notm"><div class="n">0</div><div class="c">Thiago's return from 82 minutes, a disallowed goal, and a penalty. The model says 25 was exactly fair — which is the bad news.</div></div>
+  <div class="chips"><span class="chip"><span class="ck">xP</span> <span class="cv"><b>24.0 – 38.3</b></span></span><span class="chip"><span class="ck">Bonus</span> <span class="cv"><b>0 – 2</b></span></span><span class="chip"><span class="ck">Nate's zero-min starters:</span> <span class="cv"><b>3</b></span></span></div>
+  <div class="notm"><div class="n">0</div><div class="c">Thiago's return from 82 minutes, a disallowed goal, and a penalty. The model says 25 was exactly fair, which is the bad news.</div></div>
  </div>
 </div>
 
@@ -151,82 +274,83 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
 <div class="card">
  <div class="mhead"><div class="kick">The Gamer Derby · First Meeting</div>
   <div class="srow">
-   <div class="tm win"><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
+   <div class="tm win"><i class="cr lg" data-team="Team Jacob"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-JS-l"/></svg></i><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
    <div class="sc"><span class="w">45</span><span class="d">–</span>33</div>
-   <div class="tm away"><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
+   <div class="tm away"><i class="cr lg" data-team="Devils U21s"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PJ-l"/></svg></i><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="243298">CG</div>
   <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">CODY GAKPO <span>· MID · LIV</span></div>
-   <div class="pline">Cut inside and drove one in from outside the box in the 2–2 at Newcastle. One point still under review.</div></div>
+   <div class="pline">Cut inside and drove one in from outside the box in the <span class="nw">2–2</span> at Newcastle. One point still under review.</div></div>
   <div class="ppts">12<small>PTS</small></div></div>
  <div class="mbody">
-  <div class="story">Both rookies lost their headliners before kickoff — Jacob's Doku and Sarr played zero minutes; PJ's Watkins was left out of Villa's squad entirely amid Al Hilal interest, and Villa lost 4–0 with a red card.</div>
+  <div class="story">Both rookies lost their headliners before kickoff: Jacob's Doku and Sarr played zero minutes; PJ's Watkins was left out of Villa's squad entirely amid Al Hilal interest, and Villa lost <span class="nw">4–0</span> with a red card.</div>
   <ul class="hits">
-   <li><b>Jacob's auto-subs scored 10</b> — Osula's assist against Liverpool, Collins' clean sheet at Brentford.</li>
-   <li><b>Ben White, 11 pts</b> — PJ's slot-14 auto-sub was his top scorer. Foden, Eze, Grealish and Neto combined for 4.</li>
-   <li><b>Gvardiol's stoppage-time winner</b> survived VAR — PJ's best moment, 9 pts.</li>
+   <li><b>Jacob's auto-subs scored 10</b>: Osula's assist against Liverpool, Collins' clean sheet at Brentford.</li>
+   <li><b>Ben White, 11 pts</b>: PJ's slot-14 auto-sub was his top scorer. Foden, Eze, Grealish and Neto combined for 4.</li>
+   <li><b>Gvardiol's stoppage-time winner</b> survived VAR: PJ's best moment, 9 pts.</li>
   </ul>
-  <div class="chips"><span class="chip">xP <b>37.2 – 33.8</b></span><span class="chip">Bonus <b>4 – 3</b></span><span class="chip gold">Bench pts in this one: <b>21</b></span></div>
+  <div class="chips"><span class="chip"><span class="ck">xP</span> <span class="cv"><b>37.2 – 33.8</b></span></span><span class="chip"><span class="ck">Bonus</span> <span class="cv"><b>4 – 3</b></span></span><span class="chip gold"><span class="ck">Bench pts in this one:</span> <span class="cv"><b>21</b></span></span></div>
   <div class="notm"><div class="n">21</div><div class="c">Derby points from players who started the weekend on a bench. Expected scores say the sequel is closer.</div></div>
  </div>
 </div>
 
 <!-- DE KLASSIEKER -->
 <div class="card">
- <div class="mhead"><div class="kick">De Klassieker · Series 6–3 CJ</div>
+ <div class="mhead"><div class="kick">De Klassieker · Series <span class="nw">6–3</span> CJ</div>
   <div class="srow">
-   <div class="tm"><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
+   <div class="tm"><i class="cr lg" data-team="Trophy Hunters"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BS-l"/></svg></i><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
    <div class="sc">36<span class="d">–</span><span class="w">66</span></div>
-   <div class="tm away win"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
+   <div class="tm away win"><i class="cr lg" data-team="The Soaring Gulls"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-CT-l"/></svg></i><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="466525">AS</div>
   <div class="pinfo"><div class="pk">Star of the match</div><div class="pname">ANTON STACH <span>· MID · LEE</span></div>
-   <div class="pline">Curled an 88th-minute free-kick past Sels to win it at Forest — plus a clean sheet and 16 defensive actions.</div></div>
+   <div class="pline">Curled an 88th-minute free-kick past Sels to win it at Forest, plus a clean sheet and 16 defensive actions.</div></div>
   <div class="ppts">13<small>PTS</small></div></div>
  <div class="mbody">
-  <div class="story">The score of the weekend, mostly earned: Dewsbury-Hall's far-corner finish at Goodison, João Pedro inside the first minute Monday, Guéhi — playing experimental midfield for Maresca — heading in from a Cherki corner.</div>
+  <div class="story">The score of the weekend, mostly earned: Dewsbury-Hall's far-corner finish at Goodison, João Pedro inside the first minute Monday, Guéhi, playing experimental midfield for Maresca, heading in from a Cherki corner.</div>
   <ul class="hits">
    <li><b>Ten bonus points</b> landed on CJ's XI. The other seven teams combined for sixteen.</li>
-   <li><b>The caveat:</b> the model prices this weekend at 42.4. The +13.6 overshoot — triple clean sheets, a bonus near-monopoly — is the part that doesn't repeat.</li>
-   <li><b>Bryant's 36 had real pieces</b> — Rogers' debut goal (0.96 xG), two clean sheets — but Martínez and Woltemade gave him zero minutes.</li>
+   <li><b>The caveat:</b> the model prices this weekend at 42.4. The +13.6 overshoot, triple clean sheets, a bonus near-monopoly, is the part that doesn't repeat.</li>
+   <li><b>Bryant's 36 had real pieces</b>: Rogers' debut goal (0.96 xG), two clean sheets, but Martínez and Woltemade gave him zero minutes.</li>
   </ul>
-  <div class="chips"><span class="chip">xP <b>33.5 – 42.4</b></span><span class="chip">Bonus <b>1 – 10</b></span><span class="chip gold">MOTM leader <b>66</b></span></div>
+  <div class="chips"><span class="chip"><span class="ck">xP</span> <span class="cv"><b>33.5 – 42.4</b></span></span><span class="chip"><span class="ck">Bonus</span> <span class="cv"><b>1 – 10</b></span></span><span class="chip gold"><span class="ck">MOTM leader</span> <span class="cv"><b>66</b></span></span></div>
   <div class="notm"><div class="n">66</div><div class="c">Banked, and leading the August race ($30, GW1–5). It is not a baseline.</div></div>
  </div>
 </div>
 
 <!-- AROUND THE LEAGUE -->
 <h2>Around the League</h2>
-<div class="card"><div class="mbody" style="padding-top:13px">
+<div class="card"><div class="mbody">
  <table>
   <tr><th>#</th><th>Team</th><th class="r">GW1</th><th class="r">xP</th><th class="r"></th></tr>
-  <tr class="top"><td>1</td><td>The Soaring Gulls</td><td class="r">66</td><td class="r">42.4</td><td class="r"><span class="res w">W</span></td></tr>
-  <tr><td>2</td><td>Cold Palmers</td><td class="r">46</td><td class="r">46.3</td><td class="r"><span class="res w">W</span></td></tr>
-  <tr><td>3</td><td>Team Jacob</td><td class="r">45</td><td class="r">37.2</td><td class="r"><span class="res w">W</span></td></tr>
-  <tr><td>4</td><td>Kobbie Mainoo Fan</td><td class="r">36</td><td class="r">31.9</td><td class="r"><span class="res l">L</span></td></tr>
-  <tr><td>5</td><td>Trophy Hunters</td><td class="r">36</td><td class="r">33.5</td><td class="r"><span class="res l">L</span></td></tr>
-  <tr><td>6</td><td>Maize 'n' Mount</td><td class="r">34</td><td class="r">38.3</td><td class="r"><span class="res w">W</span></td></tr>
-  <tr><td>7</td><td>Devils U21s</td><td class="r">33</td><td class="r">33.8</td><td class="r"><span class="res l">L</span></td></tr>
-  <tr><td>8</td><td>In It to McGinn It</td><td class="r">25</td><td class="r">24.0</td><td class="r"><span class="res l">L</span></td></tr>
+  <tr class="top"><td>1</td><td><i class="cr" data-team="The Soaring Gulls"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-CT-s"/></svg></i>The Soaring Gulls</td><td class="r">66</td><td class="r">42.4</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>2</td><td><i class="cr" data-team="Cold Palmers"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PN-s"/></svg></i>Cold Palmers</td><td class="r">46</td><td class="r">46.3</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>3</td><td><i class="cr" data-team="Team Jacob"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-JS-s"/></svg></i>Team Jacob</td><td class="r">45</td><td class="r">37.2</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>4</td><td><i class="cr" data-team="Kobbie Mainoo Fan"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BK-s"/></svg></i>Kobbie Mainoo Fan</td><td class="r">36</td><td class="r">31.9</td><td class="r"><span class="res l">L</span></td></tr>
+  <tr><td>5</td><td><i class="cr" data-team="Trophy Hunters"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BS-s"/></svg></i>Trophy Hunters</td><td class="r">36</td><td class="r">33.5</td><td class="r"><span class="res l">L</span></td></tr>
+  <tr><td>6</td><td><i class="cr" data-team="Maize 'n' Mount"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-EG-s"/></svg></i>Maize 'n' Mount</td><td class="r">34</td><td class="r">38.3</td><td class="r"><span class="res w">W</span></td></tr>
+  <tr><td>7</td><td><i class="cr" data-team="Devils U21s"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PJ-s"/></svg></i>Devils U21s</td><td class="r">33</td><td class="r">33.8</td><td class="r"><span class="res l">L</span></td></tr>
+  <tr><td>8</td><td><i class="cr" data-team="In It to McGinn It"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-NG-s"/></svg></i>In It to McGinn It</td><td class="r">25</td><td class="r">24.0</td><td class="r"><span class="res l">L</span></td></tr>
  </table>
- <ul class="hits" style="margin-top:8px">
-  <li><b>Waiver watch:</b> Hinshelwood (2 goals in Brighton's 4–1) is the headline free agent; Rashford played his first minutes in 618 days off United's bench.</li>
-  <li><b>Marmoush-to-Spurs</b> reports are good news for Nate, who holds him — a move turns a dead spot back into a starter.</li>
+ <ul class="hits">
+  <li><b>Waiver watch:</b> Hinshelwood (2 goals in Brighton's <span class="nw">4–1</span>) is the headline free agent; Rashford played his first minutes in 618 days off United's bench.</li>
+  <li><b>Marmoush-to-Spurs</b> reports are good news for Nate, who holds him: a move turns a dead spot back into a starter.</li>
  </ul>
  <div class="fxg">
-  <div class="fx"><span class="tag">GW2</span><br><b>Cold Palmers</b> v Trophy Hunters</div>
-  <div class="fx"><span class="tag">GW2 · 1st v 3rd</span><br><b>Gulls</b> v Team Jacob</div>
-  <div class="fx"><span class="tag">GW2</span><br><b>Devils U21s</b> v McGinn</div>
-  <div class="fx"><span class="tag">GW2</span><br><b>Maize</b> v Kobbie Mainoo Fan</div>
+  <div class="fx"><span class="tag">GW2</span><br><b class="ft"><i class="cr" data-team="Cold Palmers"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PN-s"/></svg></i>Cold Palmers</b> v <span class="ft a"><i class="cr" data-team="Trophy Hunters"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BS-s"/></svg></i>Trophy Hunters</span></div>
+  <div class="fx"><span class="tag">GW2 · 1st v 3rd</span><br><b class="ft"><i class="cr" data-team="Gulls"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-CT-s"/></svg></i>Gulls</b> v <span class="ft a"><i class="cr" data-team="Team Jacob"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-JS-s"/></svg></i>Team Jacob</span></div>
+  <div class="fx"><span class="tag">GW2</span><br><b class="ft"><i class="cr" data-team="Devils U21s"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PJ-s"/></svg></i>Devils U21s</b> v <span class="ft a"><i class="cr" data-team="McGinn"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-NG-s"/></svg></i>McGinn</span></div>
+  <div class="fx"><span class="tag">GW2</span><br><b class="ft"><i class="cr" data-team="Maize"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-EG-s"/></svg></i>Maize</b> v <span class="ft a"><i class="cr" data-team="Kobbie Mainoo Fan"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BK-s"/></svg></i>Kobbie Mainoo Fan</span></div>
  </div>
 </div></div>
 
-<div class="foot">Scores provisional until FPL confirms. One live dispute: Gakpo 12 v 10 — if revised, Team Jacob finishes 43 and nothing else changes. Reporting: Sky Sports, Chelsea FC, NBC, Yahoo, VAVEL, Opta. Fantasy numbers: league data.</div>
+<div class="foot">Scores provisional until FPL confirms. One live dispute: Gakpo 12 v 10. If revised, Team Jacob finishes 43 and nothing else changes. Reporting: Sky Sports, Chelsea FC, NBC, Yahoo, VAVEL, Opta. Fantasy numbers: league data.</div>
 </div>
 
+<!-- article:script -->
 <script>
-/* Headshots: codes fixed at publish time (name lookup burned us — two Palmers in the Players
-   tab). Same cascade as the app: committed face -> PL 250x250 -> PL 110x140 -> initials stay. */
+/* Headshots: codes are fixed at publish time (a name lookup once picked the wrong one of two Palmers in the Players
+   tab). Same cascade as the app: committed face, then PL 250x250, then PL 110x140, else the initials stay. */
 (function(){
   document.querySelectorAll('.ph[data-code]').forEach(function(el){
     var code=el.getAttribute('data-code');
@@ -234,11 +358,13 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
       'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png',
       'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+code+'.png'];
     var i=0,img=new Image();
+    img.alt='';
     img.onload=function(){el.textContent='';el.appendChild(img)};
     img.onerror=function(){if(++i<srcs.length)img.src=srcs[i]};
     img.src=srcs[0];
   });
 })();
 </script>
+<!-- /article:script -->
 </body>
 </html>

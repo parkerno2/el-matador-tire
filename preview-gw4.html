@@ -4,146 +4,258 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>El Matador Tire · GW4 Preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Saira+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<!-- article:head -->
+<meta name="theme-color" content="#17121D">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="El Matador Tire">
+<meta property="og:title" content="El Matador Tire · GW4 Preview">
+<meta property="og:description" content="Deadline Saturday 7:30 AM, ninety minutes before five games kick off at once. The window is shut, the waivers have run, and the week ends Monday night at Elland Road. In between is a Manchester derby with 17 of the league&#x27;s 88 starting slots on the pitch.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+<!-- /article:head -->
+<!-- article:css -->
 <style>
-:root{--p1:#37003C;--p2:#5B1A66;--p3:#2E5BFF;--gold:#FFD23F;--goldd:#B8860B;--cyan:#04F5FF;
---bg:#F4F1F6;--card:#fff;--ink:#1B1420;--mid:#6B6076;--sub:#575E6C;--line:#E4DEE9;--bad:#C62828;--good:#0E8A5F}
+/* ===== El Matador Tire articles (gameweek previews and recaps) =====
+   Source of truth for every recap-gwN.html / preview-gwN.html page. build_articles.py inlines this file
+   between the article:css markers of each page: edit here, never in a page.
+   Same look as the app (fplgg/tools/v12/v12-look.css, the D2 "Arena" design): ink #17121D chrome, ground #F5F3F8,
+   white cards with hairline borders, purple #5B2D8E for kickers, links and focus only, light purple #CDBDF0 on dark,
+   green/red for results only. Archivo for words, Barlow Condensed for every number. No gold, no gradients. */
+:root{--ink:#17121D;--ground:#F5F3F8;--card:#fff;--line:#E7E2EE;--line2:#F0ECF4;--mid:#6F6880;--body:#4B4456;
+  --pu:#5B2D8E;--pul:#CDBDF0;--onink:#B9B1C4;--good:#1F8A55;--bad:#C23A3A;--draw:#8C8496;color-scheme:light}
 *{box-sizing:border-box;margin:0}
-body{font-family:'Chakra Petch',system-ui,sans-serif;color:var(--ink);font-size:16px;
-background:linear-gradient(180deg,#E4DBF2 0,#EDE7F5 460px,var(--bg) 980px) fixed}
-.wrap{max-width:700px;margin:0 auto;padding:0 12px 40px}
-/* header */
-.hero{background:linear-gradient(115deg,#2E5BFF -30%,#5B1A66 45%,#37003C 110%);color:#fff;
-padding:calc(12px + env(safe-area-inset-top)) 14px 11px 18px;display:flex;align-items:center;gap:10px;
-position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(30,0,40,.35)}
-.sh-x{background:rgba(255,255,255,.16);border:none;color:#fff;width:28px;height:28px;flex:none;
-border-radius:50%;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;text-decoration:none}
-.hero h1{font-size:1.02rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
-.gwpill{margin-left:auto;flex:none;background:var(--gold);color:var(--p1);font-size:.62rem;font-weight:700;
-letter-spacing:.06em;padding:3px 10px;border-radius:12px;white-space:nowrap}
-.stand{background:linear-gradient(115deg,#31054E,#37003C);color:#fff;padding:9px 18px 11px;font-size:.72rem;
-color:#D9CCE3;line-height:1.5;border-bottom:2px solid rgba(255,210,63,.5)}
-.stand b{color:#fff}
-h2{font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin:16px 2px 6px}
-/* match card */
-.card{background:var(--card);border:1px solid #E7DEF0;border-radius:14px;
-box-shadow:0 1px 3px rgba(55,0,60,.06),0 4px 14px rgba(55,0,60,.09);padding:0;margin-bottom:12px;overflow:hidden}
-.mhead{background:linear-gradient(115deg,#2E5BFF -40%,#5B1A66 40%,#37003C 110%);color:#fff;padding:10px 14px 9px}
-.kick{font-size:.56rem;font-weight:700;letter-spacing:.24em;color:var(--cyan);text-transform:uppercase}
-.srow{display:flex;align-items:center;gap:10px;margin-top:6px}
-.tm{flex:1;min-width:0}
-.tm .tn{font-size:.78rem;font-weight:700;line-height:1.15}
-.tm.win .tn{color:var(--gold)}
-.tm .mg{font-size:.6rem;color:#C9BAD6;letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
-.tm.away{text-align:right}
-.sc{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:.02em;
-white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
-.sc .w{color:var(--gold)}.sc .d{opacity:.45;font-size:1.3rem;vertical-align:6px;padding:0 4px}
-/* player strip */
-.pstrip{display:flex;align-items:center;gap:12px;padding:11px 14px 10px;border-bottom:1px solid var(--line);
-background:linear-gradient(180deg,#FBF9FD,#fff)}
-.pk{font-size:.5rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--goldd);margin-bottom:2px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{background:var(--ground)}
+body{font-family:'Archivo',system-ui,sans-serif;font-size:15px;line-height:1.45;color:var(--ink);
+  -webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+b{font-weight:750}
+a{color:var(--pu)}
+:focus:not(:focus-visible){outline:none}
+:focus-visible{outline:2px solid var(--pu);outline-offset:2px}
+.ah :focus-visible,.mast :focus-visible,.mhead :focus-visible{outline-color:var(--pul)}
+
+/* ---- chrome: the app's header bar (Matchweek plate + league name), close on the right ---- */
+.ah{position:sticky;top:0;z-index:20;background:var(--ink);border-bottom:1px solid #2A2332;
+  padding:calc(7px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 7px max(14px,env(safe-area-inset-left))}
+.ah .in{max-width:1020px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:40px}
+.ah .brand{display:flex;align-items:center;gap:8px;min-width:0;color:#fff;text-decoration:none}
+.ah .brand svg{display:block;width:60px;height:auto;flex:none}
+.ah h1{font-size:.8rem;font-weight:800;letter-spacing:-.01em;line-height:1.05;color:#fff;max-width:5.6em}
+.sh-x{margin-left:auto;flex:none;position:relative;width:40px;height:40px;display:grid;place-items:center;color:#fff;
+  text-decoration:none;border-radius:50%;margin-right:-6px;-webkit-tap-highlight-color:transparent}
+.sh-x::before{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.sh-x svg{position:relative;display:block}
+@media(hover:hover){.sh-x:hover::before{background:rgba(255,255,255,.2)}}
+
+/* ---- masthead: kicker over the standfirst, on ink like the matchup page's stage ---- */
+.mast{background:var(--ink);color:#fff;padding:18px 16px 24px}
+.mast>*{max-width:720px;margin-left:auto;margin-right:auto}
+.mk{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pul)}
+.stand{margin-top:8px;font-size:1.16rem;line-height:1.45;font-weight:500;color:#D9D3E2;letter-spacing:-.005em}
+.stand b{color:#fff;font-weight:750}
+
+/* ---- page ---- */
+.wrap{max-width:736px;margin:0 auto;padding:0 8px calc(40px + env(safe-area-inset-bottom))}
+h2{font-size:1.1rem;font-weight:800;letter-spacing:-.015em;line-height:1.3;color:var(--ink);margin:24px 2px 10px}
+
+/* ---- matchup card ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px}
+/* score block = the app's matchup header (ink, kicker, crest + name + manager either side, Barlow score) */
+.mhead{background:var(--ink);color:#fff;padding:14px 12px 16px;text-align:center}
+.kick{font-size:.68rem;font-weight:800;letter-spacing:.08em;line-height:1.35;text-transform:uppercase;color:var(--pul);padding:0 4px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
+.tm{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.tn{font-weight:800;font-size:.98rem;letter-spacing:-.015em;line-height:1.15;color:#fff;text-wrap:balance}
+.mg{font-size:.74rem;font-weight:600;color:var(--onink)}
+.srow:has(.win) .tm:not(.win) .tn{color:var(--onink)}
+.srow>:not(.tm){padding-top:6px;min-width:0}
+.sc{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.4rem;line-height:1;letter-spacing:0;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:#fff}
+.sc .d{color:#5E5568;margin:0 4px}
+.sc:has(.w){color:var(--draw)}
+.sc .w{color:#fff}
+.sc.pred{font-size:2.05rem}
+.predlab{font-size:.72rem;font-weight:700;color:var(--onink);margin-top:6px;text-transform:lowercase}
+.predlab::first-letter{text-transform:uppercase}
+
+/* team badges: Mono on the ink header, team-colour fill at 32 px and under (the app's rule) */
+.cr{display:inline-block;flex:none;line-height:0;vertical-align:middle}
+.cr svg{display:block;width:20px;height:22px}
+.cr.lg svg{width:44px;height:48px}
+
+/* featured player: the star of the match, the player to watch, or the zero */
+.pstrip{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--line2)}
+.ph{width:56px;height:56px;border-radius:50%;overflow:hidden;background:#F0EBF8;display:grid;place-items:center;
+  font-weight:800;font-size:.95rem;color:var(--mid);box-shadow:0 0 0 1px var(--line)}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.ph.low{box-shadow:0 0 0 2px var(--bad)}
+.pinfo{min-width:0}
+.pk{font-size:.66rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--pu)}
 .pk.low{color:var(--bad)}
-.ph{width:56px;height:56px;box-shadow:0 3px 8px rgba(55,0,60,.18);border-radius:50%;flex:none;background:#EDE5F3 center/cover no-repeat;
-border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
-font-weight:700;color:var(--p2);font-size:1rem;overflow:hidden}
-.ph img{width:100%;height:100%;object-fit:cover;object-position:top}
-.ph.low{border-color:var(--bad)}
-.pinfo{flex:1;min-width:0}
-.pname{font-weight:700;font-size:.86rem}
-.pname span{color:var(--mid);font-weight:600;font-size:.68rem}
-.pline{font-size:.68rem;color:var(--sub);margin-top:2px;line-height:1.35}
-.ppts{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.9rem;color:var(--p1);flex:none;line-height:1}
-.ppts small{display:block;font-family:'Chakra Petch';font-size:.5rem;font-weight:700;letter-spacing:.14em;
-color:var(--mid);text-align:center;margin-top:1px}
+.pname{font-weight:800;font-size:.92rem;line-height:1.25;margin-top:2px;color:var(--ink)}
+.pname span{font-weight:600;font-size:.74rem;color:var(--mid);white-space:nowrap}
+.pline{font-size:.88rem;line-height:1.45;color:var(--body);margin-top:4px}
+.ppts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.2rem;line-height:1;text-align:center;color:var(--ink);
+  font-variant-numeric:tabular-nums;min-width:34px}
+.ppts small{display:block;font-family:'Archivo',sans-serif;font-size:.6rem;font-weight:800;letter-spacing:.08em;color:var(--mid);margin-top:3px}
 .ppts.low{color:var(--bad)}
-/* body */
-.mbody{padding:11px 14px 13px}
-.story{font-size:.8rem;line-height:1.55;color:#2A2230}
-.hits{margin:10px 0 0;padding:0;list-style:none}
-.hits li{font-size:.74rem;line-height:1.45;color:#3A3142;padding:5px 0 5px 16px;position:relative;border-top:1px solid #F0EAF5}
-.hits li::before{content:'▸';position:absolute;left:2px;color:var(--goldd);font-size:.7rem}
-.hits b{color:var(--p1)}
-/* chips + number */
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
-.chip{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:4px 9px;font-size:.6rem;
-font-weight:600;color:var(--sub);letter-spacing:.03em}
-.chip b{color:var(--p1);font-weight:700}
-.chip.gold{background:linear-gradient(160deg,#FBE9A6,#FFD23F);border-color:#E3BC2E;color:#5C4A12}
-.chip.gold b{color:var(--p1)}
-.notm{display:flex;align-items:center;gap:12px;margin-top:12px;background:linear-gradient(115deg,#FFF6DC,#FDEFC4);
-border:1px solid #EDDB9C;border-left:4px solid var(--gold);border-radius:12px;padding:8px 12px}
-.notm .n{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2rem;color:var(--p1);flex:none;min-width:44px;text-align:center}
-.notm .c{font-size:.66rem;line-height:1.4;color:#5C4A12}
-/* around the league */
-table{width:100%;border-collapse:collapse;font-size:.74rem}
-th{font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)}
-td{padding:5px 6px;border-bottom:1px solid #F0EAF5}
-td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
-tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);font-weight:700}
-.res{font-size:.56rem;font-weight:700;padding:1px 6px;border-radius:8px}
-.res.w{background:#DDF2E7;color:var(--good)}.res.l{background:#F8E1E1;color:var(--bad)}
-.fxg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.fx{background:#F5F1F8;border:1px solid #E7DEF0;border-radius:10px;padding:7px 9px;font-size:.66rem;line-height:1.4}
-.fx b{color:var(--p1)}
-.fx .tag{font-size:.52rem;color:var(--goldd);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-.foot{font-size:.62rem;color:var(--mid);line-height:1.55;margin-top:14px;padding:0 4px}
-@media(max-width:390px){.sc{font-size:1.6rem}.tm .tn{font-size:.72rem}}
-.gwpill.prev{background:#3DF59B;color:#063}
-.sc.pred{font-size:1.45rem}
-.predlab{font-size:.5rem;font-weight:700;letter-spacing:.18em;color:#7FE0AE;text-align:center;margin-top:2px}
+
+/* the write-up */
+.mbody{padding:14px 14px 16px}
+.story{font-size:1rem;line-height:1.6;color:#231D2B}
+.hits{list-style:none;padding:0;margin:12px 0 0}
+.hits li{font-size:.94rem;line-height:1.5;color:var(--body);padding:10px 0;border-top:1px solid var(--line2)}
+.hits li:last-child{padding-bottom:4px}
+.hits b{color:var(--ink)}
+.mbody>.hits:first-child{margin-top:0}
+.mbody>.hits:first-child li:first-child{border-top:0;padding-top:0}
+
+/* numbers row: label over a Barlow value, hairline dividers (was the chips) */
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));border-top:1px solid var(--line2);margin-top:12px;padding-top:12px}
+.chip{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:0 10px;border-left:1px solid var(--line2);min-width:0}
+.chip:first-child{padding-left:0;border-left:0}
+.ck{font-size:.72rem;font-weight:600;line-height:1.3;color:var(--mid)}
+.cv{font-size:.86rem;font-weight:700;line-height:1.25;color:var(--ink)}
+.cv b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;line-height:1.05;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* the number of the match */
+.notm{display:flex;align-items:center;gap:14px;margin-top:14px;background:var(--ground);border-radius:12px;padding:12px 14px}
+.notm .n{flex:none;min-width:48px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.3rem;
+  line-height:1;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.notm .c{font-size:.88rem;line-height:1.45;color:var(--body)}
+
+/* ---- around the league ---- */
+table{width:100%;border-collapse:collapse}
+th{font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);text-align:left;padding:0 6px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line2);font-size:.92rem;font-weight:700;vertical-align:middle}
+th:first-child,td:first-child{padding-left:0;width:22px}
+th:last-child,td:last-child{padding-right:0}
+td:first-child,td.r{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;font-size:1.08rem}
+td:first-child{color:var(--mid)}
+td.r,th.r{text-align:right}
+td.r:nth-child(4){color:var(--mid);font-weight:600}
+td:has(>.cr){position:relative;padding-left:36px;line-height:1.2;text-wrap:balance}
+td>.cr{position:absolute;left:6px;top:50%;transform:translateY(-50%)}
+tr.top td:first-child{color:var(--ink)}
+tr.top td:nth-child(2){font-weight:800}
+.res{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;font-family:'Archivo',sans-serif;
+  font-size:.66rem;font-weight:800;color:#fff;vertical-align:middle}
+.res.w{background:var(--good)}.res.l{background:var(--bad)}.res.d{background:var(--draw)}
+table+.hits{margin-top:8px}
+table+.hits li:first-child{border-top:0}
+/* next week's fixtures, one row each like the app's league list */
+.fxg{margin-top:12px;border-top:1px solid var(--line)}
+.fx{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:10px;padding:11px 0 12px;
+  border-top:1px solid var(--line2);font-size:.74rem;font-weight:700;color:var(--draw)}
+.fx:first-child{border-top:0}
+.fx br{display:none}
+.fx .tag{grid-column:1/-1;margin-bottom:7px;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--pu)}
+.fx .ft{display:flex;align-items:center;gap:8px;min-width:0;font-size:.92rem;font-weight:750;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+.fx .ft.a{flex-direction:row-reverse;text-align:right}
+
+.foot{font-size:.78rem;line-height:1.55;color:var(--mid);margin:16px 4px 0}
+.stand,.story,.pline,.hits li,.notm .c,.foot{text-wrap:pretty}
+.nw{white-space:nowrap}
+
+/* ---- narrow phones (320 to 360 px): the centre column shrinks first so both teams keep room ---- */
+@media(max-width:360px){
+  .srow{gap:6px}
+  .sc{font-size:2.05rem}
+  .sc.pred{font-size:1.72rem}
+  .sc .d{margin:0 3px}
+  .tn{font-size:.9rem}
+  .cr.lg svg{width:38px;height:41px}
+  .stand{font-size:1.08rem}
+  .pstrip{grid-template-columns:48px minmax(0,1fr) auto;gap:10px;padding:14px 12px}
+  .ph{width:48px;height:48px}
+  .mbody{padding:14px 12px 16px}
+  .chip{padding:0 8px}
+  .cv b{font-size:1.18rem}
+  td{font-size:.88rem}
+  td:has(>.cr){padding-left:32px}
+}
+/* tablets and desktop: a reading column, more air */
+@media(min-width:700px){
+  .wrap{padding:0 22px 48px}
+  .mast{padding:28px 22px 32px}
+  .mast>*{max-width:692px}
+  .stand{font-size:1.3rem}
+  .mhead{padding:18px 20px 20px}
+  .pstrip{padding:16px 20px}
+  .mbody{padding:16px 20px 20px}
+  .card{margin-bottom:16px}
+}
 </style>
+<!-- /article:css -->
 </head>
 <body>
-<div class="hero"><h1>El Matador Tire</h1><span class="gwpill prev">GW4 · PREVIEW</span><a class="sh-x" href="index.html" aria-label="Close" onclick="if(document.referrer&&document.referrer.indexOf(location.origin)===0&&history.length>1){history.back();return false}">×</a></div>
-<div class="stand">Deadline <b>Saturday 7:30 AM</b> — ninety minutes before five games kick off at once. The window is shut, the waivers have run, and the week ends Monday night at Elland Road. In between is a Manchester derby with <b>17 of the league's 88 starting slots</b> on the pitch.</div>
+<!-- article:header -->
+<header class="ah"><div class="in"><div class="brand"><svg viewBox="0 0 564 152" width="60" height="16" role="img" aria-label="Matchweek" style="filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))"><defs><linearGradient id="mwE" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#04F5FF"/><stop offset=".45" stop-color="#2E5BFF"/><stop offset="1" stop-color="#8E44AD"/></linearGradient><linearGradient id="mwI" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#101E4E"/><stop offset="1" stop-color="#060B24"/></linearGradient></defs><path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI)" stroke="url(#mwE)" stroke-width="6"/><text x="272" y="98" text-anchor="middle" font-family="'Archivo Black',sans-serif" font-size="62" letter-spacing="3"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg><h1>El Matador Tire</h1></div><a class="sh-x" href="index.html" aria-label="Close" onclick="if(document.referrer&amp;&amp;document.referrer.indexOf(location.origin)===0&amp;&amp;history.length&gt;1){history.back();return false}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></a></div></header>
+<!-- /article:header -->
+<!-- article:sprite -->
+<svg class="sprite" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+<symbol id="cr-BK-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#d88c61" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <path d="M50 22 C 60 32, 64 40, 64 50 a14 14 0 0 1 -28 0 c0 -7 3 -11 7 -16 c0 6 2 9 6 11 c-1 -8 0 -16 11 -23z" fill="#d88c61" opacity=".95"/> <path d="M50 56 l2.7 5.6 6.2.8 -4.5 4.3 1.1 6.1 -5.5 -2.9 -5.5 2.9 1.1 -6.1 -4.5 -4.3 6.2 -.8z" fill="#d88c61"/></g></symbol>
+<symbol id="cr-BS-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#9478bb" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <circle cx="50" cy="47" r="26" fill="none" stroke="#9478bb" stroke-width="3" opacity=".55"/> <g stroke="#9478bb" stroke-width="3" stroke-linecap="round" opacity=".55"> <path d="M50 15 v9 M50 70 v9 M18 47 h9 M73 47 h9"/> </g> <g fill="#9478bb"> <path d="M40 34 h20 v8 a10 10 0 0 1 -20 0 z"/> <path d="M38 36 a6 6 0 0 1 -6 6 M62 36 a6 6 0 0 0 6 6" stroke="#9478bb" stroke-width="3.4" fill="none" stroke-linecap="round"/> <rect x="47" y="50" width="6" height="7" rx="1"/> <rect x="42" y="57" width="16" height="4.5" rx="2"/> </g></g></symbol>
+<symbol id="cr-CT-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#589f98" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#589f98" stroke-width="5" stroke-linecap="round" fill="none"> <path d="M26 40 C 34 30, 44 30, 50 38 C 56 30, 66 30, 74 40"/> </g> <g stroke="#589f98" stroke-width="3.6" stroke-linecap="round" fill="none"> <path d="M28 60 q6 -6 12 0 t12 0 t12 0 t12 0" opacity=".9"/> <path d="M33 69 q6 -6 12 0 t12 0 t12 0" opacity=".55"/> </g></g></symbol>
+<symbol id="cr-EG-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#cdab63" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <circle cx="50" cy="47" r="24" fill="none" stroke="#cdab63" stroke-width="4" opacity=".85"/> <path d="M55 20 L38 50 h10 L45 74 L64 42 h-11 z" fill="#cdab63"/></g></symbol>
+<symbol id="cr-JS-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#ab8e7b" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#ab8e7b" stroke-width="4.4" stroke-linecap="round"> <path d="M38 78 L46 26 M62 78 L54 26"/> <path d="M40.5 66 h19 M43 52 h16.5 M45.5 38 h13"/> </g> <path d="M50 14 l2.4 5 5.6.7 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.6 -.7z" fill="#ab8e7b"/></g></symbol>
+<symbol id="cr-NG-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#be6ea0" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g fill="#be6ea0"> <path d="M50 30 c9 0 14 6 14 13 c0 8 -6 13 -14 13 c-8 0 -14 -5 -14 -13 c0 -7 5 -13 14 -13z" opacity=".95"/> <path d="M50 24 l3 7 h-6z"/> </g> <g stroke="#be6ea0" stroke-width="2.6" stroke-linecap="round"> <path d="M42 38 v14 M50 36 v18 M58 38 v14"/> </g> <g stroke="#be6ea0" stroke-width="4" stroke-linecap="round" fill="none"> <path d="M50 56 V76 M50 66 C 44 64, 40 60, 39 56 M50 70 C 56 68, 60 64, 61 60"/> </g></g></symbol>
+<symbol id="cr-PJ-l" viewBox="0 0 100 108"><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="#221B2B"/><path d="M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z" fill="none" stroke="#c66370" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#c66370" stroke-width="4.4" stroke-linecap="round" fill="none"> <path d="M50 76 V38"/> <path d="M38 34 v8 a12 12 0 0 0 24 0 v-8"/> <path d="M38 34 l-3 -7 M62 34 l3 -7"/> <path d="M50 38 l-6 -9 M50 38 l6 -9"/> </g> <path d="M44 29 l6 -11 6 11" stroke="#c66370" stroke-width="4.4" stroke-linejoin="round" fill="none"/></g></symbol>
+<symbol id="cr-PN-l" viewBox="0 0 100 108"><path d="M14 8 H86 V60 L50 105 L14 60 Z" fill="#221B2B"/><path d="M14 8 H86 V60 L50 105 L14 60 Z" fill="none" stroke="#6c8eae" stroke-width="3.4" transform="translate(50 54) scale(.88) translate(-50 -54)"/><g transform="translate(0,6)"> <g stroke="#6c8eae" stroke-width="4.6" stroke-linecap="round" fill="none"> <path d="M50 74 L50 46"/> <path d="M50 46 C 42 38, 32 36, 24 40"/> <path d="M50 46 C 44 34, 36 28, 26 28"/> <path d="M50 46 C 50 32, 46 24, 40 20"/> <path d="M50 46 C 56 32, 64 26, 74 26"/> <path d="M50 46 C 58 38, 68 36, 76 41"/> </g> <g stroke="#6c8eae" stroke-width="3" stroke-linecap="round"> <path d="M63 60 v12 M57 66 h12 M58.8 61.8 l8.4 8.4 M67.2 61.8 l-8.4 8.4"/> </g></g></symbol>
+</svg>
+<!-- /article:sprite -->
+<div class="mast"><div class="mk">GW4 · PREVIEW</div>
+<div class="stand">Deadline <b>Saturday 7:30 AM</b>, ninety minutes before five games kick off at once. The window is shut, the waivers have run, and the week ends Monday night at Elland Road. In between is a Manchester derby with <b>17 of the league's 88 starting slots</b> on the pitch.</div></div>
 <div class="wrap">
 
-<h2>Matchweek 4 · Sep 12–14</h2>
+<h2>Matchweek 4 · Sep <span class="nw">12–14</span></h2>
 
 <!-- COLD PALMERS v SOARING GULLS -->
 <div class="card">
- <div class="mhead"><div class="kick">CJ leads series 4–3 · 2–1 v 2–1</div>
+ <div class="mhead"><div class="kick">CJ leads series <span class="nw">4–3</span> · <span class="nw">2–1</span> v <span class="nw">2–1</span></div>
   <div class="srow">
-   <div class="tm"><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
+   <div class="tm"><i class="cr lg" data-team="Cold Palmers"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PN-l"/></svg></i><div class="tn">Cold Palmers</div><div class="mg">Parker</div></div>
    <div><div class="sc pred">44.6<span class="d">–</span>54.7</div><div class="predlab">PREDICTED</div></div>
-   <div class="tm away"><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
+   <div class="tm away"><i class="cr lg" data-team="The Soaring Gulls"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-CT-l"/></svg></i><div class="tn">The Soaring Gulls</div><div class="mg">CJ</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="201658">MT</div>
   <div class="pinfo"><div class="pk">Player to watch</div><div class="pname">MARCUS TAVERNIER <span>· MID · BOU</span></div>
-   <div class="pline">Ten points and a TOTW badge last week, 7.0 projected — against Brentford, whose keeper CJ also owns.</div></div></div>
+   <div class="pline">Ten points and a TOTW badge last week, 7.0 projected, against Brentford, whose keeper CJ also owns.</div></div></div>
  <div class="mbody">
-  <div class="story">No derby name yet, though the naming committee should get to it: CJ leads the all-time series 4–3, both sit at 2–1, and CJ arrives with the second-most points in the league and a one-point escape over PJ. His 54.7 is the week's highest projection and his squad carries no flags at all. Parker's 44.6 is built on Chelsea — Palmer (7.0), Lacroix and Hato all at home to Hull, where CJ's João Pedro (7.0) shares the same attack. The catch: Hull are the only team across the top four tiers yet to concede a league goal.</div>
+  <div class="story">No derby name yet, though the naming committee should get to it: CJ leads the all-time series <span class="nw">4–3</span>, both sit at <span class="nw">2–1</span>, and CJ arrives with the second-most points in the league and a one-point escape over PJ. His 54.7 is the week's highest projection and his squad carries no flags at all. Parker's 44.6 is built on Chelsea: Palmer (7.0), Lacroix and Hato all at home to Hull, where CJ's João Pedro (7.0) shares the same attack. The catch: Hull are the only team across the top four tiers yet to concede a league goal.</div>
   <ul class="hits">
    <li><b>Bournemouth–Brentford is CJ against himself, with Parker in the middle.</b> CJ owns Brentford's keeper Kelleher and Bournemouth's Tavernier; Parker owns two of Kelleher's teammates in Schade (a goal in his last two away games) and Sangaré (6.0). A Brentford goal pays Parker; a Bournemouth goal pays CJ and costs him at the same time.</li>
    <li><b>The centre-forward slot is still a hole.</b> Havertz has started all three league games and Arteta says he "makes the people around him better"; Gyökeres has 12 league minutes, nine touches in 73 at Napoli, and projects 0.3. Parker's only other forward is Georginio, a 75% doubt at Coventry. Saliba is out until November; O'Reilly is fit again but projects 1.3 from the bench.</li>
    <li><b>Monday night is the tiebreaker:</b> Parker's Elanga (6.0) for Newcastle against CJ's Stach (6.3) and Calvert-Lewin for Leeds, with CJ's Thiaw alongside Elanga in the away shirt. Four players from this matchup, last kickoff of the week.</li>
   </ul>
-  <div class="chips"><span class="chip">Predicted <b>44.6 – 54.7</b></span><span class="chip">Flags <b>2 – 0</b></span><span class="chip gold">Week's top projection <b>54.7</b></span></div>
+  <div class="chips"><span class="chip"><span class="ck">Predicted</span> <span class="cv"><b>44.6 – 54.7</b></span></span><span class="chip"><span class="ck">Flags</span> <span class="cv"><b>2 – 0</b></span></span><span class="chip gold"><span class="ck">Week's top projection</span> <span class="cv"><b>54.7</b></span></span></div>
   <div class="notm"><div class="n">0</div><div class="c">League goals conceded by Hull this season. Four Chelsea players from this matchup are trying to change that at 9:00 on Saturday.</div></div>
  </div>
 </div>
 
 <!-- DEVILS U21s v TROPHY HUNTERS -->
 <div class="card">
- <div class="mhead"><div class="kick">Bryant leads series 5–2 · 0–3 v 1–2</div>
+ <div class="mhead"><div class="kick">Bryant leads series <span class="nw">5–2</span> · <span class="nw">0–3</span> v <span class="nw">1–2</span></div>
   <div class="srow">
-   <div class="tm"><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
+   <div class="tm"><i class="cr lg" data-team="Devils U21s"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-PJ-l"/></svg></i><div class="tn">Devils U21s</div><div class="mg">PJ</div></div>
    <div><div class="sc pred">32.3<span class="d">–</span>38.9</div><div class="predlab">PREDICTED</div></div>
-   <div class="tm away"><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
+   <div class="tm away"><i class="cr lg" data-team="Trophy Hunters"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BS-l"/></svg></i><div class="tn">Trophy Hunters</div><div class="mg">Bryant</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="477424">JG</div>
   <div class="pinfo"><div class="pk">Player to watch</div><div class="pname">JOŠKO GVARDIOL <span>· DEF · MCI</span></div>
    <div class="pline">22 points and PJ's top projection at 7.3, in a Manchester derby where Bryant's Martínez is the man trying to keep City out.</div></div></div>
  <div class="mbody">
-  <div class="story">Bryant leads the series 5–2 and the table says this is the bottom of the league playing sixth: PJ is 0–3 after losing to CJ by a single point, Bryant is fresh off a 53 — his best of the season — against Ethan. PJ's 32.3 is the week's lowest projection, and both sides are decided in the same two places. Sunday at Old Trafford, PJ starts three City players — Gvardiol, Donnarumma and Foden — while Bryant's Martínez is in the United back line trying to stop them and Bryant's Semenyo lines up beside them. City have conceded twice in three games; United have conceded two or more in each of their first three for only the second time in 50 years.</div>
+  <div class="story">Bryant leads the series <span class="nw">5–2</span> and the table says this is the bottom of the league playing sixth: PJ is <span class="nw">0–3</span> after losing to CJ by a single point, Bryant is fresh off a 53, his best of the season, against Ethan. PJ's 32.3 is the week's lowest projection, and both sides are decided in the same two places. Sunday at Old Trafford, PJ starts three City players: Gvardiol, Donnarumma and Foden, while Bryant's Martínez is in the United back line trying to stop them and Bryant's Semenyo lines up beside them. City have conceded twice in three games; United have conceded two or more in each of their first three for only the second time in 50 years.</div>
   <ul class="hits">
-   <li><b>Saturday lunchtime is Bryant's game on both benches.</b> Kinsky, Solanke and Tarkowski (7.0, Bryant's best) all play in Spurs–Everton — a Tarkowski clean sheet and a Solanke goal cannot both happen. Spurs have yet to score in three league games. PJ's Grealish is expected to start on Everton's left.</li>
+   <li><b>Saturday lunchtime is Bryant's game on both benches.</b> Kinsky, Solanke and Tarkowski (7.0, Bryant's best) all play in Spurs–Everton: a Tarkowski clean sheet and a Solanke goal cannot both happen. Spurs have yet to score in three league games. PJ's Grealish is expected to start on Everton's left.</li>
    <li><b>PJ has 6.7 sitting on his bench.</b> Ben White is "fine" per Arteta and expected to start at right-back at Sunderland; Hincapie (0.7) is in PJ's projected XI instead. Bryant's Tzolis and Brobbey are on opposite sides of the same game.</li>
-   <li><b>Villa–Forest is PJ's, unless Bryant flips his keeper.</b> Gibbs-White (6.0), Wood and Jackson all play; Suzuki — ten points and a TOTW badge from Bryant's bench last week — would face all three if he replaces Kinsky.</li>
+   <li><b>Villa–Forest is PJ's, unless Bryant flips his keeper.</b> Gibbs-White (6.0), Wood and Jackson all play; Suzuki, ten points and a TOTW badge from Bryant's bench last week, would face all three if he replaces Kinsky.</li>
   </ul>
-  <div class="chips"><span class="chip">Predicted <b>32.3 – 38.9</b></span><span class="chip">Flags <b>0 – 2</b></span><span class="chip gold">Series <b>5–2</b> Bryant</span></div>
+  <div class="chips"><span class="chip"><span class="ck">Predicted</span> <span class="cv"><b>32.3 – 38.9</b></span></span><span class="chip"><span class="ck">Flags</span> <span class="cv"><b>0 – 2</b></span></span><span class="chip gold"><span class="ck">Series</span> <span class="cv"><b><span class="nw">5–2</span></b> Bryant</span></span></div>
   <div class="notm"><div class="n">5</div><div class="c">Manchester-derby shirts in this matchup on Sunday. Three of PJ's in sky blue, and Bryant's Martínez in the defence that has to keep them out.</div></div>
  </div>
 </div>
@@ -152,65 +264,66 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
 <div class="card">
  <div class="mhead"><div class="kick">The Besties Derby · First meeting</div>
   <div class="srow">
-   <div class="tm"><div class="tn">I Am a Baleba</div><div class="mg">Ethan</div></div>
+   <div class="tm"><i class="cr lg" data-team="I Am a Baleba"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-EG-l"/></svg></i><div class="tn">I Am a Baleba</div><div class="mg">Ethan</div></div>
    <div><div class="sc pred">50.4<span class="d">–</span>50.8</div><div class="predlab">PREDICTED</div></div>
-   <div class="tm away"><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
+   <div class="tm away"><i class="cr lg" data-team="Team Jacob"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-JS-l"/></svg></i><div class="tn">Team Jacob</div><div class="mg">Jacob</div></div>
   </div></div>
  <div class="pstrip"><div class="ph low" data-code="243298">CG</div>
   <div class="pinfo"><div class="pk low">The limbo</div><div class="pname">CODY GAKPO <span>· MID · LIV</span></div>
    <div class="pline">The week's highest rostered projection at 9.3, a 75% doubt with an adductor issue. If he misses, Jacob's cover is McBurnie (2.7).</div></div></div>
  <div class="mbody">
-  <div class="story">First meeting, and the closest projection on the board by a distance: four tenths of a point separate the league leader from the team that scored 34 last week. Jacob is 2–1–0 and top; Ethan is 1–2 with the league's lowest points-for. The derby runs through the derby: Ethan owns both sides of Old Trafford — Haaland (8.0, eight goals in seven league games against United), Ndiaye and Cunha, Šeško — and Jacob answers with Mbeumo (7.0) for United and Rúben for City. Cunha and Šeško both scored in United's midweek game, which puts Rashford's place in doubt and Ethan's pair in the frame.</div>
+  <div class="story">First meeting, and the closest projection on the board by a distance: four tenths of a point separate the league leader from the team that scored 34 last week. Jacob is <span class="nw">2–1–0</span> and top; Ethan is <span class="nw">1–2</span> with the league's lowest points-for. The derby runs through the derby: Ethan owns both sides of Old Trafford: Haaland (8.0, eight goals in seven league games against United), Ndiaye and Cunha, Šeško, and Jacob answers with Mbeumo (7.0) for United and Rúben for City. Cunha and Šeško both scored in United's midweek game, which puts Rashford's place in doubt and Ethan's pair in the frame.</div>
   <ul class="hits">
    <li><b>Gakpo is the whole margin.</b> Jacob's leading scorer (28 points, a goal involvement in every league game) missed the Atlético game; Iraola, pre-Fulham: "He didn't train yesterday. Today, we will try with him." Without him the 50.8 becomes 44.2. Ethan's Szoboszlai, Barcola (cramp, not injury) and Fulham's Gonzalo are in the same fixture.</li>
    <li><b>Jacob owns Saturday night at the Stadium of Light outright:</b> Roefs and Ballard in Sunderland's defence, Saka (7.3) and Havertz (5.3) attacking them. He cannot lose the fixture; he cannot fully win it either.</li>
-   <li><b>Jacob's waiver week was a clear-out</b> — Osula (foot), Collins (25% doubt) and Richarlison (not in the Spurs squad) out; Mitchell (5.3, straight into the XI), Kostoulas and McBurnie in. Kostoulas is expected to lead Brighton's line at Coventry beside Ethan's De Cuyper (7.0). And Ethan's week cannot end before Monday: the app has Trafford, not Pickford, in his goal, and Trafford plays Newcastle in the last game of the round.</li>
+   <li><b>Jacob's waiver week was a clear-out</b>: Osula (foot), Collins (25% doubt) and Richarlison (not in the Spurs squad) out; Mitchell (5.3, straight into the XI), Kostoulas and McBurnie in. Kostoulas is expected to lead Brighton's line at Coventry beside Ethan's De Cuyper (7.0). And Ethan's week cannot end before Monday: the app has Trafford, not Pickford, in his goal, and Trafford plays Newcastle in the last game of the round.</li>
   </ul>
-  <div class="chips"><span class="chip">Predicted <b>50.4 – 50.8</b></span><span class="chip">Flags <b>0 – 3</b></span><span class="chip gold">Week's closest <b>0.4</b></span></div>
+  <div class="chips"><span class="chip"><span class="ck">Predicted</span> <span class="cv"><b>50.4 – 50.8</b></span></span><span class="chip"><span class="ck">Flags</span> <span class="cv"><b>0 – 3</b></span></span><span class="chip gold"><span class="ck">Week's closest</span> <span class="cv"><b>0.4</b></span></span></div>
   <div class="notm"><div class="n">9.3</div><div class="c">Gakpo's projection, the week's highest, attached to a player whose manager said he "didn't train yesterday" at the pre-Fulham press conference.</div></div>
  </div>
 </div>
 
 <!-- KOBBIE MAINOO FAN v IN IT TO McGINN IT -->
 <div class="card">
- <div class="mhead"><div class="kick">First meeting · 1–1–1 v 2–1</div>
+ <div class="mhead"><div class="kick">First meeting · <span class="nw">1–1–1</span> v <span class="nw">2–1</span></div>
   <div class="srow">
-   <div class="tm"><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
+   <div class="tm"><i class="cr lg" data-team="Kobbie Mainoo Fan"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-BK-l"/></svg></i><div class="tn">Kobbie Mainoo Fan</div><div class="mg">Baha</div></div>
    <div><div class="sc pred">52.0<span class="d">–</span>38.6</div><div class="predlab">PREDICTED</div></div>
-   <div class="tm away"><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
+   <div class="tm away"><i class="cr lg" data-team="In It to McGinn It"><svg viewBox="0 0 100 108" aria-hidden="true" focusable="false"><use href="#cr-NG-l"/></svg></i><div class="tn">In It to McGinn It</div><div class="mg">Nate</div></div>
   </div></div>
  <div class="pstrip"><div class="ph" data-code="219168">AI</div>
   <div class="pinfo"><div class="pk">Player to watch</div><div class="pname">ALEXANDER ISAK <span>· FWD · LIV</span></div>
-   <div class="pline">13 points and a TOTW badge last week, 7.7 projected against Fulham — with Nate's Alisson and Kerkez behind him needing the clean sheet.</div></div></div>
+   <div class="pline">13 points and a TOTW badge last week, 7.7 projected against Fulham, with Nate's Alisson and Kerkez behind him needing the clean sheet.</div></div></div>
  <div class="mbody">
-  <div class="story">First meeting. Baha has the most points in the league (153) and a 1–1–1 record after the season's first draw, 51–51 with Jacob; Nate is 2–1 after beating Parker with 36. The 13.4-point gap is mostly Sunday: Nate's Bruno Fernandes (9.0, three goals and an assist already) and Cherki (8.3, two and two) project 17.3 between them at Old Trafford, on opposite sides of it — while Baha's Lammens is the keeper Cherki is shooting at and Baha's Enzo shares City's midfield with him. Everything else on the board tilts to Baha.</div>
+  <div class="story">First meeting. Baha has the most points in the league (153) and a <span class="nw">1–1–1</span> record after the season's first draw, <span class="nw">51–51</span> with Jacob; Nate is <span class="nw">2–1</span> after beating Parker with 36. The 13.4-point gap is mostly Sunday: Nate's Bruno Fernandes (9.0, three goals and an assist already) and Cherki (8.3, two and two) project 17.3 between them at Old Trafford, on opposite sides of it, while Baha's Lammens is the keeper Cherki is shooting at and Baha's Enzo shares City's midfield with him. Everything else on the board tilts to Baha.</div>
   <ul class="hits">
    <li><b>Anfield is a same-shirt collision:</b> Baha's Isak and Wirtz against Nate's Alisson and Kerkez. Nate needs the clean sheet from the game Baha needs the goals in. Alisson is cleared to play despite an FA misconduct fine; Nate's Frimpong may get minutes at right wing.</li>
    <li><b>Nate has three Tottenham players and Spurs have not scored in three league games.</b> Porro, Kudus (still building minutes after months out) and Marmoush (at risk of the bench after wasted chances against Forest) project 4.7 combined against Everton; Baha's Barry starts as Everton's only senior striker. Maddison (shoulder, "a sizeable doubt") sits on Baha's bench at 0.2.</li>
-   <li><b>Saturday 2:00 and Monday 2:00 are Baha's:</b> Ødegaard (8.0, TOTW) and Calafiori (7.3) at Sunderland with no reply from Nate; then Hall (6.0) and Wissa at Leeds, where Nate's Dedić — a 75% hamstring doubt still expected to start — is their teammate. Timber (25%) is back in training and Mosquera (50%) could return "this game or the next", per Arteta.</li>
+   <li><b>Saturday 2:00 and Monday 2:00 are Baha's:</b> Ødegaard (8.0, TOTW) and Calafiori (7.3) at Sunderland with no reply from Nate; then Hall (6.0) and Wissa at Leeds, where Nate's Dedić, a 75% hamstring doubt still expected to start, is their teammate. Timber (25%) is back in training and Mosquera (50%) could return "this game or the next", per Arteta.</li>
   </ul>
-  <div class="chips"><span class="chip">Predicted <b>52.0 – 38.6</b></span><span class="chip">Flags <b>2 – 2</b></span><span class="chip gold">Most points in the league <b>153</b></span></div>
+  <div class="chips"><span class="chip"><span class="ck">Predicted</span> <span class="cv"><b>52.0 – 38.6</b></span></span><span class="chip"><span class="ck">Flags</span> <span class="cv"><b>2 – 2</b></span></span><span class="chip gold"><span class="ck">Most points in the league</span> <span class="cv"><b>153</b></span></span></div>
   <div class="notm"><div class="n">17.3</div><div class="c">Bruno and Cherki's combined projection, 45% of Nate's total, against 3.0 for Baha's two players in the same game.</div></div>
  </div>
 </div>
 
 <!-- AROUND THE LEAGUE -->
 <h2>Around the League</h2>
-<div class="card"><div class="mbody" style="padding-top:13px">
- <ul class="hits" style="margin-top:0">
-  <li><b>The slate:</b> Sat — five games at 9:00am (Villa v Forest, Bournemouth v Brentford, Chelsea v Hull, Palace v Ipswich, Liverpool v Fulham), Spurs v Everton (11:30), Sunderland v Arsenal (2:00pm, 14 starters from this league). Sun — Coventry v Brighton (8:00am), United v City (10:30am, 17 starters). Mon — Leeds v Newcastle (2:00pm, eight).</li>
-  <li><b>Waiver wire:</b> five moves since the last deadline — CJ's two on Saturday (Egan, Muharemović in; Senesi, Keane out) and Jacob's three on Wednesday. FPL's projections are in love with Hull's unbeaten back line: Tzolakis (8.7), Ajayi (8.3) and Mendy (8.0) are all unowned and all at Stamford Bridge on Saturday. Janelt (7.0), Bogle (7.3), Xhaka and Lewis-Potter (6.0) are also free.</li>
-  <li><b>Injury clock:</b> Saliba (Parker) back around 21 Nov, Kroupi (Bryant) 7 Nov, Mateta (Bryant) 11 Oct, Doku (Jacob) 20 Sep. Pope (Jacob) is a different case — no injury, just a £26m Horníček signing, a green-lit exit and no buyer; he projects zero again and Roefs covers.</li>
-  <li><b>MOTM (Aug/Sep, $30):</b> Kobbie Mainoo Fan 153, Team Jacob 145, Gulls 144, Trophy Hunters 120, McGinn It 118, Devils 116, Cold Palmers 112, Baleba 111 — two gameweeks left in the period, nine points covering the top three.</li>
+<div class="card"><div class="mbody">
+ <ul class="hits">
+  <li><b>The slate:</b> Sat: five games at 9:00am (Villa v Forest, Bournemouth v Brentford, Chelsea v Hull, Palace v Ipswich, Liverpool v Fulham), Spurs v Everton (11:30), Sunderland v Arsenal (2:00pm, 14 starters from this league). Sun: Coventry v Brighton (8:00am), United v City (10:30am, 17 starters). Mon: Leeds v Newcastle (2:00pm, eight).</li>
+  <li><b>Waiver wire:</b> five moves since the last deadline: CJ's two on Saturday (Egan, Muharemović in; Senesi, Keane out) and Jacob's three on Wednesday. FPL's projections are in love with Hull's unbeaten back line: Tzolakis (8.7), Ajayi (8.3) and Mendy (8.0) are all unowned and all at Stamford Bridge on Saturday. Janelt (7.0), Bogle (7.3), Xhaka and Lewis-Potter (6.0) are also free.</li>
+  <li><b>Injury clock:</b> Saliba (Parker) back around 21 Nov, Kroupi (Bryant) 7 Nov, Mateta (Bryant) 11 Oct, Doku (Jacob) 20 Sep. Pope (Jacob) is a different case: no injury, just a £26m Horníček signing, a green-lit exit and no buyer; he projects zero again and Roefs covers.</li>
+  <li><b>MOTM (Aug/Sep, $30):</b> Kobbie Mainoo Fan 153, Team Jacob 145, Gulls 144, Trophy Hunters 120, McGinn It 118, Devils 116, Cold Palmers 112, Baleba 111, two gameweeks left in the period, nine points covering the top three.</li>
  </ul>
 </div></div>
 
-<div class="foot">Predicted scores are FPL's frozen pre-deadline projections summed over each XI, with flagged starters replaced by their likely subs — the same numbers the app shows; flags can change at Saturday's team sheets. Reporting: Sports Mole, Fantasy Football Scout, Goal, Yahoo/PA, Liverpool FC, Arsenal.com, Shields Gazette.</div>
+<div class="foot">Predicted scores are FPL's frozen pre-deadline projections summed over each XI, with flagged starters replaced by their likely subs, the same numbers the app shows; flags can change at Saturday's team sheets. Reporting: Sports Mole, Fantasy Football Scout, Goal, Yahoo/PA, Liverpool FC, Arsenal.com, Shields Gazette.</div>
 </div>
 
+<!-- article:script -->
 <script>
-/* Headshots: codes fixed at publish time (name lookup burned us — two Palmers in the Players
-   tab). Same cascade as the app: committed face -> PL 250x250 -> PL 110x140 -> initials stay. */
+/* Headshots: codes are fixed at publish time (a name lookup once picked the wrong one of two Palmers in the Players
+   tab). Same cascade as the app: committed face, then PL 250x250, then PL 110x140, else the initials stay. */
 (function(){
   document.querySelectorAll('.ph[data-code]').forEach(function(el){
     var code=el.getAttribute('data-code');
@@ -218,11 +331,13 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
       'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png',
       'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+code+'.png'];
     var i=0,img=new Image();
+    img.alt='';
     img.onload=function(){el.textContent='';el.appendChild(img)};
     img.onerror=function(){if(++i<srcs.length)img.src=srcs[i]};
     img.src=srcs[0];
   });
 })();
 </script>
+<!-- /article:script -->
 </body>
 </html>
