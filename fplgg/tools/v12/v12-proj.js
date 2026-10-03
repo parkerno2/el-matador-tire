@@ -185,11 +185,12 @@ function hpSd(mu){return mu<=0?0:Math.min(3.8,1.41+.49*mu)*Math.min(1,mu/.6)} /*
 
 /* ---- wire it in: every PROJ in the app now reads the house model ---- */
 const __epOfFpl=epOf;
-function fplEpOf(code){return __epOfFpl(code)}
+/* FPL's own forecast for this gameweek; null when the Predictions block standing in is another gameweek's (BUGS #6) */
+function fplEpOf(code){return D.predGw!==undefined&&D.predGw!==D.gw?null:__epOfFpl(code)}
 epOf=function(code){
-  if(!D||!D.gwsByGw)return __epOfFpl(code);
+  if(!D||!D.gwsByGw)return fplEpOf(code);
   const p=(D.ro||[]).find(r=>String(r.Code)===String(code))||(D.plr||[]).find(r=>String(r.Code)===String(code));
-  if(!p)return __epOfFpl(code);
+  if(!p)return fplEpOf(code);
   return Math.round(hpPlayer(p,D.gw).pts*10)/10;
 };
 projOf=function(p){ /* one player's contribution to proj final */
@@ -219,7 +220,15 @@ function hpWin(f){
 }
 
 /* ---- title / relegation odds: simulate every remaining gameweek from the actual rosters and schedule ---- */
-simulate=function(){
+/* this gameweek's projection split into points already banked (certain) and the projection still to come;
+   banked + rem = teamProj(team), pre = the same XI's projection before anyone kicked off */
+function hpLiveSplit(team){let banked=0,rem=0,pre=0,started=0;
+  effXiOf(team,true).forEach(p=>{const e=epOf(p.Code)||0;pre+=e;
+    if(fxStarted(p.Club)){const L=hpLive(p);banked+=L.pts-L.rem;rem+=L.rem;started++;}
+    else rem+=e;});
+  return {banked,rem,pre,started};}
+/* the table so far + each team's score distribution for every remaining fixture */
+function hpSimModel(){
   const names=Object.keys(TEAMS);
   const pts={},pf={};names.forEach(n=>{pts[n]=0;pf[n]=0});
   const remain=[];
@@ -233,15 +242,31 @@ simulate=function(){
   const lgAvg=(()=>{const a=[].concat(...Object.values(obs));return a.length?a.reduce((x,y)=>x+y,0)/a.length:40})();
   const M={};
   remain.forEach(f=>{const g=num(f.GW);[f.Home,f.Away].forEach(t=>{const k=t+'|'+g;if(M[k]||!TEAMS[t])return;
-    const proj=g===D.gw?teamProj(t):hpTeam(t,g);const o=obs[t]||[],om=o.length?o.reduce((x,y)=>x+y,0)/o.length:lgAvg;
-    const w=o.length/(o.length+6);
-    const mean=.7*proj+.3*(w*om+(1-w)*lgAvg);
-    M[k]={mean,sd:Math.max(9,hpTeamSd(t,g))};});});
+    const o=obs[t]||[],om=o.length?o.reduce((x,y)=>x+y,0)/o.length:lgAvg;
+    const w=o.length/(o.length+6),rate=w*om+(1-w)*lgAvg;
+    if(g===D.gw){
+      /* the live gameweek (#24): points already scored are certain, so they enter at full weight; only the projection
+         still to come is shrunk, toward the share of a week's scoring rate it stands for. Before kickoff this is the
+         formula below exactly; once every match is over the mean is the banked score. hpTeamSd already counts only
+         what is left, and the 9-point floor shrinks with it so it cannot re-open a decided week. */
+      const S=hpLiveSplit(t),left=S.pre>0?Math.max(0,Math.min(1,S.rem/S.pre)):(S.started?0:1);
+      M[k]={mean:S.banked+.7*S.rem+.3*rate*left,sd:Math.max(9*left,hpTeamSd(t,g)),banked:S.banked,rem:S.rem,left};
+    }else M[k]={mean:.7*hpTeam(t,g)+.3*rate,sd:Math.max(9,hpTeamSd(t,g))};});});
+  return {names,pts,pf,remain,M};
+}
+/* seeded draw (TP-14): the same sheet data always gives the same odds instead of jittering 1-2 points per reload.
+   Seed = FNV-1a of the gameweek and every H2H fixture's scores and state; mulberry32 stream; Box-Muller normals. */
+function hpSeed(){const s=D.gw+'#'+(D.fx||[]).map(f=>[num(f.GW),f.Home,f.Away,num(f['Home pts']),num(f['Away pts']),fin(f.Finished)?1:0].join('|')).join(';');
+  let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function hpRng(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+function hpGauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+simulate=function(){
+  const {names,pts,pf,remain,M}=hpSimModel(),rnd=hpRng(hpSeed());
   const N=5000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
   for(let s=0;s<N;s++){
     const p={...pts},q={...pf};
     for(const f of remain){const h=f.Home,a=f.Away,mh=M[h+'|'+num(f.GW)],ma=M[a+'|'+num(f.GW)];if(!mh||!ma)continue;
-      const hs=Math.max(0,Math.round(mh.mean+mh.sd*gauss())),as_=Math.max(0,Math.round(ma.mean+ma.sd*gauss()));
+      const hs=Math.max(0,Math.round(mh.mean+mh.sd*hpGauss(rnd))),as_=Math.max(0,Math.round(ma.mean+ma.sd*hpGauss(rnd)));
       q[h]+=hs;q[a]+=as_;if(hs>as_)p[h]+=3;else if(as_>hs)p[a]+=3;else{p[h]++;p[a]++;}}
     const order=names.slice().sort((x,y)=>(p[y]-p[x])||(q[y]-q[x]));
     title[order[0]]++;last[order[order.length-1]]++;

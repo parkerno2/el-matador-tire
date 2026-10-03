@@ -4,7 +4,7 @@
    rebuilt around a next-match card and one schedule. Plate cards, pitch and the Matchweek wordmark are untouched.
    Every top-level name is inside the IIFE; the only globals replaced are crestSVG, bugHTML and the render wrappers. */
 (function(){
-const lkPc=x=>Math.round(x*100)+'%';
+const lkPc=x=>Math.round(x*100)+'%'; /* unused since 3 Oct: win chances go through lkWin (one rounding everywhere) */
 const lk1=v=>(Math.round(v*10)/10).toFixed(1);
 const lkMix=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(a),y=p(b);return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*t).toString(16).padStart(2,'0')).join('')};
 
@@ -51,8 +51,11 @@ const lkForm=t=>'<span class="lkf">'+[...formOf(t)].filter(x=>x!=='-').map(x=>'<
 const lkOrd=t=>{const r=(D.st||[]).slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For']));const i=r.findIndex(x=>x.Team===t);return i<0?'':ORD(i+1)};
 const lkMgr=t=>(PROFILE[t]||{}).manager||(TEAMS[t]||{}).mgr||'';
 const lkDay=d=>d?d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}):'';
-const lkWinBar=(f,w)=>{const col=t=>(TEAMS[t]||{}).col||'#7C7488';
-  return '<div class="lkwp"><span class="lkn">'+lkPc(w.h)+'</span><div class="lkbar"><i style="width:'+(w.h*100)+'%;background:'+col(f.Home)+'"></i><i style="width:'+(w.d*100)+'%;background:#DDD7E5"></i><i style="width:'+(w.a*100)+'%;background:'+col(f.Away)+'"></i></div><span class="lkn">'+lkPc(w.a)+'</span></div>';};
+/* win chance: one rounding for every screen (v12-match's largest remainder, so home + draw + away = 100 and the list,
+   the matchup page and the team page all show the same number) */
+const lkWin=w=>typeof mpxWinPct==='function'?mpxWinPct(w):{h:Math.round(w.h*100),d:Math.round(w.d*100),a:Math.round(w.a*100)};
+const lkWinBar=(f,w)=>{const col=t=>(TEAMS[t]||{}).col||'#7C7488';const pc=lkWin(w);
+  return '<div class="lkwp"><span class="lkn">'+pc.h+'%</span><div class="lkbar"><i style="width:'+(w.h*100)+'%;background:'+col(f.Home)+'"></i><i style="width:'+(w.d*100)+'%;background:#DDD7E5"></i><i style="width:'+(w.a*100)+'%;background:'+col(f.Away)+'"></i></div><span class="lkn">'+pc.a+'%</span></div>';};
 function lkGoMatch(i){const go=()=>{location.hash='gw/'+i;window.scrollTo(0,0)};if(sheet.classList.contains('on')&&typeof fbxCloseAll==='function')fbxCloseAll(go);else go();}
 
 /* ---------- Matchday: your match + the league list ---------- */
@@ -61,12 +64,12 @@ bugHTML=function(f,i,o){o=o||{};const S=lkState(f),nm=derbyName(f.Home,f.Away),s
   const w=S.st==='pred'&&typeof hpWin==='function'?hpWin(f):null;const bar=w?lkWinBar(f,w):'';
   if(o.you){const fact=typeof factFor==='function'?factFor(f):'';
     const tr=(t,v,v2)=>'<div class="lktr'+lo(v,v2)+'">'+crestOf(t,40)+'<div class="lknm"><b>'+esc(t)+'</b><span>'+esc(FIRSTOF(t))+' · '+lkRec(t)+lkForm(t)+'</span></div><div class="lkbig lkn">'+v+'</div></div>';
-    return '<div class="mcard lkD" data-mi="'+i+'"><div class="lkhd">'+esc(nm||'Your match')+'<span class="lkst'+(S.st==='live'?' lklive':'')+'">'+esc(S.cap)+'</span></div>'
+    return '<div class="mcard lkD" data-mi="'+i+'" role="button" tabindex="0"><div class="lkhd">'+esc(nm||'Your match')+'<span class="lkst'+(S.st==='live'?' lklive':'')+'">'+esc(S.cap)+'</span></div>'
      +tr(f.Home,S.l,S.r)+tr(f.Away,S.r,S.l)
      +bar+'<div class="lkwpl"><span>'+(w?'Chance to win':esc(S.sub||''))+'</span><span>'+esc(sr)+'</span></div>'
      +(fact?'<div class="lkfact">'+esc(fact)+'</div>':'')+'</div>';}
   const t=(x,r)=>'<div class="lkt'+(r?' lkr':'')+'">'+crestOf(x,26)+'<b>'+esc(SHORTOF[x]||x)+'</b></div>';
-  return '<div class="mcard lkDrow" data-mi="'+i+'">'+(nm?'<div class="lkdn">'+esc(nm)+'</div>':'')
+  return '<div class="mcard lkDrow" data-mi="'+i+'" role="button" tabindex="0">'+(nm?'<div class="lkdn">'+esc(nm)+'</div>':'')
    +'<div class="lkln">'+t(f.Home)+'<div class="lks lkn"><span class="'+lo(S.l,S.r).trim()+'">'+S.l+'</span><i>–</i><span class="'+lo(S.r,S.l).trim()+'">'+S.r+'</span></div>'+t(f.Away,1)+'</div>'
    +bar+'<div class="lksub"><span>'+esc(sr)+'</span><span>'+esc(w?'':(S.sub||''))+'</span></div></div>';};
 
@@ -87,7 +90,7 @@ function lkBooth(body){
   if(sc)sc.remove();
   const prog=body.querySelector('.program');if(prog){const h=prog.previousElementSibling;if(h&&h.tagName==='H2')h.remove();prog.remove();}
   const aa=body.querySelector('#allart');if(aa)(aa.closest('h2')||aa).remove();
-  const html='<h2 class="v10">Previews and recaps<span class="lnk" id="allart">All articles</span></h2><div class="lkBooth'+(fresh?' lklead':'')+'">'+items.slice(0,3).map(x=>x.h).join('')+'</div>';
+  const html='<h2 class="v10">Previews and recaps<button type="button" class="lnk" id="allart">All articles</button></h2><div class="lkBooth'+(fresh?' lklead':'')+'">'+items.slice(0,3).map(x=>x.h).join('')+'</div>';
   const hero=body.querySelector('.lkD'),rows=body.querySelector('.lkDrow');
   const anchor=fresh&&hero?hero.closest('.stack'):(rows?rows.closest('.stack'):null);
   if(anchor)anchor.insertAdjacentHTML('afterend',html);
@@ -132,9 +135,9 @@ function lkNextHTML(team){
   const f=cur||(typeof nextFixtureOf==='function'?nextFixtureOf(team):null);if(!f)return '';
   const g=num(f.GW),home=f.Home===team,opp=home?f.Away:f.Home,nm=derbyName(f.Home,f.Away);
   const S=g===D.gw?lkState(f):{st:'pred'};const w=S.st==='pred'&&typeof hpWin==='function'?hpWin(f):null;
-  const mine=w?(home?w.h:w.a):null;
+  const mine=w?(home?lkWin(w).h:lkWin(w).a):null;
   const me=g===D.gw?(home?S.l:S.r):lk1(hpTeam(team,g)),them=g===D.gw?(home?S.r:S.l):lk1(hpTeam(opp,g));
-  const right=S.st==='pred'?'<div class="lkp"><div class="lkn">'+(mine!=null?lkPc(mine):'')+'</div><span>to win · '+me+' to '+them+'</span></div>'
+  const right=S.st==='pred'?'<div class="lkp"><div class="lkn">'+(mine!=null?mine+'%':'')+'</div><span>to win · '+me+' to '+them+'</span></div>'
     :'<div class="lkp"><div class="lkn">'+me+'–'+them+'</div><span>'+esc(S.cap)+'</span></div>';
   return '<div class="lkNext" data-lknext="'+g+'|'+esc(f.Home)+'|'+esc(f.Away)+'"><div class="lkk">'+(g===D.gw&&S.st!=='pred'?'This week':'Next')+' · Gameweek '+g+(gwDeadline(g)?' · '+lkDay(gwDeadline(g)):'')+(nm?' · '+esc(nm):'')+'</div>'
    +'<div class="lkl">'+crestOf(opp,32)+'<div><b>'+(home?'vs ':'at ')+esc(opp)+'</b><span>'+esc(FIRSTOF(opp))+' · '+lkOrd(opp)+' · '+lkRec(opp)+'</span></div>'+right+'</div></div>';
@@ -147,9 +150,10 @@ function lkSchedHTML(team){
     if(past){const s=mscore(f),me=home?s.hs:s.as2,th=home?s.as2:s.hs,r=me>th?'W':me<th?'L':'D';
       right='<div class="lksc"><u class="lkres'+r+'">'+r+'</u><span class="lkn">'+me+'–'+th+'</span></div>';sub=nm||FIRSTOF(opp);}
     else{const w=typeof hpWin==='function'?hpWin(f):null;
-      right='<div class="lkwhen"><span class="lkn">'+(w?lkPc(home?w.h:w.a):'')+'</span><br>to win</div>';
+      right='<div class="lkwhen"><span class="lkn">'+(w?(home?lkWin(w).h:lkWin(w).a)+'%':'')+'</span><br>to win</div>';
       sub=lkDay(gwDeadline(g))+(nm?' · '+nm:'');}
-    return '<div class="lkr'+(past?'':' lkfut')+'" data-lks="'+(past?'p':'f')+'|'+g+'|'+i+'"><span class="lkg">GW'+g+'</span>'+crestOf(opp,24)+'<div class="lko"><b>'+(home?'vs ':'at ')+esc(opp)+'</b><span>'+esc(sub)+'</span></div>'+right+'</div>';};
+    /* full name, with the short name for narrow phones (CSS swaps them under 360px) */
+    return '<div class="lkr'+(past?'':' lkfut')+'" data-lks="'+(past?'p':'f')+'|'+g+'|'+i+'"><span class="lkg">GW'+g+'</span>'+crestOf(opp,24)+'<div class="lko"><b>'+(home?'vs ':'at ')+'<span class="lkfull">'+esc(opp)+'</span><span class="lkshort">'+esc(SHORTOF[opp]||opp)+'</span></b><span>'+esc(sub)+'</span></div>'+right+'</div>';};
   return '<h2 class="v10">Schedule<span class="lnk lkq">'+played.length+' played</span></h2><div class="lkSched">'+played.map(f=>row(f,1)).join('')+next.map(f=>row(f,0)).join('')+'</div>';
 }
 function lkTeam(root,team,page){
@@ -157,7 +161,7 @@ function lkTeam(root,team,page){
   const hd=page?root.querySelector('.myhead'):root.querySelector('.sh-x+div');if(!hd)return;
   const cr=hd.querySelector('.cr');const act=hd.querySelector('.profrow');
   const th=document.createElement('div');th.className='lkTH';
-  th.innerHTML='<span class="lkcr">'+(cr&&cr.querySelector('img')?cr.innerHTML:crestOf(team,56))+'</span><div><b>'+esc(team)+'</b><span class="lkm">'+esc(lkMgr(team))+' · <strong>'+lkOrd(team)+'</strong> · '+lkRec(team)+'</span><div class="lkfm">'+lkForm(team)+'</div></div><div class="lkact"></div>';
+  th.innerHTML='<span class="lkcr">'+(cr&&cr.querySelector('img')?cr.innerHTML:crestOf(team,56))+'</span><div><b>'+esc(team)+'</b><span class="lkm">'+esc(lkMgr(team))+' · <strong>'+lkOrd(team)+'</strong> · <span class="lknw">'+lkRec(team)+'</span></span><div class="lkfm">'+lkForm(team)+'</div></div><div class="lkact"></div>';
   if(act)th.querySelector('.lkact').appendChild(act);else th.querySelector('.lkact').remove();
   const img=th.querySelector('.lkcr img');if(img){img.className='lkav';img.removeAttribute('style');}
   hd.replaceWith(th);
@@ -213,25 +217,51 @@ function lkFixTx(){(D.tx||[]).forEach(t=>{if(!t||t.__lk)return;let r=String(t.Re
   if(/^[a-z]{1,3}$/.test(r))r='Denied';t.Result=r.replace(/\s*[—–]\s*/g,', ');t.__lk=1;});}
 
 /* ---------- player sheet: the card stays in view on the two-column (desktop) sheet; the projection is said once ---------- */
-function lkSheetFix(){const L=sheet.querySelector('.sh-left');
+function lkSheetFix(p){const L=sheet.querySelector('.sh-left');
+  sheet.querySelectorAll('.sh-left .fc img').forEach(i=>{i.decoding='sync';i.removeAttribute('loading');});
   if(L&&!L.querySelector(':scope > .lkstick')){const w=document.createElement('div');w.className='lkstick';while(L.firstChild)w.appendChild(L.firstChild);L.appendChild(w);}
-  const fx=sheet.querySelector('.fxst');if(fx&&/^Projected/.test(fx.textContent.trim())&&sheet.querySelector('.psx'))fx.remove();}
+  const fx=sheet.querySelector('.fxst');if(fx&&/^Projected/.test(fx.textContent.trim())&&sheet.querySelector('.psx'))fx.remove();
+  /* one average: points per game played, the same label and number as the Players list ("8.3 per game").
+     The owned strip divided by the gameweek count and said AVG; the free-agent row said "Average per GW". */
+  if(p&&p.Code!==undefined){const avg=plrAvg(p).toFixed(1);
+    sheet.querySelectorAll('.sh-right .srow').forEach(r=>{const k=r.firstElementChild,v=r.lastElementChild;
+      if(k&&v&&k!==v&&/^Average/.test(k.textContent.trim())){k.textContent='Per game';v.textContent=avg;}});
+    const tile=[...sheet.querySelectorAll('.sh-left .statgrid.lg .sg')].find(s=>s.firstChild&&s.firstChild.nodeType===3&&s.firstChild.textContent.trim()==='AVG');
+    if(tile){const pool=D.ro.filter(r=>r.Pos===p.Pos).map(r=>plrAvg(r));const pc=typeof pctRank==='function'?pctRank(plrAvg(p),pool):null;
+      tile.firstChild.textContent='PER GAME';const b=tile.querySelector('b');if(b)b.textContent=avg;
+      if(pc!==null){const bar=tile.querySelector('.bar i');if(bar)bar.style.width=Math.max(2,pc)+'%';const e=tile.querySelector('.pc');if(e)e.textContent=ORD(pc)+' pct';}}}}
+/* the page behind an open sheet stays put: html/body stop scrolling while the sheet shows (any opener, any closer:
+   the class on #sheet is the one signal they all share); the sheet keeps its own scroll, the overlay swallows touches */
+(function(){if(typeof MutationObserver==='undefined'||typeof sheet==='undefined')return;
+  const sync=()=>document.documentElement.classList.toggle('lk-lock',sheet.classList.contains('on'));
+  new MutationObserver(sync).observe(sheet,{attributes:true,attributeFilter:['class']});sync();})();
 
 /* ---------- Lab: sentence-case scope tabs, short names in the luck index ---------- */
 function lkLab(){const v=document.getElementById('v-ana');if(!v)return;
   v.querySelectorAll('.labseg button').forEach(b=>{const t=b.textContent.trim();if(t==='MANAGERS')b.textContent='Managers';if(t==='LEAGUE')b.textContent='League';});
   v.querySelectorAll('.lucks .lrow2[data-prof]').forEach(r=>{const m=r.querySelector('.lmid');const t=r.dataset.prof;if(m&&SHORTOF[t])m.textContent=SHORTOF[t];});}
 
-/* ---------- sign-in wording: a claimed team is signed into, not claimed ---------- */
+/* ---------- sign-in wording: a claimed team is signed into, not claimed ----------
+   One answer to "is this team claimed?" for the header button AND the sheet (openClaim's mode() asks authIsClaimed):
+   the server's list once the status call has returned, a saved profile until then (a profile only exists after a claim). */
+authIsClaimed=function(team){const cl=typeof authClaimedList==='function'?authClaimedList():null;
+  return cl?cl.indexOf(team)>-1:!!(team&&PROFILE[team]);};
 profileButtonHTML=function(){const mine=myTeam();
   if(mine&&AUTH.team()===mine)return '<button class="watch" data-claim="1">Edit team</button>';
-  const cl=typeof authClaimedList==='function'?authClaimedList():null;
-  const claimed=mine&&((cl&&cl.indexOf(mine)>-1)||!!PROFILE[mine]);
-  return '<button class="watch" data-claim="1">'+(claimed?'Sign in':'Claim your team')+'</button>';};
+  return '<button class="watch" data-claim="1">'+(mine&&authIsClaimed(mine)?'Sign in':'Claim your team')+'</button>';};
 
 /* ---------- fixture difficulty: same five steps, no neon ---------- */
 Object.assign(FDRCOL,{1:'#CFEBDA',2:'#CFEBDA',3:'#EEEBF2',4:'#F4CACD',5:'#B3303A'});
 Object.assign(FDRTXT,{1:'#14532D',2:'#14532D',3:'#3B3346',4:'#7A1A20',5:'#FFFFFF'});
+
+/* ---------- keyboard: a focused matchup card (Matchday list, your match, derby card) opens on Enter or Space ---------- */
+(function(){const body=document.getElementById('gwbody');if(!body||body.__lkKey)return;body.__lkKey=1;
+  body.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const c=e.target.closest('[data-mi][tabindex]');
+    if(!c||e.target.closest('a,button,input'))return;e.preventDefault();location.hash='gw/'+c.dataset.mi;});})();
+/* ---------- header: the account icon is a real button (was a 28px span with an onclick: not focusable, under 40px) ---------- */
+(function(){const s=document.getElementById('hav');if(!s||s.tagName==='BUTTON')return;
+  const b=document.createElement('button');b.type='button';b.className='hav';b.id='hav';b.title='My team';b.setAttribute('aria-label','My team');
+  b.innerHTML=s.innerHTML;s.replaceWith(b);b.onclick=()=>{location.hash='team'};})();
 
 /* ---------- wire it in (outermost wrappers) ---------- */
 const lk_uh=updateHeader;updateHeader=function(){const r=lk_uh.apply(this,arguments);const i=document.querySelector('#hav img');if(i)i.style.boxShadow='0 0 0 2px #CDBDF0';return r;};
@@ -239,10 +269,11 @@ const lk_rg=renderGW;renderGW=function(){const r=lk_rg.apply(this,arguments);try
 const lk_rm=renderMatch;renderMatch=function(f,dl){const r=lk_rm.apply(this,arguments);try{lkMatchHead(f,dl)}catch(e){console.error(e)}return r;};
 const lk_rt=renderTeam;renderTeam=function(){lkFixTx();const r=lk_rt.apply(this,arguments);try{lkTeam(document.getElementById('teampage'),myTeam(),1)}catch(e){console.error(e)}return r;};
 const lk_op=openProfile;openProfile=function(team,intoEl){lkFixTx();const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
-const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix()}catch(e){console.error(e)}return r;};
+const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix(arguments[0])}catch(e){console.error(e)}return r;};
 const lk_rx=renderXIs;renderXIs=function(){lkFixTx();return lk_rx.apply(this,arguments);};
 const lk_rtb=renderTable;renderTable=function(){const r=lk_rtb.apply(this,arguments);try{document.querySelectorAll('#tablebody details.acc').forEach(d=>{const m=d.querySelector('summary');if(m&&m.textContent.trim()==='Upcoming fixtures')d.remove();});}catch(e){}return r;}; /* the gameweek browser already shows every future week */
 const lk_ra=renderAna;renderAna=function(){const r=lk_ra.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;};
+const lk_rl=renderLab;renderLab=function(){const r=lk_rl.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;}; /* every Lab tap re-runs renderLab alone, which wrote the capitals back */
 (function(){const p=document.getElementById('gwpill');if(!p||typeof MutationObserver==='undefined')return;
   const fix=()=>{const m=/^GW(\d+) · (\d+d \d+h|\d+h \d+m|\d+m)$/.exec(p.textContent.trim());if(m)p.textContent='Deadline '+m[2];};
   new MutationObserver(fix).observe(p,{childList:true,characterData:true,subtree:true});fix();})();

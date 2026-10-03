@@ -32,11 +32,16 @@
 .mpxl span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mpxl span b{font-size:.8rem;color:var(--gold);margin-left:2px}
 .mpxl span.no{color:#C9B8D6;font-weight:500}
-/* who plays whom */
+/* the hidden rest of a long risk list, and the "+N more" button that reveals it (40px tall, drawn as the old text line) */
+.mpxl:not(.mpxopen) .mpxx{display:none}
+.mpxl .mpxmore{appearance:none;background:none;border:0;padding:11px 0;margin:-9px 0 -11px;font:inherit;font-size:.7rem;font-weight:500;color:#C9B8D6;cursor:pointer;line-height:1.3;min-height:40px;text-align:inherit}
+.mpxl.r .mpxmore{text-align:right}
+/* who plays whom: the names ellipsize on their own, the +N count never gets cut */
 .mpxg3{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);align-items:center;gap:8px;margin-top:5px}
-.mpxg3 span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.mpxg3 span.r{text-align:right}
-.mpxg3 span i{font-style:normal;color:#C9B8D6;font-weight:600}
+.mpxg3 span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;min-width:0;display:flex;align-items:baseline;gap:3px}
+.mpxg3 span.r{text-align:right;justify-content:flex-end}
+.mpxg3 span em{display:inline;font:inherit;font-style:normal;letter-spacing:0;text-transform:none;color:inherit;text-align:inherit;min-width:0;overflow:hidden;text-overflow:ellipsis} /* not the .mpxr em row label */
+.mpxg3 span i{font-style:normal;color:#C9B8D6;font-weight:600;flex:none}
 .mpxg3>b{font-size:.8rem;letter-spacing:.06em;color:#fff;white-space:nowrap;text-align:center}
 .mpxg3>b i{font-style:normal;font-weight:600;color:#C9B8D6;font-size:.7rem}
 .mpxg3>b u{display:block;text-decoration:none;color:#4FD08E;font-size:.6rem;line-height:1;letter-spacing:.08em}

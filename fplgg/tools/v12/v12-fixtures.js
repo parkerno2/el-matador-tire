@@ -102,9 +102,10 @@ function fbxLineupCol(g,t){
   const tot=xi.reduce((s,r)=>s+pts(r),0),bt=ben.reduce((s,r)=>s+pts(r),0);
   const top=xi.reduce((m,r)=>Math.max(m,pts(r)),0);
   const row=(r,bn)=>{const p=pts(r),tp=!bn&&top>0&&p===top;
+    /* the Top tag rides inside the name span, so on a narrow phone it wraps under the name instead of cutting it */
     return '<div class="fbx-pl'+(bn?' fbx-bn':'')+(tp?' fbx-top':'')+'" data-fbxpc="'+esc(r.Code)+'" role="button" tabindex="0">'
-     +'<span class="fbx-ps">'+esc(r.Pos)+'</span>'+badgeImg(r.Club,14)+'<span class="fbx-pn">'+esc(r.Player)+'</span>'
-     +(tp?'<span class="fbx-tp">Top</span>':'')+'<b class="fbx-pt">'+p+'</b></div>';};
+     +'<span class="fbx-ps">'+esc(r.Pos)+'</span>'+badgeImg(r.Club,14)+'<span class="fbx-pn">'+esc(r.Player)
+     +(tp?' <span class="fbx-tp">Top</span>':'')+'</span><b class="fbx-pt">'+p+'</b></div>';};
   return {tot,html:'<div class="fbx-lh">Starting XI</div>'+xi.map(r=>row(r,0)).join('')
    +'<div class="fbx-tot"><span>Total</span><b>'+tot+'</b></div>'
    +(ben.length?'<div class="fbx-lh">Bench</div>'+ben.map(r=>row(r,1)).join('')

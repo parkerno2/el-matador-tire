@@ -125,7 +125,7 @@ function tsxSeasonHTML(team){
       +(A.live?' (GW'+A.live+' live)':'')));}
   /* close games */
   const C=S.close;
-  rows.push(tsxRow('Close games',C.n?tsxRec(C):'0',C.n?'Matchups decided by '+C.margin+' or fewer':'No matchup decided by '+C.margin+' or fewer yet'));
+  rows.push(tsxRow('Close games',tsxRec(C),C.n?'Matchups decided by '+C.margin+' or fewer':'No matchup decided by '+C.margin+' or fewer yet'));
   /* points against */
   const P=S.pa;
   rows.push(tsxRow('Points against',P.v,P.rank===1?'Most in the league: the toughest schedule':P.rank===n8?'Fewest in the league: the kindest schedule':ORD(P.rank)+' most in the league · average '+Math.round(P.avg)));

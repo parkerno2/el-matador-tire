@@ -5,7 +5,7 @@
 .gwtabs .fbx-ar{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;color:#5B1A66}
 .gwtabs .fbx-ar svg{display:block}
 .gwtabs .fbx-ar:disabled{color:#D5CEDC;cursor:default}
-.fbx-now{background:none;border:none;padding:6px 2px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;color:#2E5BFF;cursor:pointer}
+.fbx-now{background:none;border:none;padding:6px 8px;min-height:40px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;color:#2E5BFF;cursor:pointer}
 
 /* one list per gameweek: hairline rows in a single white card */
 .fbx-list{background:#fff;border:1px solid #E8E4EE;border-radius:14px;overflow:hidden}
@@ -32,7 +32,7 @@ button.fbx-row{cursor:pointer}
 .fbx-sc b{font-weight:700}
 .fbx-sc b.fbx-w{color:#1B1420}
 .fbx-sc i{font-style:normal;font-size:.95rem;color:#C9C2D0}
-.fbx-sc.fbx-v{font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:700;color:#8A8494;text-transform:lowercase}
+.fbx-sc.fbx-v{font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:700;color:#6F6880;text-transform:lowercase}
 .fbx-sc.fbx-pj{flex-direction:column;align-items:center;gap:3px}
 .fbx-sc.fbx-pj .fbx-n{display:flex;align-items:baseline;gap:4px;font-size:1.12rem;color:#1B1420}
 .fbx-sc.fbx-pj .fbx-n b{font-weight:600}
@@ -55,13 +55,15 @@ button.fbx-row{cursor:pointer}
 .fbx-ph .fbx-psc small{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#665D72}
 .fbx-lu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px;margin-top:4px}
 .fbx-col{min-width:0}
-.fbx-lh{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8A8494;margin:12px 0 2px}
-.fbx-pl{display:flex;align-items:center;gap:5px;height:27px;border-bottom:1px solid #F1EEF4;cursor:pointer;min-width:0}
-.fbx-pl .fbx-ps{flex:none;width:23px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.64rem;letter-spacing:.04em;color:#8A8494}
+.fbx-lh{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#6F6880;margin:12px 0 2px}
+/* 40px rows; a long name wraps to a second line (and the Top tag with it) instead of ellipsizing at 320px */
+.fbx-pl{display:flex;align-items:center;gap:5px;min-height:40px;padding:2px 0;border-bottom:1px solid #F1EEF4;cursor:pointer;min-width:0}
+.fbx-pl .fbx-ps{flex:none;width:23px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.64rem;letter-spacing:.04em;color:#6F6880}
 .fbx-pl img.crest{flex:none;height:14px;width:auto}
-.fbx-pl .fbx-pn{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.74rem;font-weight:600;color:#1B1420}
+.fbx-pl .fbx-pn{flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.15;font-size:.74rem;font-weight:600;color:#1B1420}
 .fbx-pl.fbx-top .fbx-pn{font-weight:800}
-.fbx-pl .fbx-tp{flex:none;font-size:.5rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5B1A66}
+.fbx-pl .fbx-tp{display:inline-block;font-size:.5rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5B1A66;vertical-align:1px}
+@media(max-width:360px){.fbx-pl{gap:4px}.fbx-pl .fbx-ps{width:21px}}
 .fbx-pl .fbx-pt{flex:none;min-width:18px;text-align:right;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.92rem;color:#1B1420;font-variant-numeric:tabular-nums}
 .fbx-pl.fbx-bn{opacity:.55}
 .fbx-tot{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:7px 0 0}
@@ -69,7 +71,7 @@ button.fbx-row{cursor:pointer}
 .fbx-tot b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:#1B1420;font-variant-numeric:tabular-nums}
 .fbx-tot.fbx-bn span{color:#665D72;letter-spacing:.06em}
 .fbx-tot.fbx-bn b{font-size:.96rem;color:#665D72}
-.fbx-none{font-size:.68rem;color:#8A8494;margin:12px 0 0;line-height:1.4}
+.fbx-none{font-size:.68rem;color:#6F6880;margin:12px 0 0;line-height:1.4}
 
 /* team page: results rows open the matchup; the next fixtures table links into the browser */
 .hist.tres tr.fbx-tap{cursor:pointer}

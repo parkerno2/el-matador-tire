@@ -2,7 +2,7 @@
    Ink #17121D chrome, lavender-grey ground #F5F3F8, white cards, purple #5B2D8E for kickers and links only,
    light purple #CDBDF0 on dark surfaces (replaces gold), green/red only for results.
    Archivo for words, Barlow Condensed for every number. Plate cards (.fc) keep their own type. */
-:root{--uix-chrome:#17121D;--bg:#F5F3F8;--card:#fff;--line:#E7E2EE;--ink:#17121D;--mid:#7C7488;--p1:#17121D;--p2:#5B2D8E;
+:root{--uix-chrome:#17121D;--bg:#F5F3F8;--card:#fff;--line:#E7E2EE;--ink:#17121D;--mid:#6F6880;--p1:#17121D;--p2:#5B2D8E; /* --mid: 5.3:1 on white, 4.8:1 on the ground (was #7C7488, 4.46 / 4.05) */
   --lk-pu:#5B2D8E;--lk-pul:#CDBDF0;--lk-tint:#F0EBF8;--lk-good:#1F8A55;--lk-bad:#C23A3A;--lk-draw:#8C8496}
 html,body{background:#F5F3F8 !important}
 body,body *:not(.fc):not(.fc *):not(svg):not(svg *){font-family:'Archivo',system-ui,sans-serif !important}
@@ -91,7 +91,7 @@ h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .lkMH .lkc .lkbig i{font-style:normal;color:#5E5568;margin:0 4px}
 .lkMH .lkc .lkst{font-size:.7rem;font-weight:700;color:#B9B1C4;margin-top:6px}
 .lkMH .lkc .lkst.lklive{color:#7BE0A9}
-.lkMH .lkc .lkal{font-size:.7rem;color:#6F6880;margin-top:3px;font-weight:600}
+.lkMH .lkc .lkal{font-size:.7rem;color:#B9B1C4;margin-top:3px;font-weight:600}
 .mpxwin>b.hi,.side .mpxrec em,.mpxl span b{color:#CDBDF0 !important}
 .mpxnum{background:rgba(255,255,255,.05) !important}
 #gwbody .stage .backbtn{background:rgba(255,255,255,.08) !important;border-color:rgba(255,255,255,.14) !important}
@@ -121,7 +121,7 @@ h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .lkSched .lkg{font-size:.72rem;color:#6F6880;font-weight:700}
 .lkSched .lkr svg{display:block}
 .lkSched .lko b{display:block;font-weight:700;font-size:.88rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lkSched .lko span{display:block;font-size:.68rem;color:#6F6880;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkSched .lko > span{display:block;font-size:.68rem;color:#6F6880;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lkSched .lksc{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem}
 .lkSched .lksc u{text-decoration:none;font-size:.62rem;font-weight:800;width:18px;height:18px;border-radius:4px;display:grid;place-items:center;color:#fff}
 .lkSched .lksc u.lkresW{background:#1F8A55}.lkSched .lksc u.lkresL{background:#C23A3A}.lkSched .lksc u.lkresD{background:#8C8496}
@@ -140,7 +140,7 @@ h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .lkTH .lkcr{display:block;line-height:0}
 #gwbody .stage .mpxrec,#gwbody .stage .form.lkc{display:none}
 .lkMH .lkt .lkrec{display:inline-flex;gap:4px;align-items:center}
-.lkMH .lkt .lkrec i{font-style:normal;color:#6F6880}
+.lkMH .lkt .lkrec i{font-style:normal;color:#8C8496}
 .lkMH .lkt{cursor:pointer}
 .lkSched .lkwhen{line-height:1.1}
 .lkSched .lkwhen .lkn{font-size:1.05rem;color:#17121D;font-weight:700}
@@ -258,3 +258,57 @@ button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#
 .fxblk .fxs b,.fxs b{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;line-height:1.15}
 /* a wider sheet on desktop so the player's season table fits without a sideways scrollbar */
 @media(min-width:760px){.sheet{width:min(720px,100%) !important}}
+/* sheet photo on iPhone (3 Oct) */
+@media(max-width:699px){
+  .sheet{left:0 !important;right:0;margin:0 auto;transform:translateY(105%) !important}
+  .sheet.on{transform:none !important}
+}
+.sheet .fc .face{-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;
+  background:radial-gradient(58% 10% at 50% 99%,rgba(0,0,0,.30),transparent 72%)}
+.sheet .fc .face img{filter:none !important;-webkit-transform:translateZ(0);transform:translateZ(0)}
+
+/* ---------- fixes, 3 Oct (bugfix build: MD-08, MD-10, MD-15, MD-16, LG-26, LG-27, LG-29, LG-31, T7, TP-7) ---------- */
+/* focus: one ring everywhere, never the browser default; light purple on the dark surfaces */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,.fc:focus-visible{outline:2px solid #5B2D8E !important;outline-offset:2px !important}
+.top :focus-visible,#gwbody .stage :focus-visible,.lkTH :focus-visible,.sh-left :focus-visible,.myhead :focus-visible,.lgfx :focus-visible,.mcard.bug :focus-visible{outline-color:#CDBDF0 !important}
+:focus:not(:focus-visible){outline:none}
+.mcard[tabindex]{-webkit-tap-highlight-color:transparent}
+/* the page behind an open sheet stays put (phones): the sheet keeps its own scroll, the backdrop swallows touches */
+@media(max-width:699px){html.lk-lock,html.lk-lock body{overflow:hidden}}
+.ov{touch-action:none}
+.sheet{overscroll-behavior:contain}
+/* landscape phone: the sticky card column is taller than the sheet, so it scrolls with the details instead */
+@media(min-width:700px) and (max-height:560px){#sheet .lkstick{position:static}}
+/* tap targets: 40px through padding, the drawn shape unchanged */
+.top{padding:calc(7px + env(safe-area-inset-top)) 14px 7px !important}
+.hbtn{width:40px !important;height:40px !important;background:transparent !important;border:none !important;position:relative;padding:0 !important;margin:0 !important}
+.hbtn::before{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.hbtn.busy::before{background:rgba(205,189,240,.18);border-color:rgba(205,189,240,.55)}
+.hbtn svg{position:relative}
+button.hav{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;margin:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:inherit;font:inherit;border-radius:50%}
+.hright{gap:0 !important;margin-right:-6px}
+.gwtabs button{min-height:40px}
+[data-fbxstep]{min-width:40px;min-height:40px}
+h2.v10 button.lnk{appearance:none;-webkit-appearance:none;background:none;border:0;margin:-8px 0 -8px -8px;padding:0 8px;min-height:40px;font-family:inherit;cursor:pointer;text-align:inherit}
+#plall{min-height:40px}
+.helpfoot button{min-height:40px}
+.axtog button{min-height:40px;padding-top:8px;padding-bottom:8px}
+.btoggle{min-height:40px;padding-top:8px;padding-bottom:8px}
+#gwbody .stage .backbtn{min-height:40px;padding:6px 14px 6px 10px}
+button.watch{min-height:40px;padding-top:7px;padding-bottom:7px}
+.lkTH .lkact .watch,.lkTH .lkact button{min-height:40px}
+.sh-x{width:40px !important;height:40px !important;min-width:40px;min-height:40px;top:8px;right:10px;background:transparent !important;display:grid;place-items:center;padding:0}
+.sh-x::before{content:"";position:absolute;inset:2px;border-radius:50%;background:#F1ECF5;z-index:-1}
+/* matchup header on a 320px phone: the score sets the centre column, the status wraps under it, so each side keeps room
+   for its crest (the page measured 322px and the home crest sat at x = -2) */
+.lkMH .lkt svg{max-width:100%;height:auto}
+.lkMH .lkc{min-width:0}
+@media(max-width:360px){
+  .lkMH .lkc .lkst,.lkMH .lkc .lkal{width:0;min-width:100%}
+  .lkMH .lkrow{gap:6px}
+  .lkSched .lko .lkfull{display:none}
+  .lkSched .lko .lkshort{display:inline}
+  .lkSched .lko > span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+}
+/* two-column sheet (desktop, landscape): the four stat labels stay on one line in the 210px card column ("PER GAME") */
+@media(min-width:700px){#sheet .sh-left .statgrid.lg{gap:8px 5px}#sheet .sh-left .statgrid.lg .sg{font-size:.52rem;letter-spacing:.03em;white-space:nowrap}}

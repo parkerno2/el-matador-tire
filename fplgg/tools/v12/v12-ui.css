@@ -96,7 +96,7 @@ button.watch.elev.sm{box-shadow:none}
 .labhead b{font-size:.7rem;letter-spacing:.14em;color:var(--p2)}
 /* manager filter: crests on white squares (v12-ui.js swaps the initials out); selected = plum */
 .labsub{gap:5px}
-.labmono{flex:1 1 0;min-width:0;max-width:46px;width:auto;height:38px;border-radius:8px;border:1px solid var(--uix-line) !important;background:#fff !important;padding:0;display:flex;align-items:center;justify-content:center}
+.labmono{flex:1 1 0;min-width:0;max-width:46px;width:auto;height:40px;border-radius:8px;border:1px solid var(--uix-line) !important;background:#fff !important;padding:0;display:flex;align-items:center;justify-content:center}
 .labmono svg{display:block;width:24px;height:24px;flex:none}
 .labclear{flex:none}
 .labmono.on{background:var(--uix-sel) !important;border-color:var(--uix-sel) !important}
@@ -167,3 +167,7 @@ body[data-view="faq"] .helpfoot{display:none}
 /* ---- My team: the clubhouse banner sits flush under the header, like the matchup stage (no light strip between two dark bands) ---- */
 #v-team.view.on:has(#teampage > .myhead:first-child){padding-top:0}
 #teampage:has(> .myhead:first-child){margin-top:0 !important}
+
+/* ---- tap targets (3 Oct): the segmented controls and chips this sheet styles reach 40px through height, not type size ---- */
+.fatog button,.labseg button,.labmet,.labview,.labclear{min-height:40px}
+.fatog button{padding-top:8px;padding-bottom:8px}

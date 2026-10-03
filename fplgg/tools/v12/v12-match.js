@@ -26,6 +26,8 @@ function mpxPct(ps){
   raw.map((x,i)=>[x-fl[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{if(left>0){fl[i]++;left--;}});
   return fl;
 }
+/* the one rounding of hpWin for every screen (Matchday list, matchup page, team page, schedule): h + d + a = 100 */
+function mpxWinPct(w){const p=mpxPct([w.h,w.d,w.a]);return {h:p[0],d:p[1],a:p[2]}}
 function mpxBanked(p){return num(p['GW pts'])+((D.pbonus||{})[String(p.Code)]||0)}
 function mpxLeft(team){
   const xi=effXiOf(team,true);let so=0,n=0;
@@ -53,19 +55,21 @@ function mpxClash(f){
 function mpxData(f){
   const s=mscore(f),final=s.done||D.provOver,live=D.dlPassed&&!final;
   const out={final,live};
-  if(!final){const w=hpWin(f);if(!w.done){const pc=mpxPct([w.h,w.d,w.a]);out.win={h:pc[0],d:pc[1],a:pc[2],raw:w};}}
+  if(!final){const w=hpWin(f);if(!w.done){const pc=mpxWinPct(w);out.win={h:pc.h,d:pc.d,a:pc.a,raw:w};}}
   if(live){const L=[mpxLeft(f.Home),mpxLeft(f.Away)];if(L.some(x=>x.n>0||Math.abs(x.left)>=.05))out.left=L;}
   if(!final){const R=[mpxRisk(f.Home),mpxRisk(f.Away)];if(R[0].length||R[1].length)out.risk=R;}
   if(!final){const C=mpxClash(f);if(C.length)out.clash=C;}
   return out;
 }
-/* up to two names per side, one when two would not fit a 390px column (about 19 characters with the +N) */
-function mpxNames(list){
+/* up to two names per side, one when two would not fit the column (about 19 characters with the +N at 390px, 13 on a
+   320px phone); the names ellipsize on their own so the +N count always stays visible */
+function mpxNames(list,narrow){
   if(!list.length)return '';
   const n=list.map(p=>String(p.Player||''));
-  const two=n.length>1&&(n[0]+', '+n[1]+(n.length>2?' +'+(n.length-2):'')).length<=19;
+  const lim=narrow?13:19;
+  const two=n.length>1&&(n[0]+', '+n[1]+(n.length>2?' +'+(n.length-2):'')).length<=lim;
   const k=two?2:1;
-  return esc(n.slice(0,k).join(', '))+(n.length>k?' <i>+'+(n.length-k)+'</i>':'');
+  return '<em>'+esc(n.slice(0,k).join(', '))+'</em>'+(n.length>k?' <i>+'+(n.length-k)+'</i>':'');
 }
 function mpxBlock(f){
   const D2=mpxData(f);
@@ -80,15 +84,18 @@ function mpxBlock(f){
     rows.push('<div class="mpxr mpxlft"><em>Points left</em><div class="mpxg2">'+c(D2.left[0],false)+c(D2.left[1],true)+'</div></div>');}
   if(D2.risk){const side=(L,r)=>{
       if(!L.length)return '<div class="mpxl'+(r?' r':'')+'"><span class="no">None</span></div>';
-      const show=L.length>3?L.slice(0,2):L;
-      return '<div class="mpxl'+(r?' r':'')+'">'+show.map(o=>'<span>'+esc(o.p.Player)+' <b>'+Math.round(o.ps*100)+'%</b></span>').join('')
-       +(L.length>3?'<span class="no">+'+(L.length-2)+' more</span>':'')+'</div>';};
+      /* more than three: two show, the rest sit hidden behind a "+N more" button (tap to reveal) */
+      const fold=L.length>3;
+      return '<div class="mpxl'+(r?' r':'')+'">'+L.map((o,i)=>'<span'+(fold&&i>=2?' class="mpxx"':'')+'>'+esc(o.p.Player)+' <b>'+Math.round(o.ps*100)+'%</b></span>').join('')
+       +(fold?'<button type="button" class="no mpxmore" aria-expanded="false">+'+(L.length-2)+' more</button>':'')+'</div>';};
     rows.push('<div class="mpxr mpxrisk"><em>Minutes risk · chance to start</em><div class="mpxg2">'+side(D2.risk[0],false)+side(D2.risk[1],true)+'</div></div>');}
   if(D2.clash){
+    /* matchMedia, not innerWidth: innerWidth forces a layout of the page just rebuilt (43 ms on a laptop per matchup) */
+    const narrow=typeof matchMedia==='function'&&matchMedia('(max-width:360px)').matches;
     rows.push('<div class="mpxr mpxcl"><em>Who plays whom</em>'+D2.clash.map(o=>{
       const x=o.x,inPlay=fin(x.Started)&&!fin(x.Finished);
-      return '<div class="mpxg3"><span class="l">'+mpxNames(o.h)+'</span><b>'+esc(x.Home)+' <i>v</i> '+esc(x.Away)
-       +(inPlay?'<u>'+Math.round(num(x.Mins))+'\'</u>':'')+'</b><span class="r">'+mpxNames(o.a)+'</span></div>';}).join('')+'</div>');}
+      return '<div class="mpxg3"><span class="l">'+mpxNames(o.h,narrow)+'</span><b>'+esc(x.Home)+' <i>v</i> '+esc(x.Away)
+       +(inPlay?'<u>'+Math.round(num(x.Mins))+'\'</u>':'')+'</b><span class="r">'+mpxNames(o.a,narrow)+'</span></div>';}).join('')+'</div>');}
   return rows.length?'<div class="mpxnum">'+rows.join('')+'</div>':'';
 }
 function mpxStage(f){
@@ -101,6 +108,10 @@ function mpxStage(f){
   const blk=mpxBlock(f),tape=st.querySelector(':scope > .tape');
   if(tape){if(blk)tape.insertAdjacentHTML('afterend',blk);tape.remove();}
   else if(blk&&!st.querySelector('.mpxnum')){const a=st.querySelector(':scope > .series')||st.querySelector(':scope > .scsub');if(a)a.insertAdjacentHTML('afterend',blk);}
+  /* "+N more" under Minutes risk reveals the rest of that side */
+  const num_=st.querySelector('.mpxnum');
+  if(num_)num_.addEventListener('click',e=>{const b=e.target.closest('.mpxmore');if(!b)return;e.stopPropagation();
+    const l=b.closest('.mpxl');if(l)l.classList.add('mpxopen');b.remove();});
 }
 const __mpxRM=renderMatch;
 renderMatch=function(f,dl){
