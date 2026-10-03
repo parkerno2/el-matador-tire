@@ -1,7 +1,7 @@
 /* FPL Companion — service worker
  * Network-first for the app itself (updates arrive on next open),
  * cache fallback for offline. Bump VERSION to force-refresh caches. */
-const VERSION = 'emt-v12';
+const VERSION = 'emt-v13'; // v13: the manifest is precached cache-first, so a bump is what gets installed phones the new colours
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-180.png'];
 

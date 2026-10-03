@@ -283,6 +283,9 @@ padding:10px 6px;border-bottom:1px solid #F1EEF7;font-size:.82rem}
 .trow .nm2 em{display:block;font-style:normal;font-weight:500;font-size:.64rem;color:var(--mid)}
 .trow .rec{font-family:'Saira Condensed';font-size:.78rem;color:var(--mid)}
 .trow .lp{font-family:'Saira Condensed';font-weight:700;font-size:1.05rem;text-align:right;min-width:30px}
+.trow .nm2 em .nw{white-space:nowrap}
+@media(max-width:420px){.trow{grid-template-columns:18px 28px minmax(0,1fr) 16px 16px 16px 28px;gap:4px 6px;padding:9px 4px}
+ .trow .mg.cr{width:28px;height:28px}.trow .lp{min-width:0}}
 .trow.lead{background:linear-gradient(90deg,#FFF2C4,#FFF9E6 55%,transparent);box-shadow:inset 3px 0 0 var(--gold)}
 .trow.lead .rk{color:var(--goldd)}
 .trow .odds{grid-column:3/-1;display:flex;align-items:center;gap:8px;min-width:0}
@@ -315,23 +318,24 @@ padding:10px 12px;display:flex;align-items:center;gap:9px}
 .minirecs b.hi{color:var(--good)}.minirecs b.lo{color:var(--bad)}
 .minirecs .lb span{display:block;font-size:.54rem;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);font-weight:700}
 .minirecs .lb em{display:block;font-style:normal;font-size:.66rem;font-weight:600}
-.mrow{display:grid;grid-template-columns:minmax(0,1.1fr) auto minmax(0,1.4fr) auto;gap:10px;align-items:center;
+.mrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;
 padding:9px 0;border-bottom:1px solid #F1EEF7;font-size:.8rem}
 .mrow:last-child{border-bottom:none}
-.mrow .per2{font-weight:700}
+.mrow .per2{font-weight:700;white-space:nowrap}
+.mrow .mtg{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .mrow .per2 em{display:block;font-style:normal;font-weight:500;font-size:.64rem;color:var(--mid)}
 .mrow .who{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0}
-.mrow .who .nm4{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mrow .who em{font-style:normal;color:var(--mid);font-weight:500;font-size:.68rem}
+.mrow .who .nm4{min-width:0;line-height:1.25}
+.mrow .who em{display:block;font-style:normal;color:var(--mid);font-weight:500;font-size:.68rem}
 .tag{font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px}
 .tag.won{background:var(--gold);color:var(--p1)}
 .tag.lead{background:#F1ECF5;color:var(--p2)}
 .tag.wait{background:#F1EEF7;color:var(--mid)}
-.money{font-family:'Saira Condensed';font-weight:700;font-size:.88rem;color:var(--goldd)}
+.money{font-family:'Saira Condensed';font-weight:700;font-size:.88rem;color:var(--ink)}
 .pot{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
 .pot div{background:linear-gradient(160deg,#FDF9EC,#F7EFD4);border:1px solid #EDDFB2;border-radius:11px;padding:11px 12px;
 box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 6px rgba(184,134,11,.08)}
-.pot b{display:block;font-family:'Saira Condensed';font-size:1.35rem;color:var(--goldd)}
+.pot b{display:block;font-family:'Saira Condensed';font-size:1.35rem;color:var(--ink)}
 .pot span{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mid)}
 .rules{margin:0;padding:0;list-style:none}
 .rules li{padding:8px 0;border-bottom:1px solid #F1EEF7;font-size:.82rem}
@@ -381,6 +385,9 @@ padding:8px 13px;margin-bottom:6px;font-size:.8rem}
 .faqsec{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(55,0,60,.07);padding:14px 16px;margin-bottom:10px}
 .faqsec h3{margin:0 0 4px;font-size:.86rem;font-weight:700}
 .faqsec p{margin:0;font-size:.76rem;color:var(--mid);line-height:1.6}
+.faqtop{display:flex;flex-direction:column;align-items:flex-start;margin:4px 0 0} /* LG-20: the page names itself and has a way back */
+.faqtop #faqback{min-height:40px;padding:8px 12px 8px 0}
+.faqtop h1{margin:0;font-size:1.3rem;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
 /* ---------- sheets ---------- */
 .ov{position:fixed;inset:0;background:rgba(27,20,32,.55);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
 .ov.on{opacity:1;pointer-events:auto}
@@ -439,13 +446,15 @@ padding:3px 9px;border-radius:20px}
 .plrow:last-child{border-bottom:none}
 .plrow .cl{width:38px}
 .plrow .cl.a{text-align:right}
-.plrow .mid2{flex:1;text-align:center;font-family:'Saira Condensed';font-size:.92rem}
+.plrow .mid2{flex:1;min-width:0;text-align:center;font-family:'Saira Condensed';font-size:.92rem;white-space:nowrap}
+.plrow .pst:empty{display:none}
 .plrow .pst{width:32px;text-align:right;font-size:.56rem;letter-spacing:.08em;color:var(--mid);font-weight:700}
 .plrow .pst.live{color:#0E8A5F}
 /* v5.5 fixture → your players panel */
 .plrow.tap{cursor:pointer;user-select:none;-webkit-user-select:none}
 .plrow.tap .cl{display:flex;align-items:center;gap:5px;width:auto;min-width:38px}
-.plrow .cnt{font-family:'Saira Condensed';font-size:.62rem;font-weight:700;color:var(--p2);background:#EFE7F4;border-radius:9px;padding:1px 6px;min-width:14px;text-align:center}
+.plrow .cnt{font-family:'Saira Condensed';font-size:.62rem;font-weight:700;color:var(--p2);background:#EFE7F4;border-radius:9px;padding:1px 6px;min-width:14px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:3px;flex:none;box-sizing:border-box;min-width:36px}
+.plrow .cnt svg{display:block;flex:none}
 .plrow .chev{width:14px;text-align:center;color:var(--mid);font-size:.7rem;transition:transform .18s ease}
 .plrow.open .chev{transform:rotate(90deg)}
 .plrow.open{border-bottom-color:transparent}
@@ -458,7 +467,10 @@ padding:3px 9px;border-radius:20px}
 .plx .plp:active{background:#F4EEF8}
 .plx .plp .mg{width:20px;height:20px;font-size:.46rem;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
 .plx .plp .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.plx .plp .pn em{font-style:normal;font-weight:600;font-size:.56rem;color:var(--mid);margin-left:4px;letter-spacing:.04em}
+.plx .plp .pn em{display:block;font-style:normal;font-weight:600;font-size:.56rem;color:var(--mid);letter-spacing:.04em;line-height:1.3}
+.plx .plsh{display:none}
+@media(max-width:380px){.plrow{gap:5px}.plx{grid-template-columns:1fr}.plx .side.a .plp{flex-direction:row;text-align:left}
+ .plx .plsh{display:block;font-size:.56rem;font-weight:700;letter-spacing:.1em;color:var(--mid);padding:8px 2px 2px}}
 .plx .plp .pv{font-family:'Saira Condensed';font-weight:700;font-size:.8rem;line-height:1;text-align:center;min-width:30px;padding:3px 5px 2px;border-radius:10px;background:#37003C;color:#fff}
 .plx .plp .pv i{display:block;font-style:normal;font-size:.42rem;letter-spacing:.1em;font-weight:700;opacity:.9}
 .plx .plp .pv.proj{background:transparent;color:var(--ink);border:1.5px dashed #9A8FA6;font-weight:500}
@@ -575,9 +587,12 @@ body{padding-top:14px}
 .lucks .ld.hot{color:var(--bad)}.lucks .ld.cold{color:#5B2D8E}
 .lucks .lmid{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lucks .lnum{font-family:'Saira Condensed';font-size:.72rem;color:var(--mid);font-weight:600}
+.lucks .lcol{flex:1 1 0;min-width:64px;display:flex;flex-direction:column;line-height:1.25}
+.lucks .lcol .lmid{flex:none}
 .lucks .lbar{height:6px;border-radius:99px;background:#F1EEF7;flex:0 0 84px;overflow:hidden;position:relative}
 .lucks .lbar:before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#D9CFE2}
 .lucks .lbar i{position:absolute;top:0;bottom:0;border-radius:99px}
+@media(max-width:380px){.lucks .lbar{flex-basis:56px}.lucks .ld{width:42px}}
 /* THE LAB */
 .labcard{padding:0;overflow:hidden}
 .labhead{background:linear-gradient(115deg,#2E5BFF -20%,#5B1A66 50%,#37003C 110%);color:#fff;padding:12px 16px;display:flex;align-items:baseline;gap:10px}
@@ -587,7 +602,7 @@ body{padding-top:14px}
 .presets button{flex:none;background:linear-gradient(160deg,#FDF9EC,#F7EFD4);border:1px solid #EDDFB2;color:#7A5E14;font-family:inherit;font-size:.62rem;font-weight:700;padding:6px 12px;border-radius:16px;cursor:pointer;white-space:nowrap}
 #labctl{padding:10px 14px 0}
 .labseg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
-.labseg button{flex:1;background:#fff;border:none;font-family:inherit;font-size:.64rem;font-weight:700;letter-spacing:.08em;padding:10px 4px;color:var(--mid);cursor:pointer}
+.labseg button{flex:1;background:#fff;border:none;font-family:inherit;font-size:.64rem;font-weight:700;letter-spacing:.08em;padding:10px 4px;color:var(--mid);cursor:pointer;min-height:40px}
 .labseg button.on{background:var(--p1);color:#fff}
 .labsub{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
 .labmono{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid var(--tc);background:#fff;color:var(--tc);font-family:inherit;font-weight:700;font-size:.66rem;cursor:pointer}
@@ -597,14 +612,19 @@ body{padding-top:14px}
 .labpill{border:none;background:var(--p1);color:#fff;font-family:inherit;font-size:.62rem;font-weight:700;padding:7px 10px;border-radius:14px;cursor:pointer;white-space:nowrap}
 #labres .labhit{display:block;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid #F1EEF7;font-family:inherit;font-size:.76rem;font-weight:700;padding:8px 4px;cursor:pointer}
 #labres .labhit span{color:var(--mid);font-weight:500;font-size:.64rem}
-.labmets{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.labmets{display:flex;flex-wrap:wrap;gap:0 6px;padding-bottom:4px} /* LG-16: wraps, every metric visible */
 .labmet{flex:none;border:1px solid var(--line);background:#fff;color:var(--mid);font-family:inherit;font-size:.64rem;font-weight:700;padding:7px 12px;border-radius:17px;cursor:pointer;white-space:nowrap}
 .labmet.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .labviews{display:flex;gap:6px;padding-bottom:6px}
 .labview{border:1px solid var(--line);background:#fff;color:var(--mid);font-family:inherit;font-size:.62rem;font-weight:700;padding:6px 12px;border-radius:14px;cursor:pointer}
 .labview.on{background:var(--p3);color:#fff;border-color:var(--p3)}
+#labctl .labmet,#labctl .labview,#labctl .labclear{position:relative;z-index:0;min-height:40px;background:transparent !important;border-color:transparent !important}
+#labctl .labmet::before,#labctl .labview::before,#labctl .labclear::before{content:"";position:absolute;left:0;right:0;top:6px;bottom:6px;z-index:-1;border:1px solid var(--uix-line,#E8E4EE);border-radius:8px;background:#fff}
+#labctl .labmet.on::before,#labctl .labview.on::before{background:var(--uix-sel,#2E0F3A);border-color:var(--uix-sel,#2E0F3A)}
 #labviz{padding:6px 14px 14px}
 .labfoot{font-size:.62rem;color:var(--mid);margin-top:6px;line-height:1.5}
+.labkey{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;margin-top:6px;font-size:.66rem;font-weight:700;color:var(--ink)}
+.labkey i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
 .lbrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #F1EEF7;font-size:.76rem;font-weight:700;cursor:pointer}
 .lbrow:last-child{border-bottom:none}
 .lbrow .lbl2{flex:0 0 32%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -630,12 +650,13 @@ box-shadow:0 4px 14px rgba(27,20,32,.28);transition:transform .15s ease}
 .mgrid .mt:active{transform:scale(.98)}
 .mgrid .mt:before{content:"";position:absolute;top:-45%;left:-18%;width:52%;height:190%;
 background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
-.mtn{display:block;font-size:.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtn{display:block;font-size:.95rem;font-weight:700;line-height:1.2}
 .mtm{display:block;font-style:normal;font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px}
 .mtrow{display:flex;justify-content:space-between;max-width:340px;margin-top:12px;gap:10px}
-.mtrow b{font-family:'Saira Condensed';font-size:1.55rem;display:block;line-height:1}
+.mtrow b{font-family:'Saira Condensed';font-size:1.55rem;display:block;line-height:1;white-space:nowrap}
 .mtrow i{font-style:normal;font-size:.54rem;letter-spacing:.08em;color:rgba(255,255,255,.65);font-weight:700;text-transform:uppercase;white-space:nowrap}
 @media(max-width:480px){.mtrow{gap:6px}.mtrow b{font-size:1.15rem}.mtrow i{font-size:.5rem;letter-spacing:.04em}}
+@media(max-width:360px){.mtrow{gap:4px}.mtrow b{font-size:.94rem}.mtrow i{font-size:.46rem;letter-spacing:0}}
 .mtstar{display:block;margin-top:11px;font-size:.72rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mtstar i{font-style:normal;font-size:.54rem;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-right:6px}
 /* gradient matchup cards — one per derby, 5th for the preview button */
@@ -664,6 +685,10 @@ background:rgba(255,255,255,.07);transform:rotate(22deg);pointer-events:none}
 .fatog{display:inline-flex;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-left:auto}
 .fatog button{background:#fff;border:none;font-family:inherit;font-weight:700;font-size:.58rem;letter-spacing:.08em;padding:5px 12px;color:var(--mid);cursor:pointer;text-transform:uppercase}
 .fatog button.on{background:var(--p1);color:#fff}
+span.fatog{position:relative;z-index:0;overflow:visible;border-color:transparent !important;background:transparent !important}
+span.fatog::before{content:"";position:absolute;left:0;right:0;top:50%;height:26px;transform:translateY(-50%);z-index:-1;border:1px solid var(--uix-line,#E8E4EE);border-radius:8px;background:#fff}
+span.fatog>button,span.fatog>button.on{position:relative;z-index:0;min-height:40px;background:transparent !important}
+span.fatog>button.on::before{content:"";position:absolute;left:2px;right:2px;top:50%;height:20px;transform:translateY(-50%);z-index:-1;border-radius:6px;background:#17121D}
 .fahead{display:flex;align-items:center;margin:20px 0 8px}
 .fahead h2{margin:0;flex:1}
 /* bigger player sheet + card */
@@ -835,6 +860,28 @@ const normN=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase
    "morgan gibbs white" finds Gibbs-White even though FPL shows only the surname */
 const nameMatch=(p,q)=>{const hay=normN(String(p.Player)+' '+String(p['Full name']||''));
   return String(q).split(/\s+/).map(w=>normN(w)).filter(Boolean).every(w=>hay.includes(w))};
+/* Players search ranks by words, never across them ("Saka" must not hit "iSAK Alexander"). Accents fold
+   (João = Joao); dots and hyphens split words, apostrophes join them. Display name before full name;
+   exact, then word start, then inside a word. Infinity = no match. */
+const normW=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+ .replace(/ø/g,'o').replace(/æ/g,'ae').replace(/ð/g,'d').replace(/þ/g,'th').replace(/đ/g,'d').replace(/ł/g,'l').replace(/ß/g,'ss')
+ .replace(/['’]/g,'').replace(/[^a-z]+/g,' ').trim();
+function nameRank(p,q){
+  const qw=normW(q).split(' ').filter(Boolean);if(!qw.length)return Infinity;
+  const dn=normW(p.Player),fn=normW(p['Full name']),dw=dn.split(' '),all=dw.concat(fn.split(' ')),qs=qw.join(' ');
+  if(dn===qs)return 0;
+  if(fn===qs)return 1;
+  if(qw.every(w=>dw.some(x=>x.startsWith(w))))return 2;
+  if(qw.every(w=>all.some(x=>x.startsWith(w))))return 3;
+  if(qw.every(w=>all.some(x=>x.includes(w))))return 4;
+  return Infinity;
+}
+function searchPlayers(q,n){
+  let rk=(D.plr||[]).map(p=>({p,r:nameRank(p,q)})).filter(o=>o.r<Infinity);
+  if(!rk.length){const cq=normN(q); /* last resort only: a glued query like "vandijk" */
+    if(cq)rk=(D.plr||[]).filter(p=>normN(String(p.Player)+' '+String(p['Full name']||'')).includes(cq)).map(p=>({p,r:5}));}
+  return rk.sort((a,b)=>a.r-b.r||num(b.p['Season pts'])-num(a.p['Season pts'])).slice(0,n||15).map(o=>o.p);
+}
 let __gvn=0;
 function readTab(name){
   return new Promise((resolve,reject)=>{
@@ -966,8 +1013,13 @@ function likelyOut(p){
 }
 function autoSubs(team,likely){ // likely=true adds the projection tier; default = locked subs only (live score, Analysis)
   const xi=xiOf(team).slice(),bench=benchOf(team);
-  const zeroed=p=>{const r=gwsRow(p.Code);return fxFinished(p.Club)&&(!r||!num(r.Mins));};
-  const outKind=p=>zeroed(p)?'locked':(likely&&likelyOut(p))?'likely':'';
+  /* blank gameweek: no fixture for his club is a certain 0. Locked once the gameweek is under way (deadline passed or a
+     fixture kicked off: the XI is fixed and FPL subs him at the end); before that, projection tier like a flagged player.
+     No fixtures listed for the GW at all (tab missing) means nobody is blank. */
+  const gwFx=(D.cf||[]).filter(x=>num(x.GW)===D.gw),gwOn=D.dlPassed||gwFx.some(x=>fin(x.Started));
+  const blank=p=>gwFx.length>0&&!gwFx.some(x=>x.Home===p.Club||x.Away===p.Club);
+  const zeroed=p=>{if(blank(p))return gwOn;const r=gwsRow(p.Code);return fxFinished(p.Club)&&(!r||!num(r.Mins));};
+  const outKind=p=>zeroed(p)?'locked':(likely&&(likelyOut(p)||blank(p)))?'likely':'';
   const cnt=(l,pos)=>l.reduce((s,x)=>s+(x.Pos===pos?1:0),0);
   const legal=l=>cnt(l,'GKP')===1&&cnt(l,'DEF')>=3&&cnt(l,'MID')>=2&&cnt(l,'FWD')>=1;
   const subs=[],used=new Set(),replaced=new Set();
@@ -1092,6 +1144,7 @@ function cardBg(t){
   +'<path d="'+PLATE+'" fill="none" stroke="'+EDGE[t]+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
 }
 const FACE_SWAP={'444102':{src:'hasbulla.png',until:'2026-08-30T16:30:00Z'}};
+const FACEBAD=new Set(); /* face URLs that already failed this session: later cards skip straight past them (no repeat 404s) */
 function faceImgHTML(p){
  /* Cards need TRANSPARENT cutouts — PL photos are the only reliable source.
     EA/futwiz/futbin "face" assets are opaque gray squares (verified 21 Aug 2026).
@@ -1101,8 +1154,9 @@ function faceImgHTML(p){
  /* FACE_SWAP: time-boxed gag faces — {code:{src,until}}; expired entries are ignored, the real cascade follows. Parker, 29 Aug: Hasbulla on Evanilson for 24h. */
  const fs=FACE_SWAP[String(p.Code)];if(fs&&Date.now()<Date.parse(fs.until))urls.push('https://parkerno2.github.io/el-matador-tire/faces/'+fs.src);
  if(p.Code){urls.push('https://parkerno2.github.io/el-matador-tire/faces/'+p.Code+'.png');urls.push(face250(p.Code));urls.push(face(p.Code));}
- if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
- return '<img decoding="async" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
+ const ok=urls.filter(u=>!FACEBAD.has(u));
+ if(!ok.length)return'<span class="noface">'+initials(p.Player)+'</span>';
+ return '<img decoding="async" src="'+ok[0]+'" data-alt="'+ok.slice(1).join('|')+'" alt="" onerror="FACEBAD.add(this.getAttribute(\'src\'));var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
 function projBubble(p){ // pre-match bubble text: the prediction if one exists, otherwise a dash (never a fake 0.0)
   const e=D.hasEP?epOf(p.Code):null;return e===null?'–':fmt1(e);
@@ -1148,10 +1202,34 @@ function buildNav(){
   };
 }
 let SUB=null;
+/* Scroll memory: every history entry keeps its own scroll (stamped into history.state), so back and forward land
+   where you left; a tab you come back to from the nav opens where you left it; re-tapping the active tab scrolls
+   to the top. emtFrom = the screen an entry was opened from, so back buttons pop history instead of pushing. */
+let CURHASH=null,SCRT=0,NAVTAP=null;
+const TABPOS={},GWOPEN=new Set();
+const hashNow=()=>location.hash||'#gw';
+const overlayUp=()=>!!(document.querySelector('#sheet.on')||document.getElementById('lgfx'));
+function stampScroll(){clearTimeout(SCRT);SCRT=0;
+  if(CURHASH===null||hashNow()!==CURHASH||overlayUp())return;
+  const s=history.state;if(s&&s.emtOv)return;
+  try{history.replaceState(Object.assign({},s,{emtY:Math.round(scrollY)}),'')}catch(e){}}
+addEventListener('scroll',()=>{
+  if(CURHASH===null||hashNow()!==CURHASH||overlayUp())return;
+  if(CURHASH.indexOf('/')<0)TABPOS[CURHASH]=scrollY;
+  clearTimeout(SCRT);SCRT=setTimeout(stampScroll,150);
+},{passive:true});
+document.addEventListener('click',stampScroll,true); /* a tap that navigates keeps the last scroll */
+function routeBack(target){ /* back to the opener when it is the previous entry, else replace this entry with target */
+  const s=history.state,from=s&&s.emtFrom;
+  if(from&&(!target||from===target)){history.back();return}
+  location.replace(target||'#gw');
+}
 function route(){
-  const parts=(location.hash||'#gw').slice(1).split('/');
+  const hash=hashNow(),parts=hash.slice(1).split('/');
   const h=parts[0];
   if(!document.getElementById('v-'+h)){location.replace('#gw');return;} // unknown view: never a blank page
+  const prev=CURHASH;
+  if(prev==='#gw'&&hash!=='#gw'){GWOPEN.clear();document.querySelectorAll('#gwbody details[open]>summary').forEach(x=>GWOPEN.add(x.textContent.trim()));}
   if(h!=='gw')SUBMARK={}; // predicted-sub tags only live inside a matchup detail
   SUB=parts.length>1?parts[1]:null;
   document.body.setAttribute('data-view',h);
@@ -1160,9 +1238,21 @@ function route(){
   if(h==='gw'&&D.ro&&D.ro.length)renderGW();
   if(h==='team'&&D.ro&&D.ro.length)renderTeam();
   if(h==='xis'&&D.plr&&D.plr.length)renderXIs();
-  window.scrollTo(0,0);
+  CURHASH=hash;
+  let st=history.state;
+  if(!st||!('emtFrom' in st)){st=Object.assign({},st,{emtFrom:prev});try{history.replaceState(st,'')}catch(e){}}
+  if(hash==='#gw'&&GWOPEN.size)document.querySelectorAll('#gwbody details>summary').forEach(x=>{if(GWOPEN.has(x.textContent.trim()))x.parentElement.open=true});
+  if(prev===null)return; /* first paint: the browser restores a reloaded page itself (and loadAll backs it up) */
+  const y=st.emtY!=null?st.emtY:(NAVTAP===hash?(TABPOS[hash]||0):0);NAVTAP=null; /* other fresh screens open at the top */
+  window.scrollTo(0,y);
+  if(y)requestAnimationFrame(()=>{if(hashNow()===hash&&Math.abs(scrollY-y)>2)window.scrollTo(0,y)});
 }
 addEventListener('hashchange',route);
+document.getElementById('nav').addEventListener('click',e=>{ /* re-tap the active tab = back to the top */
+  const b=e.target.closest('[data-v]');if(!b)return;
+  if('#'+b.dataset.v!==hashNow()){NAVTAP='#'+b.dataset.v;return} /* a tab you come back to opens where you left it */
+  TABPOS[hashNow()]=0;window.scrollTo({top:0,behavior:'smooth'});
+});
 
 /* ================= helpers ================= */
 function pairKey(a,b){return[a,b].sort().join('|')}
@@ -1222,11 +1312,16 @@ function rowsFor(xi,mirror){
 /* Provisional bonus: FPL shows BPS live but folds bonus into totals later. For any finished
    fixture whose players all still show Bonus 0, rank BPS and award 3/2/1 with FPL's tie rules
    (ties share the tier and consume the places below). Cleared automatically per fixture the
-   moment official bonus lands, and entirely when the GW is confirmed. */
+   moment official bonus lands, and entirely when the GW is confirmed.
+   Per fixture (BUGS #8): a GW Stats row sums a player's whole gameweek, so in a double it belongs to one fixture only
+   while that is the club's only fixture under way. Once both legs have kicked off the rows can't be split: leg 1's
+   official bonus is in by then, and leg 2 waits for FPL's (no estimate from BPS summed across two matches). */
 function computeProvBonus(curFx){
   const pb={};
+  const own=(club,f)=>(curFx||[]).every(x=>x===f||(x.Home!==club&&x.Away!==club)||(!fin(x.Started)&&!fin(x.Finished)));
   (curFx||[]).forEach(f=>{
     if(!fin(f.Finished))return;
+    if(!own(f.Home,f)||!own(f.Away,f))return;
     const rows=Object.values(D.gwsCur||{}).filter(r=>(r.Club===f.Home||r.Club===f.Away)&&r.Mins>0);
     if(!rows.length||rows.some(r=>r.Bonus>0))return;
     const vals=[...new Set(rows.map(r=>r.BPS))].sort((a,b)=>b-a);
@@ -1260,7 +1355,8 @@ function avgOf(p){
   return(seasonTot(p)/Math.max(1,gwsPlayed(p))).toFixed(1);
 }
 function nextFixture(club){
-  const f=D.cf.find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club));
+  const f=D.cf.filter(x=>!fin(x.Finished)&&!fin(x.Started)&&(x.Home===club||x.Away===club))
+    .sort((a,b)=>num(a.GW)-num(b.GW)||String(a['Kickoff (UTC)']).localeCompare(String(b['Kickoff (UTC)'])))[0];
   if(!f)return'–';
   return f.Home===club?(f.Away+' (H)'):(f.Home+' (A)');
 }
@@ -1438,7 +1534,7 @@ function renderMatch(f,dl){
      +'</div>':'')
    +'</div>';
   document.getElementById('gwbody').onclick=null;
-  document.getElementById('gwback').onclick=()=>{location.hash='gw'};
+  document.getElementById('gwback').onclick=()=>routeBack('#gw'); /* pops back to the list (scroll + accordions kept) */
   document.getElementById('btog').onclick=()=>{BENCHOPEN=!BENCHOPEN;renderGW()};
   D.xpview=false; // never leak expected mode into other views
 }
@@ -1510,7 +1606,7 @@ function luckCard(){
       const w=Math.abs(r.d)/mx*48;
       const bar=r.d>=0?'<i style="left:50%;width:'+w+'%;background:var(--good)"></i>':'<i style="right:50%;width:'+w+'%;background:var(--bad)"></i>';
       return '<div class="lrow2" data-prof="'+esc(r.t)+'">'+mg(r.t,1)
-      +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">'+fmt1(r.act)+' · xP '+fmt1(r.x)+'</span>'
+      +'<span class="lcol"><span class="lmid">'+esc(labShort(r.t))+'</span><span class="lnum">'+fmt1(r.act)+' · xP '+fmt1(r.x)+'</span></span>'
       +'<span class="lbar">'+bar+'</span>'
       +'<span class="ld" style="color:'+(r.d>=0?'var(--good)':'var(--bad)')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('');
     cap='<p class="mnote">Actual vs expected points, season to date, bonus excluded. <b style="color:var(--good)">+</b> running hot, <b style="color:var(--bad)">−</b> deserved more. Tap a manager for the full profile.</p>';
@@ -1522,7 +1618,7 @@ function luckCard(){
       const close=(r.cw+r.cl+r.cd)?' · close '+r.cw+'–'+r.cl:'';
       const bar=r.d>=0?'<i style="left:50%;width:'+w+'%;background:var(--good)"></i>':'<i style="right:50%;width:'+w+'%;background:var(--bad)"></i>';
       return '<div class="lrow2" data-prof="'+esc(r.t)+'">'+mg(r.t,1)
-      +'<span class="lmid">'+esc(r.t)+'</span><span class="lnum">beats '+fmt1(r.beat)+' of '+r.opp+close+'</span>'
+      +'<span class="lcol"><span class="lmid">'+esc(labShort(r.t))+'</span><span class="lnum">beats '+fmt1(r.beat)+' of '+r.opp+close+'</span></span>'
       +'<span class="lbar">'+bar+'</span>'
       +'<span class="ld" style="color:'+(r.d>=0?'var(--good)':'var(--bad)')+'">'+(r.d>=0?'+':'')+fmt1(r.d)+'</span></div>';}).join('');
     cap='<p class="mnote">League points banked vs an <b>all-play</b> schedule: your score against all seven rivals every week (win 3 · draw 1 · loss 0). <b style="color:var(--good)">+</b> means the fixture list has been kind. “Close” counts matches decided by ≤'+CLOSE_MARGIN+'. Tap a manager for the full profile.</p>';
@@ -1628,7 +1724,7 @@ function renderTeam(){
   if(!mine){
     body.innerHTML='<h2 style="margin-top:14px">Who are you?</h2>'
      +'<p class="mnote" style="padding:0 2px 10px;margin:0">Pick your team once. This phone remembers it.</p>'
-     +'<div class="mgrid">'+Object.keys(TEAMS).map(t=>
+     +'<div class="mgrid">'+((D.st||[]).map(s=>s.Team).filter(t=>TEAMS[t]).length?(D.st||[]).map(s=>s.Team).filter(t=>TEAMS[t]):Object.keys(TEAMS)).map(t=>
        '<button class="mt" data-pick="'+esc(t)+'" style="--tc:'+(TEAMS[t].col||'#5B1A66')+'"><span class="mtn">'+esc(t)+'</span><em class="mtm">'+esc(TEAMS[t].mgr)+'</em></button>').join('')+'</div>';
     body.querySelectorAll('[data-pick]').forEach(b=>b.onclick=e=>{e.stopPropagation();
       try{localStorage.setItem('emt-myteam',b.dataset.pick)}catch(err){}
@@ -1636,7 +1732,7 @@ function renderTeam(){
     return;
   }
   body.innerHTML='<div id="teampage" style="margin-top:12px"></div>'
-   +'<p class="mnote" style="text-align:center;padding-bottom:4px"><button id="swteam" style="background:none;border:none;color:var(--p2);font-family:inherit;font-weight:700;cursor:pointer;font-size:.68rem">Not '+esc((TEAMS[mine].mgr||'').split(' ')[0])+'? Switch team</button></p>';
+   +'<p class="mnote" style="text-align:center;padding-bottom:4px"><button id="swteam" style="background:none;border:none;color:var(--p2);font-family:inherit;font-weight:700;cursor:pointer;font-size:.68rem;min-height:40px;padding:10px 12px">Not '+esc((TEAMS[mine].mgr||'').split(' ')[0])+'? Switch team</button></p>';
   openProfile(mine,document.getElementById('teampage'));
   document.getElementById('swteam').onclick=()=>{try{localStorage.removeItem('emt-myteam')}catch(e){}renderTeam()};
 }
@@ -1716,40 +1812,59 @@ function plrSeriesOf(code,fn){
 }
 const cumulate=vals=>{let s=0;return vals.map(v=>({...v,v:(s+=v.v)}))};
 /* ---- renderers ---- */
+/* Lab charts draw in a 320-unit viewBox that scales with the card, so nothing hides behind a sideways scroll at
+   320 px; type is sized for that scale and axis text is 6:1 on white. Axis steps are 1-2-5 'nice' for the data,
+   end labels are short team names pushed apart so they never stack, and a live point wears a green ring. */
+const LABAX='#5E566B';
+const labShort=t=>(typeof SHORTOF!=='undefined'&&SHORTOF[t])||t;
+const labInk=c=>{const n=parseInt(String(c).slice(1),16);if(String(c).length!==7||isNaN(n))return c; /* team colour darkened for text on white */
+  return '#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.round(v*.72).toString(16).padStart(2,'0')).join('')};
+function labStep(range,n,ints){const raw=range/(n||4);if(!(raw>0))return 1;const e=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/e;
+  let st=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;if(ints&&st%1)st=Math.floor(st)||1;return st}
 function svgLine(series,opts){
   opts=opts||{};
-  const H=opts.h||180,W=440,PX=32,PY=26;
   series=series.filter(s=>s.vals.length);
   const gws=[...new Set(series.flatMap(s=>s.vals.map(v=>v.gw)))].sort((a,b)=>a-b);
   if(!gws.length)return'<p class="state">Draws itself once the data lands.</p>';
+  const vl=series.length<=2; /* one or two lines: every point carries its value (the end label carries the last one) */
+  const W=320,H=opts.h||200,PL=30,PT=16,PB=24,PR=opts.endLabels?(vl?82:66):18,X0=PL+10;
   const allv=series.flatMap(s=>s.vals.map(v=>v.v));
   let mx=Math.max(...allv,1),mn=Math.min(...allv,0);
-  mx=Math.ceil(mx/10)*10||10;mn=mn<0?Math.floor(mn/10)*10:0;
-  const px=g=>{const i=gws.indexOf(g);return gws.length<2?W/2:PX+i*((W-PX*2)/(gws.length-1))};
-  const py=v=>H-PY-((v-mn)/((mx-mn)||1))*(H-PY*2);
+  const st=labStep(mx-mn,4,allv.every(v=>Number.isInteger(v)));
+  mx=Math.ceil(mx/st-1e-9)*st;mn=mn<0?Math.floor(mn/st+1e-9)*st:0;if(mx<=mn)mx=mn+st;
+  const px=g=>{const i=gws.indexOf(g);return gws.length<2?X0+(W-X0-PR)/2:X0+i*((W-X0-PR)/(gws.length-1))};
+  const py=v=>H-PB-((v-mn)/(mx-mn))*(H-PT-PB);
+  const fv=v=>String(Math.round(v*10)/10);
   let out='';
-  [0,.5,1].forEach(f2=>{const v=mn+(mx-mn)*f2;
-    out+='<line x1="'+PX+'" y1="'+py(v)+'" x2="'+(W-PX)+'" y2="'+py(v)+'" stroke="#EEE8F2" stroke-dasharray="3 4"/>'
-     +'<text x="'+(PX-5)+'" y="'+(py(v)+3)+'" font-size="8" text-anchor="end" fill="#B3A6B8">'+Math.round(v)+'</text>';});
-  if(mn<0)out+='<line x1="'+PX+'" y1="'+py(0)+'" x2="'+(W-PX)+'" y2="'+py(0)+'" stroke="#D9CFE2"/>';
-  const step=Math.max(1,Math.ceil(gws.length/9));
+  for(let k=0,v=mn;v<=mx+1e-9&&k<12;k++,v=mn+k*st){const zero=mn<0&&Math.abs(v)<1e-9;
+    out+='<line x1="'+PL+'" y1="'+py(v)+'" x2="'+(W-PR)+'" y2="'+py(v)+'" stroke="'+(zero?'#D9CFE2':'#EEE8F2')+'"'+(zero?'':' stroke-dasharray="3 4"')+'/>'
+     +'<text x="'+(PL-5)+'" y="'+(py(v)+3.5)+'" font-size="10.5" text-anchor="end" fill="'+LABAX+'">'+fv(v)+'</text>';}
+  const step=Math.max(1,Math.ceil(gws.length/7));
   gws.forEach((g,i)=>{if(i%step)return;
-    out+='<text x="'+px(g)+'" y="'+(H-6)+'" font-size="8.5" font-weight="700" text-anchor="middle" fill="#6B6076">GW'+g+'</text>';});
-  const thin=series.length>4;
+    out+='<text x="'+px(g)+'" y="'+(H-7)+'" font-size="10.5" font-weight="700" text-anchor="middle" fill="'+LABAX+'">GW'+g+'</text>';});
+  const thin=series.length>4,labs=[];
   series.forEach((s,si)=>{
     const solid=s.vals.filter(v=>!v.hollow);
-    if(solid.length>1)out+='<polyline points="'+solid.map(v=>px(v.gw)+','+py(v.v)).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(thin?1.6:2.4)+'"'+(s.dash?' stroke-dasharray="5 4" opacity=".85"':'')+(thin&&!s.top?' opacity=".4"':'')+' stroke-linecap="round" stroke-linejoin="round"/>';
+    if(solid.length>1)out+='<polyline points="'+solid.map(v=>px(v.gw)+','+py(v.v)).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(thin?1.8:2.4)+'"'+(s.dash?' stroke-dasharray="5 4" opacity=".85"':'')+(thin&&!s.top?' opacity=".4"':'')+' stroke-linecap="round" stroke-linejoin="round"/>';
+    const last=solid[solid.length-1];
     if(!thin||s.top)s.vals.forEach(v=>{
-      out+='<circle cx="'+px(v.gw)+'" cy="'+py(v.v)+'" r="'+(v.hollow?3:3.4)+'" fill="'+(v.hollow?'#F4F1F6':s.color)+'"'+(v.hollow?' stroke="'+s.color+'"':'')+'/>'
-       +(v.live?'<circle cx="'+px(v.gw)+'" cy="'+py(v.v)+'" r="6.2" fill="none" stroke="#0AA9C9" stroke-width="1.4"/>':'');
+      out+='<circle cx="'+px(v.gw)+'" cy="'+py(v.v)+'" r="'+(v.hollow?3:thin?2.6:3.4)+'" fill="'+(v.hollow?'#F4F1F6':s.color)+'"'+(v.hollow?' stroke="'+s.color+'"':'')+'/>'
+       +(v.live?'<circle cx="'+px(v.gw)+'" cy="'+py(v.v)+'" r="6.2" fill="none" stroke="#0E8A5F" stroke-width="1.4"/>':'');
       /* first series labels above its dots, second below — no collisions when lines cross */
-      if(series.length<=2&&!v.hollow)out+='<text x="'+px(v.gw)+'" y="'+(py(v.v)+(si===0?-9:17))+'" font-size="10" font-weight="700" text-anchor="middle" fill="'+s.color+'">'+(Math.round(v.v*10)/10)+'</text>';
+      if(vl&&!v.hollow&&!(opts.endLabels&&v===last))out+='<text x="'+px(v.gw)+'" y="'+(py(v.v)+(si===0?-8:16))+'" font-size="10.5" font-weight="700" text-anchor="middle" fill="'+labInk(s.color)+'">'+fv(v.v)+'</text>';
     });
-    if(opts.endLabels&&solid.length&&(!thin||s.top)){
-      const l=solid[solid.length-1];
-      out+='<text x="'+Math.min(px(l.gw)+6,W-2)+'" y="'+(py(l.v)+3)+'" font-size="8.5" font-weight="700" fill="'+s.color+'">'+esc(s.name)+'</text>';}
+    if(opts.endLabels&&last&&(!thin||s.top))labs.push({x:px(last.gw),y:py(last.v),t:s.name+(vl?' '+fv(last.v):''),c:s.color});
   });
-  return '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:300px">'+out+'</svg></div>';
+  if(labs.length){ /* one column right of the last point; labels pushed apart (one line each) and kept inside the plot */
+    const gap=14,lo=PT-4,hi=H-PB;
+    labs.sort((a,b)=>a.y-b.y||String(a.t).localeCompare(String(b.t)));labs.forEach(l=>{l.ly=Math.min(hi,Math.max(lo,l.y))});
+    for(let i=1;i<labs.length;i++)labs[i].ly=Math.max(labs[i].ly,labs[i-1].ly+gap);
+    if(labs[labs.length-1].ly>hi){labs[labs.length-1].ly=hi;for(let i=labs.length-2;i>=0;i--)labs[i].ly=Math.min(labs[i].ly,labs[i+1].ly-gap);}
+    labs.forEach(l=>{const lx=l.x+8;
+      if(Math.abs(l.ly-l.y)>2)out+='<polyline points="'+(l.x+4)+','+l.y+' '+(lx-2)+','+l.ly+'" fill="none" stroke="'+l.c+'" stroke-width="1" opacity=".6"/>';
+      out+='<text x="'+lx+'" y="'+(l.ly+4)+'" font-size="11.5" font-weight="700" fill="'+labInk(l.c)+'">'+esc(l.t)+'</text>';});
+  }
+  return '<div class="labsvg"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;width:100%;height:auto;max-width:480px;margin:0 auto" role="img">'+out+'</svg></div>';
 }
 function rankBars(rows,opts){
   opts=opts||{};
@@ -1794,34 +1909,40 @@ function labChart(){
     };
     if(S.view==='bars'){
       const perGw=S.metric==='pts'||S.metric==='pa';
+      /* luck reads like the Luck index below it: green = running hot, red = deserved more */
+      const lc=v=>v>=0?'var(--good)':'var(--bad)';
       const rows=teams.map(t=>{
         const vals=serOf(t),sum=vals.reduce((s2,v)=>s2+v.v,0);
         const v=perGw&&vals.length?sum/vals.length:sum;
-        return{label:t,team:t,v,tap:t,
-          barColor:S.metric==='luck'?(v>=0?'var(--bad)':'#5B2D8E'):S.metric==='bench'?'var(--bad)':TEAMS[t].col,
-          vColor:S.metric==='luck'?(v>=0?'var(--bad)':'#5B2D8E'):'',
+        return{label:labShort(t),team:t,v,tap:t,
+          barColor:S.metric==='luck'?lc(v):S.metric==='bench'?'var(--bad)':TEAMS[t].col,
+          vColor:S.metric==='luck'?lc(v):'',
           sub:perGw?'avg / GW':''};
       }).sort((a2,b2)=>b2.v-a2.v);
       return rankBars(rows,{fmt:v=>((S.metric==='luck'||S.metric==='margin')&&v>0?'+':'')+(Math.round(v*10)/10)})
-        +foot(S.metric==='luck'?'Actual − expected, bonus excluded both sides. Red = running hot.':S.metric==='bench'?'Points scored by benched players.':S.metric==='margin'?'Season sum of winning and losing margins. Positive means you won by more than you lost by.':'Tap a bar to focus that manager.');
+        +foot(S.metric==='luck'?'Actual − expected, bonus excluded both sides. Green = running hot, red = deserved more.':S.metric==='bench'?'Points scored by benched players.':S.metric==='margin'?'Season sum of winning and losing margins. Positive means you won by more than you lost by.':'Tap a bar to focus that manager.');
     }
-    const series=teams.slice(0,4).map(t=>({name:TEAMS[t].ini,color:TEAMS[t].col,vals:S.view==='race'?cumulate(serOf(t)):serOf(t),top:true}));
-    /* trending one manager's Points? the expected (xP) line rides along automatically */
-    if(S.metric==='pts'&&teams.length===1){
-      /* single-manager actual-vs-expected wears the brand colors: blue actual, purple expected */
-      series[0].color='#17121D';
-      const a=(agg[teams[0]]||{gws:{}}).gws;
+    /* every picked manager, and all eight in the race when nobody is picked */
+    const series=teams.map(t=>({name:labShort(t),color:TEAMS[t].col,vals:S.view==='race'?cumulate(serOf(t)):serOf(t),top:true}));
+    const one=S.metric==='pts'&&teams.length===1;
+    if(one){
+      /* one manager's actual vs expected: both lines without bonus, the same basis as the Luck index and the profile chart */
+      const a=(agg[teams[0]]||{gws:{}}).gws,live={};mgrSeries(teams[0]).forEach(m=>{live[m.gw]=m.live});
+      const av=Object.keys(a).map(g=>({gw:num(g),v:a[g].act,live:!!live[num(g)]})).sort((x,y)=>x.gw-y.gw);
       const xv=Object.keys(a).map(g=>({gw:num(g),v:a[g].x})).sort((x,y)=>x.gw-y.gw);
-      series.push({name:'expected',color:'#5B1A66',dash:true,vals:S.view==='race'?cumulate(xv):xv,top:true});
+      series[0].color='#17121D';series[0].vals=S.view==='race'?cumulate(av):av;
+      series.push({name:'xP',color:'#5B1A66',dash:true,vals:S.view==='race'?cumulate(xv):xv,top:true});
     }
-    return svgLine(series,{endLabels:S.view==='race'})
-      +foot(S.metric==='pts'&&teams.length===1?'<span style="display:inline-block;width:14px;border-top:2.5px solid #17121D;vertical-align:middle;margin-right:3px"></span>actual score · <span style="display:inline-block;width:14px;border-top:2.5px dashed #5B1A66;vertical-align:middle;margin-right:3px"></span>what the performances deserved (expected, bonus excluded).':S.view==='race'?'Cumulative season totals.':'Per-gameweek. Cyan ring = live.');
+    const anyLive=series.some(s=>s.vals.some(v=>v.live));
+    return svgLine(series,{endLabels:series.length>1||S.view==='race'})
+      +foot(one?'<span style="display:inline-block;width:14px;border-top:2.5px solid #17121D;vertical-align:middle;margin-right:3px"></span>actual · <span style="display:inline-block;width:14px;border-top:2.5px dashed #5B1A66;vertical-align:middle;margin-right:3px"></span>expected (xP). Bonus is left out of both, as in the Luck index.'+(anyLive?' Ringed dot = live.':'')
+        :(S.view==='race'?'Cumulative season totals.':'Per-gameweek.')+(anyLive?' Ringed dot = live.':''));
   }
   if(S.scope==='league'){
     if(S.metric==='wins'){
-      const series=anaOrder().map(t=>({name:TEAMS[t].ini,color:TEAMS[t].col,top:true,
+      const series=anaOrder().map(t=>({name:labShort(t),color:TEAMS[t].col,top:true,
         vals:cumulate(mgrSeries(t).filter(m=>!m.live).map(m=>({gw:m.gw,v:m.pts>m.pa?1:0})))}));
-      return svgLine(series,{endLabels:true,h:200})+foot('Cumulative wins, one line per manager. Draws move nobody.');
+      return svgLine(series,{endLabels:true,h:210})+foot('Cumulative wins, one line per manager. Draws move nobody.');
     }
     const gws=Object.keys(D.gwsByGw).map(Number).sort((a2,b2)=>a2-b2);
     const rows=gws.map(g=>{
@@ -1829,19 +1950,28 @@ function labChart(){
       return{g,pts};
     }).filter(r=>r.pts.length);
     if(!rows.length)return'<p class="state">Draws itself once scores land.</p>';
-    const mx=Math.max(...rows.flatMap(r=>r.pts.map(p2=>p2.v)),10);
-    const W=440,rh=30,H=rows.length*rh+26;
+    /* a score axis, the week's lowest and highest labelled, every dot named on hover, and a colour key */
+    const vals=rows.flatMap(r=>r.pts.map(p2=>p2.v));
+    const st=labStep(Math.max(...vals)-Math.min(...vals),4,true);
+    const lo=Math.floor(Math.min(...vals)/st)*st,hi=Math.max(lo+st,Math.ceil(Math.max(...vals)/st)*st);
+    const W=320,X0=58,X1=W-26,rh=30,top=16,H=top+rows.length*rh+12;
+    const sx=v=>X0+((v-lo)/(hi-lo))*(X1-X0);
     let out='';
+    for(let k=0,v=lo;v<=hi+1e-9&&k<12;k++,v=lo+k*st)out+='<line x1="'+sx(v)+'" y1="'+(top-8)+'" x2="'+sx(v)+'" y2="'+(H-22)+'" stroke="#EEE8F2" stroke-dasharray="3 4"/>'
+      +'<text x="'+sx(v)+'" y="'+(H-7)+'" font-size="10.5" text-anchor="middle" fill="'+LABAX+'">'+v+'</text>';
     rows.forEach((r,i)=>{
-      const y=16+i*rh;
-      const xs=r.pts.map(p2=>60+(p2.v/mx)*(W-90));
-      out+='<text x="4" y="'+(y+4)+'" font-size="9" font-weight="700" fill="#6B6076">GW'+r.g+'</text>'
+      const y=top+i*rh;
+      const xs=r.pts.map(p2=>sx(p2.v));
+      const lo2=r.pts.reduce((a2,b2)=>b2.v<a2.v?b2:a2),hi2=r.pts.reduce((a2,b2)=>b2.v>a2.v?b2:a2);
+      out+='<text x="2" y="'+(y+4)+'" font-size="10.5" font-weight="700" fill="'+LABAX+'">GW'+r.g+'</text>'
        +'<line x1="'+Math.min(...xs)+'" y1="'+y+'" x2="'+Math.max(...xs)+'" y2="'+y+'" stroke="#D9CFE2" stroke-width="2"/>'
-       +r.pts.map((p2,j)=>'<circle cx="'+xs[j]+'" cy="'+y+'" r="4.5" fill="'+TEAMS[p2.t].col+'" opacity=".9"/>').join('');
+       +r.pts.map((p2,j)=>'<circle cx="'+xs[j]+'" cy="'+y+'" r="5" fill="'+TEAMS[p2.t].col+'" stroke="#fff" stroke-width="1"><title>'+esc(labShort(p2.t))+' · '+p2.v+'</title></circle>').join('')
+       +'<text x="'+(sx(lo2.v)-8)+'" y="'+(y+4)+'" font-size="10.5" font-weight="700" text-anchor="end" fill="'+labInk(TEAMS[lo2.t].col)+'">'+lo2.v+'</text>'
+       +'<text x="'+(sx(hi2.v)+8)+'" y="'+(y+4)+'" font-size="10.5" font-weight="700" fill="'+labInk(TEAMS[hi2.t].col)+'">'+hi2.v+'</text>';
     });
-    return '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:300px">'+out+'</svg></div>'
-      +'<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:6px">'+anaOrder().map(t=>'<span style="display:inline-flex;align-items:center;gap:3px;font-size:.56rem;font-weight:700;color:var(--mid)">'+mg(t,1)+'</span>').join('')+'</div>'
-      +foot('Every manager’s score, one row per gameweek.');
+    return '<div class="labsvg"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;width:100%;height:auto;max-width:480px;margin:0 auto" role="img">'+out+'</svg></div>'
+      +'<div class="labkey">'+anaOrder().map(t=>'<span><i style="background:'+TEAMS[t].col+'"></i>'+esc(labShort(t))+'</span>').join('')+'</div>'
+      +foot('Every manager’s score, one row per gameweek; the lowest and highest are labelled.');
   }
   const picks=S.sel.slice(0,2);
   if(!picks.length)return'<p class="state">Search a player above to draw his season.</p>';
@@ -1862,11 +1992,11 @@ function labChart(){
 function renderLab(){
   const ctl=document.getElementById('labctl'),viz=document.getElementById('labviz');
   if(!ctl)return;
-  const segs=[['mgr','MANAGERS'],['league','LEAGUE']];
+  const segs=[['mgr','Managers'],['league','League']];
   let sub='';
   if(LAB.scope==='mgr'){
     sub='<div class="labsub">'+anaOrder().map(t=>'<button class="labmono'+(LAB.sel.includes(t)?' on':'')+'" data-t="'+esc(t)+'" style="--tc:'+TEAMS[t].col+'">'+TEAMS[t].ini+'</button>').join('')
-      +(LAB.sel.length?'<button class="labclear" data-clear>ALL</button>':'')+'</div>';
+      +(LAB.sel.length?'<button class="labclear" data-clear>All</button>':'')+'</div>';
   }else if(LAB.scope==='plr'){
     sub='<div class="labsub"><input id="labq" type="search" placeholder="Search a player… (up to 2)">'
       +LAB.sel.map(c=>{const p2=D.plr.find(x=>String(x.Code)===String(c));return p2?'<button class="labpill" data-rm="'+c+'">'+esc(p2.Player)+' ×</button>':''}).join('')+'</div>'
@@ -1881,9 +2011,10 @@ function renderLab(){
   viz.innerHTML=labChart();
   ctl.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>labSet({scope:b.dataset.s,sel:[]}));
   ctl.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
-    const t=b.dataset.t,i=LAB.sel.indexOf(t);
-    if(i>=0)LAB.sel.splice(i,1);else if(LAB.sel.length<4)LAB.sel.push(t);
-    labSet({});});
+    const t=b.dataset.t,i=LAB.sel.indexOf(t),was=LAB.sel.length;
+    if(i>=0)LAB.sel.splice(i,1);
+    else{if(LAB.sel.length>=4)LAB.sel.shift();LAB.sel.push(t);} /* a 5th pick replaces the earliest one */
+    labSet(!was&&LAB.sel.length&&LAB.view==='bars'?{view:'trend'}:{});}); /* picking from the bars opens the trend */
   ctl.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>labSet({sel:[]}));
   ctl.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>labSet({metric:b.dataset.m}));
   ctl.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>labSet({view:b.dataset.v}));
@@ -1899,7 +2030,7 @@ function renderLab(){
       if(LAB.sel.length<2&&!LAB.sel.includes(b.dataset.add))LAB.sel.push(b.dataset.add);
       labSet({});});
   };
-  viz.querySelectorAll('[data-lab]').forEach(r=>r.onclick=()=>labSet({scope:'mgr',sel:[r.dataset.lab],metric:LAB.metric==='bench'?'bench':'vsx',view:Object.keys(D.gwsByGw).length>=2?'trend':'bars'}));
+  viz.querySelectorAll('[data-lab]').forEach(r=>r.onclick=()=>labSet({scope:'mgr',sel:[r.dataset.lab],view:Object.keys(D.gwsByGw).length>=2?'trend':'bars'})); /* the metric stays */
 }
 function goldenBoot(){
   const xm=xiPtsMap();
@@ -1930,7 +2061,7 @@ function mgrTiles(){
     D.fx.forEach(fx2=>{if(fx2.Home!==t&&fx2.Away!==t)return;
       const pt=effPtsOf(fx2,t);
       if(fin(fx2.Finished)||pt>0){g++;pf+=pt}
-      if(pt>best)best=pt;});
+      if(fin(fx2.Finished)&&pt>best)best=pt;});  /* best = finished weeks, the same as Table · Season records */
     const st=D.st.find(s2=>s2.Team===t)||{};
     return '<button class="mt" data-prof="'+esc(t)+'" style="--tc:'+TEAMS[t].col+'">'
      +'<b class="mtn">'+esc(t)+'</b><em class="mtm">'+esc(TEAMS[t].mgr||'')+'</em>'
@@ -2001,20 +2132,23 @@ function simulate(){
   return{title,last};
 }
 const pctTxt=v=>v<1?'<1%':(v>99?'>99%':Math.round(v)+'%');
-const heat=v=>'hsl('+Math.max(0,120-120*(v/100))+' 72% 42%)';
+const heat=v=>v>=25?'#B3303A':'#17121D'; /* ink, status red once the risk is real (the old HSL ramp went neon green) */
 function renderTable(){
   const st=D.st.slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For']));
   const lead=st[0];
   document.getElementById('spot').hidden=true;
   const sim=simulate();
   let recs='';
-  let hi=null,lo=null;
+  let hi=null,lo=null; /* a record shared by several managers lists every one of them (the Lab tiles show each one's best) */
+  const recOf=(cur,n,p,g,better)=>{if(!cur||better(p,cur.p))return{p,who:[[n,num(g)]]};if(p===cur.p)cur.who.push([n,num(g)]);return cur};
   D.fx.forEach(f=>{if(!fin(f.Finished))return;
     [[f.Home,num(f['Home pts']),f.GW],[f.Away,num(f['Away pts']),f.GW]].forEach(([n,p,g])=>{
-      if(!hi||p>hi.p)hi={n,p,g};if(!lo||p<lo.p)lo={n,p,g};});});
+      hi=recOf(hi,n,p,g,(a,b)=>a>b);lo=recOf(lo,n,p,g,(a,b)=>a<b);});});
+  const recWho=r=>{const by={};r.who.slice().sort((a,b)=>a[1]-b[1]).forEach(w=>(by[w[0]]=by[w[0]]||[]).push('GW'+w[1]));
+    const ks=Object.keys(by);return ks.length===1?esc(ks[0])+' · '+by[ks[0]].join(', '):ks.map(k=>esc(labShort(k))+' '+by[k].join(', ')).join(' · ');};
   if(hi&&lo)recs='<h2>Season records</h2><div class="minirecs">'
-   +'<div><b class="hi">'+hi.p+'</b><div class="lb"><span>Highest GW</span><em>'+esc(hi.n)+' · GW'+hi.g+'</em></div></div>'
-   +'<div><b class="lo">'+lo.p+'</b><div class="lb"><span>Lowest GW</span><em>'+esc(lo.n)+' · GW'+lo.g+'</em></div></div></div>';
+   +'<div><b class="hi">'+hi.p+'</b><div class="lb"><span>Highest GW</span><em>'+recWho(hi)+'</em></div></div>'
+   +'<div><b class="lo">'+lo.p+'</b><div class="lb"><span>Lowest GW</span><em>'+recWho(lo)+'</em></div></div></div>';
   const bv=sim.last['Kobbie Mainoo Fan'],col=heat(bv);
   const done={};D.mw.forEach(w=>{done[num(w.GW)]=fin(w.Finished)});
   // MOTM totals: finished fixtures + the live gameweek once its deadline has passed, scored exactly like the
@@ -2044,16 +2178,16 @@ function renderTable(){
    +st.map((s,i)=>{const v=sim.title[s.Team]||0,tc=TEAMS[s.Team]?.col||'#5B1A66';
     return'<div class="trow'+(i===0&&D.started?' lead':'')+'" data-prof="'+esc(s.Team)+'" style="cursor:pointer">'
     +'<span class="rk">'+(i+1)+'</span><span>'+mg(s.Team)+'</span>'
-    +'<span class="nm2">'+esc(s.Team)+'<em>'+esc(s.Manager)+' · PF '+s['Pts For']+' · PA '+s['Pts Against']+'</em></span>'
+    +'<span class="nm2">'+esc(s.Team)+'<em><span class="nw">'+esc(s.Manager)+' ·</span> <span class="nw">PF '+s['Pts For']+' · PA '+s['Pts Against']+'</span></em></span>'
     +'<span class="wdl w">'+s.W+'</span><span class="wdl">'+s.D+'</span><span class="wdl">'+s.L+'</span>'
     +'<span class="lp">'+s['League Pts']+'</span>'
     +'<span class="odds"><span class="olab">Title</span><span class="obar"><i style="width:'+Math.max(1.5,v)+'%;background:'+tc+'"></i></span><b class="opct2">'+pctTxt(v)+'</b></span>'
     +'</div>'}).join('')
-   +'<p class="mnote" style="padding:6px 8px 8px;margin:0">Title odds from 10,000 simulated seasons · '+(D.started?'blends results so far with pre-season projections':'pre-season projections only until real scores arrive')+'.</p></div>'
+   +'<p class="mnote" style="padding:6px 8px 8px;margin:0">Title odds from 5,000 simulated seasons · '+(D.started?'blends results so far with pre-season projections':'pre-season projections only until real scores arrive')+'.</p></div>'
    +recs
    +'<h2>The market</h2><div class="stage"><div class="sh2">Will Baha finish 8th?</div><div class="card"><div class="mkt">'
    +'<div class="dial" style="background:conic-gradient('+col+' '+(bv*3.6)+'deg,#F1EEF7 0)"><div class="in2"><b style="color:'+col+'">'+pctTxt(bv)+'</b><span>chance</span></div></div>'
-   +'<div><p>Probability Kobbie Mainoo Fan takes last place, priced from 10,000 simulated seasons. Resolves GW38.</p>'
+   +'<div><p>Probability Kobbie Mainoo Fan takes last place, priced from 5,000 simulated seasons. Resolves GW38.</p>'
    +'<span style="font-size:.7rem;font-weight:700;color:'+col+'">'+(bv>=50?'Trending wooden spoon':bv>=25?'Genuinely in danger':'Safe… for now')+'</span></div></div></div></div>'
    +'<details class="acc"><summary>MOTM history</summary><div>'
    +PERIODS.filter(per=>per[1]<=D.gw).map(per=>{
@@ -2065,7 +2199,7 @@ function renderTable(){
        if(complete){tag='<span class="tag won">Winner</span>';money='<span class="money">$30</span>';}
        else tag='<span class="tag lead">Leading</span>';}
      return'<div class="mrow"><span class="per2">'+per[0]+'<em>GW'+per[1]+'–'+per[2]+'</em></span>'
-      +(money||'<span></span>')+who+tag+'</div>';
+      +who+'<span class="mtg">'+tag+money+'</span></div>';
    }).join('')+'</div></details>'+upAcc();
 }
 
@@ -2091,11 +2225,12 @@ function plrRow(p){
   const chain=owned
     ?['https://parkerno2.github.io/el-matador-tire/faces/'+p.Code+'.png',face250(p.Code),face(p.Code)]
     :[face250(p.Code),face(p.Code)];
-  const img='<img class="pf" loading="lazy" src="'+chain[0]+'" data-alt="'+chain.slice(1).join('|')
-   +'" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface3>'+initials(p.Player)+'</span>\'}">';
+  const ok=chain.filter(u=>!FACEBAD.has(u));
+  const img=!ok.length?'<span class="noface3">'+initials(p.Player)+'</span>':'<img class="pf" loading="lazy" src="'+ok[0]+'" data-alt="'+ok.slice(1).join('|')
+   +'" onerror="FACEBAD.add(this.getAttribute(\'src\'));var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface3>'+initials(p.Player)+'</span>\'}">';
   return '<div class="prw" data-pc="'+p.Code+'">'+img
    +'<span class="pw"><b>'+esc(p.Player)+'</b><em>'+flagImg(p.Nation,11)+esc(p.Pos)+' · '+esc(p.Club)
-   +' · OVR '+((D.fc27[String(p.Code)]||{}).ovr?Math.round(D.fc27[String(p.Code)].ovr):'–')+(p.News?' · <b style="color:#C62828;font-weight:700">Flagged</b>':'')+'</em></span>'
+   +' · OVR '+dynOvr(plrPseudo(p))+(p.News?' · <b style="color:#C62828;font-weight:700">Flagged</b>':'')+'</em></span>'
    +'<span class="ptb"><b>'+num(p['Season pts'])+'</b><span>'+(D.gwsDone>1?plrAvg(p).toFixed(1)+' AVG':'PTS')+'</span></span>'+own+'</div>';
 }
 function renderXIs(){
@@ -2108,7 +2243,7 @@ function renderXIs(){
     const owned=squad.filter(p=>p.Owner&&p.Owner!=='FREE').length;
     const sect=pos=>{
       const rows=squad.filter(p=>p.Pos===pos)
-        .sort((a,b)=>((D.fc27[String(b.Code)]||{}).ovr||0)-((D.fc27[String(a.Code)]||{}).ovr||0));
+        .sort((a,b)=>dynOvr(plrPseudo(b))-dynOvr(plrPseudo(a)));
       return rows.length?'<div class="posh2">'+({GKP:'Goalkeepers',DEF:'Defenders',MID:'Midfielders',FWD:'Forwards'})[pos]+'</div>'+rows.map(plrRow).join(''):'';};
     body.innerHTML='<button class="backbtn" id="pback">‹ All clubs</button>'
      +'<div class="card" style="display:flex;align-items:center;gap:12px">'+badgeImg(club,34)
@@ -2120,9 +2255,7 @@ function renderXIs(){
     const list=(ALLCLUBS?clubs.sort((a,b)=>(BIGCLUBS.indexOf(a)+1||99)-(BIGCLUBS.indexOf(b)+1||99)||a.localeCompare(b)):BIGCLUBS);
     let res='';
     if(PQUERY){
-      const q=PQUERY.toLowerCase();
-      const rows=D.plr.filter(p=>nameMatch(p,q))
-        .sort((a,b)=>num(b['Season pts'])-num(a['Season pts'])).slice(0,15);
+      const rows=searchPlayers(PQUERY,15);
       res=rows.length?rows.map(plrRow).join(''):'<p class="state">No player matches “'+esc(PQUERY)+'”.</p>';
     }
     /* activity accordion (folded in from the old Trades & Waivers tab) */
@@ -2143,16 +2276,21 @@ function renderXIs(){
      +'<span class="fatog"><button data-ft="tot" class="'+(FATOG==='tot'?'on':'')+'">Total</button>'
      +'<button data-ft="avg" class="'+(FATOG==='avg'?'on':'')+'">Average</button></span></div>'
      +fas.map(plrRow).join(''):'';
-    body.innerHTML=
-     '<input class="pfind" id="pfind" type="search" placeholder="Search any player" value="'+esc(PQUERY)+'">'
-     +'<div id="pres">'+res+'</div>'
+    const rest='<div id="pres">'+res+'</div>'
      +(PQUERY?'':'<div class="clubgrid">'+list.map(c=>'<button data-club="'+c+'">'+badgeImg(c,32)+'<span>'+c+'</span></button>').join('')+'</div>'
        +'<button class="allclubs" id="allc">'+(ALLCLUBS?'Big 8 only ▴':'All 20 clubs ▾')+'</button>'
-       +actHtml+faHtml)
-    ;
+       +actHtml+faHtml);
+    /* the search box is never replaced while it exists: replacing it on every keystroke threw the caret to the
+       end (mid-word edits impossible) and bounced the iOS keyboard. Only what follows it is rebuilt. */
+    const keep=document.getElementById('pfind');
+    if(keep&&keep.parentNode===body){
+      while(keep.previousSibling)keep.previousSibling.remove();
+      while(keep.nextSibling)keep.nextSibling.remove();
+      keep.insertAdjacentHTML('afterend',rest);
+      if(document.activeElement!==keep&&keep.value!==PQUERY)keep.value=PQUERY;
+    }else body.innerHTML='<input class="pfind" id="pfind" type="search" placeholder="Search any player" value="'+esc(PQUERY)+'">'+rest;
     const inp=document.getElementById('pfind');
-    inp.oninput=()=>{PQUERY=inp.value;renderXIs();
-      const i2=document.getElementById('pfind');i2.focus();i2.setSelectionRange(i2.value.length,i2.value.length)};
+    inp.oninput=()=>{PQUERY=inp.value;renderXIs();};
     const ac=document.getElementById('allc');if(ac)ac.onclick=()=>{ALLCLUBS=!ALLCLUBS;renderXIs()};
     body.querySelectorAll('[data-club]').forEach(b=>b.onclick=()=>{location.hash='xis/'+b.dataset.club});
     body.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{FATOG=b.dataset.ft;renderXIs()});
@@ -2282,12 +2420,15 @@ function fxPlayers(club){ // every rostered player at this club, XI first, then 
   const xi=o=>inEffXi(o.p.Team,o.p.Code)?0:1;
   return rows.sort((a,b)=>xi(a)-xi(b)||String(a.p.Team).localeCompare(String(b.p.Team))||num(b.p['GW pts'])-num(a.p['GW pts']));
 }
-function plPlayerRow(o,started,done){
+function plPlayerRow(o,started,done,dgw){
   const p=o.p,bench=!inEffXi(p.Team,p.Code);
-  const val=started?'<span class="pv'+(done?'':' live')+'"><b>'+Math.round(num(p['GW pts']))+'</b><i>'+(done?'PTS':'LIVE')+'</i></span>'
+  /* double gameweek: the sheet only holds his gameweek total, so it is shown (labelled GW) under both fixtures
+     with the gameweek's status, never as if it were this one fixture's points */
+  if(dgw){started=fxStarted(p.Club);done=fxFinished(p.Club);}
+  const val=started?'<span class="pv'+(done?'':' live')+'"'+(dgw?' title="Gameweek total, both fixtures"':'')+'><b>'+Math.round(num(p['GW pts']))+'</b><i>'+(dgw?'GW':done?'PTS':'LIVE')+'</i></span>'
                    :'<span class="pv proj"><b>'+projBubble(p)+'</b><i>PROJ</i></span>';
   return '<div class="plp'+(bench?' bench':'')+'" data-i="'+o.i+'">'+mg(p.Team,1)
-   +'<span class="pn">'+esc(p.Player)+'<em>'+String(p.Pos).slice(0,3)+(bench?' · BENCH':'')+'</em></span>'+val+'</div>';
+   +'<span class="pn">'+esc(p.Player)+'<em>'+String(p.Pos).slice(0,3)+(bench?' · BENCH':'')+(dgw?' · DGW':'')+'</em></span>'+val+'</div>';
 }
 function plSnapshot(rows){ // who has men on the pitch right now
   const live=rows.filter(f=>fin(f.Started)&&!fin(f.Finished));
@@ -2311,13 +2452,16 @@ function plStrip(){
     const k=fxKey(f),open=PLALL||PLOPEN.has(k);
     const hp=fxPlayers(f.Home),ap=fxPlayers(f.Away);
     const cnt=hp.filter(o=>inEffXi(o.p.Team,o.p.Code)).length+ap.filter(o=>inEffXi(o.p.Team,o.p.Code)).length;
-    const side=(ps,cls)=>'<div class="side'+cls+'">'+(ps.length?ps.map(o=>plPlayerRow(o,started,done)).join(''):'<div class="none">No league players</div>')+'</div>';
+    const dgw=c=>rows.filter(x=>x.Home===c||x.Away===c).length>1;
+    const side=(ps,cls,c)=>'<div class="side'+cls+'"><div class="plsh">'+esc(c)+'</div>'+(ps.length?ps.map(o=>plPlayerRow(o,started,done,dgw(c))).join(''):'<div class="none">No league players</div>')+'</div>';
+    /* the league-XI count sits apart from both clubs (it counts the whole match), with a player glyph */
     return '<div class="plrow tap'+(open?' open':'')+'" data-fx="'+esc(k)+'" role="button" aria-expanded="'+open+'">'
      +'<span class="chev">›</span>'+badgeImg(f.Home,16)+'<span class="cl">'+esc(f.Home)+'</span>'
-     +'<span class="mid2">'+mid+'</span>'
-     +'<span class="cl a">'+esc(f.Away)+'<span class="cnt" title="league XI players in this match">'+cnt+'</span></span>'+badgeImg(f.Away,16)
+     +'<span class="mid2 num">'+mid+'</span>'
+     +'<span class="cl a">'+esc(f.Away)+'</span>'+badgeImg(f.Away,16)
+     +'<span class="cnt" title="League starters in this match" aria-label="'+cnt+' league starters in this match"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7" r="5"/><path d="M2 23c0-6 4.5-9 10-9s10 3 10 9z"/></svg>'+cnt+'</span>'
      +'<span class="pst'+(st==='LIVE'?' live':'')+'">'+st+'</span></div>'
-     +'<div class="plx'+(open?' on':'')+'">'+side(hp,'')+side(ap,' a')+'</div>';
+     +'<div class="plx'+(open?' on':'')+'">'+side(hp,'',f.Home)+side(ap,' a',f.Away)+'</div>';
   };
   const sorted=rows.slice().sort((a,b)=>String(a['Kickoff (UTC)']).localeCompare(String(b['Kickoff (UTC)'])));
   return '<div class="plhead"><h2>Premier League</h2><button id="plall" type="button">'+(PLALL?'HIDE ALL':'SHOW ALL')+'</button></div><div class="card" style="padding:8px 12px">'
@@ -2338,7 +2482,7 @@ function upAcc(){
 }
 
 /* ================= FAQ (with card gallery) ================= *//* ================= FAQ (with card gallery) ================= */
-function demoCard(tier,ovr,pos,name,tag,desc,file){
+function demoCard(tier,ovr,pos,name,tag,desc,file,pts){
   const bust='<svg viewBox="0 0 100 100" style="width:100%;height:100%;border-radius:9cqw;background:rgba(0,0,0,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)" aria-hidden="true">'
    +'<circle cx="50" cy="38" r="17" fill="rgba(255,255,255,.55)"/>'
    +'<path d="M18 92 Q24 60 50 64 Q76 60 82 92 Z" fill="rgba(255,255,255,.55)"/></svg>';
@@ -2349,7 +2493,7 @@ function demoCard(tier,ovr,pos,name,tag,desc,file){
    +cardBg(tier)
    +(tag?'<span class="tag">'+tag+'</span>':'')
    +'<span class="rt"><b>'+ovr+'</b><span>'+pos+'</span></span>'
-   +'<span class="pts"><b>0</b><i>PTS</i></span>'
+   +'<span class="pts"><b>'+(pts||0)+'</b><i>PTS</i></span>'
    +'<span class="face">'+face+'</span>'
    +'<span class="nm">'+name+'</span>'
    +'<span class="meta">'+fakeclub+'<span class="sep"></span>'+fakeflag+'</span>'
@@ -2358,15 +2502,16 @@ function demoCard(tier,ovr,pos,name,tag,desc,file){
 /* v12-clean copy pass (patch_v12_clean.py, 26 Sep 2026) */
 function renderFAQ(){
   document.getElementById('faqbody').innerHTML=
-   '<h2>The cards</h2><div class="gallery">'
-   +demoCard('silver',74,'MID','GRAHN','','<b>Silver</b>: rated under 78','487838.png')
-   +demoCard('gold',81,'DEF','TAUNT','','<b>Gold</b>: rated 78–84','492777.png')
-   +demoCard('elite',88,'GKP','GOULD','','<b>Elite</b>: rated 85+','111234.png')
-   +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b>: round 1–2 picks, league colours all season','mgr-nolan.png')
-   +demoCard('spec',91,'MID','SCANTLEBURY','R2','<b>Round 2 pick</b>: same colours, R2 tag','215413.png')
-   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b>: a 10+ point haul, lasts one week','mgr-baha.png')
-   +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b>: the Premier League award','231416.png')
-   +demoCard('gold',82,'MID','PJ NOLAN','','<b>Gold</b>: the most common tier','493105.png')
+   '<div class="faqtop"><button class="backbtn" id="faqback" type="button">‹ Back</button><h1>How it works</h1></div>'
+   +'<h2>The cards</h2><div class="gallery">'
+   +demoCard('silver',74,'MID','GRAHN','','<b>Silver</b>: rated under 78','487838.png',2)
+   +demoCard('gold',81,'DEF','TAUNT','','<b>Gold</b>: rated 78–84','492777.png',6)
+   +demoCard('elite',88,'GKP','GOULD','','<b>Elite</b>: rated 85+','111234.png',7)
+   +demoCard('spec',90,'FWD','NOLAN','R1','<b>Draft special</b>: round 1–2 picks, league colours all season','mgr-nolan.png',8)
+   +demoCard('spec',91,'MID','SCANTLEBURY','R2','<b>Round 2 pick</b>: same colours, R2 tag','215413.png',5)
+   +demoCard('totw',84,'FWD','KHAROOFA','TOTW','<b>Team of the Week</b>: a 10+ point haul, lasts one week','mgr-baha.png',13)
+   +demoCard('potm',89,'MID','SODINI','POTM','<b>Player of the Month</b>: the Premier League award','231416.png',9)
+   +demoCard('gold',82,'MID','PJ NOLAN','','<b>Gold</b>: the most common tier','493105.png',3)
    +'</div>'
    +'<h2>The pot: $1,200</h2><div class="card"><div class="pot">'
    +'<div><b>$600</b><span>1st place</span></div><div><b>$180</b><span>2nd place</span></div>'
@@ -2382,6 +2527,8 @@ function renderFAQ(){
    +'<div class="faqsec"><h3>Projected vs expected</h3><p><b>Projected</b> points are the app’s forecast before a player’s match: his expected minutes, his underlying numbers and the fixture. <b>Expected (xP)</b> is what a finished performance deserved: goals scored as xG, assists as xA, clean sheets as the odds of one given the chances faced. The matchup scoreline follows the same path: a projected final while games are in play, then the xP scoreline when the gameweek closes, so “won 41–38 but deserved to lose 33–45” is something your rivals can prove. Bonus is left out of xP.</p></div>'
    +'<div class="faqsec"><h3>The data</h3><p>Scores and lineups flow from the FPL Draft API on a rolling refresh: the app re-pulls whenever you open it and every few minutes while it’s on screen. During live matches it can trail the TV by a few minutes; if you got a red card thirty seconds ago, the card doesn’t know yet.</p></div>'
    +'<div class="faqsec"><h3>Privacy</h3><p>No ads, no analytics. This phone remembers which team you follow and, if you claimed a team, your sign-in. A claimed team’s photo, colours, crest and display name are saved to the league’s Google Sheet, which anyone with the link can view. PINs are kept only as hashes on the league’s server, never in the sheet.</p></div>';
+  /* back to wherever the manual was opened from; a cold #faq load goes to Matchday */
+  document.getElementById('faqback').onclick=()=>routeBack('');
 }
 
 /* ================= player sheet ================= */
@@ -2475,6 +2622,18 @@ window.addEventListener('popstate',()=>{
 });
 ov.onclick=closeSheet;
 addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+/* an article opened from the All articles sheet comes back to that sheet: the tap marks the sheet's history entry,
+   and when the app loads at that entry again (the article's × is history.back) the sheet reopens on it */
+document.addEventListener('click',e=>{
+  const a=e.target.closest('#sheet .artl a[href]'),s=history.state;
+  if(a&&s&&s.emtOv){try{history.replaceState(Object.assign({},s,{emtArt:1}),'')}catch(err){}}
+},true);
+function reopenArticles(){
+  const s=history.state;
+  if(!s||!s.emtOv||!s.emtArt||typeof openArticles!=='function'||sheet.classList.contains('on'))return;
+  OVPUSHED=true; /* this entry already is the sheet's: reopen on it without pushing another */
+  openArticles();
+}
 document.body.addEventListener('click',e=>{
   const b=e.target.closest('[data-i]');
   if(b&&D.ro[+b.dataset.i])openSheet(D.ro[+b.dataset.i]);
@@ -2596,7 +2755,11 @@ function loadAll(quiet){
     D.gwsDone=mw.filter(w=>fin(w.Finished)).length;
     /* current-GW slices for xP / projections (EP falls back to the nearest captured block) */
     D.gwsCur=D.gwsByGw[D.gw]||{};
-    D.predCur=D.predByGw[D.gw]||D.predByGw[Math.min.apply(null,Object.keys(D.predByGw).map(Number).filter(g=>g>D.gw).concat([9999]))]||{};
+    /* D.predGw = the gameweek the block in D.predCur really forecasts: a stand-in block (this GW's capture missed) is
+       never shown as this GW's FPL forecast (BUGS #6; fplEpOf reads null for it) */
+    {const later=Object.keys(D.predByGw).map(Number).filter(g=>g>D.gw);
+     D.predGw=D.predByGw[D.gw]?D.gw:later.length?Math.min.apply(null,later):null;}
+    D.predCur=D.predGw!==null?D.predByGw[D.predGw]:{};
     D.hasXP=Object.keys(D.gwsCur).length>0;
     D.hasEP=Object.keys(D.predCur).length>0;
     const curDl=cur?dt(cur['Deadline (UTC)']):null;
@@ -2629,6 +2792,8 @@ function loadAll(quiet){
     pill.classList.toggle('final',finalMode);
     LOADED=Date.now();
     renderGW();renderTable();renderXIs();renderAct();renderAna();
+    if(!quiet){setTimeout(reopenArticles,0);
+      const hs=history.state;if(hs&&hs.emtY&&!scrollY)window.scrollTo(0,hs.emtY);} /* back from an article: the page is tall again */
   }).catch(e=>{
     if(quiet&&D.ro.length)return; // background refresh failed: keep showing what we have
     document.querySelectorAll('.view>div[id]').forEach(d=>d.innerHTML='<p class="state">Couldn’t reach the sheet ('+esc(e.message)+'). Check link-sharing: Anyone with the link · Viewer.</p>');
