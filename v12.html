@@ -4837,11 +4837,16 @@ function gridHTML(){
 .mpxl span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mpxl span b{font-size:.8rem;color:var(--gold);margin-left:2px}
 .mpxl span.no{color:#C9B8D6;font-weight:500}
-/* who plays whom */
+/* the hidden rest of a long risk list, and the "+N more" button that reveals it (40px tall, drawn as the old text line) */
+.mpxl:not(.mpxopen) .mpxx{display:none}
+.mpxl .mpxmore{appearance:none;background:none;border:0;padding:11px 0;margin:-9px 0 -11px;font:inherit;font-size:.7rem;font-weight:500;color:#C9B8D6;cursor:pointer;line-height:1.3;min-height:40px;text-align:inherit}
+.mpxl.r .mpxmore{text-align:right}
+/* who plays whom: the names ellipsize on their own, the +N count never gets cut */
 .mpxg3{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);align-items:center;gap:8px;margin-top:5px}
-.mpxg3 span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.mpxg3 span.r{text-align:right}
-.mpxg3 span i{font-style:normal;color:#C9B8D6;font-weight:600}
+.mpxg3 span{font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;min-width:0;display:flex;align-items:baseline;gap:3px}
+.mpxg3 span.r{text-align:right;justify-content:flex-end}
+.mpxg3 span em{display:inline;font:inherit;font-style:normal;letter-spacing:0;text-transform:none;color:inherit;text-align:inherit;min-width:0;overflow:hidden;text-overflow:ellipsis} /* not the .mpxr em row label */
+.mpxg3 span i{font-style:normal;color:#C9B8D6;font-weight:600;flex:none}
 .mpxg3>b{font-size:.8rem;letter-spacing:.06em;color:#fff;white-space:nowrap;text-align:center}
 .mpxg3>b i{font-style:normal;font-weight:600;color:#C9B8D6;font-size:.7rem}
 .mpxg3>b u{display:block;text-decoration:none;color:#4FD08E;font-size:.6rem;line-height:1;letter-spacing:.08em}
@@ -4851,7 +4856,7 @@ function gridHTML(){
 
 /* ===== v12 · stats: Season numbers (team pages) + projection and form (player sheet) ===== */
 /* Season numbers: one white card, one stat per row, hairline dividers */
-h2.v10 .lnk.tsx-k{cursor:default;color:#8A8494;font-weight:700}
+h2.v10 .lnk.tsx-k{cursor:default;color:#6F6880;font-weight:700}
 .tsx{background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 10px;overflow:hidden}
 .tsx-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #F1EEF4}
 .tsx-row:first-child{border-top:none}
@@ -4861,10 +4866,11 @@ h2.v10 .lnk.tsx-k{cursor:default;color:#8A8494;font-weight:700}
 .tsx-n{flex:none;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.4rem;line-height:1;color:var(--ink);white-space:nowrap}
 .tsx-wide{flex-wrap:wrap}
 .tsx-wide .tsx-l{flex-basis:100%}
-.tsx-pcs{flex-basis:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:2px}
-.tsx-pc{display:flex;align-items:baseline;justify-content:center;gap:6px;border:1px solid #EEEAF2;border-radius:6px;padding:6px 4px}
+.tsx-pcs{flex-basis:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:2px}
+.tsx-pc{display:flex;align-items:baseline;justify-content:center;gap:6px;border:1px solid #EEEAF2;border-radius:6px;padding:6px 4px;min-width:0}
 .tsx-pc i{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.62rem;letter-spacing:.1em;color:var(--mid)}
 .tsx-pc b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.05rem;color:var(--ink)}
+@media(max-width:360px){.tsx-pcs{gap:4px}.tsx-pc{gap:3px;padding:6px 2px}.tsx-pc b{font-size:.98rem}} /* four chips fit a 320px card */
 .tsx-up{color:#0E8A5F !important}.tsx-dn{color:#C62828 !important}
 .profstats.tsx-tiles span{line-height:1.35;display:block}
 
@@ -4874,7 +4880,7 @@ h2.v10 .lnk.tsx-k{cursor:default;color:#8A8494;font-weight:700}
 .psx-big{flex:none;min-width:0}
 .psx-k{display:block;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#665D72;margin-bottom:2px}
 .psx-big b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:2.4rem;line-height:.95;color:var(--p1)}
-.psx-big em{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.8rem;color:#8A8494;margin-left:8px;letter-spacing:.04em}
+.psx-big em{font-style:normal;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.8rem;color:#6F6880;margin-left:8px;letter-spacing:.04em}
 .psx-st{margin-left:auto;display:flex;gap:14px;text-align:right}
 .psx-st b{display:block;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.2rem;line-height:1;color:var(--ink)}
 .psx-st span{display:block;font-size:.52rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);margin-top:3px}
@@ -4884,14 +4890,14 @@ h2.v10 .lnk.tsx-k{cursor:default;color:#8A8494;font-weight:700}
 .psx-pr.psx-tot{border-bottom:none;border-top:1px solid #E7DEF0;font-weight:800;color:var(--ink)}
 .psx-pr.psx-tot b{color:var(--p1)}
 .psx-pr.psx-none{border-bottom:none;color:var(--mid)}
-.psx-note{margin:0 12px 10px;font-size:.62rem;line-height:1.45;color:#8A8494}
+.psx-note{margin:0 12px 10px;font-size:.62rem;line-height:1.45;color:#6F6880}
 .psx-state{padding:0 12px 10px;font-size:.7rem;font-weight:700;color:#0E8A5F}
 
 /* player sheet: form and value */
 .psx-form{margin:14px 0 6px}
 .psx-form h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#5B1A66}
 .psx-form h4:after{content:"";flex:1;height:1px;background:#E8E4EE}
-.psx-form h4 span{font-weight:700;font-size:.62rem;letter-spacing:.04em;text-transform:none;color:#8A8494}
+.psx-form h4 span{font-weight:700;font-size:.62rem;letter-spacing:.04em;text-transform:none;color:#6F6880}
 .psx-fg{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .psx-fg div{padding:9px 4px 8px;text-align:center;border-left:1px solid #F1EEF4;border-top:1px solid #F1EEF4}
 .psx-fg div:nth-child(3n+1){border-left:none}.psx-fg div:nth-child(-n+3){border-top:none}
@@ -4906,7 +4912,7 @@ h2.v10 .lnk.tsx-k{cursor:default;color:#8A8494;font-weight:700}
 .gwtabs .fbx-ar{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;color:#5B1A66}
 .gwtabs .fbx-ar svg{display:block}
 .gwtabs .fbx-ar:disabled{color:#D5CEDC;cursor:default}
-.fbx-now{background:none;border:none;padding:6px 2px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;color:#2E5BFF;cursor:pointer}
+.fbx-now{background:none;border:none;padding:6px 8px;min-height:40px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.7rem;color:#2E5BFF;cursor:pointer}
 
 /* one list per gameweek: hairline rows in a single white card */
 .fbx-list{background:#fff;border:1px solid #E8E4EE;border-radius:14px;overflow:hidden}
@@ -4933,7 +4939,7 @@ button.fbx-row{cursor:pointer}
 .fbx-sc b{font-weight:700}
 .fbx-sc b.fbx-w{color:#1B1420}
 .fbx-sc i{font-style:normal;font-size:.95rem;color:#C9C2D0}
-.fbx-sc.fbx-v{font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:700;color:#8A8494;text-transform:lowercase}
+.fbx-sc.fbx-v{font-family:'Manrope',sans-serif;font-size:.68rem;font-weight:700;color:#6F6880;text-transform:lowercase}
 .fbx-sc.fbx-pj{flex-direction:column;align-items:center;gap:3px}
 .fbx-sc.fbx-pj .fbx-n{display:flex;align-items:baseline;gap:4px;font-size:1.12rem;color:#1B1420}
 .fbx-sc.fbx-pj .fbx-n b{font-weight:600}
@@ -4956,13 +4962,15 @@ button.fbx-row{cursor:pointer}
 .fbx-ph .fbx-psc small{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#665D72}
 .fbx-lu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px;margin-top:4px}
 .fbx-col{min-width:0}
-.fbx-lh{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8A8494;margin:12px 0 2px}
-.fbx-pl{display:flex;align-items:center;gap:5px;height:27px;border-bottom:1px solid #F1EEF4;cursor:pointer;min-width:0}
-.fbx-pl .fbx-ps{flex:none;width:23px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.64rem;letter-spacing:.04em;color:#8A8494}
+.fbx-lh{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#6F6880;margin:12px 0 2px}
+/* 40px rows; a long name wraps to a second line (and the Top tag with it) instead of ellipsizing at 320px */
+.fbx-pl{display:flex;align-items:center;gap:5px;min-height:40px;padding:2px 0;border-bottom:1px solid #F1EEF4;cursor:pointer;min-width:0}
+.fbx-pl .fbx-ps{flex:none;width:23px;font-family:'Saira Condensed',sans-serif;font-weight:600;font-size:.64rem;letter-spacing:.04em;color:#6F6880}
 .fbx-pl img.crest{flex:none;height:14px;width:auto}
-.fbx-pl .fbx-pn{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.74rem;font-weight:600;color:#1B1420}
+.fbx-pl .fbx-pn{flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.15;font-size:.74rem;font-weight:600;color:#1B1420}
 .fbx-pl.fbx-top .fbx-pn{font-weight:800}
-.fbx-pl .fbx-tp{flex:none;font-size:.5rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5B1A66}
+.fbx-pl .fbx-tp{display:inline-block;font-size:.5rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5B1A66;vertical-align:1px}
+@media(max-width:360px){.fbx-pl{gap:4px}.fbx-pl .fbx-ps{width:21px}}
 .fbx-pl .fbx-pt{flex:none;min-width:18px;text-align:right;font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:.92rem;color:#1B1420;font-variant-numeric:tabular-nums}
 .fbx-pl.fbx-bn{opacity:.55}
 .fbx-tot{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:7px 0 0}
@@ -4970,7 +4978,7 @@ button.fbx-row{cursor:pointer}
 .fbx-tot b{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:1.1rem;color:#1B1420;font-variant-numeric:tabular-nums}
 .fbx-tot.fbx-bn span{color:#665D72;letter-spacing:.06em}
 .fbx-tot.fbx-bn b{font-size:.96rem;color:#665D72}
-.fbx-none{font-size:.68rem;color:#8A8494;margin:12px 0 0;line-height:1.4}
+.fbx-none{font-size:.68rem;color:#6F6880;margin:12px 0 0;line-height:1.4}
 
 /* team page: results rows open the matchup; the next fixtures table links into the browser */
 .hist.tres tr.fbx-tap{cursor:pointer}
@@ -5088,7 +5096,7 @@ button.watch.elev.sm{box-shadow:none}
 .labhead b{font-size:.7rem;letter-spacing:.14em;color:var(--p2)}
 /* manager filter: crests on white squares (v12-ui.js swaps the initials out); selected = plum */
 .labsub{gap:5px}
-.labmono{flex:1 1 0;min-width:0;max-width:46px;width:auto;height:38px;border-radius:8px;border:1px solid var(--uix-line) !important;background:#fff !important;padding:0;display:flex;align-items:center;justify-content:center}
+.labmono{flex:1 1 0;min-width:0;max-width:46px;width:auto;height:40px;border-radius:8px;border:1px solid var(--uix-line) !important;background:#fff !important;padding:0;display:flex;align-items:center;justify-content:center}
 .labmono svg{display:block;width:24px;height:24px;flex:none}
 .labclear{flex:none}
 .labmono.on{background:var(--uix-sel) !important;border-color:var(--uix-sel) !important}
@@ -5160,11 +5168,15 @@ body[data-view="faq"] .helpfoot{display:none}
 #v-team.view.on:has(#teampage > .myhead:first-child){padding-top:0}
 #teampage:has(> .myhead:first-child){margin-top:0 !important}
 
+/* ---- tap targets (3 Oct): the segmented controls and chips this sheet styles reach 40px through height, not type size ---- */
+.fatog button,.labseg button,.labmet,.labview,.labclear{min-height:40px}
+.fatog button{padding-top:8px;padding-bottom:8px}
+
 /* ===== v12-look: the approved D2 design (27 Sep 2026) =====
    Ink #17121D chrome, lavender-grey ground #F5F3F8, white cards, purple #5B2D8E for kickers and links only,
    light purple #CDBDF0 on dark surfaces (replaces gold), green/red only for results.
    Archivo for words, Barlow Condensed for every number. Plate cards (.fc) keep their own type. */
-:root{--uix-chrome:#17121D;--bg:#F5F3F8;--card:#fff;--line:#E7E2EE;--ink:#17121D;--mid:#7C7488;--p1:#17121D;--p2:#5B2D8E;
+:root{--uix-chrome:#17121D;--bg:#F5F3F8;--card:#fff;--line:#E7E2EE;--ink:#17121D;--mid:#6F6880;--p1:#17121D;--p2:#5B2D8E; /* --mid: 5.3:1 on white, 4.8:1 on the ground (was #7C7488, 4.46 / 4.05) */
   --lk-pu:#5B2D8E;--lk-pul:#CDBDF0;--lk-tint:#F0EBF8;--lk-good:#1F8A55;--lk-bad:#C23A3A;--lk-draw:#8C8496}
 html,body{background:#F5F3F8 !important}
 body,body *:not(.fc):not(.fc *):not(svg):not(svg *){font-family:'Archivo',system-ui,sans-serif !important}
@@ -5253,7 +5265,7 @@ h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .lkMH .lkc .lkbig i{font-style:normal;color:#5E5568;margin:0 4px}
 .lkMH .lkc .lkst{font-size:.7rem;font-weight:700;color:#B9B1C4;margin-top:6px}
 .lkMH .lkc .lkst.lklive{color:#7BE0A9}
-.lkMH .lkc .lkal{font-size:.7rem;color:#6F6880;margin-top:3px;font-weight:600}
+.lkMH .lkc .lkal{font-size:.7rem;color:#B9B1C4;margin-top:3px;font-weight:600}
 .mpxwin>b.hi,.side .mpxrec em,.mpxl span b{color:#CDBDF0 !important}
 .mpxnum{background:rgba(255,255,255,.05) !important}
 #gwbody .stage .backbtn{background:rgba(255,255,255,.08) !important;border-color:rgba(255,255,255,.14) !important}
@@ -5283,7 +5295,7 @@ h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .lkSched .lkg{font-size:.72rem;color:#6F6880;font-weight:700}
 .lkSched .lkr svg{display:block}
 .lkSched .lko b{display:block;font-weight:700;font-size:.88rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lkSched .lko span{display:block;font-size:.68rem;color:#6F6880;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lkSched .lko > span{display:block;font-size:.68rem;color:#6F6880;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lkSched .lksc{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem}
 .lkSched .lksc u{text-decoration:none;font-size:.62rem;font-weight:800;width:18px;height:18px;border-radius:4px;display:grid;place-items:center;color:#fff}
 .lkSched .lksc u.lkresW{background:#1F8A55}.lkSched .lksc u.lkresL{background:#C23A3A}.lkSched .lksc u.lkresD{background:#8C8496}
@@ -5302,7 +5314,7 @@ h2.v10 .lnk.lkq{color:#6F6880 !important;cursor:default}
 .lkTH .lkcr{display:block;line-height:0}
 #gwbody .stage .mpxrec,#gwbody .stage .form.lkc{display:none}
 .lkMH .lkt .lkrec{display:inline-flex;gap:4px;align-items:center}
-.lkMH .lkt .lkrec i{font-style:normal;color:#6F6880}
+.lkMH .lkt .lkrec i{font-style:normal;color:#8C8496}
 .lkMH .lkt{cursor:pointer}
 .lkSched .lkwhen{line-height:1.1}
 .lkSched .lkwhen .lkn{font-size:1.05rem;color:#17121D;font-weight:700}
@@ -5420,6 +5432,60 @@ button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#
 .fxblk .fxs b,.fxs b{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;line-height:1.15}
 /* a wider sheet on desktop so the player's season table fits without a sideways scrollbar */
 @media(min-width:760px){.sheet{width:min(720px,100%) !important}}
+/* sheet photo on iPhone (3 Oct) */
+@media(max-width:699px){
+  .sheet{left:0 !important;right:0;margin:0 auto;transform:translateY(105%) !important}
+  .sheet.on{transform:none !important}
+}
+.sheet .fc .face{-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;
+  background:radial-gradient(58% 10% at 50% 99%,rgba(0,0,0,.30),transparent 72%)}
+.sheet .fc .face img{filter:none !important;-webkit-transform:translateZ(0);transform:translateZ(0)}
+
+/* ---------- fixes, 3 Oct (bugfix build: MD-08, MD-10, MD-15, MD-16, LG-26, LG-27, LG-29, LG-31, T7, TP-7) ---------- */
+/* focus: one ring everywhere, never the browser default; light purple on the dark surfaces */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,.fc:focus-visible{outline:2px solid #5B2D8E !important;outline-offset:2px !important}
+.top :focus-visible,#gwbody .stage :focus-visible,.lkTH :focus-visible,.sh-left :focus-visible,.myhead :focus-visible,.lgfx :focus-visible,.mcard.bug :focus-visible{outline-color:#CDBDF0 !important}
+:focus:not(:focus-visible){outline:none}
+.mcard[tabindex]{-webkit-tap-highlight-color:transparent}
+/* the page behind an open sheet stays put (phones): the sheet keeps its own scroll, the backdrop swallows touches */
+@media(max-width:699px){html.lk-lock,html.lk-lock body{overflow:hidden}}
+.ov{touch-action:none}
+.sheet{overscroll-behavior:contain}
+/* landscape phone: the sticky card column is taller than the sheet, so it scrolls with the details instead */
+@media(min-width:700px) and (max-height:560px){#sheet .lkstick{position:static}}
+/* tap targets: 40px through padding, the drawn shape unchanged */
+.top{padding:calc(7px + env(safe-area-inset-top)) 14px 7px !important}
+.hbtn{width:40px !important;height:40px !important;background:transparent !important;border:none !important;position:relative;padding:0 !important;margin:0 !important}
+.hbtn::before{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.hbtn.busy::before{background:rgba(205,189,240,.18);border-color:rgba(205,189,240,.55)}
+.hbtn svg{position:relative}
+button.hav{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;margin:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:inherit;font:inherit;border-radius:50%}
+.hright{gap:0 !important;margin-right:-6px}
+.gwtabs button{min-height:40px}
+[data-fbxstep]{min-width:40px;min-height:40px}
+h2.v10 button.lnk{appearance:none;-webkit-appearance:none;background:none;border:0;margin:-8px 0 -8px -8px;padding:0 8px;min-height:40px;font-family:inherit;cursor:pointer;text-align:inherit}
+#plall{min-height:40px}
+.helpfoot button{min-height:40px}
+.axtog button{min-height:40px;padding-top:8px;padding-bottom:8px}
+.btoggle{min-height:40px;padding-top:8px;padding-bottom:8px}
+#gwbody .stage .backbtn{min-height:40px;padding:6px 14px 6px 10px}
+button.watch{min-height:40px;padding-top:7px;padding-bottom:7px}
+.lkTH .lkact .watch,.lkTH .lkact button{min-height:40px}
+.sh-x{width:40px !important;height:40px !important;min-width:40px;min-height:40px;top:8px;right:10px;background:transparent !important;display:grid;place-items:center;padding:0}
+.sh-x::before{content:"";position:absolute;inset:2px;border-radius:50%;background:#F1ECF5;z-index:-1}
+/* matchup header on a 320px phone: the score sets the centre column, the status wraps under it, so each side keeps room
+   for its crest (the page measured 322px and the home crest sat at x = -2) */
+.lkMH .lkt svg{max-width:100%;height:auto}
+.lkMH .lkc{min-width:0}
+@media(max-width:360px){
+  .lkMH .lkc .lkst,.lkMH .lkc .lkal{width:0;min-width:100%}
+  .lkMH .lkrow{gap:6px}
+  .lkSched .lko .lkfull{display:none}
+  .lkSched .lko .lkshort{display:inline}
+  .lkSched .lko > span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+}
+/* two-column sheet (desktop, landscape): the four stat labels stay on one line in the 210px card column ("PER GAME") */
+@media(min-width:700px){#sheet .sh-left .statgrid.lg{gap:8px 5px}#sheet .sh-left .statgrid.lg .sg{font-size:.52rem;letter-spacing:.03em;white-space:nowrap}}
 
 </style>
 <script id="v12js">
@@ -5610,11 +5676,12 @@ function hpSd(mu){return mu<=0?0:Math.min(3.8,1.41+.49*mu)*Math.min(1,mu/.6)} /*
 
 /* ---- wire it in: every PROJ in the app now reads the house model ---- */
 const __epOfFpl=epOf;
-function fplEpOf(code){return __epOfFpl(code)}
+/* FPL's own forecast for this gameweek; null when the Predictions block standing in is another gameweek's (BUGS #6) */
+function fplEpOf(code){return D.predGw!==undefined&&D.predGw!==D.gw?null:__epOfFpl(code)}
 epOf=function(code){
-  if(!D||!D.gwsByGw)return __epOfFpl(code);
+  if(!D||!D.gwsByGw)return fplEpOf(code);
   const p=(D.ro||[]).find(r=>String(r.Code)===String(code))||(D.plr||[]).find(r=>String(r.Code)===String(code));
-  if(!p)return __epOfFpl(code);
+  if(!p)return fplEpOf(code);
   return Math.round(hpPlayer(p,D.gw).pts*10)/10;
 };
 projOf=function(p){ /* one player's contribution to proj final */
@@ -5644,7 +5711,15 @@ function hpWin(f){
 }
 
 /* ---- title / relegation odds: simulate every remaining gameweek from the actual rosters and schedule ---- */
-simulate=function(){
+/* this gameweek's projection split into points already banked (certain) and the projection still to come;
+   banked + rem = teamProj(team), pre = the same XI's projection before anyone kicked off */
+function hpLiveSplit(team){let banked=0,rem=0,pre=0,started=0;
+  effXiOf(team,true).forEach(p=>{const e=epOf(p.Code)||0;pre+=e;
+    if(fxStarted(p.Club)){const L=hpLive(p);banked+=L.pts-L.rem;rem+=L.rem;started++;}
+    else rem+=e;});
+  return {banked,rem,pre,started};}
+/* the table so far + each team's score distribution for every remaining fixture */
+function hpSimModel(){
   const names=Object.keys(TEAMS);
   const pts={},pf={};names.forEach(n=>{pts[n]=0;pf[n]=0});
   const remain=[];
@@ -5658,15 +5733,31 @@ simulate=function(){
   const lgAvg=(()=>{const a=[].concat(...Object.values(obs));return a.length?a.reduce((x,y)=>x+y,0)/a.length:40})();
   const M={};
   remain.forEach(f=>{const g=num(f.GW);[f.Home,f.Away].forEach(t=>{const k=t+'|'+g;if(M[k]||!TEAMS[t])return;
-    const proj=g===D.gw?teamProj(t):hpTeam(t,g);const o=obs[t]||[],om=o.length?o.reduce((x,y)=>x+y,0)/o.length:lgAvg;
-    const w=o.length/(o.length+6);
-    const mean=.7*proj+.3*(w*om+(1-w)*lgAvg);
-    M[k]={mean,sd:Math.max(9,hpTeamSd(t,g))};});});
+    const o=obs[t]||[],om=o.length?o.reduce((x,y)=>x+y,0)/o.length:lgAvg;
+    const w=o.length/(o.length+6),rate=w*om+(1-w)*lgAvg;
+    if(g===D.gw){
+      /* the live gameweek (#24): points already scored are certain, so they enter at full weight; only the projection
+         still to come is shrunk, toward the share of a week's scoring rate it stands for. Before kickoff this is the
+         formula below exactly; once every match is over the mean is the banked score. hpTeamSd already counts only
+         what is left, and the 9-point floor shrinks with it so it cannot re-open a decided week. */
+      const S=hpLiveSplit(t),left=S.pre>0?Math.max(0,Math.min(1,S.rem/S.pre)):(S.started?0:1);
+      M[k]={mean:S.banked+.7*S.rem+.3*rate*left,sd:Math.max(9*left,hpTeamSd(t,g)),banked:S.banked,rem:S.rem,left};
+    }else M[k]={mean:.7*hpTeam(t,g)+.3*rate,sd:Math.max(9,hpTeamSd(t,g))};});});
+  return {names,pts,pf,remain,M};
+}
+/* seeded draw (TP-14): the same sheet data always gives the same odds instead of jittering 1-2 points per reload.
+   Seed = FNV-1a of the gameweek and every H2H fixture's scores and state; mulberry32 stream; Box-Muller normals. */
+function hpSeed(){const s=D.gw+'#'+(D.fx||[]).map(f=>[num(f.GW),f.Home,f.Away,num(f['Home pts']),num(f['Away pts']),fin(f.Finished)?1:0].join('|')).join(';');
+  let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function hpRng(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+function hpGauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+simulate=function(){
+  const {names,pts,pf,remain,M}=hpSimModel(),rnd=hpRng(hpSeed());
   const N=5000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
   for(let s=0;s<N;s++){
     const p={...pts},q={...pf};
     for(const f of remain){const h=f.Home,a=f.Away,mh=M[h+'|'+num(f.GW)],ma=M[a+'|'+num(f.GW)];if(!mh||!ma)continue;
-      const hs=Math.max(0,Math.round(mh.mean+mh.sd*gauss())),as_=Math.max(0,Math.round(ma.mean+ma.sd*gauss()));
+      const hs=Math.max(0,Math.round(mh.mean+mh.sd*hpGauss(rnd))),as_=Math.max(0,Math.round(ma.mean+ma.sd*hpGauss(rnd)));
       q[h]+=hs;q[a]+=as_;if(hs>as_)p[h]+=3;else if(as_>hs)p[a]+=3;else{p[h]++;p[a]++;}}
     const order=names.slice().sort((x,y)=>(p[y]-p[x])||(q[y]-q[x]));
     title[order[0]]++;last[order[order.length-1]]++;
@@ -5707,6 +5798,8 @@ function mpxPct(ps){
   raw.map((x,i)=>[x-fl[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{if(left>0){fl[i]++;left--;}});
   return fl;
 }
+/* the one rounding of hpWin for every screen (Matchday list, matchup page, team page, schedule): h + d + a = 100 */
+function mpxWinPct(w){const p=mpxPct([w.h,w.d,w.a]);return {h:p[0],d:p[1],a:p[2]}}
 function mpxBanked(p){return num(p['GW pts'])+((D.pbonus||{})[String(p.Code)]||0)}
 function mpxLeft(team){
   const xi=effXiOf(team,true);let so=0,n=0;
@@ -5734,19 +5827,21 @@ function mpxClash(f){
 function mpxData(f){
   const s=mscore(f),final=s.done||D.provOver,live=D.dlPassed&&!final;
   const out={final,live};
-  if(!final){const w=hpWin(f);if(!w.done){const pc=mpxPct([w.h,w.d,w.a]);out.win={h:pc[0],d:pc[1],a:pc[2],raw:w};}}
+  if(!final){const w=hpWin(f);if(!w.done){const pc=mpxWinPct(w);out.win={h:pc.h,d:pc.d,a:pc.a,raw:w};}}
   if(live){const L=[mpxLeft(f.Home),mpxLeft(f.Away)];if(L.some(x=>x.n>0||Math.abs(x.left)>=.05))out.left=L;}
   if(!final){const R=[mpxRisk(f.Home),mpxRisk(f.Away)];if(R[0].length||R[1].length)out.risk=R;}
   if(!final){const C=mpxClash(f);if(C.length)out.clash=C;}
   return out;
 }
-/* up to two names per side, one when two would not fit a 390px column (about 19 characters with the +N) */
-function mpxNames(list){
+/* up to two names per side, one when two would not fit the column (about 19 characters with the +N at 390px, 13 on a
+   320px phone); the names ellipsize on their own so the +N count always stays visible */
+function mpxNames(list,narrow){
   if(!list.length)return '';
   const n=list.map(p=>String(p.Player||''));
-  const two=n.length>1&&(n[0]+', '+n[1]+(n.length>2?' +'+(n.length-2):'')).length<=19;
+  const lim=narrow?13:19;
+  const two=n.length>1&&(n[0]+', '+n[1]+(n.length>2?' +'+(n.length-2):'')).length<=lim;
   const k=two?2:1;
-  return esc(n.slice(0,k).join(', '))+(n.length>k?' <i>+'+(n.length-k)+'</i>':'');
+  return '<em>'+esc(n.slice(0,k).join(', '))+'</em>'+(n.length>k?' <i>+'+(n.length-k)+'</i>':'');
 }
 function mpxBlock(f){
   const D2=mpxData(f);
@@ -5761,15 +5856,18 @@ function mpxBlock(f){
     rows.push('<div class="mpxr mpxlft"><em>Points left</em><div class="mpxg2">'+c(D2.left[0],false)+c(D2.left[1],true)+'</div></div>');}
   if(D2.risk){const side=(L,r)=>{
       if(!L.length)return '<div class="mpxl'+(r?' r':'')+'"><span class="no">None</span></div>';
-      const show=L.length>3?L.slice(0,2):L;
-      return '<div class="mpxl'+(r?' r':'')+'">'+show.map(o=>'<span>'+esc(o.p.Player)+' <b>'+Math.round(o.ps*100)+'%</b></span>').join('')
-       +(L.length>3?'<span class="no">+'+(L.length-2)+' more</span>':'')+'</div>';};
+      /* more than three: two show, the rest sit hidden behind a "+N more" button (tap to reveal) */
+      const fold=L.length>3;
+      return '<div class="mpxl'+(r?' r':'')+'">'+L.map((o,i)=>'<span'+(fold&&i>=2?' class="mpxx"':'')+'>'+esc(o.p.Player)+' <b>'+Math.round(o.ps*100)+'%</b></span>').join('')
+       +(fold?'<button type="button" class="no mpxmore" aria-expanded="false">+'+(L.length-2)+' more</button>':'')+'</div>';};
     rows.push('<div class="mpxr mpxrisk"><em>Minutes risk · chance to start</em><div class="mpxg2">'+side(D2.risk[0],false)+side(D2.risk[1],true)+'</div></div>');}
   if(D2.clash){
+    /* matchMedia, not innerWidth: innerWidth forces a layout of the page just rebuilt (43 ms on a laptop per matchup) */
+    const narrow=typeof matchMedia==='function'&&matchMedia('(max-width:360px)').matches;
     rows.push('<div class="mpxr mpxcl"><em>Who plays whom</em>'+D2.clash.map(o=>{
       const x=o.x,inPlay=fin(x.Started)&&!fin(x.Finished);
-      return '<div class="mpxg3"><span class="l">'+mpxNames(o.h)+'</span><b>'+esc(x.Home)+' <i>v</i> '+esc(x.Away)
-       +(inPlay?'<u>'+Math.round(num(x.Mins))+'\'</u>':'')+'</b><span class="r">'+mpxNames(o.a)+'</span></div>';}).join('')+'</div>');}
+      return '<div class="mpxg3"><span class="l">'+mpxNames(o.h,narrow)+'</span><b>'+esc(x.Home)+' <i>v</i> '+esc(x.Away)
+       +(inPlay?'<u>'+Math.round(num(x.Mins))+'\'</u>':'')+'</b><span class="r">'+mpxNames(o.a,narrow)+'</span></div>';}).join('')+'</div>');}
   return rows.length?'<div class="mpxnum">'+rows.join('')+'</div>':'';
 }
 function mpxStage(f){
@@ -5782,6 +5880,10 @@ function mpxStage(f){
   const blk=mpxBlock(f),tape=st.querySelector(':scope > .tape');
   if(tape){if(blk)tape.insertAdjacentHTML('afterend',blk);tape.remove();}
   else if(blk&&!st.querySelector('.mpxnum')){const a=st.querySelector(':scope > .series')||st.querySelector(':scope > .scsub');if(a)a.insertAdjacentHTML('afterend',blk);}
+  /* "+N more" under Minutes risk reveals the rest of that side */
+  const num_=st.querySelector('.mpxnum');
+  if(num_)num_.addEventListener('click',e=>{const b=e.target.closest('.mpxmore');if(!b)return;e.stopPropagation();
+    const l=b.closest('.mpxl');if(l)l.classList.add('mpxopen');b.remove();});
 }
 const __mpxRM=renderMatch;
 renderMatch=function(f,dl){
@@ -5930,7 +6032,7 @@ function tsxSeasonHTML(team){
       +(A.live?' (GW'+A.live+' live)':'')));}
   /* close games */
   const C=S.close;
-  rows.push(tsxRow('Close games',C.n?tsxRec(C):'0',C.n?'Matchups decided by '+C.margin+' or fewer':'No matchup decided by '+C.margin+' or fewer yet'));
+  rows.push(tsxRow('Close games',tsxRec(C),C.n?'Matchups decided by '+C.margin+' or fewer':'No matchup decided by '+C.margin+' or fewer yet'));
   /* points against */
   const P=S.pa;
   rows.push(tsxRow('Points against',P.v,P.rank===1?'Most in the league: the toughest schedule':P.rank===n8?'Fewest in the league: the kindest schedule':ORD(P.rank)+' most in the league · average '+Math.round(P.avg)));
@@ -6235,9 +6337,10 @@ function fbxLineupCol(g,t){
   const tot=xi.reduce((s,r)=>s+pts(r),0),bt=ben.reduce((s,r)=>s+pts(r),0);
   const top=xi.reduce((m,r)=>Math.max(m,pts(r)),0);
   const row=(r,bn)=>{const p=pts(r),tp=!bn&&top>0&&p===top;
+    /* the Top tag rides inside the name span, so on a narrow phone it wraps under the name instead of cutting it */
     return '<div class="fbx-pl'+(bn?' fbx-bn':'')+(tp?' fbx-top':'')+'" data-fbxpc="'+esc(r.Code)+'" role="button" tabindex="0">'
-     +'<span class="fbx-ps">'+esc(r.Pos)+'</span>'+badgeImg(r.Club,14)+'<span class="fbx-pn">'+esc(r.Player)+'</span>'
-     +(tp?'<span class="fbx-tp">Top</span>':'')+'<b class="fbx-pt">'+p+'</b></div>';};
+     +'<span class="fbx-ps">'+esc(r.Pos)+'</span>'+badgeImg(r.Club,14)+'<span class="fbx-pn">'+esc(r.Player)
+     +(tp?' <span class="fbx-tp">Top</span>':'')+'</span><b class="fbx-pt">'+p+'</b></div>';};
   return {tot,html:'<div class="fbx-lh">Starting XI</div>'+xi.map(r=>row(r,0)).join('')
    +'<div class="fbx-tot"><span>Total</span><b>'+tot+'</b></div>'
    +(ben.length?'<div class="fbx-lh">Bench</div>'+ben.map(r=>row(r,1)).join('')
@@ -6518,7 +6621,7 @@ const uix__rg=renderGW;renderGW=function(){const r=uix__rg.apply(this,arguments)
    rebuilt around a next-match card and one schedule. Plate cards, pitch and the Matchweek wordmark are untouched.
    Every top-level name is inside the IIFE; the only globals replaced are crestSVG, bugHTML and the render wrappers. */
 (function(){
-const lkPc=x=>Math.round(x*100)+'%';
+const lkPc=x=>Math.round(x*100)+'%'; /* unused since 3 Oct: win chances go through lkWin (one rounding everywhere) */
 const lk1=v=>(Math.round(v*10)/10).toFixed(1);
 const lkMix=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(a),y=p(b);return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*t).toString(16).padStart(2,'0')).join('')};
 
@@ -6565,8 +6668,11 @@ const lkForm=t=>'<span class="lkf">'+[...formOf(t)].filter(x=>x!=='-').map(x=>'<
 const lkOrd=t=>{const r=(D.st||[]).slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For']));const i=r.findIndex(x=>x.Team===t);return i<0?'':ORD(i+1)};
 const lkMgr=t=>(PROFILE[t]||{}).manager||(TEAMS[t]||{}).mgr||'';
 const lkDay=d=>d?d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}):'';
-const lkWinBar=(f,w)=>{const col=t=>(TEAMS[t]||{}).col||'#7C7488';
-  return '<div class="lkwp"><span class="lkn">'+lkPc(w.h)+'</span><div class="lkbar"><i style="width:'+(w.h*100)+'%;background:'+col(f.Home)+'"></i><i style="width:'+(w.d*100)+'%;background:#DDD7E5"></i><i style="width:'+(w.a*100)+'%;background:'+col(f.Away)+'"></i></div><span class="lkn">'+lkPc(w.a)+'</span></div>';};
+/* win chance: one rounding for every screen (v12-match's largest remainder, so home + draw + away = 100 and the list,
+   the matchup page and the team page all show the same number) */
+const lkWin=w=>typeof mpxWinPct==='function'?mpxWinPct(w):{h:Math.round(w.h*100),d:Math.round(w.d*100),a:Math.round(w.a*100)};
+const lkWinBar=(f,w)=>{const col=t=>(TEAMS[t]||{}).col||'#7C7488';const pc=lkWin(w);
+  return '<div class="lkwp"><span class="lkn">'+pc.h+'%</span><div class="lkbar"><i style="width:'+(w.h*100)+'%;background:'+col(f.Home)+'"></i><i style="width:'+(w.d*100)+'%;background:#DDD7E5"></i><i style="width:'+(w.a*100)+'%;background:'+col(f.Away)+'"></i></div><span class="lkn">'+pc.a+'%</span></div>';};
 function lkGoMatch(i){const go=()=>{location.hash='gw/'+i;window.scrollTo(0,0)};if(sheet.classList.contains('on')&&typeof fbxCloseAll==='function')fbxCloseAll(go);else go();}
 
 /* ---------- Matchday: your match + the league list ---------- */
@@ -6575,12 +6681,12 @@ bugHTML=function(f,i,o){o=o||{};const S=lkState(f),nm=derbyName(f.Home,f.Away),s
   const w=S.st==='pred'&&typeof hpWin==='function'?hpWin(f):null;const bar=w?lkWinBar(f,w):'';
   if(o.you){const fact=typeof factFor==='function'?factFor(f):'';
     const tr=(t,v,v2)=>'<div class="lktr'+lo(v,v2)+'">'+crestOf(t,40)+'<div class="lknm"><b>'+esc(t)+'</b><span>'+esc(FIRSTOF(t))+' · '+lkRec(t)+lkForm(t)+'</span></div><div class="lkbig lkn">'+v+'</div></div>';
-    return '<div class="mcard lkD" data-mi="'+i+'"><div class="lkhd">'+esc(nm||'Your match')+'<span class="lkst'+(S.st==='live'?' lklive':'')+'">'+esc(S.cap)+'</span></div>'
+    return '<div class="mcard lkD" data-mi="'+i+'" role="button" tabindex="0"><div class="lkhd">'+esc(nm||'Your match')+'<span class="lkst'+(S.st==='live'?' lklive':'')+'">'+esc(S.cap)+'</span></div>'
      +tr(f.Home,S.l,S.r)+tr(f.Away,S.r,S.l)
      +bar+'<div class="lkwpl"><span>'+(w?'Chance to win':esc(S.sub||''))+'</span><span>'+esc(sr)+'</span></div>'
      +(fact?'<div class="lkfact">'+esc(fact)+'</div>':'')+'</div>';}
   const t=(x,r)=>'<div class="lkt'+(r?' lkr':'')+'">'+crestOf(x,26)+'<b>'+esc(SHORTOF[x]||x)+'</b></div>';
-  return '<div class="mcard lkDrow" data-mi="'+i+'">'+(nm?'<div class="lkdn">'+esc(nm)+'</div>':'')
+  return '<div class="mcard lkDrow" data-mi="'+i+'" role="button" tabindex="0">'+(nm?'<div class="lkdn">'+esc(nm)+'</div>':'')
    +'<div class="lkln">'+t(f.Home)+'<div class="lks lkn"><span class="'+lo(S.l,S.r).trim()+'">'+S.l+'</span><i>–</i><span class="'+lo(S.r,S.l).trim()+'">'+S.r+'</span></div>'+t(f.Away,1)+'</div>'
    +bar+'<div class="lksub"><span>'+esc(sr)+'</span><span>'+esc(w?'':(S.sub||''))+'</span></div></div>';};
 
@@ -6601,7 +6707,7 @@ function lkBooth(body){
   if(sc)sc.remove();
   const prog=body.querySelector('.program');if(prog){const h=prog.previousElementSibling;if(h&&h.tagName==='H2')h.remove();prog.remove();}
   const aa=body.querySelector('#allart');if(aa)(aa.closest('h2')||aa).remove();
-  const html='<h2 class="v10">Previews and recaps<span class="lnk" id="allart">All articles</span></h2><div class="lkBooth'+(fresh?' lklead':'')+'">'+items.slice(0,3).map(x=>x.h).join('')+'</div>';
+  const html='<h2 class="v10">Previews and recaps<button type="button" class="lnk" id="allart">All articles</button></h2><div class="lkBooth'+(fresh?' lklead':'')+'">'+items.slice(0,3).map(x=>x.h).join('')+'</div>';
   const hero=body.querySelector('.lkD'),rows=body.querySelector('.lkDrow');
   const anchor=fresh&&hero?hero.closest('.stack'):(rows?rows.closest('.stack'):null);
   if(anchor)anchor.insertAdjacentHTML('afterend',html);
@@ -6646,9 +6752,9 @@ function lkNextHTML(team){
   const f=cur||(typeof nextFixtureOf==='function'?nextFixtureOf(team):null);if(!f)return '';
   const g=num(f.GW),home=f.Home===team,opp=home?f.Away:f.Home,nm=derbyName(f.Home,f.Away);
   const S=g===D.gw?lkState(f):{st:'pred'};const w=S.st==='pred'&&typeof hpWin==='function'?hpWin(f):null;
-  const mine=w?(home?w.h:w.a):null;
+  const mine=w?(home?lkWin(w).h:lkWin(w).a):null;
   const me=g===D.gw?(home?S.l:S.r):lk1(hpTeam(team,g)),them=g===D.gw?(home?S.r:S.l):lk1(hpTeam(opp,g));
-  const right=S.st==='pred'?'<div class="lkp"><div class="lkn">'+(mine!=null?lkPc(mine):'')+'</div><span>to win · '+me+' to '+them+'</span></div>'
+  const right=S.st==='pred'?'<div class="lkp"><div class="lkn">'+(mine!=null?mine+'%':'')+'</div><span>to win · '+me+' to '+them+'</span></div>'
     :'<div class="lkp"><div class="lkn">'+me+'–'+them+'</div><span>'+esc(S.cap)+'</span></div>';
   return '<div class="lkNext" data-lknext="'+g+'|'+esc(f.Home)+'|'+esc(f.Away)+'"><div class="lkk">'+(g===D.gw&&S.st!=='pred'?'This week':'Next')+' · Gameweek '+g+(gwDeadline(g)?' · '+lkDay(gwDeadline(g)):'')+(nm?' · '+esc(nm):'')+'</div>'
    +'<div class="lkl">'+crestOf(opp,32)+'<div><b>'+(home?'vs ':'at ')+esc(opp)+'</b><span>'+esc(FIRSTOF(opp))+' · '+lkOrd(opp)+' · '+lkRec(opp)+'</span></div>'+right+'</div></div>';
@@ -6661,9 +6767,10 @@ function lkSchedHTML(team){
     if(past){const s=mscore(f),me=home?s.hs:s.as2,th=home?s.as2:s.hs,r=me>th?'W':me<th?'L':'D';
       right='<div class="lksc"><u class="lkres'+r+'">'+r+'</u><span class="lkn">'+me+'–'+th+'</span></div>';sub=nm||FIRSTOF(opp);}
     else{const w=typeof hpWin==='function'?hpWin(f):null;
-      right='<div class="lkwhen"><span class="lkn">'+(w?lkPc(home?w.h:w.a):'')+'</span><br>to win</div>';
+      right='<div class="lkwhen"><span class="lkn">'+(w?(home?lkWin(w).h:lkWin(w).a)+'%':'')+'</span><br>to win</div>';
       sub=lkDay(gwDeadline(g))+(nm?' · '+nm:'');}
-    return '<div class="lkr'+(past?'':' lkfut')+'" data-lks="'+(past?'p':'f')+'|'+g+'|'+i+'"><span class="lkg">GW'+g+'</span>'+crestOf(opp,24)+'<div class="lko"><b>'+(home?'vs ':'at ')+esc(opp)+'</b><span>'+esc(sub)+'</span></div>'+right+'</div>';};
+    /* full name, with the short name for narrow phones (CSS swaps them under 360px) */
+    return '<div class="lkr'+(past?'':' lkfut')+'" data-lks="'+(past?'p':'f')+'|'+g+'|'+i+'"><span class="lkg">GW'+g+'</span>'+crestOf(opp,24)+'<div class="lko"><b>'+(home?'vs ':'at ')+'<span class="lkfull">'+esc(opp)+'</span><span class="lkshort">'+esc(SHORTOF[opp]||opp)+'</span></b><span>'+esc(sub)+'</span></div>'+right+'</div>';};
   return '<h2 class="v10">Schedule<span class="lnk lkq">'+played.length+' played</span></h2><div class="lkSched">'+played.map(f=>row(f,1)).join('')+next.map(f=>row(f,0)).join('')+'</div>';
 }
 function lkTeam(root,team,page){
@@ -6671,7 +6778,7 @@ function lkTeam(root,team,page){
   const hd=page?root.querySelector('.myhead'):root.querySelector('.sh-x+div');if(!hd)return;
   const cr=hd.querySelector('.cr');const act=hd.querySelector('.profrow');
   const th=document.createElement('div');th.className='lkTH';
-  th.innerHTML='<span class="lkcr">'+(cr&&cr.querySelector('img')?cr.innerHTML:crestOf(team,56))+'</span><div><b>'+esc(team)+'</b><span class="lkm">'+esc(lkMgr(team))+' · <strong>'+lkOrd(team)+'</strong> · '+lkRec(team)+'</span><div class="lkfm">'+lkForm(team)+'</div></div><div class="lkact"></div>';
+  th.innerHTML='<span class="lkcr">'+(cr&&cr.querySelector('img')?cr.innerHTML:crestOf(team,56))+'</span><div><b>'+esc(team)+'</b><span class="lkm">'+esc(lkMgr(team))+' · <strong>'+lkOrd(team)+'</strong> · <span class="lknw">'+lkRec(team)+'</span></span><div class="lkfm">'+lkForm(team)+'</div></div><div class="lkact"></div>';
   if(act)th.querySelector('.lkact').appendChild(act);else th.querySelector('.lkact').remove();
   const img=th.querySelector('.lkcr img');if(img){img.className='lkav';img.removeAttribute('style');}
   hd.replaceWith(th);
@@ -6727,25 +6834,51 @@ function lkFixTx(){(D.tx||[]).forEach(t=>{if(!t||t.__lk)return;let r=String(t.Re
   if(/^[a-z]{1,3}$/.test(r))r='Denied';t.Result=r.replace(/\s*[—–]\s*/g,', ');t.__lk=1;});}
 
 /* ---------- player sheet: the card stays in view on the two-column (desktop) sheet; the projection is said once ---------- */
-function lkSheetFix(){const L=sheet.querySelector('.sh-left');
+function lkSheetFix(p){const L=sheet.querySelector('.sh-left');
+  sheet.querySelectorAll('.sh-left .fc img').forEach(i=>{i.decoding='sync';i.removeAttribute('loading');});
   if(L&&!L.querySelector(':scope > .lkstick')){const w=document.createElement('div');w.className='lkstick';while(L.firstChild)w.appendChild(L.firstChild);L.appendChild(w);}
-  const fx=sheet.querySelector('.fxst');if(fx&&/^Projected/.test(fx.textContent.trim())&&sheet.querySelector('.psx'))fx.remove();}
+  const fx=sheet.querySelector('.fxst');if(fx&&/^Projected/.test(fx.textContent.trim())&&sheet.querySelector('.psx'))fx.remove();
+  /* one average: points per game played, the same label and number as the Players list ("8.3 per game").
+     The owned strip divided by the gameweek count and said AVG; the free-agent row said "Average per GW". */
+  if(p&&p.Code!==undefined){const avg=plrAvg(p).toFixed(1);
+    sheet.querySelectorAll('.sh-right .srow').forEach(r=>{const k=r.firstElementChild,v=r.lastElementChild;
+      if(k&&v&&k!==v&&/^Average/.test(k.textContent.trim())){k.textContent='Per game';v.textContent=avg;}});
+    const tile=[...sheet.querySelectorAll('.sh-left .statgrid.lg .sg')].find(s=>s.firstChild&&s.firstChild.nodeType===3&&s.firstChild.textContent.trim()==='AVG');
+    if(tile){const pool=D.ro.filter(r=>r.Pos===p.Pos).map(r=>plrAvg(r));const pc=typeof pctRank==='function'?pctRank(plrAvg(p),pool):null;
+      tile.firstChild.textContent='PER GAME';const b=tile.querySelector('b');if(b)b.textContent=avg;
+      if(pc!==null){const bar=tile.querySelector('.bar i');if(bar)bar.style.width=Math.max(2,pc)+'%';const e=tile.querySelector('.pc');if(e)e.textContent=ORD(pc)+' pct';}}}}
+/* the page behind an open sheet stays put: html/body stop scrolling while the sheet shows (any opener, any closer:
+   the class on #sheet is the one signal they all share); the sheet keeps its own scroll, the overlay swallows touches */
+(function(){if(typeof MutationObserver==='undefined'||typeof sheet==='undefined')return;
+  const sync=()=>document.documentElement.classList.toggle('lk-lock',sheet.classList.contains('on'));
+  new MutationObserver(sync).observe(sheet,{attributes:true,attributeFilter:['class']});sync();})();
 
 /* ---------- Lab: sentence-case scope tabs, short names in the luck index ---------- */
 function lkLab(){const v=document.getElementById('v-ana');if(!v)return;
   v.querySelectorAll('.labseg button').forEach(b=>{const t=b.textContent.trim();if(t==='MANAGERS')b.textContent='Managers';if(t==='LEAGUE')b.textContent='League';});
   v.querySelectorAll('.lucks .lrow2[data-prof]').forEach(r=>{const m=r.querySelector('.lmid');const t=r.dataset.prof;if(m&&SHORTOF[t])m.textContent=SHORTOF[t];});}
 
-/* ---------- sign-in wording: a claimed team is signed into, not claimed ---------- */
+/* ---------- sign-in wording: a claimed team is signed into, not claimed ----------
+   One answer to "is this team claimed?" for the header button AND the sheet (openClaim's mode() asks authIsClaimed):
+   the server's list once the status call has returned, a saved profile until then (a profile only exists after a claim). */
+authIsClaimed=function(team){const cl=typeof authClaimedList==='function'?authClaimedList():null;
+  return cl?cl.indexOf(team)>-1:!!(team&&PROFILE[team]);};
 profileButtonHTML=function(){const mine=myTeam();
   if(mine&&AUTH.team()===mine)return '<button class="watch" data-claim="1">Edit team</button>';
-  const cl=typeof authClaimedList==='function'?authClaimedList():null;
-  const claimed=mine&&((cl&&cl.indexOf(mine)>-1)||!!PROFILE[mine]);
-  return '<button class="watch" data-claim="1">'+(claimed?'Sign in':'Claim your team')+'</button>';};
+  return '<button class="watch" data-claim="1">'+(mine&&authIsClaimed(mine)?'Sign in':'Claim your team')+'</button>';};
 
 /* ---------- fixture difficulty: same five steps, no neon ---------- */
 Object.assign(FDRCOL,{1:'#CFEBDA',2:'#CFEBDA',3:'#EEEBF2',4:'#F4CACD',5:'#B3303A'});
 Object.assign(FDRTXT,{1:'#14532D',2:'#14532D',3:'#3B3346',4:'#7A1A20',5:'#FFFFFF'});
+
+/* ---------- keyboard: a focused matchup card (Matchday list, your match, derby card) opens on Enter or Space ---------- */
+(function(){const body=document.getElementById('gwbody');if(!body||body.__lkKey)return;body.__lkKey=1;
+  body.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const c=e.target.closest('[data-mi][tabindex]');
+    if(!c||e.target.closest('a,button,input'))return;e.preventDefault();location.hash='gw/'+c.dataset.mi;});})();
+/* ---------- header: the account icon is a real button (was a 28px span with an onclick: not focusable, under 40px) ---------- */
+(function(){const s=document.getElementById('hav');if(!s||s.tagName==='BUTTON')return;
+  const b=document.createElement('button');b.type='button';b.className='hav';b.id='hav';b.title='My team';b.setAttribute('aria-label','My team');
+  b.innerHTML=s.innerHTML;s.replaceWith(b);b.onclick=()=>{location.hash='team'};})();
 
 /* ---------- wire it in (outermost wrappers) ---------- */
 const lk_uh=updateHeader;updateHeader=function(){const r=lk_uh.apply(this,arguments);const i=document.querySelector('#hav img');if(i)i.style.boxShadow='0 0 0 2px #CDBDF0';return r;};
@@ -6753,10 +6886,11 @@ const lk_rg=renderGW;renderGW=function(){const r=lk_rg.apply(this,arguments);try
 const lk_rm=renderMatch;renderMatch=function(f,dl){const r=lk_rm.apply(this,arguments);try{lkMatchHead(f,dl)}catch(e){console.error(e)}return r;};
 const lk_rt=renderTeam;renderTeam=function(){lkFixTx();const r=lk_rt.apply(this,arguments);try{lkTeam(document.getElementById('teampage'),myTeam(),1)}catch(e){console.error(e)}return r;};
 const lk_op=openProfile;openProfile=function(team,intoEl){lkFixTx();const r=lk_op.apply(this,arguments);if(!intoEl){try{lkTeam(sheet.querySelector('.sh-right'),team,0)}catch(e){console.error(e)}}return r;};
-const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix()}catch(e){console.error(e)}return r;};
+const lk_os=openSheet;openSheet=function(){const r=lk_os.apply(this,arguments);try{lkSheetFix(arguments[0])}catch(e){console.error(e)}return r;};
 const lk_rx=renderXIs;renderXIs=function(){lkFixTx();return lk_rx.apply(this,arguments);};
 const lk_rtb=renderTable;renderTable=function(){const r=lk_rtb.apply(this,arguments);try{document.querySelectorAll('#tablebody details.acc').forEach(d=>{const m=d.querySelector('summary');if(m&&m.textContent.trim()==='Upcoming fixtures')d.remove();});}catch(e){}return r;}; /* the gameweek browser already shows every future week */
 const lk_ra=renderAna;renderAna=function(){const r=lk_ra.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;};
+const lk_rl=renderLab;renderLab=function(){const r=lk_rl.apply(this,arguments);try{lkLab()}catch(e){console.error(e)}return r;}; /* every Lab tap re-runs renderLab alone, which wrote the capitals back */
 (function(){const p=document.getElementById('gwpill');if(!p||typeof MutationObserver==='undefined')return;
   const fix=()=>{const m=/^GW(\d+) · (\d+d \d+h|\d+h \d+m|\d+m)$/.exec(p.textContent.trim());if(m)p.textContent='Deadline '+m[2];};
   new MutationObserver(fix).observe(p,{childList:true,characterData:true,subtree:true});fix();})();
