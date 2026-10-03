@@ -279,3 +279,20 @@ const lk_rl=renderLab;renderLab=function(){const r=lk_rl.apply(this,arguments);t
   new MutationObserver(fix).observe(p,{childList:true,characterData:true,subtree:true});fix();})();
 if(D.ro&&D.ro.length){try{renderGW();renderTeam();renderTable();updateHeader();}catch(e){}}
 })();
+
+/* sheet images on iPhone (4 Oct) */
+/* iPhone dropped images inside the scrolling sheet (card photo, club badge, flag) after they were scrolled away and
+   back. Every sheet image decodes synchronously, and one that re-enters view after leaving is replaced by a fresh copy
+   (same src, already cached), so WebKit paints it again. Harmless elsewhere. */
+(function(){
+  const sh=document.getElementById('sheet');if(!sh||!('IntersectionObserver' in window)||!('MutationObserver' in window))return;
+  const gone=new WeakSet();
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{const im=e.target;
+    if(!e.isIntersecting){gone.add(im);return;}
+    if(!gone.has(im)||!im.isConnected||!im.complete||!im.naturalWidth)return;
+    const c=im.cloneNode(true);c.decoding='sync';io.unobserve(im);im.replaceWith(c);});},{root:sh});
+  const arm=root=>{if(!root||!root.querySelectorAll)return;(root.tagName==='IMG'?[root]:root.querySelectorAll('img')).forEach(im=>{
+    if(im.__lkio)return;im.__lkio=1;if(im.getAttribute('decoding')!=='sync')im.decoding='sync';im.removeAttribute('loading');io.observe(im);});};
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)arm(n);}).observe(sh,{childList:true,subtree:true});
+  arm(sh);
+})();

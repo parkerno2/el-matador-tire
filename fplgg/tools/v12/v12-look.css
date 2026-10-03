@@ -266,6 +266,8 @@ button.watch.elev,button.watch.gold{background:#17121D !important;border-color:#
 .sheet .fc .face{-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;
   background:radial-gradient(58% 10% at 50% 99%,rgba(0,0,0,.30),transparent 72%)}
 .sheet .fc .face img{filter:none !important;-webkit-transform:translateZ(0);transform:translateZ(0)}
+/* sheet images on iPhone (4 Oct) */
+.sheet .fc img,.sheet .fxblk img{-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
 
 /* ---------- fixes, 3 Oct (bugfix build: MD-08, MD-10, MD-15, MD-16, LG-26, LG-27, LG-29, LG-31, T7, TP-7) ---------- */
 /* focus: one ring everywhere, never the browser default; light purple on the dark surfaces */
