@@ -284,7 +284,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* landscape phone: the sticky card column is taller than the sheet, so it scrolls with the details instead */
 @media(min-width:700px) and (max-height:560px){#sheet .lkstick{position:static}}
 /* tap targets: 40px through padding, the drawn shape unchanged */
-.top{padding:calc(7px + env(safe-area-inset-top)) 14px 7px !important}
+/* header and nav positions on iPhone (4 Oct): the header row clears the status-bar blur band; the nav sits lower */
+.top{padding:calc(16px + env(safe-area-inset-top)) 14px 10px !important}
+#sbfill{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#17121D;z-index:31;pointer-events:none}
+nav{padding-bottom:max(6px,calc(env(safe-area-inset-bottom) - 14px)) !important}
 .hbtn{width:40px !important;height:40px !important;background:transparent !important;border:none !important;position:relative;padding:0 !important;margin:0 !important}
 .hbtn::before{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
 .hbtn.busy::before{background:rgba(205,189,240,.18);border-color:rgba(205,189,240,.55)}

@@ -1,0 +1,38 @@
+/* Number colour study (4 Oct). Parker: "it feels really muted... what if we replace all of the numbers with the
+   light pretty purple?" Scoped variants for the hidden page numbers.html; whichever he picks folds into v12-look.css.
+   Light purple #CDBDF0 is 10.6:1 on ink but 1.7:1 on white (unreadable), so numbers on white use the same purple
+   brightened for light surfaces, #7B52D3 (5.3:1 on white, 4.8:1 on the ground). Results keep green/red.
+   nv-a: every number · nv-b: headline numbers only · nv-c: headline numbers + a purple glow on the dark surfaces */
+:root{--nvL:#CDBDF0;--nvD:#7B52D3}
+
+/* numbers that were still in Archivo get the condensed number face too (all variants) */
+html:is(.nv-a,.nv-b,.nv-c) :is(.trow .lp,.odds .opct2,.big > b,.in2 > b,.ptb > b,.lbv,td.tot,.trow .wdl,.trow .rk,.money,.mt b,
+  .mpxwin b,.mpxl b,.sg > b,#sheet .hist td,.lnum,.nw){font-family:'Barlow Condensed',sans-serif !important;font-variant-numeric:tabular-nums;letter-spacing:0}
+
+/* ---------- headline numbers (b, c, and a) ---------- */
+/* on white and the light ground */
+html:is(.nv-a,.nv-b,.nv-c) :is(.lks.lkn span:not(.lklo),.lkwp .lkn,.lkp .lkn,.lksc .lkn,.lkwhen .lkn,
+  .tsx-n:not(.tsx-up):not(.tsx-dn),.psx-big b.num,.psx-st b.num,.psx-form b.num,.ptb > b,.trow .lp,.odds .opct2,
+  .card .big > b,.in2 > b,.lbv,#sheet .lkstick ~ * .xpgrid b){color:var(--nvD) !important}
+/* on the dark surfaces: header block of a matchup, team header, player-card stats, minutes risk, win chance */
+html:is(.nv-a,.nv-b,.nv-c) :is(.lkbig.lkn,.lkMH .lkbig,.mpxwin b,.mpxl b,.lkm strong,.lkm .lknw,.lkrec em,.sg > b){color:var(--nvL) !important}
+html:is(.nv-a,.nv-b,.nv-c) .lkbig i{color:#5E5568 !important}
+
+/* ---------- a: every other number too ---------- */
+html.nv-a :is(td.tot,.trow .wdl:not(.w):not(.l),.trow .rk,.nw,.lnum,.psx-pr b.num,#sheet .hist td:not(.gw),.ptb > span,
+  .tsx-l b,.mid2.num,.money,.cnt,.fbx-sc,.fbx-pts,.pts > b:not(.p6):not(.p1)):not(.fc *){color:var(--nvD) !important}
+html.nv-a :is(.mt b,.lrow2 .lnum):not(.fc *){color:var(--nvL) !important}
+
+/* ---------- c: a little light on the dark surfaces ---------- */
+html.nv-c .top{background:radial-gradient(90% 180% at 100% 0%,rgba(123,82,211,.30),transparent 62%),#17121D !important}
+html.nv-c .lkMH,html.nv-c .lkTH{background-image:radial-gradient(110% 120% at 50% -10%,rgba(123,82,211,.26),transparent 60%) !important}
+html.nv-c .sh-left{background:radial-gradient(100% 70% at 50% 0%,rgba(123,82,211,.32),transparent 65%),#17121D !important}
+html.nv-c nav button.on{color:#5B2D8E !important}
+html.nv-c nav button.on .bar{background:#7B52D3 !important;visibility:visible}
+
+/* the study toggle (numbers.html only) */
+#nvtog{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh,62px) + max(6px,calc(env(safe-area-inset-bottom) - 14px)) + 12px);
+  z-index:60;display:flex;gap:2px;padding:3px;background:#17121D;border-radius:999px;box-shadow:0 6px 20px rgba(23,18,29,.35)}
+#nvtog button{appearance:none;border:0;background:transparent;color:#B9B1C4;font:600 12px/1 'Archivo',sans-serif;padding:0 12px;height:34px;border-radius:999px;cursor:pointer}
+#nvtog button.on{background:#CDBDF0;color:#17121D}
+@media(min-width:700px){#nvtog{bottom:18px}}
