@@ -5,10 +5,10 @@ import pathlib
 R = pathlib.Path(__file__).resolve().parents[3]; HERE = pathlib.Path(__file__).parent
 s = (R / 'v12.html').read_text(encoding='utf-8')
 css = (HERE / 'v13-numbers.css').read_text(encoding='utf-8')
-js = r"""(function(){var K='emt-nv',L={now:'Now',a:'Every number',b:'Headlines',c:'+ glow'};
-var q=new URLSearchParams(location.search).get('nv'),v=q;if(!v){try{v=localStorage.getItem(K)}catch(e){}}if(!L[v])v='a';
+js = r"""(function(){var K='emt-nv2',L={now:'Now',c:'Purple',d:'Blue mix'};
+var q=new URLSearchParams(location.search).get('nv'),v=q;if(!v){try{v=localStorage.getItem(K)}catch(e){}}if(!L[v]&&['a','b'].indexOf(v)<0)v='d';
 var t=document.createElement('div');t.id='nvtog';t.innerHTML=Object.keys(L).map(function(x){return '<button data-v="'+x+'">'+L[x]+'</button>'}).join('');
-function set(x){var h=document.documentElement;h.classList.remove('nv-a','nv-b','nv-c');if(x!=='now')h.classList.add('nv-'+x);
+function set(x){var h=document.documentElement;h.classList.remove('nv-a','nv-b','nv-c','nv-d');if(x!=='now')h.classList.add('nv-'+x);
  try{localStorage.setItem(K,x)}catch(e){}[].forEach.call(t.children,function(b){b.classList.toggle('on',b.getAttribute('data-v')===x)})}
 t.addEventListener('click',function(e){var b=e.target.closest('button');if(b)set(b.getAttribute('data-v'))});
 document.body.appendChild(t);set(v);})();"""

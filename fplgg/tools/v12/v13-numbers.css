@@ -6,7 +6,7 @@
 :root{--nvL:#CDBDF0;--nvD:#7B52D3}
 
 /* numbers that were still in Archivo get the condensed number face too (all variants) */
-html:is(.nv-a,.nv-b,.nv-c) :is(.trow .lp,.odds .opct2,.big > b,.in2 > b,.ptb > b,.lbv,td.tot,.trow .wdl,.trow .rk,.money,.mt b,
+html:is(.nv-a,.nv-b,.nv-c,.nv-d) :is(.trow .lp,.odds .opct2,.big > b,.in2 > b,.ptb > b,.lbv,td.tot,.trow .wdl,.trow .rk,.money,.mt b,
   .mpxwin b,.mpxl b,.sg > b,#sheet .hist td,.lnum,.nw){font-family:'Barlow Condensed',sans-serif !important;font-variant-numeric:tabular-nums;letter-spacing:0}
 
 /* ---------- headline numbers (b, c, and a) ---------- */
@@ -29,6 +29,22 @@ html.nv-c .lkMH,html.nv-c .lkTH{background-image:radial-gradient(110% 120% at 50
 html.nv-c .sh-left{background:radial-gradient(100% 70% at 50% 0%,rgba(123,82,211,.32),transparent 65%),#17121D !important}
 html.nv-c nav button.on{color:#5B2D8E !important}
 html.nv-c nav button.on .bar{background:#7B52D3 !important;visibility:visible}
+
+/* ---------- d: Matchweek blue on white, lavender on dark, white text on dark (Parker, 4 Oct: "too much purple,
+   maybe the Matchweek blue in places; the grey text should be white, it's too solid against the purple numbers") ---------- */
+html.nv-d :is(.lks.lkn span:not(.lklo),.lkwp .lkn,.lkp .lkn,.lksc .lkn,.lkwhen .lkn,
+  .tsx-n:not(.tsx-up):not(.tsx-dn),.psx-big b.num,.psx-st b.num,.psx-form b.num,.ptb > b,.trow .lp,.odds .opct2,
+  .card .big > b,.in2 > b,.lbv){color:#2E5BFF !important}
+html.nv-d :is(.lkbig.lkn,.lkMH .lkbig,.mpxwin b,.mpxl b,.lkrec em,.sg > b){color:var(--nvL) !important}
+html.nv-d .lkbig i{color:#6E6478 !important}
+/* grey text on the dark panels goes white: matchup header + matchup panel, team header, player-card column */
+html.nv-d :is(.lkMH .lkfull,.lkMH .lkshort,.lkMH .lkt span,.lkMH .lknw,.lkMH .lkst,.lkMH .lkal,.lkMH .lkrec i,
+  .mpxm em,.mpxm em span,.mpxr > em,.mpxmore,.mpxl i,.mpxx i,.mpxg3 i,.mpxcl i,.stage .asubnote,
+  .lkTH .lkm,.lkTH .lkm .lknw,.lkTH .lkm strong,.sh-left .sg,.sh-left .sg em,.sh-left .lgnote){color:#fff !important}
+html.nv-d .top{background:radial-gradient(90% 180% at 100% 0%,rgba(46,91,255,.26),transparent 62%),#17121D !important}
+html.nv-d .lkMH,html.nv-d .lkTH{background-image:radial-gradient(110% 120% at 50% -10%,rgba(46,91,255,.22),transparent 60%) !important}
+html.nv-d .sh-left{background:radial-gradient(100% 70% at 50% 0%,rgba(46,91,255,.26),transparent 65%),#17121D !important}
+html.nv-d nav button.on .bar{background:#2E5BFF !important;visibility:visible}
 
 /* the study toggle (numbers.html only) */
 #nvtog{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh,62px) + max(6px,calc(env(safe-area-inset-bottom) - 14px)) + 12px);
