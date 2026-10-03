@@ -1,0 +1,170 @@
+/* ===== El Matador Tire articles (gameweek previews and recaps) =====
+   Source of truth for every recap-gwN.html / preview-gwN.html page. build_articles.py inlines this file
+   between the article:css markers of each page: edit here, never in a page.
+   Same look as the app (fplgg/tools/v12/v12-look.css, the D2 "Arena" design): ink #17121D chrome, ground #F5F3F8,
+   white cards with hairline borders, purple #5B2D8E for kickers, links and focus only, light purple #CDBDF0 on dark,
+   green/red for results only. Archivo for words, Barlow Condensed for every number. No gold, no gradients. */
+:root{--ink:#17121D;--ground:#F5F3F8;--card:#fff;--line:#E7E2EE;--line2:#F0ECF4;--mid:#6F6880;--body:#4B4456;
+  --pu:#5B2D8E;--pul:#CDBDF0;--onink:#B9B1C4;--good:#1F8A55;--bad:#C23A3A;--draw:#8C8496;color-scheme:light}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{background:var(--ground)}
+body{font-family:'Archivo',system-ui,sans-serif;font-size:15px;line-height:1.45;color:var(--ink);
+  -webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+b{font-weight:750}
+a{color:var(--pu)}
+:focus:not(:focus-visible){outline:none}
+:focus-visible{outline:2px solid var(--pu);outline-offset:2px}
+.ah :focus-visible,.mast :focus-visible,.mhead :focus-visible{outline-color:var(--pul)}
+
+/* ---- chrome: the app's header bar (Matchweek plate + league name), close on the right ---- */
+.ah{position:sticky;top:0;z-index:20;background:var(--ink);border-bottom:1px solid #2A2332;
+  padding:calc(7px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 7px max(14px,env(safe-area-inset-left))}
+.ah .in{max-width:1020px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:40px}
+.ah .brand{display:flex;align-items:center;gap:8px;min-width:0;color:#fff;text-decoration:none}
+.ah .brand svg{display:block;width:60px;height:auto;flex:none}
+.ah h1{font-size:.8rem;font-weight:800;letter-spacing:-.01em;line-height:1.05;color:#fff;max-width:5.6em}
+.sh-x{margin-left:auto;flex:none;position:relative;width:40px;height:40px;display:grid;place-items:center;color:#fff;
+  text-decoration:none;border-radius:50%;margin-right:-6px;-webkit-tap-highlight-color:transparent}
+.sh-x::before{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.sh-x svg{position:relative;display:block}
+@media(hover:hover){.sh-x:hover::before{background:rgba(255,255,255,.2)}}
+
+/* ---- masthead: kicker over the standfirst, on ink like the matchup page's stage ---- */
+.mast{background:var(--ink);color:#fff;padding:18px 16px 24px}
+.mast>*{max-width:720px;margin-left:auto;margin-right:auto}
+.mk{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pul)}
+.stand{margin-top:8px;font-size:1.16rem;line-height:1.45;font-weight:500;color:#D9D3E2;letter-spacing:-.005em}
+.stand b{color:#fff;font-weight:750}
+
+/* ---- page ---- */
+.wrap{max-width:736px;margin:0 auto;padding:0 8px calc(40px + env(safe-area-inset-bottom))}
+h2{font-size:1.1rem;font-weight:800;letter-spacing:-.015em;line-height:1.3;color:var(--ink);margin:24px 2px 10px}
+
+/* ---- matchup card ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px}
+/* score block = the app's matchup header (ink, kicker, crest + name + manager either side, Barlow score) */
+.mhead{background:var(--ink);color:#fff;padding:14px 12px 16px;text-align:center}
+.kick{font-size:.68rem;font-weight:800;letter-spacing:.08em;line-height:1.35;text-transform:uppercase;color:var(--pul);padding:0 4px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
+.tm{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.tn{font-weight:800;font-size:.98rem;letter-spacing:-.015em;line-height:1.15;color:#fff;text-wrap:balance}
+.mg{font-size:.74rem;font-weight:600;color:var(--onink)}
+.srow:has(.win) .tm:not(.win) .tn{color:var(--onink)}
+.srow>:not(.tm){padding-top:6px;min-width:0}
+.sc{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.4rem;line-height:1;letter-spacing:0;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:#fff}
+.sc .d{color:#5E5568;margin:0 4px}
+.sc:has(.w){color:var(--draw)}
+.sc .w{color:#fff}
+.sc.pred{font-size:2.05rem}
+.predlab{font-size:.72rem;font-weight:700;color:var(--onink);margin-top:6px;text-transform:lowercase}
+.predlab::first-letter{text-transform:uppercase}
+
+/* team badges: Mono on the ink header, team-colour fill at 32 px and under (the app's rule) */
+.cr{display:inline-block;flex:none;line-height:0;vertical-align:middle}
+.cr svg{display:block;width:20px;height:22px}
+.cr.lg svg{width:44px;height:48px}
+
+/* featured player: the star of the match, the player to watch, or the zero */
+.pstrip{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--line2)}
+.ph{width:56px;height:56px;border-radius:50%;overflow:hidden;background:#F0EBF8;display:grid;place-items:center;
+  font-weight:800;font-size:.95rem;color:var(--mid);box-shadow:0 0 0 1px var(--line)}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.ph.low{box-shadow:0 0 0 2px var(--bad)}
+.pinfo{min-width:0}
+.pk{font-size:.66rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--pu)}
+.pk.low{color:var(--bad)}
+.pname{font-weight:800;font-size:.92rem;line-height:1.25;margin-top:2px;color:var(--ink)}
+.pname span{font-weight:600;font-size:.74rem;color:var(--mid);white-space:nowrap}
+.pline{font-size:.88rem;line-height:1.45;color:var(--body);margin-top:4px}
+.ppts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.2rem;line-height:1;text-align:center;color:var(--ink);
+  font-variant-numeric:tabular-nums;min-width:34px}
+.ppts small{display:block;font-family:'Archivo',sans-serif;font-size:.6rem;font-weight:800;letter-spacing:.08em;color:var(--mid);margin-top:3px}
+.ppts.low{color:var(--bad)}
+
+/* the write-up */
+.mbody{padding:14px 14px 16px}
+.story{font-size:1rem;line-height:1.6;color:#231D2B}
+.hits{list-style:none;padding:0;margin:12px 0 0}
+.hits li{font-size:.94rem;line-height:1.5;color:var(--body);padding:10px 0;border-top:1px solid var(--line2)}
+.hits li:last-child{padding-bottom:4px}
+.hits b{color:var(--ink)}
+.mbody>.hits:first-child{margin-top:0}
+.mbody>.hits:first-child li:first-child{border-top:0;padding-top:0}
+
+/* numbers row: label over a Barlow value, hairline dividers (was the chips) */
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));border-top:1px solid var(--line2);margin-top:12px;padding-top:12px}
+.chip{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:0 10px;border-left:1px solid var(--line2);min-width:0}
+.chip:first-child{padding-left:0;border-left:0}
+.ck{font-size:.72rem;font-weight:600;line-height:1.3;color:var(--mid)}
+.cv{font-size:.86rem;font-weight:700;line-height:1.25;color:var(--ink)}
+.cv b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;line-height:1.05;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* the number of the match */
+.notm{display:flex;align-items:center;gap:14px;margin-top:14px;background:var(--ground);border-radius:12px;padding:12px 14px}
+.notm .n{flex:none;min-width:48px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.3rem;
+  line-height:1;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.notm .c{font-size:.88rem;line-height:1.45;color:var(--body)}
+
+/* ---- around the league ---- */
+table{width:100%;border-collapse:collapse}
+th{font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);text-align:left;padding:0 6px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line2);font-size:.92rem;font-weight:700;vertical-align:middle}
+th:first-child,td:first-child{padding-left:0;width:22px}
+th:last-child,td:last-child{padding-right:0}
+td:first-child,td.r{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;font-size:1.08rem}
+td:first-child{color:var(--mid)}
+td.r,th.r{text-align:right}
+td.r:nth-child(4){color:var(--mid);font-weight:600}
+td:has(>.cr){position:relative;padding-left:36px;line-height:1.2;text-wrap:balance}
+td>.cr{position:absolute;left:6px;top:50%;transform:translateY(-50%)}
+tr.top td:first-child{color:var(--ink)}
+tr.top td:nth-child(2){font-weight:800}
+.res{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;font-family:'Archivo',sans-serif;
+  font-size:.66rem;font-weight:800;color:#fff;vertical-align:middle}
+.res.w{background:var(--good)}.res.l{background:var(--bad)}.res.d{background:var(--draw)}
+table+.hits{margin-top:8px}
+table+.hits li:first-child{border-top:0}
+/* next week's fixtures, one row each like the app's league list */
+.fxg{margin-top:12px;border-top:1px solid var(--line)}
+.fx{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:10px;padding:11px 0 12px;
+  border-top:1px solid var(--line2);font-size:.74rem;font-weight:700;color:var(--draw)}
+.fx:first-child{border-top:0}
+.fx br{display:none}
+.fx .tag{grid-column:1/-1;margin-bottom:7px;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--pu)}
+.fx .ft{display:flex;align-items:center;gap:8px;min-width:0;font-size:.92rem;font-weight:750;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+.fx .ft.a{flex-direction:row-reverse;text-align:right}
+
+.foot{font-size:.78rem;line-height:1.55;color:var(--mid);margin:16px 4px 0}
+.stand,.story,.pline,.hits li,.notm .c,.foot{text-wrap:pretty}
+.nw{white-space:nowrap}
+
+/* ---- narrow phones (320 to 360 px): the centre column shrinks first so both teams keep room ---- */
+@media(max-width:360px){
+  .srow{gap:6px}
+  .sc{font-size:2.05rem}
+  .sc.pred{font-size:1.72rem}
+  .sc .d{margin:0 3px}
+  .tn{font-size:.9rem}
+  .cr.lg svg{width:38px;height:41px}
+  .stand{font-size:1.08rem}
+  .pstrip{grid-template-columns:48px minmax(0,1fr) auto;gap:10px;padding:14px 12px}
+  .ph{width:48px;height:48px}
+  .mbody{padding:14px 12px 16px}
+  .chip{padding:0 8px}
+  .cv b{font-size:1.18rem}
+  td{font-size:.88rem}
+  td:has(>.cr){padding-left:32px}
+}
+/* tablets and desktop: a reading column, more air */
+@media(min-width:700px){
+  .wrap{padding:0 22px 48px}
+  .mast{padding:28px 22px 32px}
+  .mast>*{max-width:692px}
+  .stand{font-size:1.3rem}
+  .mhead{padding:18px 20px 20px}
+  .pstrip{padding:16px 20px}
+  .mbody{padding:16px 20px 20px}
+  .card{margin-bottom:16px}
+}

@@ -1,0 +1,66 @@
+{
+ "Cold Palmers": {
+  "ini": "PN",
+  "col": "#33628F",
+  "short": "Palmers",
+  "manager": "Parker",
+  "small": "<defs><clipPath id=\"crPNs0\"><path d=\"M14 8 H86 V60 L50 105 L14 60 Z\"/></clipPath></defs><g clip-path=\"url(#crPNs0)\"><rect width=\"50\" height=\"108\" fill=\"#23798C\"/><rect x=\"50\" width=\"50\" height=\"108\" fill=\"#46337F\"/></g><g transform=\"translate(0,6)\"> <g stroke=\"#fff\" stroke-width=\"4.6\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M50 74 L50 46\"/> <path d=\"M50 46 C 42 38, 32 36, 24 40\"/> <path d=\"M50 46 C 44 34, 36 28, 26 28\"/> <path d=\"M50 46 C 50 32, 46 24, 40 20\"/> <path d=\"M50 46 C 56 32, 64 26, 74 26\"/> <path d=\"M50 46 C 58 38, 68 36, 76 41\"/> </g> <g stroke=\"#BFE0FF\" stroke-width=\"3\" stroke-linecap=\"round\"> <path d=\"M63 60 v12 M57 66 h12 M58.8 61.8 l8.4 8.4 M67.2 61.8 l-8.4 8.4\"/> </g></g>",
+  "large": "<path d=\"M14 8 H86 V60 L50 105 L14 60 Z\" fill=\"#221B2B\"/><path d=\"M14 8 H86 V60 L50 105 L14 60 Z\" fill=\"none\" stroke=\"#6c8eae\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <g stroke=\"#6c8eae\" stroke-width=\"4.6\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M50 74 L50 46\"/> <path d=\"M50 46 C 42 38, 32 36, 24 40\"/> <path d=\"M50 46 C 44 34, 36 28, 26 28\"/> <path d=\"M50 46 C 50 32, 46 24, 40 20\"/> <path d=\"M50 46 C 56 32, 64 26, 74 26\"/> <path d=\"M50 46 C 58 38, 68 36, 76 41\"/> </g> <g stroke=\"#6c8eae\" stroke-width=\"3\" stroke-linecap=\"round\"> <path d=\"M63 60 v12 M57 66 h12 M58.8 61.8 l8.4 8.4 M67.2 61.8 l-8.4 8.4\"/> </g></g>"
+ },
+ "Trophy Hunters": {
+  "ini": "BS",
+  "col": "#6A44A0",
+  "short": "Trophy",
+  "manager": "Bryant",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#5A3889\"/><g transform=\"translate(0,6)\"> <circle cx=\"50\" cy=\"47\" r=\"26\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" opacity=\".55\"/> <g stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\" opacity=\".55\"> <path d=\"M50 15 v9 M50 70 v9 M18 47 h9 M73 47 h9\"/> </g> <g fill=\"#fff\"> <path d=\"M40 34 h20 v8 a10 10 0 0 1 -20 0 z\"/> <path d=\"M38 36 a6 6 0 0 1 -6 6 M62 36 a6 6 0 0 0 6 6\" stroke=\"#fff\" stroke-width=\"3.4\" fill=\"none\" stroke-linecap=\"round\"/> <rect x=\"47\" y=\"50\" width=\"6\" height=\"7\" rx=\"1\"/> <rect x=\"42\" y=\"57\" width=\"16\" height=\"4.5\" rx=\"2\"/> </g></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#9478bb\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <circle cx=\"50\" cy=\"47\" r=\"26\" fill=\"none\" stroke=\"#9478bb\" stroke-width=\"3\" opacity=\".55\"/> <g stroke=\"#9478bb\" stroke-width=\"3\" stroke-linecap=\"round\" opacity=\".55\"> <path d=\"M50 15 v9 M50 70 v9 M18 47 h9 M73 47 h9\"/> </g> <g fill=\"#9478bb\"> <path d=\"M40 34 h20 v8 a10 10 0 0 1 -20 0 z\"/> <path d=\"M38 36 a6 6 0 0 1 -6 6 M62 36 a6 6 0 0 0 6 6\" stroke=\"#9478bb\" stroke-width=\"3.4\" fill=\"none\" stroke-linecap=\"round\"/> <rect x=\"47\" y=\"50\" width=\"6\" height=\"7\" rx=\"1\"/> <rect x=\"42\" y=\"57\" width=\"16\" height=\"4.5\" rx=\"2\"/> </g></g>"
+ },
+ "The Soaring Gulls": {
+  "ini": "CT",
+  "col": "#177970",
+  "short": "Gulls",
+  "manager": "CJ",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#136862\"/><g transform=\"translate(0,6)\"> <g stroke=\"#fff\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M26 40 C 34 30, 44 30, 50 38 C 56 30, 66 30, 74 40\"/> </g> <g stroke=\"#CFF6EE\" stroke-width=\"3.6\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M28 60 q6 -6 12 0 t12 0 t12 0 t12 0\" opacity=\".9\"/> <path d=\"M33 69 q6 -6 12 0 t12 0 t12 0\" opacity=\".55\"/> </g></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#589f98\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <g stroke=\"#589f98\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M26 40 C 34 30, 44 30, 50 38 C 56 30, 66 30, 74 40\"/> </g> <g stroke=\"#589f98\" stroke-width=\"3.6\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M28 60 q6 -6 12 0 t12 0 t12 0 t12 0\" opacity=\".9\"/> <path d=\"M33 69 q6 -6 12 0 t12 0 t12 0\" opacity=\".55\"/> </g></g>"
+ },
+ "Devils U21s": {
+  "ini": "PJ",
+  "col": "#B02638",
+  "short": "Devils",
+  "manager": "PJ",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#A3202F\"/><g transform=\"translate(0,6)\"> <g stroke=\"#fff\" stroke-width=\"4.4\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M50 76 V38\"/> <path d=\"M38 34 v8 a12 12 0 0 0 24 0 v-8\"/> <path d=\"M38 34 l-3 -7 M62 34 l3 -7\"/> <path d=\"M50 38 l-6 -9 M50 38 l6 -9\"/> </g> <path d=\"M44 29 l6 -11 6 11\" stroke=\"#fff\" stroke-width=\"4.4\" stroke-linejoin=\"round\" fill=\"none\"/></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#c66370\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <g stroke=\"#c66370\" stroke-width=\"4.4\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M50 76 V38\"/> <path d=\"M38 34 v8 a12 12 0 0 0 24 0 v-8\"/> <path d=\"M38 34 l-3 -7 M62 34 l3 -7\"/> <path d=\"M50 38 l-6 -9 M50 38 l6 -9\"/> </g> <path d=\"M44 29 l6 -11 6 11\" stroke=\"#c66370\" stroke-width=\"4.4\" stroke-linejoin=\"round\" fill=\"none\"/></g>"
+ },
+ "I Am a Baleba": {
+  "ini": "EG",
+  "col": "#B98A26",
+  "short": "Baleba",
+  "manager": "Ethan",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#C4952F\"/><g transform=\"translate(0,6)\"> <circle cx=\"50\" cy=\"47\" r=\"24\" fill=\"none\" stroke=\"#3B2A05\" stroke-width=\"4\" opacity=\".85\"/> <path d=\"M55 20 L38 50 h10 L45 74 L64 42 h-11 z\" fill=\"#3B2A05\"/></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#cdab63\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <circle cx=\"50\" cy=\"47\" r=\"24\" fill=\"none\" stroke=\"#cdab63\" stroke-width=\"4\" opacity=\".85\"/> <path d=\"M55 20 L38 50 h10 L45 74 L64 42 h-11 z\" fill=\"#cdab63\"/></g>"
+ },
+ "Kobbie Mainoo Fan": {
+  "ini": "BK",
+  "col": "#C95F24",
+  "short": "Mainoo",
+  "manager": "Baha",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#C2571F\"/><g transform=\"translate(0,6)\"> <path d=\"M50 22 C 60 32, 64 40, 64 50 a14 14 0 0 1 -28 0 c0 -7 3 -11 7 -16 c0 6 2 9 6 11 c-1 -8 0 -16 11 -23z\" fill=\"#fff\" opacity=\".95\"/> <path d=\"M50 56 l2.7 5.6 6.2.8 -4.5 4.3 1.1 6.1 -5.5 -2.9 -5.5 2.9 1.1 -6.1 -4.5 -4.3 6.2 -.8z\" fill=\"#FFE2B8\"/></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#d88c61\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <path d=\"M50 22 C 60 32, 64 40, 64 50 a14 14 0 0 1 -28 0 c0 -7 3 -11 7 -16 c0 6 2 9 6 11 c-1 -8 0 -16 11 -23z\" fill=\"#d88c61\" opacity=\".95\"/> <path d=\"M50 56 l2.7 5.6 6.2.8 -4.5 4.3 1.1 6.1 -5.5 -2.9 -5.5 2.9 1.1 -6.1 -4.5 -4.3 6.2 -.8z\" fill=\"#d88c61\"/></g>"
+ },
+ "Team Jacob": {
+  "ini": "JS",
+  "col": "#8A6247",
+  "short": "Jacob",
+  "manager": "Jacob",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#6F4E39\"/><g transform=\"translate(0,6)\"> <g stroke=\"#fff\" stroke-width=\"4.4\" stroke-linecap=\"round\"> <path d=\"M38 78 L46 26 M62 78 L54 26\"/> <path d=\"M40.5 66 h19 M43 52 h16.5 M45.5 38 h13\"/> </g> <path d=\"M50 14 l2.4 5 5.6.7 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.6 -.7z\" fill=\"#FFD98F\"/></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#ab8e7b\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <g stroke=\"#ab8e7b\" stroke-width=\"4.4\" stroke-linecap=\"round\"> <path d=\"M38 78 L46 26 M62 78 L54 26\"/> <path d=\"M40.5 66 h19 M43 52 h16.5 M45.5 38 h13\"/> </g> <path d=\"M50 14 l2.4 5 5.6.7 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.6 -.7z\" fill=\"#ab8e7b\"/></g>"
+ },
+ "In It to McGinn It": {
+  "ini": "NG",
+  "col": "#A5357B",
+  "short": "McGinn",
+  "manager": "Nate",
+  "small": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#942E6D\"/><g transform=\"translate(0,6)\"> <g fill=\"#fff\"> <path d=\"M50 30 c9 0 14 6 14 13 c0 8 -6 13 -14 13 c-8 0 -14 -5 -14 -13 c0 -7 5 -13 14 -13z\" opacity=\".95\"/> <path d=\"M50 24 l3 7 h-6z\"/> </g> <g stroke=\"#F7CFF2\" stroke-width=\"2.6\" stroke-linecap=\"round\"> <path d=\"M42 38 v14 M50 36 v18 M58 38 v14\"/> </g> <g stroke=\"#fff\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M50 56 V76 M50 66 C 44 64, 40 60, 39 56 M50 70 C 56 68, 60 64, 61 60\"/> </g></g>",
+  "large": "<path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"#221B2B\"/><path d=\"M50 4 L88 12 C90 46 84 78 50 104 C16 78 10 46 12 12 Z\" fill=\"none\" stroke=\"#be6ea0\" stroke-width=\"3.4\" transform=\"translate(50 54) scale(.88) translate(-50 -54)\"/><g transform=\"translate(0,6)\"> <g fill=\"#be6ea0\"> <path d=\"M50 30 c9 0 14 6 14 13 c0 8 -6 13 -14 13 c-8 0 -14 -5 -14 -13 c0 -7 5 -13 14 -13z\" opacity=\".95\"/> <path d=\"M50 24 l3 7 h-6z\"/> </g> <g stroke=\"#be6ea0\" stroke-width=\"2.6\" stroke-linecap=\"round\"> <path d=\"M42 38 v14 M50 36 v18 M58 38 v14\"/> </g> <g stroke=\"#be6ea0\" stroke-width=\"4\" stroke-linecap=\"round\" fill=\"none\"> <path d=\"M50 56 V76 M50 66 C 44 64, 40 60, 39 56 M50 70 C 56 68, 60 64, 61 60\"/> </g></g>"
+ }
+}
