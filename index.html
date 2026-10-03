@@ -5261,7 +5261,9 @@ body[data-view="faq"] .helpfoot{display:none}
    Archivo for words, Barlow Condensed for every number. Plate cards (.fc) keep their own type. */
 :root{--uix-chrome:#17121D;--bg:#F5F3F8;--card:#fff;--line:#E7E2EE;--ink:#17121D;--mid:#6F6880;--p1:#17121D;--p2:#5B2D8E; /* --mid: 5.3:1 on white, 4.8:1 on the ground (was #7C7488, 4.46 / 4.05) */
   --lk-pu:#5B2D8E;--lk-pul:#CDBDF0;--lk-tint:#F0EBF8;--lk-good:#1F8A55;--lk-bad:#C23A3A;--lk-draw:#8C8496}
-html,body{background:#F5F3F8 !important}
+/* root stays ink so iPhone tints the status bar dark (4 Oct); the body carries the light ground */
+html{background:#17121D !important}
+body{background:#F5F3F8 !important;min-height:100vh;min-height:100dvh}
 body,body *:not(.fc):not(.fc *):not(svg):not(svg *){font-family:'Archivo',system-ui,sans-serif !important}
 html body .lkn.lkn.lkn,html body .lkn.lkn.lkn *,html body .num.num.num:not(.fc *){font-family:'Barlow Condensed',sans-serif !important;font-variant-numeric:tabular-nums;letter-spacing:0}
 .top .brand{display:flex !important;align-items:center;gap:10px}
