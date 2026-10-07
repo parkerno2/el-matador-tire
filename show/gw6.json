@@ -1,0 +1,72 @@
+{
+ "gw": 6,
+ "voice": "Malcolm Tyre — El Matador Booth",
+ "model": "eleven_multilingual_v2",
+ "speed": 1.1,
+ "written": "2026-10-07",
+ "audio": "sheet",
+ "open": "Gameweek six. Two derbies, a leader under investigation, and a manager still waiting for a point. Here's how it lines up.",
+ "chapters": [
+  {
+   "home": "Kobbie Mainoo Fan",
+   "away": "Trophy Hunters",
+   "star": {
+    "h": "487838",
+    "a": "17761"
+   },
+   "beats": [
+    "Kobbie Mainoo Fan. Top of the table, unbeaten in four, and still under investigation.",
+    "Hall leads the eleven after thirteen last week. Isak is a seventy-five percent doubt.",
+    "Trophy Hunters. Bryant has won three straight, the best form in the league.",
+    "Tarkowski projects highest. Semenyo, Tzolis and Brobbey all carry seventy-five percent flags.",
+    "Baha leads the series five to two. The model makes it sixty-two percent."
+   ]
+  },
+  {
+   "home": "Cold Palmers",
+   "away": "Devils U21s",
+   "star": {
+    "h": "154561",
+    "a": "222531"
+   },
+   "beats": [
+    "Cold Palmers. Parker says he's winning Manager of the Month. The model says nine percent.",
+    "Four starters on seventy-five percent flags, Palmer among them. Raya projects highest.",
+    "Devils U21s. Five games, five defeats, and PJ still leads this derby four to three.",
+    "Gibbs-White tops the eleven. Not a single flag among PJ's starters.",
+    "Predicted thirty-nine to thirty-five point eight. The model has Parker at fifty-six percent."
+   ]
+  },
+  {
+   "home": "I Am a Baleba",
+   "away": "The Soaring Gulls",
+   "star": {
+    "h": "223094",
+    "a": "226597"
+   },
+   "beats": [
+    "I Am a Baleba. Ethan put fifty-four on PJ last week, his best of the season.",
+    "Haaland goes to Anfield as the eleven's top projection.",
+    "The Soaring Gulls. CJ has scored two hundred and forty, the most in the league.",
+    "Gabriel heads the eleven, at home to Leeds. Tavernier and Emersonn close behind.",
+    "Ethan leads the series four to three. The model still prefers CJ, fifty-five percent."
+   ]
+  },
+  {
+   "home": "In It to McGinn It",
+   "away": "Team Jacob",
+   "star": {
+    "h": "141746",
+    "a": "223340"
+   },
+   "beats": [
+    "In It to McGinn It. Nate has lost two straight, by a point and by twenty-six.",
+    "Fernandes leads the eleven, at home to Spurs. Porro and Rashford are seventy-five percent.",
+    "Team Jacob. Two straight defeats as well, by four and by one.",
+    "Saka projects six point one at home to Leeds, the highest in the league.",
+    "First ever meeting. Predicted thirty-three point six to thirty-nine point nine. Jacob, sixty-three percent."
+   ]
+  }
+ ],
+ "close": "That's the gameweek. Lineups in before Saturday's deadline, and get yourself on the record."
+}
