@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,20 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.11 · 7 Oct 2026
+ *   The Gameweek Show is voiced here now, not by hand (bottom of this file). The script stays in the app repo as
+ *   show/gw<N>.json; this renders every line with ElevenLabs and serves the clips to the app.
+ *   1. Add ELEVENLABS_API_KEY in Project Settings → Script Properties. Create the key at elevenlabs.io →
+ *      Developers → API keys, with Text to Speech access. Optional: EMT_VOICE_ID (default Malcolm's voice),
+ *      EMT_TTS_MODEL (default: the json's "model"), EMT_SHOW_PAUSED = yes to pause the automatic runs.
+ *   2. Automatic: every 15 minutes, once show/gw<N>.json exists for the next unfinished gameweek, it renders the
+ *      lines that are missing or changed (editing one line re-renders only that line). It rides the AI writer's
+ *      15-minute trigger: aiTick() now runs the writer and then the show, each on its own, and the show runs even
+ *      with the writer off. setup() installs that trigger when either key is set; otherwise run installAiTrigger().
+ *   3. Clips are mp3s (64 kbps) kept as base64 in a new hidden ShowAudio tab. The app gets them from the web app:
+ *      GET <API URL>?show=<gw>. Menu: Render the Gameweek Show now. showStatus(gw) logs what is rendered.
+ *   No new permissions (only UrlFetchApp and this sheet). Menu 'Run the AI writer now' runs the writer only.
+ *   After pasting: Deploy → Manage deployments → edit → Version: New version → Deploy.
  * v3.10 · 7 Oct 2026
  *   The rumour mill. Two new `social` kinds:
  *     rumour · Target r:<id> · Extra {text, about, anon} · 3 a day per manager
@@ -106,7 +120,7 @@ function setup() {
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('refreshAll').timeBased().everyHours(1).create();
   ScriptApp.newTrigger('liveTick').timeBased().everyMinutes(10).create(); // v3.6: re-running setup() keeps live refresh
-  if (emtAiKey()) ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();   // v3.9
+  if (emtAiKey() || emtShowKey()) ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();   // v3.9; v3.11 the show rides it too
 }
 
 function onOpen() {
@@ -114,7 +128,8 @@ function onOpen() {
     .addItem('Refresh now', 'refreshAll')
     .addItem('Install live refresh (every 10 min)', 'installLiveTrigger')
     .addItem('Install AI writer (every 15 min)', 'installAiTrigger')
-    .addItem('Run the AI writer now', 'aiTick')
+    .addItem('Run the AI writer now', 'aiWriterTick')
+    .addItem('Render the Gameweek Show now', 'renderShowNow')
     .addToUi();
 }
 
@@ -1331,7 +1346,10 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  try { return emtOut({ ok: true, service: 'emt', claimed: emtClaimed() }); }
+  try {
+    if (e && e.parameter && e.parameter.show) return emtOut(emtShowGet(e.parameter.show));   // v3.11 the Gameweek Show
+    return emtOut({ ok: true, service: 'emt', claimed: emtClaimed() });
+  }
   catch (err) { return emtOut({ ok: false, error: String((err && err.message) || err) }); }
 }
 
@@ -1385,6 +1403,7 @@ function installAiTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'aiTick') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();
   Logger.log(emtAiKey() ? 'AI writer on: aiTick every 15 minutes.' : 'Trigger installed, but add ANTHROPIC_API_KEY in Script Properties before it writes anything.');
+  Logger.log(emtShowKey() ? 'Gameweek Show on: same trigger.' : 'Gameweek Show off until ELEVENLABS_API_KEY is set in Script Properties.');   // v3.11
 }
 function aiPause() { emtProps().setProperty('EMT_AI_PAUSED', 'yes'); }
 function aiResume() { emtProps().deleteProperty('EMT_AI_PAUSED'); }
@@ -1568,7 +1587,18 @@ function aiWrite(ev) {
   }).filter(Boolean);
 }
 
+/* v3.11: the 15-minute trigger runs the AI writer, then the Gameweek Show. Each runs on its own: the show runs even
+ * when the writer is off, and a show failure is logged, never thrown. A writer error is still thrown (after the show
+ * has had its turn) so failed runs keep showing up as before. The writer holds the script lock only while it writes;
+ * the show takes its own flag (emtShowClaim) and never holds the script lock while it renders. */
 function aiTick() {
+  var t0 = Date.now(), err = null;
+  try { aiWriterTick(); } catch (e) { err = e; Logger.log('AI writer failed: ' + ((e && e.message) || e)); }
+  try { showTick(t0); } catch (e) { Logger.log('Gameweek Show failed: ' + ((e && e.message) || e)); }
+  if (err) throw err;
+}
+
+function aiWriterTick() {
   if (!emtAiOn()) return;
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(5000)) return;
@@ -1601,4 +1631,304 @@ function aiSeedNotes() {
   if (rows.some(function (r) { return r.Id === 'note:baha-files'; })) return;
   sh.appendRow(["'" + new Date().toISOString(), 'note:baha-files', 'archizio', 'note', 'storyline', 'Kobbie Mainoo Fan', '',
     'Running joke since 7 Oct: Archizio broke a satirical story that UEFA and FPL are investigating Kobbie Mainoo Fan\'s finances (Manchester City comparisons), and Clark ran a video called The Baha Files. The league has a market named after Baha finishing last, yet his team went top after GW5.', 'Commissioner note', '']);
+}
+
+/* =====================================================================================================
+ * v3.11 · THE GAMEWEEK SHOW — the ~2 minute narrated preview, voiced by ElevenLabs from here.
+ *   The script lives in the app repo as show/gw<N>.json:
+ *     { gw, voice, model, speed, open, chapters: [{ home, away, beats: [...] }], close }
+ *   Clips, in play order: 'open', then 'c<i>b<j>' (i = chapter from 1, j = beat from 0), then 'close'.
+ *   Off until ELEVENLABS_API_KEY is set (Project Settings → Script Properties; create the key at elevenlabs.io →
+ *   Developers → API keys, with Text to Speech access). Optional Script Properties: EMT_VOICE_ID, EMT_TTS_MODEL,
+ *   EMT_SHOW_PAUSED = yes (pauses the automatic runs; the menu item still works).
+ *   Each clip carries an MD5 of text|voice|model|speed, so editing one line re-renders that line only, and a line
+ *   cut from the script loses its rows. A failed call keeps the old audio and stops the run (no burnt credits).
+ *   Storage: hidden ShowAudio tab, one row per 45,000-character chunk of base64 mp3 (44.1 kHz, 64 kbps), every
+ *   Data cell marked 'b64:' so it can never start a formula. Secs = bytes / 8000.
+ *   Serving: GET <web app>?show=<gw> → { ok, gw, clips: { key: { secs, hash, b64 } }, complete }.
+ *   Runs: showTick() from aiTick (every 15 minutes) for the next unfinished gameweek; renderShowNow() from the menu;
+ *   renderShow(gw) and showStatus(gw) from the editor.
+ *   QUOTA: an idle run is one GitHub fetch plus a read of six narrow columns, about 1 s (96 a day ≈ 2 min of the
+ *   90 min trigger allowance). A whole show (~22 clips) is ~22 ElevenLabs calls, a minute or two, once per gameweek;
+ *   a run stops starting new clips after 4.5 minutes and the next run picks up the rest.
+ * ===================================================================================================== */
+var EMT_SHOW_HEAD = ['GW', 'Clip', 'Hash', 'Part', 'Parts', 'Secs', 'Data', 'Rendered (UTC)'];
+var EMT_SHOW_URL = 'https://parkerno2.github.io/el-matador-tire/show/gw';
+var EMT_SHOW_TTS = 'https://api.elevenlabs.io/v1/text-to-speech/';
+var EMT_SHOW_VOICE_DEFAULT = 'e2v8SRwGUU8TdMFPuDlV';
+var EMT_SHOW_MODEL_DEFAULT = 'eleven_multilingual_v2';
+var EMT_SHOW_CHUNK = 45000;            // characters per Data cell (cells cap at 50,000)
+var EMT_SHOW_BUDGET_MS = 270 * 1000;   // no new clip after 4.5 min; Apps Script stops every run at 6
+var EMT_SHOW_BUSY_MS = 390 * 1000;     // a render flag older than 6.5 min belongs to a run that is already dead
+var EMT_SHOW_MARK = 'b64:';
+
+function emtShowKey() { return emtProps().getProperty('ELEVENLABS_API_KEY') || ''; }
+function emtShowNoKey(where) {
+  Logger.log('Gameweek Show (' + where + '): no ELEVENLABS_API_KEY yet. Add it in Project Settings → Script Properties ' +
+    '(create it at elevenlabs.io → Developers → API keys, with Text to Speech access). Nothing rendered.');
+}
+function emtMd5hex(str) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(str), Utilities.Charset.UTF_8);
+  return bytes.map(function (b) { b = (b + 256) % 256; return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+}
+function emtShowExpected(gw) {
+  try { var k = JSON.parse(emtProps().getProperty('EMT_SHOW_KEYS_' + gw) || 'null'); return k && k.length ? k : null; } catch (e) { return null; }
+}
+
+/* the next unfinished gameweek in Matchweeks (lowest GW whose Finished is not TRUE), or 0 */
+function emtShowNextGw() {
+  var next = emtRows('Matchweeks').filter(function (w) { return Number(w.GW) > 0 && String(w.Finished).toUpperCase() !== 'TRUE'; })
+    .sort(function (a, b) { return Number(a.GW) - Number(b.GW); })[0];
+  return next ? Number(next.GW) : 0;
+}
+
+function emtShowSheet() {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName('ShowAudio');
+  if (!sh) {
+    sh = ss.insertSheet('ShowAudio');
+    sh.getRange(1, 1, 1, EMT_SHOW_HEAD.length).setValues([EMT_SHOW_HEAD]);
+    sh.setFrozenRows(1);
+    try { sh.hideSheet(); } catch (e) { }
+  }
+  return sh;
+}
+
+/* one render at a time, without holding the script lock while it renders (app writes and refreshes need that lock) */
+function emtShowClaim() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return false;
+  try {
+    var p = emtProps(), t = Number(p.getProperty('EMT_SHOW_BUSY') || 0), now = Date.now();
+    if (t && now - t >= 0 && now - t < EMT_SHOW_BUSY_MS) return false;
+    p.setProperty('EMT_SHOW_BUSY', String(now));
+    return true;
+  } finally { lock.releaseLock(); }
+}
+function emtShowRelease() { emtProps().deleteProperty('EMT_SHOW_BUSY'); }
+
+/* the show's clips in play order, [{ key, text }]; blank lines are left out */
+function emtShowClips(j) {
+  var out = [];
+  var add = function (key, t) { if (t !== null && t !== undefined && String(t).trim()) out.push({ key: key, text: String(t) }); };
+  add('open', j.open);
+  (j.chapters || []).forEach(function (c, i) {
+    ((c && c.beats) || []).forEach(function (b, k) { add('c' + (i + 1) + 'b' + k, b); });
+  });
+  add('close', j.close);
+  return out;
+}
+
+/* what ShowAudio holds for one gameweek, from the six narrow columns (no Data read):
+ * { key: { rows: [sheet rows], part: { n: row }, hash, parts, secs, ok } }; ok = every part there exactly once, one hash */
+function emtShowIndex(sh, gw) {
+  var idx = {}, last = sh.getLastRow();
+  if (last < 2) return idx;
+  var v = sh.getRange(2, 1, last - 1, 6).getValues();
+  for (var i = 0; i < v.length; i++) {
+    if (Number(v[i][0]) !== gw) continue;
+    var k = String(v[i][1]), h = String(v[i][2]).replace(/^'/, '');
+    var c = idx[k] || (idx[k] = { rows: [], part: {}, hashes: {}, hash: '', parts: 0, secs: 0, ok: false });
+    c.rows.push(i + 2); c.part[Number(v[i][3])] = i + 2; c.hashes[h] = 1;
+    c.hash = h; c.parts = Number(v[i][4]) || 0; c.secs = Number(v[i][5]) || 0;
+  }
+  Object.keys(idx).forEach(function (k) {
+    var c = idx[k], ok = c.parts > 0 && c.rows.length === c.parts && Object.keys(c.hashes).length === 1;
+    for (var p = 1; ok && p <= c.parts; p++) if (!c.part[p]) ok = false;
+    c.ok = ok;
+  });
+  return idx;
+}
+
+/* contiguous runs of row numbers, ascending: [[start, count], ...] */
+function emtShowRuns(rows) {
+  rows = rows.slice().sort(function (a, b) { return a - b; });
+  var out = [];
+  rows.forEach(function (r) { var l = out[out.length - 1]; if (l && r === l[0] + l[1]) l[1]++; else if (!l || r >= l[0] + l[1]) out.push([r, 1]); });
+  return out;
+}
+
+/* delete sheet rows from the bottom up, one call per run. Sheets refuses to delete every non-frozen row, so when
+ * that would happen a blank row goes in at the end first. */
+function emtShowDeleteRows(sh, rows) {
+  if (!rows.length) return 0;
+  try { if (rows.length >= sh.getMaxRows() - 1) sh.insertRowAfter(sh.getMaxRows()); } catch (e) { }
+  var runs = emtShowRuns(rows).reverse(), n = 0;
+  runs.forEach(function (r) { sh.deleteRows(r[0], r[1]); n += r[1]; });
+  return n;
+}
+
+/* the base64 of the given clips, chunks joined in Part order, marker stripped. A clip whose rows moved under us
+ * (a render running at the same moment) is left out rather than served wrong. */
+function emtShowData(sh, gw, idx, keys) {
+  var want = {}, parts = {}, bad = {};
+  keys.forEach(function (k) { Object.keys(idx[k].part).forEach(function (p) { want[idx[k].part[p]] = [k, Number(p)]; }); });
+  emtShowRuns(Object.keys(want).map(Number)).forEach(function (run) {
+    sh.getRange(run[0], 1, run[1], 7).getValues().forEach(function (r, d) {
+      var w = want[run[0] + d], data = String(r[6]), c = idx[w[0]];
+      if (Number(r[0]) !== gw || String(r[1]) !== w[0] || Number(r[3]) !== w[1] || data.indexOf(EMT_SHOW_MARK) !== 0 ||
+          String(r[2]).replace(/^'/, '') !== c.hash || Number(r[4]) !== c.parts) { bad[w[0]] = 1; return; }   /* a new take landed on these rows */
+      (parts[w[0]] = parts[w[0]] || [])[w[1] - 1] = data.slice(EMT_SHOW_MARK.length);
+    });
+  });
+  var out = {};
+  keys.forEach(function (k) { if (!bad[k] && parts[k]) out[k] = parts[k].join(''); });
+  return out;
+}
+
+/* the show script for a gameweek: { json } | { none: true } on a 404 | { error } */
+function emtShowFetch(gw) {
+  var res = UrlFetchApp.fetch(EMT_SHOW_URL + gw + '.json?cb=' + Date.now(), { muteHttpExceptions: true });
+  var code = res.getResponseCode();
+  if (code === 404) return { none: true };
+  if (code !== 200) return { error: 'show/gw' + gw + '.json HTTP ' + code };
+  try { return { json: JSON.parse(res.getContentText()) }; } catch (e) { return { error: 'show/gw' + gw + '.json does not parse: ' + e }; }
+}
+
+/* one ElevenLabs call; prev/next are the neighbouring clips' text, for a natural join */
+function emtShowTts(key, voice, model, speed, text, prev, next) {
+  var body = { text: text, model_id: model,
+    voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: speed } };
+  if (prev) body.previous_text = prev;
+  if (next) body.next_text = next;
+  return UrlFetchApp.fetch(EMT_SHOW_TTS + encodeURIComponent(voice) + '?output_format=mp3_44100_64', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { 'xi-api-key': key, 'Accept': 'audio/mpeg' },
+    payload: JSON.stringify(body)
+  });
+}
+
+/* render every clip of a gameweek's show that is missing or changed. From the editor: renderShow(7); with no
+ * gameweek it takes the next unfinished one. startedAt (ms) lets aiTick count the writer's time against the budget. */
+function renderShow(gw, startedAt) {
+  var t0 = typeof startedAt === 'number' ? startedAt : Date.now();
+  gw = Number(gw) > 0 ? Number(gw) : 0;
+  var S = { ok: true, gw: gw, clips: 0, rendered: [], kept: 0, removed: [], left: 0, stopped: '' };
+  var key = emtShowKey();
+  if (!key) { emtShowNoKey('renderShow'); S.ok = false; S.stopped = 'nokey'; return S; }
+  if (!gw) gw = S.gw = emtShowNextGw();
+  if (!gw) { Logger.log('Gameweek Show: no unfinished gameweek in Matchweeks.'); S.stopped = 'nogw'; return S; }
+  if (!emtShowClaim()) { Logger.log('Gameweek Show: another render is running; this run leaves it alone.'); S.stopped = 'busy'; return S; }
+  try {
+    var f = emtShowFetch(gw);
+    if (f.none) { S.stopped = 'noscript'; Logger.log(emtShowSummary(S)); return S; }
+    if (f.error) { S.ok = false; S.stopped = 'error'; S.error = f.error; Logger.log(emtShowSummary(S)); return S; }
+    var j = f.json || {}, clips = emtShowClips(j), p = emtProps();
+    var voice = p.getProperty('EMT_VOICE_ID') || EMT_SHOW_VOICE_DEFAULT;
+    var model = p.getProperty('EMT_TTS_MODEL') || j.model || EMT_SHOW_MODEL_DEFAULT;
+    var speed = Number(j.speed) || 1;
+    S.clips = clips.length;
+    if (!clips.length) { S.stopped = 'empty'; Logger.log(emtShowSummary(S)); return S; }
+    p.setProperty('EMT_SHOW_KEYS_' + gw, JSON.stringify(clips.map(function (c) { return c.key; })));
+    var live = {};
+    clips.forEach(function (c) { c.hash = emtMd5hex(c.text + '|' + voice + '|' + model + '|' + speed); live[c.key] = 1; });
+    var sh = emtShowSheet(), idx = emtShowIndex(sh, gw);
+    /* lines cut from the script lose their rows */
+    var gone = [];
+    Object.keys(idx).forEach(function (k) { if (!live[k]) { S.removed.push(k); gone = gone.concat(idx[k].rows); } });
+    if (gone.length) { emtShowDeleteRows(sh, gone); idx = emtShowIndex(sh, gw); }
+    for (var i = 0; i < clips.length; i++) {
+      var c = clips[i], have = idx[c.key];
+      if (have && have.ok && have.hash === c.hash) { S.kept++; continue; }
+      if (S.stopped) continue;                        /* halted: the rest are only counted */
+      if (Date.now() - t0 > EMT_SHOW_BUDGET_MS) { S.stopped = 'time'; continue; }
+      var res = emtShowTts(key, voice, model, speed, c.text, i > 0 ? clips[i - 1].text : '', i < clips.length - 1 ? clips[i + 1].text : '');
+      var code = res.getResponseCode(), bytes = code === 200 ? res.getContent() : null;
+      if (code !== 200 || !bytes || !bytes.length) {
+        var body = String(res.getContentText() || '').slice(0, 300);
+        S.ok = false; S.stopped = 'http ' + code;
+        S.error = code === 402 || /quota|credits/i.test(body) ? 'out of credits: top up at elevenlabs.io or wait for the monthly reset'
+          : code === 401 ? 'the API key is wrong or lacks Text to Speech permission (elevenlabs.io → Developers → API keys)'
+          : code === 200 ? 'ElevenLabs sent no audio' : 'ElevenLabs refused the request';
+        Logger.log('Gameweek Show: ElevenLabs HTTP ' + code + ' on ' + c.key + ', ' + S.error + '. Body: ' + body);
+        continue;                                     /* no more calls this run */
+      }
+      var b64 = Utilities.base64Encode(bytes), n = Math.ceil(b64.length / EMT_SHOW_CHUNK);
+      var secs = Math.round(bytes.length / 80) / 100, at = "'" + new Date().toISOString();
+      if (have) emtShowDeleteRows(sh, have.rows);   /* the old take goes first */
+      for (var q = 0; q < n; q++) {
+        sh.appendRow([gw, c.key, "'" + c.hash, q + 1, n, secs, EMT_SHOW_MARK + b64.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK), at]);
+      }
+      S.rendered.push(c.key);
+      if (have) idx = emtShowIndex(sh, gw);           /* rows moved up */
+    }
+    S.left = S.clips - S.kept - S.rendered.length;
+    Logger.log(emtShowSummary(S));
+    return S;
+  } catch (e) {
+    S.ok = false; S.stopped = 'error'; S.error = String((e && e.message) || e);
+    S.left = Math.max(0, S.clips - S.kept - S.rendered.length);
+    Logger.log(emtShowSummary(S));
+    return S;
+  } finally { emtShowRelease(); }
+}
+
+function emtShowSummary(S) {
+  if (!S) return 'Gameweek Show: nothing ran.';
+  if (S.stopped === 'nokey') return 'Gameweek Show: no ELEVENLABS_API_KEY yet. Add it in Project Settings → Script Properties (elevenlabs.io → Developers → API keys, with Text to Speech access).';
+  if (S.stopped === 'nogw') return 'Gameweek Show: no unfinished gameweek in Matchweeks.';
+  if (S.stopped === 'busy') return 'Gameweek Show: another render is running. Try again in a few minutes.';
+  if (S.stopped === 'paused') return 'Gameweek Show: paused (EMT_SHOW_PAUSED = yes).';
+  if (S.stopped === 'noscript') return 'Gameweek Show GW' + S.gw + ': no script yet (show/gw' + S.gw + '.json is not on the site). Nothing to do.';
+  if (S.stopped === 'empty') return 'Gameweek Show GW' + S.gw + ': the script has no lines.';
+  if (S.stopped === 'error' && !S.clips) return 'Gameweek Show GW' + S.gw + ': stopped, ' + S.error;
+  var s = 'Gameweek Show GW' + S.gw + ': ' + S.rendered.length + ' rendered' + (S.rendered.length ? ' (' + S.rendered.join(', ') + ')' : '') +
+    ', ' + S.kept + ' unchanged' + (S.removed.length ? ', ' + S.removed.length + ' cut (' + S.removed.join(', ') + ')' : '') +
+    ', ' + S.left + ' still to render, of ' + S.clips + ' clips.';
+  if (S.stopped === 'time') s += ' Stopped at the time limit; the next run finishes it.';
+  else if (S.stopped) s += ' Stopped: ' + (S.error || S.stopped) + '.';
+  return s;
+}
+
+/* aiTick runs this every 15 minutes: the next unfinished gameweek, if a key is set and the show is not paused */
+function showTick(startedAt) {
+  var t0 = typeof startedAt === 'number' ? startedAt : Date.now();
+  if (!emtShowKey()) { emtShowNoKey('showTick'); return { ok: false, stopped: 'nokey' }; }
+  if (emtProps().getProperty('EMT_SHOW_PAUSED') === 'yes') { Logger.log(emtShowSummary({ stopped: 'paused' })); return { ok: true, stopped: 'paused' }; }
+  var gw = emtShowNextGw();
+  if (!gw) { Logger.log(emtShowSummary({ stopped: 'nogw' })); return { ok: true, stopped: 'nogw' }; }
+  return renderShow(gw, t0);
+}
+
+/* menu: Render the Gameweek Show now (the next unfinished gameweek; works while paused) */
+function renderShowNow() {
+  var S;
+  if (emtShowKey()) S = renderShow(0);
+  else { emtShowNoKey('menu'); S = { ok: false, stopped: 'nokey' }; }
+  var msg = emtShowSummary(S);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { Logger.log(msg); }   /* no UI from a trigger or the editor */
+  return S;
+}
+
+/* log what is rendered for a gameweek (default: the next unfinished one) */
+function showStatus(gw) {
+  gw = Number(gw) > 0 ? Number(gw) : emtShowNextGw();
+  if (!emtShowKey()) emtShowNoKey('showStatus');
+  var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh && gw ? emtShowIndex(sh, gw) : {};
+  var expected = emtShowExpected(gw), keys = expected || Object.keys(idx), done = 0, secs = 0, lines = [];
+  keys.forEach(function (k) {
+    var c = idx[k];
+    if (c && c.ok) { done++; secs += c.secs; lines.push(k + ': ' + c.secs + ' s, ' + c.parts + ' part' + (c.parts > 1 ? 's' : '') + ', hash ' + c.hash.slice(0, 8)); }
+    else lines.push(k + ': ' + (c ? 'incomplete' : 'not rendered'));
+  });
+  Object.keys(idx).forEach(function (k) { if (keys.indexOf(k) < 0) lines.push(k + ': not in the script any more (the next render removes it)'); });
+  secs = Math.round(secs * 100) / 100;
+  Logger.log('Gameweek Show GW' + gw + ': ' + done + ' of ' + keys.length + ' clips rendered, ' + secs + ' s' +
+    (expected ? '' : ' (no render has run for this gameweek yet)') + '\n' + lines.join('\n'));
+  return { gw: gw, expected: keys.length, rendered: done, secs: secs };
+}
+
+/* doGet ?show=<gw>: the clips in play order. complete = every clip of the script as of the last render is here.
+ * Reads the stored key list (EMT_SHOW_KEYS_<gw>), never the json, so a request costs two sheet reads. */
+function emtShowGet(gwParam) {
+  var gw = parseInt(gwParam, 10);
+  if (!(gw > 0)) return { ok: false, error: 'badgw' };
+  var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), expected = emtShowExpected(gw), clips = {};
+  if (sh) {
+    var idx = emtShowIndex(sh, gw);
+    var keys = (expected || Object.keys(idx)).filter(function (k) { return idx[k] && idx[k].ok; });
+    var data = emtShowData(sh, gw, idx, keys);
+    keys.forEach(function (k) { if (data[k] !== undefined) clips[k] = { secs: idx[k].secs, hash: idx[k].hash, b64: data[k] }; });
+  }
+  var complete = !!expected && expected.every(function (k) { return !!clips[k]; });
+  return { ok: true, gw: gw, clips: clips, complete: complete };
 }
