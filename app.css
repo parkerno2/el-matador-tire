@@ -89,6 +89,12 @@ a{color:var(--b300);text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 img{display:block}
 :focus-visible{outline:2px solid var(--p300);outline-offset:2px} /* the outline follows each element's own radius */
+/* taps behave like an app, not a web page: no double-tap zoom (pinch zoom still works), no text selection,
+   no "save image" or link preview on a long press. Typing fields keep selection and the callout */
+*{touch-action:manipulation}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+img,svg,a{-webkit-user-drag:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .n{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:.005em}
 .wide{font-family:var(--f-ui);font-stretch:82%;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
 .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:700}
@@ -288,6 +294,9 @@ img{display:block}
 
 /* installed on an iPhone the page runs under the status bar: keep a base-coloured strip behind it */
 body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t);background:rgba(14,10,19,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);z-index:35;pointer-events:none}
+/* things that open a sheet without looking like a button still answer the finger */
+[role=button][data-open]{cursor:pointer}
+.tm-tdf:active,.tm-tds [data-open]:active,.lg-step[data-open]:active,.md-gt[data-open]:active,.md-nx .md-mt:active,.tm-tx[data-open]:active{opacity:.7}
 /* ===== Matchday (overview, matchup, all matchups, Premier League, week) ===== */
 .md{--md-pills:54px}
 .md-end{height:8px}

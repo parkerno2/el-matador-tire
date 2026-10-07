@@ -1,7 +1,7 @@
-/* FPL Companion — service worker (Matchweek build 20261007045016)
+/* FPL Companion — service worker (Matchweek build 20261007114150)
  * The app shell, scripts and styles are network-first so a deploy shows up on the next open;
  * the cache is the offline fallback. Images and fonts are cache-first. */
-const VERSION = 'emt-v20-20261007045016';
+const VERSION = 'emt-v20-20261007114150';
 const CORE = ['./', './index.html', './app.js', './app.css', './core.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-180.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })))).catch(() => {}).then(() => self.skipWaiting()));
