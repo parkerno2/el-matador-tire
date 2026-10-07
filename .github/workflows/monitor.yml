@@ -1,0 +1,34 @@
+# El Matador Tire: uptime and data-freshness monitor, no AI, no PC needed.
+#   Every 10 minutes: is the app up (and every file it loads), is the Sheet's data fresh (35 min while matches
+#   are on, 130 min otherwise), does the Apps Script answer, is the Matchweek ingest running.
+#   Alerts go to Parker's phone through ntfy: install the ntfy app, subscribe to a long random topic name,
+#   and save that name as the repo secret NTFY_TOPIC. One alert per problem, a reminder every 3 hours,
+#   an all-clear when it's fixed. Without the secret a failing check fails the run instead.
+#   Optional HEALTHCHECK_URL secret (e.g. healthchecks.io): pinged every run, so you hear if this monitor itself stops.
+#   Details: ops/README.md
+name: Monitor
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency: { group: monitor, cancel-in-progress: false }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: ops }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Check
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: node ops/monitor.mjs
+      - name: Heartbeat
+        if: success()
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" > /dev/null; fi
