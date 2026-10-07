@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """port_preview_to_prod.py — the documented preview → production port for the El Matador league app.
 
-    python3 port_preview_to_prod.py [index-PREVIEW.html] [index.html]
+    python3 port_preview_to_prod.py [index-PREVIEW.html] [classic.html]
     (defaults: the two files in the handoff folder root, two levels up from fplgg/tools/)
 
 Every replacement is asserted (an assert that fires beats a silent no-op edit). Reverts the
@@ -23,7 +23,9 @@ import os, re, subprocess, sys, tempfile
 here = os.path.dirname(os.path.abspath(__file__))
 root = os.path.abspath(os.path.join(here, '..', '..'))
 src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, 'index-PREVIEW.html')
-dst = sys.argv[2] if len(sys.argv) > 2 else os.path.join(root, 'index.html')
+dst = sys.argv[2] if len(sys.argv) > 2 else os.path.join(root, 'classic.html')
+# since 7 Oct 2026 index.html is the new Matchweek app (fplgg/tools/matchweek/): the classic app ports to classic.html
+assert os.path.basename(dst) != 'index.html', 'index.html is the Matchweek app now; port the classic app to classic.html'
 
 s = open(src, encoding='utf-8').read()
 n_ops = 0
