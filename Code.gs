@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,38 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.12 · 7 Oct 2026
+ *   Everything runs from Google's servers now; nothing waits on anyone's computer.
+ *   1. The show writes itself (bottom of this file). The app posts the gameweek's facts (fixtures, form, elevens,
+ *      the model's odds) to the new `showfacts` action: signed-in managers only, one accepted post per manager per
+ *      20 minutes, only for the next unfinished gameweek and only before its deadline. They go to a new hidden
+ *      ShowFacts tab (latest post per gameweek). In the last 22 hours before the deadline, once facts arrived in the
+ *      last 6 hours (or in the last 4 hours, with any facts), aiTick asks Claude for the script in Malcolm Tyre's
+ *      voice, checks it (every fixture once, 5 beats each, stars from the elevens, no number that is not in what it
+ *      was sent, bar counts up to 10 and result margins; one retry with the problems listed), turns the digits into
+ *      words for the voice and keeps it in a new hidden ShowScripts tab. The voicing (v3.11) then renders it like a
+ *      hand-written one. A hand-written show/gw<N>.json in the repo always wins. Uses ANTHROPIC_API_KEY. Optional
+ *      Script Properties: EMT_SHOW_MODEL (default claude-sonnet-4-5); EMT_SHOW_TRIES_<gw> counts attempts (3 per
+ *      gameweek; delete it to allow more); EMT_SHOW_PAUSED = yes pauses the writer and the voicing. To have a show
+ *      rewritten, delete its ShowScripts row.
+ *      GET <API URL>?show=<gw> also returns "script" (the repo json, else ShowScripts, else null); add &meta=1 to
+ *      leave out the audio (secs, hash and complete stay).
+ *   2. Code.gs updates itself from GitHub. Once an hour aiTick fetches Code.gs from the repo's main branch, checks
+ *      it (size, markers, syntax, that it loads, not older than the running version), and when it differs it
+ *      replaces this file, saves a version and points the web app at it (same URL). Off with EMT_SELF_UPDATE = off.
+ *      Menu: Update Code.gs from GitHub now. selfUpdateStatus() logs the state. It stays dormant (state 'off: ...') until this SETUP:
+ *        (1) turn on "Google Apps Script API" at https://script.google.com/home/usersettings
+ *        (2) Project Settings → tick "Show appsscript.json manifest file in editor", open appsscript.json and add
+ *            this key (keep everything else, the "webapp" section above all: without it a new version is not a web
+ *            app, so the self-update refuses to run; if it is missing add "webapp": {"executeAs": "USER_DEPLOYING",
+ *            "access": "ANYONE_ANONYMOUS"}):
+ *            "oauthScopes": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/script.external_request", "https://www.googleapis.com/auth/script.scriptapp", "https://www.googleapis.com/auth/script.container.ui", "https://www.googleapis.com/auth/script.projects", "https://www.googleapis.com/auth/script.deployments"]
+ *        (3) run selfUpdateNow once from the editor and approve the permissions (it also installs the 15-minute
+ *            aiTick trigger if it is missing).
+ *      After that, every Code.gs pushed to the repo goes live within an hour. A copy edited by hand in the editor is
+ *      left alone until the repo changes again (or selfUpdateNow is run). A copy pasted by hand that matches the repo
+ *      but was never deployed is deployed by the next check. A repo copy that throws as it loads is refused.
+ *   After pasting this one by hand: Deploy → Manage deployments → edit → Version: New version → Deploy.
  * v3.11 · 7 Oct 2026
  *   The Gameweek Show is voiced here now, not by hand (bottom of this file). The script stays in the app repo as
  *   show/gw<N>.json; this renders every line with ElevenLabs and serves the clips to the app.
@@ -120,7 +152,7 @@ function setup() {
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('refreshAll').timeBased().everyHours(1).create();
   ScriptApp.newTrigger('liveTick').timeBased().everyMinutes(10).create(); // v3.6: re-running setup() keeps live refresh
-  if (emtAiKey() || emtShowKey()) ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();   // v3.9; v3.11 the show rides it too
+  ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();   // v3.9; v3.11 the show rides it too; v3.12 always: the Code.gs self-update rides it as well
 }
 
 function onOpen() {
@@ -130,6 +162,7 @@ function onOpen() {
     .addItem('Install AI writer (every 15 min)', 'installAiTrigger')
     .addItem('Run the AI writer now', 'aiWriterTick')
     .addItem('Render the Gameweek Show now', 'renderShowNow')
+    .addItem('Update Code.gs from GitHub now', 'selfUpdateNow')   // v3.12
     .addToUi();
 }
 
@@ -1229,6 +1262,11 @@ function emtHandle(req) {
     return emtSocial(team, req);
   }
 
+  if (action === 'showfacts') {          // v3.12: the facts the Gameweek Show is written from (signed-in managers only)
+    if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
+    return emtShowFacts(team, req);
+  }
+
   return { ok: false, error: 'unknown action' };
 }
 
@@ -1347,7 +1385,7 @@ function doPost(e) {
 
 function doGet(e) {
   try {
-    if (e && e.parameter && e.parameter.show) return emtOut(emtShowGet(e.parameter.show));   // v3.11 the Gameweek Show
+    if (e && e.parameter && e.parameter.show) return emtOut(emtShowGet(e.parameter.show, e.parameter.meta));   // v3.11 the Gameweek Show; v3.12 &meta=1
     return emtOut({ ok: true, service: 'emt', claimed: emtClaimed() });
   }
   catch (err) { return emtOut({ ok: false, error: String((err && err.message) || err) }); }
@@ -1404,6 +1442,7 @@ function installAiTrigger() {
   ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();
   Logger.log(emtAiKey() ? 'AI writer on: aiTick every 15 minutes.' : 'Trigger installed, but add ANTHROPIC_API_KEY in Script Properties before it writes anything.');
   Logger.log(emtShowKey() ? 'Gameweek Show on: same trigger.' : 'Gameweek Show off until ELEVENLABS_API_KEY is set in Script Properties.');   // v3.11
+  Logger.log('The show writer and the hourly Code.gs self-update ride the same trigger.');   // v3.12
 }
 function aiPause() { emtProps().setProperty('EMT_AI_PAUSED', 'yes'); }
 function aiResume() { emtProps().deleteProperty('EMT_AI_PAUSED'); }
@@ -1590,11 +1629,15 @@ function aiWrite(ev) {
 /* v3.11: the 15-minute trigger runs the AI writer, then the Gameweek Show. Each runs on its own: the show runs even
  * when the writer is off, and a show failure is logged, never thrown. A writer error is still thrown (after the show
  * has had its turn) so failed runs keep showing up as before. The writer holds the script lock only while it writes;
- * the show takes its own flag (emtShowClaim) and never holds the script lock while it renders. */
+ * the show takes its own flag (emtShowClaim) and never holds the script lock while it renders.
+ * v3.12: four parts, in this order, each in its own try/catch: the AI writer, the show writer (writes the script),
+ * the show (voices it), the self-update (at most hourly). Only an AI writer error is thrown, after all four ran. */
 function aiTick() {
   var t0 = Date.now(), err = null;
   try { aiWriterTick(); } catch (e) { err = e; Logger.log('AI writer failed: ' + ((e && e.message) || e)); }
+  try { showWriterTick(t0); } catch (e) { Logger.log('Show writer failed: ' + ((e && e.message) || e)); }
   try { showTick(t0); } catch (e) { Logger.log('Gameweek Show failed: ' + ((e && e.message) || e)); }
+  try { selfUpdateTick(t0); } catch (e) { Logger.log('Self-update failed: ' + ((e && e.message) || e)); }
   if (err) throw err;
 }
 
@@ -1645,7 +1688,9 @@ function aiSeedNotes() {
  *   cut from the script loses its rows. A failed call keeps the old audio and stops the run (no burnt credits).
  *   Storage: hidden ShowAudio tab, one row per 45,000-character chunk of base64 mp3 (44.1 kHz, 64 kbps), every
  *   Data cell marked 'b64:' so it can never start a formula. Secs = bytes / 8000.
- *   Serving: GET <web app>?show=<gw> → { ok, gw, clips: { key: { secs, hash, b64 } }, complete }.
+ *   Serving: GET <web app>?show=<gw> → { ok, gw, clips: { key: { secs, hash, b64 } }, complete, script }.
+ *   v3.12: when the repo has no show/gw<N>.json (404), the script the show writer kept in ShowScripts is voiced
+ *   instead (the repo always wins). "script" is that json (repo, else ShowScripts, else null); &meta=1 drops b64.
  *   Runs: showTick() from aiTick (every 15 minutes) for the next unfinished gameweek; renderShowNow() from the menu;
  *   renderShow(gw) and showStatus(gw) from the editor.
  *   QUOTA: an idle run is one GitHub fetch plus a read of six narrow columns, about 1 s (96 a day ≈ 2 min of the
@@ -1809,8 +1854,9 @@ function renderShow(gw, startedAt) {
   if (!gw) { Logger.log('Gameweek Show: no unfinished gameweek in Matchweeks.'); S.stopped = 'nogw'; return S; }
   if (!emtShowClaim()) { Logger.log('Gameweek Show: another render is running; this run leaves it alone.'); S.stopped = 'busy'; return S; }
   try {
-    var f = emtShowFetch(gw);
+    var f = emtShowScript(gw);                       /* v3.12: the repo's json, else the written one in ShowScripts */
     if (f.none) { S.stopped = 'noscript'; Logger.log(emtShowSummary(S)); return S; }
+    if (f.source) S.source = f.source;
     if (f.error) { S.ok = false; S.stopped = 'error'; S.error = f.error; Logger.log(emtShowSummary(S)); return S; }
     var j = f.json || {}, clips = emtShowClips(j), p = emtProps();
     var voice = p.getProperty('EMT_VOICE_ID') || EMT_SHOW_VOICE_DEFAULT;
@@ -1868,10 +1914,10 @@ function emtShowSummary(S) {
   if (S.stopped === 'nogw') return 'Gameweek Show: no unfinished gameweek in Matchweeks.';
   if (S.stopped === 'busy') return 'Gameweek Show: another render is running. Try again in a few minutes.';
   if (S.stopped === 'paused') return 'Gameweek Show: paused (EMT_SHOW_PAUSED = yes).';
-  if (S.stopped === 'noscript') return 'Gameweek Show GW' + S.gw + ': no script yet (show/gw' + S.gw + '.json is not on the site). Nothing to do.';
+  if (S.stopped === 'noscript') return 'Gameweek Show GW' + S.gw + ': no script yet (show/gw' + S.gw + '.json is not on the site and the show writer has not written one). Nothing to do.';
   if (S.stopped === 'empty') return 'Gameweek Show GW' + S.gw + ': the script has no lines.';
   if (S.stopped === 'error' && !S.clips) return 'Gameweek Show GW' + S.gw + ': stopped, ' + S.error;
-  var s = 'Gameweek Show GW' + S.gw + ': ' + S.rendered.length + ' rendered' + (S.rendered.length ? ' (' + S.rendered.join(', ') + ')' : '') +
+  var s = 'Gameweek Show GW' + S.gw + (S.source === 'sheet' ? ' (the written script)' : '') + ': ' + S.rendered.length + ' rendered' + (S.rendered.length ? ' (' + S.rendered.join(', ') + ')' : '') +
     ', ' + S.kept + ' unchanged' + (S.removed.length ? ', ' + S.removed.length + ' cut (' + S.removed.join(', ') + ')' : '') +
     ', ' + S.left + ' still to render, of ' + S.clips + ' clips.';
   if (S.stopped === 'time') s += ' Stopped at the time limit; the next run finishes it.';
@@ -1918,17 +1964,795 @@ function showStatus(gw) {
 }
 
 /* doGet ?show=<gw>: the clips in play order. complete = every clip of the script as of the last render is here.
- * Reads the stored key list (EMT_SHOW_KEYS_<gw>), never the json, so a request costs two sheet reads. */
-function emtShowGet(gwParam) {
+ * The clips come from the stored key list (EMT_SHOW_KEYS_<gw>) and ShowAudio, two sheet reads.
+ * v3.12: + script (emtShowScriptAny: the repo json, cached 5 minutes, else ShowScripts, else null).
+ * meta (?show=<gw>&meta=1) leaves out every b64 and skips reading the audio: secs, hash and complete stay. */
+function emtShowGet(gwParam, meta) {
   var gw = parseInt(gwParam, 10);
   if (!(gw > 0)) return { ok: false, error: 'badgw' };
+  meta = meta === true || /^(1|true|yes)$/i.test(String(meta == null ? '' : meta));
   var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), expected = emtShowExpected(gw), clips = {};
   if (sh) {
     var idx = emtShowIndex(sh, gw);
     var keys = (expected || Object.keys(idx)).filter(function (k) { return idx[k] && idx[k].ok; });
-    var data = emtShowData(sh, gw, idx, keys);
-    keys.forEach(function (k) { if (data[k] !== undefined) clips[k] = { secs: idx[k].secs, hash: idx[k].hash, b64: data[k] }; });
+    if (meta) keys.forEach(function (k) { clips[k] = { secs: idx[k].secs, hash: idx[k].hash }; });
+    else {
+      var data = emtShowData(sh, gw, idx, keys);
+      keys.forEach(function (k) { if (data[k] !== undefined) clips[k] = { secs: idx[k].secs, hash: idx[k].hash, b64: data[k] }; });
+    }
   }
   var complete = !!expected && expected.every(function (k) { return !!clips[k]; });
-  return { ok: true, gw: gw, clips: clips, complete: complete };
+  return { ok: true, gw: gw, clips: clips, complete: complete, script: emtShowScriptAny(gw) };
+}
+
+/* =====================================================================================================
+ * v3.12 · THE SHOW WRITES ITSELF — Malcolm's script, written by Claude from the app's own facts.
+ *   1. The app posts the facts: POST { action: 'showfacts', team, token, gw, facts: '<json string>' }.
+ *      gw must be the next unfinished gameweek and its deadline still ahead ('closed'); facts at most 60,000
+ *      characters of JSON with fixtures: 1 to 10 of { home, away } ('badfacts'; when H2H Fixtures has the gameweek,
+ *      they must be its fixtures); one accepted post per manager per 20 minutes ('slow'). Kept in the hidden ShowFacts
+ *      tab in 45,000-character chunks, every Data cell marked 'j:'; a new post replaces that gameweek's older rows.
+ *   2. showWriterTick (from aiTick, every 15 minutes) writes the script for the next unfinished gameweek when the
+ *      deadline is at most 22 hours away and the facts are at most 6 hours old, or at most 4 hours away with any
+ *      facts. Never when show/gw<N>.json is in the repo (hand-written wins), when ShowScripts already has that
+ *      gameweek, after the deadline, without ANTHROPIC_API_KEY, or with EMT_SHOW_PAUSED = yes. 3 attempts per
+ *      gameweek (EMT_SHOW_TRIES_<gw>; an API call that fails before Claude answers is not counted).
+ *   3. The reply is checked (emtShowCheck) and, if wrong, retried once with the problems listed. Digits become words
+ *      for the voice (emtSpeak), and the script goes to the hidden ShowScripts tab (Script cell marked 'j:'), where
+ *      renderShow and doGet ?show=<gw> find it when the repo has no json.
+ *   Model: EMT_SHOW_MODEL (default claude-sonnet-4-5). To have a show rewritten, delete its ShowScripts row.
+ *   QUOTA: an idle run reads a few narrow columns. A written show is 1 or 2 Claude calls (~10k tokens in, ~1k out).
+ * ===================================================================================================== */
+var EMT_FACTS_HEAD = ['GW', 'Received (UTC)', 'Team', 'Part', 'Parts', 'Data'];
+var EMT_SCRIPTS_HEAD = ['GW', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Script'];
+var EMT_FACTS_MAX = 60000;                  // characters per post
+var EMT_FACTS_EVERY_S = 20 * 60;            // one accepted post per manager per 20 minutes
+var EMT_JSON_MARK = 'j:';                   // every json cell starts with this, so it can never be read as a formula
+var EMT_SHOW_WRITER_DEFAULT = 'claude-sonnet-4-5';
+var EMT_SHOW_WINDOW_MS = 22 * 3600e3;       // write in the last 22 hours before the deadline ...
+var EMT_SHOW_FRESH_MS = 6 * 3600e3;         // ... from facts received in the last 6 hours,
+var EMT_SHOW_LASTCALL_MS = 4 * 3600e3;      // or in the last 4 hours from any facts
+var EMT_SHOW_TRIES = 3;                     // attempts per gameweek (one attempt = one run, with its one retry)
+var EMT_SHOW_WRITE_LATE_MS = 150 * 1000;    // aiTick: no new write once the run is 2.5 minutes old
+var EMT_SHOW_VOICE_LABEL = 'Malcolm Tyre — El Matador Booth';
+var EMT_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/* the voice bible */
+var EMT_SHOW_SYSTEM = [
+  'You write the Gameweek Show for Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Every gameweek each club plays one head to head fixture (3 points a win, 1 a draw). The show is a spoken preview of about two minutes: a synthetic voice reads it while the screen shows each fixture.',
+  '',
+  'THE VOICE. Malcolm Tyre, a fictional British broadcaster in "the booth". Dry, brisk, wry. He understates and never tries to be funny: the wit is in what he picks and what he leaves out. Short plain sentences, British spelling, no exclamation marks.',
+  '',
+  'THE SHAPE. It must match what the screen shows.',
+  '- open: about 20 words. "Gameweek <n>." then one hook for the whole week, then "Here\'s how it lines up."',
+  '- One chapter per fixture in FACTS, each exactly five beats, in this order:',
+  '  [0] the home club: name the club, then one storyline only (their form, a run, their place in the table, or a quote and the model\'s odds on it).',
+  '  [1] the home eleven: talk about the star, by default the highest ep in that xi; mention the flags if there are any (status d is doubtful; i, s, u and n are out; news says why).',
+  '  [2] the away club, as [0].',
+  '  [3] the away eleven, as [1].',
+  '  [4] the faceoff: the series (rec) and/or the model\'s win chance (win) or the predicted score (H.proj to A.proj).',
+  '- close: "That\'s the gameweek." then the deadline and lineups, then a nudge to go on the record in the press room.',
+  '- 10 to 16 words per beat.',
+  '- The app plays the chapters in its own order, so never say first, next, then, finally, later or last, and never refer to another chapter.',
+  '- star.h is the code of the home player beat [1] is about and star.a the code of the away player beat [3] is about, copied from that fixture\'s H.xi and A.xi.',
+  '',
+  'READING FACTS. table: pos 1 is top; pts are league points; pf and pa are fantasy points for and against. Each fixture: home and away (exact team names); derby (its name, when it is a derby); win (the model\'s chances in percent: h home win, d draw, a away win); rec (the all-time series: home wins, away wins, d draws; all three 0 means the first ever meeting); H and A (the two sides). A side: team; mgr (the manager\'s first name); proj (the model\'s projected score); formation; results (oldest first, like "W46-36 v Baha GW1": won 46 to 36 against Baha\'s club in gameweek 1); xi (the starting eleven: code, name, pos, club, status, news, ep = the model\'s projected points, opp = the real fixture). quotes, when present, are lines from the press room.',
+  '',
+  'NUMBERS.',
+  '- Write every number as digits (56%, 39 to 35.8, 4 to 3, 5th): the app turns them into words for the voice. Formations in words (a back three), never 3-5-2.',
+  '- Never write a number that is not in FACTS, QUOTES or NOTES; the only exceptions are counts up to 10 (won 3 straight) and the margin of a result in results (W46-36 is a win by 10). Scores and predictions as "X to Y". No hyphen or dash between numbers.',
+  '- Say gameweek, never GW. Say "the model" for win chances and projections.',
+  '',
+  'FACTS ONLY.',
+  '- Every claim must be checkable in FACTS, QUOTES or NOTES. Count streaks from results, newest last. Superlatives (best, most, only, highest) only when FACTS makes it certain. When in doubt, leave it out.',
+  '- Managers by first name (mgr), clubs by team name, spelt exactly as in FACTS.',
+  '- Never invent a quote. Quote a manager only word for word from QUOTES or FACTS.',
+  '- Banter only about the league: picks, form, the table, quotes, and the running jokes in NOTES. Nothing about anyone\'s looks, family, health, money, job or life outside the league. No swearing.',
+  '- Real footballers only as players in someone\'s team.',
+  '',
+  'STYLE. No em dashes or en dashes, no emoji, no hashtags. Two beats as a style reference only (their facts are not this week\'s; never copy them): "Cold Palmers. Parker says he\'s winning Manager of the Month. The model says 9%." and "Gibbs-White tops the eleven. Not a single flag among PJ\'s starters."',
+  '',
+  'REPLY with JSON only, no prose, no code fence:',
+  '{"open":"...","chapters":[{"home":"<exact home team>","away":"<exact away team>","star":{"h":"<player code from H.xi>","a":"<player code from A.xi>"},"beats":["","","","",""]}],"close":"..."}'
+].join('\n');
+
+/* a hidden tab with a frozen header row, created when missing */
+function emtHiddenSheet(name, head) {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.getRange(1, 1, 1, head.length).setValues([head]);
+    sh.setFrozenRows(1);
+    try { sh.hideSheet(); } catch (e) { }
+  } else if (sh.getLastRow() < 1) sh.getRange(1, 1, 1, head.length).setValues([head]);
+  return sh;
+}
+
+/* one run at a time: a timestamp in a Script Property, taken under the script lock for a moment only */
+function emtFlagClaim(prop, ms) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return false;
+  try {
+    var p = emtProps(), t = Number(p.getProperty(prop) || 0), now = Date.now();
+    if (t && now - t >= 0 && now - t < ms) return false;
+    p.setProperty(prop, String(now));
+    return true;
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- 1. the facts, from the app ---------- */
+function emtShowFactsOk(f, gw) {
+  if (!f || typeof f !== 'object' || Array.isArray(f)) return false;
+  if (f.gw !== undefined && f.gw !== null && f.gw !== '' && Number(f.gw) !== gw) return false;
+  var fx = f.fixtures, seen = {};
+  if (!Array.isArray(fx) || fx.length < 1 || fx.length > 10) return false;
+  for (var i = 0; i < fx.length; i++) {
+    var x = fx[i];
+    if (!x || typeof x !== 'object' || typeof x.home !== 'string' || typeof x.away !== 'string' || !x.home.trim() || !x.away.trim()) return false;
+    if (seen[x.home + '|' + x.away]) return false;
+    seen[x.home + '|' + x.away] = 1;
+  }
+  /* when the sheet already has this gameweek's fixtures, the facts must be exactly those, every one of them (a partial
+   * post would otherwise replace the full one and the show would skip fixtures) */
+  var real = emtRows('H2H Fixtures').filter(function (r) { return Number(r.GW) === gw; }).map(function (r) { return String(r.Home) + '|' + String(r.Away); });
+  if (real.length && fx.length !== real.length) return false;
+  if (real.length) for (var j = 0; j < fx.length; j++) if (real.indexOf(fx[j].home + '|' + fx[j].away) < 0) return false;
+  return true;
+}
+
+function emtShowFacts(team, req) {
+  var gw = Number(req.gw);
+  if (!(gw > 0) || gw !== emtShowNextGw()) return { ok: false, error: 'closed' };
+  var dl = emtDeadlineMs(gw);
+  if (!dl || Date.now() >= dl) return { ok: false, error: 'closed' };
+  var raw = req.facts;
+  if (raw && typeof raw === 'object') raw = JSON.stringify(raw);        /* an object is taken too */
+  if (typeof raw !== 'string' || !raw || raw.length > EMT_FACTS_MAX) return { ok: false, error: 'badfacts' };
+  var f;
+  try { f = JSON.parse(raw); } catch (e) { return { ok: false, error: 'badfacts' }; }
+  if (!emtShowFactsOk(f, gw)) return { ok: false, error: 'badfacts' };
+  var cache = CacheService.getScriptCache(), rk = 'EMT_SF_' + team;
+  if (cache.get(rk)) return { ok: false, error: 'slow' };
+  var data = JSON.stringify(f), lock = LockService.getScriptLock();
+  if (data.length > EMT_FACTS_MAX) return { ok: false, error: 'badfacts' };   /* re-serialised can be longer (1e20 → 100000000000000000000) */
+  lock.waitLock(10000);
+  try {
+    if (cache.get(rk)) return { ok: false, error: 'slow' };
+    var sh = emtHiddenSheet('ShowFacts', EMT_FACTS_HEAD), last = sh.getLastRow(), old = [];
+    if (last > 1) sh.getRange(2, 1, last - 1, 1).getValues().forEach(function (r, i) { if (Number(r[0]) === gw) old.push(i + 2); });
+    var at = new Date().toISOString(), n = Math.ceil(data.length / EMT_SHOW_CHUNK);
+    for (var q = 0; q < n; q++) sh.appendRow([gw, "'" + at, emtCell(team), q + 1, n, EMT_JSON_MARK + data.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK)]);
+    emtShowDeleteRows(sh, old);              /* only the latest facts per gameweek: the older rows go, bottom up */
+    cache.put(rk, '1', EMT_FACTS_EVERY_S);
+    return { ok: true, at: at, parts: n };
+  } finally { lock.releaseLock(); }
+}
+
+/* the newest complete facts for a gameweek: { at (ms), iso, team, parts, rows } (+ data when withData), or null.
+ * Without data it reads five narrow columns only. */
+function emtShowFactsLatest(gw, withData) {
+  var sh = SpreadsheetApp.getActive().getSheetByName('ShowFacts'), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return null;
+  var v = sh.getRange(2, 1, last - 1, 5).getValues(), sets = {}, best = null;
+  for (var i = 0; i < v.length; i++) {
+    if (Number(v[i][0]) !== gw) continue;
+    var iso = String(v[i][1]).replace(/^'/, ''), k = iso + '|' + v[i][2];
+    var s = sets[k] || (sets[k] = { at: aiTs(iso), iso: iso, team: String(v[i][2]).replace(/^'/, ''), parts: Number(v[i][4]) || 0, rows: {}, n: 0 });
+    s.rows[Number(v[i][3])] = i + 2; s.n++;
+  }
+  Object.keys(sets).forEach(function (k) {
+    var s = sets[k], ok = s.parts > 0 && s.n === s.parts && s.at > 0;
+    for (var p = 1; ok && p <= s.parts; p++) if (!s.rows[p]) ok = false;
+    if (ok && (!best || s.at > best.at)) best = s;
+  });
+  if (!best || !withData) return best;
+  var parts = [];
+  for (var q = 1; q <= best.parts; q++) {
+    var r = sh.getRange(best.rows[q], 1, 1, 6).getValues()[0], d = String(r[5]);
+    if (Number(r[0]) !== gw || Number(r[3]) !== q || Number(r[4]) !== best.parts || String(r[1]).replace(/^'/, '') !== best.iso ||
+        d.indexOf(EMT_JSON_MARK) !== 0) return null;   /* moved under us (a new post replaced these rows): the next run reads again */
+    parts.push(d.slice(EMT_JSON_MARK.length));
+  }
+  try { best.data = JSON.parse(parts.join('')); } catch (e) { return null; }
+  return best;
+}
+
+/* ---------- the written scripts ---------- */
+/* the ShowScripts row for a gameweek (the newest): { row } or, withScript, { row, json }; null when none */
+function emtShowScriptRow(gw, withScript) {
+  var sh = SpreadsheetApp.getActive().getSheetByName('ShowScripts'), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return null;
+  var v = sh.getRange(2, 1, last - 1, 1).getValues(), row = 0;
+  for (var i = v.length - 1; i >= 0; i--) if (Number(v[i][0]) === gw) { row = i + 2; break; }
+  if (!row) return null;
+  if (!withScript) return { row: row };
+  var s = String(sh.getRange(row, 5, 1, 1).getValues()[0][0]);
+  if (s.indexOf(EMT_JSON_MARK) !== 0) return null;
+  try { var j = JSON.parse(s.slice(EMT_JSON_MARK.length)); return j && typeof j === 'object' ? { row: row, json: j } : null; } catch (e) { return null; }
+}
+
+/* the script renderShow voices: the repo's json, else (on a 404 only) the written one. { json, source? } | { none } | { error } */
+function emtShowScript(gw) {
+  var f = emtShowFetch(gw);
+  if (!f.none) return f;
+  var s = emtShowScriptRow(gw, true);
+  return s ? { json: s.json, source: 'sheet' } : { none: true };
+}
+
+/* doGet's "script": the repo json (cached 5 minutes), else ShowScripts, else null. Never throws. */
+function emtShowScriptAny(gw) {
+  var cache = null, ck = 'EMT_SHOW_REPO_' + gw, repo = null;
+  try { cache = CacheService.getScriptCache(); var hit = cache.get(ck); if (hit) repo = JSON.parse(hit); } catch (e) { repo = null; }
+  if (!repo) {
+    try {
+      var f = emtShowFetch(gw);
+      repo = f.json ? { json: f.json } : f.none ? { none: true } : null;
+      if (repo && cache) { try { cache.put(ck, JSON.stringify(repo), 300); } catch (e) { } }
+    } catch (e) { repo = null; }
+  }
+  if (repo && repo.json) return repo.json;
+  var s = null;
+  try { s = emtShowScriptRow(gw, true); } catch (e) { s = null; }
+  return s ? s.json : null;
+}
+
+/* ---------- digits → words, for the voice ---------- */
+var EMT_ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+  'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+var EMT_TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+/* 0..999999 in British words ("two hundred and forty", "two thousand and twenty-six"); a leading zero or anything
+ * longer is read digit by digit */
+function emtWords(n) {
+  var s = String(n);
+  if (!/^\d+$/.test(s) || s.length > 6 || (s.length > 1 && s.charAt(0) === '0')) {
+    return s.split('').map(function (c) { return /\d/.test(c) ? EMT_ONES[Number(c)] : c; }).join(' ');
+  }
+  n = Number(s);
+  var u100 = function (x) { return x < 20 ? EMT_ONES[x] : EMT_TENS[Math.floor(x / 10)] + (x % 10 ? '-' + EMT_ONES[x % 10] : ''); };
+  var u1000 = function (x) { var h = Math.floor(x / 100), r = x % 100; return h ? EMT_ONES[h] + ' hundred' + (r ? ' and ' + u100(r) : '') : u100(r); };
+  if (n < 1000) return u1000(n);
+  var t = Math.floor(n / 1000), r = n % 1000;
+  return u1000(t) + ' thousand' + (r ? (r < 100 ? ' and ' : ' ') + u1000(r) : '');
+}
+function emtOrdinal(n) {
+  var w = emtWords(n), m = /([a-z]+)$/.exec(w);
+  if (!m) return w;
+  var last = m[1], irr = { one: 'first', two: 'second', three: 'third', five: 'fifth', eight: 'eighth', nine: 'ninth', twelve: 'twelfth' };
+  return w.slice(0, w.length - last.length) + (irr[last] || (/y$/.test(last) ? last.slice(0, -1) + 'ieth' : last + 'th'));
+}
+function emtDecimal(d) {
+  var p = String(d).split('.');
+  return emtWords(p[0]) + (p.length > 1 && p[1] !== '' ? ' point ' + p[1].split('').map(function (c) { return EMT_ONES[Number(c)]; }).join(' ') : '');
+}
+
+/* what the voice reads: "Predicted 39 to 35.8. The model has Parker at 56%." →
+ * "Predicted thirty-nine to thirty-five point eight. The model has Parker at fifty-six percent."
+ * keep: names to leave exactly as written (a club like Devils U21s); digits glued inside a word (U21s) stay too */
+function emtSpeak(text, keep) {
+  var s = String(text == null ? '' : text), held = [];
+  var tag = function (i) { var t = ''; do { t = String.fromCharCode(97 + i % 26) + t; i = Math.floor(i / 26) - 1; } while (i >= 0); return '\uE000' + t + '\uE001'; };
+  var clock = function (h, mm, ap) {
+    return emtWords(String(Number(h))) + (mm === '00' ? '' : mm.charAt(0) === '0' ? ' oh ' + EMT_ONES[Number(mm.charAt(1))] : ' ' + emtWords(mm)) + (ap ? ' ' + ap.toLowerCase() + 'm' : '');
+  };
+  (keep || []).map(String).filter(function (k) { return /\d/.test(k); }).sort(function (a, b) { return b.length - a.length; }).forEach(function (k) {
+    if (s.indexOf(k) < 0) return;
+    s = s.split(k).join(tag(held.length));
+    held.push(k);
+  });
+  s = s.replace(/\bGW ?(\d+)/g, 'gameweek $1');
+  s = s.replace(/\b\d{1,3}(?:,\d{3})+\b/g, function (m) { return m.replace(/,/g, ''); });            /* 1,200 */
+  s = s.replace(/\b([3-5])[-–]([1-6])[-–]([1-6])(?:[-–]([1-6]))?\b/g, function (m, a, b, c, d) {       /* a formation */
+    var x = d ? [a, b, c, d] : [a, b, c], sum = 0;
+    x.forEach(function (v) { sum += Number(v); });
+    return sum === 10 ? x.map(function (v) { return EMT_ONES[Number(v)]; }).join('-') : m;
+  });
+  s = s.replace(/(\d%?)[ \t]*[-–][ \t]*(?=\d)/g, '$1 to ');                                          /* 4-3, 39–35.8 */
+  s = s.replace(/(^|[\s(])[-−](?=\d)/g, '$1minus ');
+  s = s.replace(/([£$€])(\d+(?:\.\d+)?)(?:[ \t]?(m|k|bn|million|thousand|billion)(?![A-Za-z]))?/gi, function (m, c, d, x) {   /* £5.5m */
+    var big = x ? ({ m: 'million', k: 'thousand', bn: 'billion' }[x.toLowerCase()] || x.toLowerCase()) : '';
+    return emtDecimal(d) + (big ? ' ' + big : '') + ' ' + (c === '£' ? 'pound' : c === '€' ? 'euro' : 'dollar') + (d === '1' && !big ? '' : 's');
+  });
+  s = s.replace(/\b(\d{1,2})[.:](\d{2})[ \t]?([ap])\.?m\.?(?![A-Za-z])/gi, function (m, h, mm, ap) { return clock(h, mm, ap); });   /* 10.30am, 9:05 pm */
+  s = s.replace(/\b(\d{1,2}):(\d{2})(?!\d)/g, function (m, h, mm) { return clock(h, mm, ''); });     /* 10:00, 17:30 */
+  s = s.replace(/(\d+(?:\.\d+)?)[ \t]?%/g, function (m, d) { return emtDecimal(d) + ' percent'; });
+  s = s.replace(/\b(\d+)(?:st|nd|rd|th)\b/gi, function (m, d) { return emtOrdinal(d); });
+  s = s.replace(/\d+(?:\.\d+)?/g, function (m, off, all) {
+    var b = all.charAt(off - 1), a = all.charAt(off + m.length);
+    if (/[A-Za-z]/.test(b) && /[A-Za-z]/.test(a)) return m;                                          /* U21s */
+    return (/[A-Za-z]/.test(b) ? ' ' : '') + (m.indexOf('.') > -1 ? emtDecimal(m) : emtWords(m)) + (/[A-Za-z]/.test(a) ? ' ' : '');
+  });
+  held.forEach(function (k, i) { s = s.split(tag(i)).join(k); });
+  return s;
+}
+
+/* the names in the facts that carry digits (clubs, managers, players), for emtSpeak's keep */
+function emtShowNames(facts) {
+  var out = [], add = function (v) { v = String(v == null ? '' : v); if (v && /\d/.test(v) && out.indexOf(v) < 0) out.push(v); };
+  ((facts && facts.table) || []).forEach(function (t) { if (t) { add(t.team); add(t.mgr); } });
+  ((facts && facts.fixtures) || []).forEach(function (f) {
+    if (!f) return;
+    add(f.home); add(f.away); add(f.derby);
+    ['H', 'A'].forEach(function (k) { var x = f[k]; if (!x) return; add(x.team); add(x.mgr); (x.xi || []).forEach(function (p) { if (p) add(p.name); }); });
+  });
+  return out;
+}
+
+/* ---------- 2. the writer ---------- */
+/* one line of the written script, tidied: no em dash (a comma), no en dash except between numbers, no GW */
+function emtShowTidy(t) {
+  return emtClean(typeof t === 'string' ? t : '', 400)                 /* anything but text (an object, a number) is empty */
+    .replace(/(\d)[ \t]*–[ \t]*(?=\d)/g, '$1-')
+    .replace(/[ \t]*[—–][ \t]*/g, ', ')
+    .replace(/\bGW ?(\d+)/g, 'gameweek $1')
+    .replace(/\s+,/g, ',').replace(/,(\s*[,.;:!?])/g, '$1').replace(/^[,\s]+|[,\s]+$/g, '');
+}
+
+/* the prompt: FACTS (decimals to one place), the gameweek's QUOTES from Social, the NOTES from Posts */
+function emtShowPrompt(gw, facts, dl) {
+  var sent = JSON.stringify(facts, function (k, v) { return typeof v === 'number' && isFinite(v) && v % 1 !== 0 ? Math.round(v * 10) / 10 : v; });
+  var mgr = {};
+  (facts.table || []).forEach(function (t) { if (t && t.team && t.mgr) mgr[t.team] = t.mgr; });
+  (facts.fixtures || []).forEach(function (f) { ['H', 'A'].forEach(function (s) { if (f && f[s] && f[s].team && f[s].mgr) mgr[f[s].team] = f[s].mgr; }); });
+  var quotes = aiQuotes(null, gw).filter(function (q) { return q.gw === gw; }).slice(-16).map(function (q) {
+    return '- ' + q.team + (mgr[q.team] ? ' (' + mgr[q.team] + ')' : '') + (q.answering ? ', answering ' + q.answering : '') + ': "' + emtClean(q.said, 140) + '"' +
+      (q.calling ? ' Their call: ' + JSON.stringify(q.calling) + '.' : '') + (q.model ? ' The model gives that call ' + q.model + '.' : '');
+  });
+  var notes = emtRows('Posts').filter(function (r) { return r.Kind === 'note'; }).slice(-8).map(function (r) { return '- ' + emtClean(r.Text, 600); });
+  var user = 'FACTS (gameweek ' + gw + '):\n' + sent +
+    '\n\nQUOTES this gameweek (from the press room; quote them word for word or not at all):\n' + (quotes.join('\n') || '(none yet)') +
+    '\n\nNOTES (running jokes and storylines):\n' + (notes.join('\n') || '(none)') +
+    '\n\nThe deadline is on ' + EMT_DAYS[new Date(dl).getUTCDay()] + '.\nWRITE the Gameweek ' + gw + ' show.';
+  return { user: user, allowed: user };
+}
+
+/* one call to Claude, same style as aiWrite: { text, stop } or { error } (no answer, nothing billed) */
+function emtShowAsk(model, user) {
+  var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
+    payload: JSON.stringify({ model: model, max_tokens: 2000, system: EMT_SHOW_SYSTEM, messages: [{ role: 'user', content: user }] })
+  });
+  var code = res.getResponseCode(), body = String(res.getContentText() || '');
+  if (code !== 200) return { error: 'Claude API ' + code + ': ' + body.slice(0, 200) };
+  var j = null;
+  try { j = JSON.parse(body); } catch (e) { return { text: '', stop: '' }; }
+  var txt = ((j.content || []).filter(function (c) { return c && c.type === 'text'; })[0] || {}).text || '';
+  return { text: txt, stop: j.stop_reason || '' };
+}
+
+/* the numbers a line says, for the number guard. Digits stuck to a letter in front are part of a name (Devils U21s,
+ * W46, R2) and are skipped; thousands commas are dropped (1,200 is 1200). */
+function emtShowNums(t) {
+  var out = [], re = /\d+(?:\.\d+)?/g, m, s = String(t == null ? '' : t).replace(/(\d),(?=\d{3}(?!\d))/g, '$1');
+  while ((m = re.exec(s))) if (!/[A-Za-z]/.test(s.charAt(m.index - 1))) out.push(m[0]);
+  return out;
+}
+/* every number the writer may use, as a set: each number in what it was sent (also rounded and without its
+ * decimals), the margin of every "a-b" result in it, and 0 to 10 (counts: "won 3 straight") */
+function emtShowAllowed(text) {
+  var ok = {}, raw = String(text == null ? '' : text), i;
+  var s = raw + '\n' + raw.replace(/(\d),(?=\d{3}(?!\d))/g, '$1');   /* both readings: a JSON array [5,240] and a total 1,200 */
+  (s.match(/\d+(?:\.\d+)?/g) || []).forEach(function (n) {
+    var x = Number(n);
+    ok[n] = 1; ok[String(x)] = 1;
+    if (n.indexOf('.') > -1) { ok[String(Math.round(x))] = 1; ok[String(Math.floor(x))] = 1; }
+  });
+  s.replace(/(\d+)[ \t]*[-–][ \t]*(\d+)/g, function (m, a, b) { ok[String(Math.abs(Number(a) - Number(b)))] = 1; return m; });
+  for (i = 0; i <= 10; i++) ok[String(i)] = 1;
+  return ok;
+}
+
+/* the reply, checked against the facts. { problems: [...], script: { open, chapters, close } | null } */
+function emtShowCheck(text, facts, allowed, stop) {
+  var P = [], j = null, m = String(text || '').match(/\{[\s\S]*\}/);
+  if (m) { try { j = JSON.parse(m[0]); } catch (e) { j = null; } }
+  if (!j || typeof j !== 'object' || Array.isArray(j)) {
+    P.push(stop === 'max_tokens' ? 'The reply was cut off before the JSON ended: keep every beat to 10 to 16 words.' : 'The reply was not one JSON object in the shape asked for.');
+    return { problems: P, script: null };
+  }
+  var fx = (facts && facts.fixtures) || [], seen = {}, chapters = [];
+  var open = emtShowTidy(j.open), close = emtShowTidy(j.close);
+  if (!open) P.push('"open" is empty.');
+  if (!close) P.push('"close" is empty.');
+  (Array.isArray(j.chapters) ? j.chapters : []).forEach(function (c, i) {
+    c = c && typeof c === 'object' ? c : {};
+    var home = String(c.home == null ? '' : c.home), away = String(c.away == null ? '' : c.away), name = home + ' v ' + away;
+    var f = fx.filter(function (x) { return x && x.home === home && x.away === away; })[0];
+    if (!f) { P.push('Chapter ' + (i + 1) + ' (' + name + ') is not a fixture in FACTS: use the exact home and away team names.'); return; }
+    if (seen[name]) { P.push(name + ' has more than one chapter.'); return; }
+    seen[name] = 1;
+    var beats = (Array.isArray(c.beats) ? c.beats : []).map(emtShowTidy);
+    if (beats.length !== 5 || beats.some(function (b) { return !b; })) P.push(name + ': needs exactly 5 beats, none empty (it has ' + beats.filter(Boolean).length + ').');
+    beats.forEach(function (b, k) {
+      var n = b ? b.split(/\s+/).length : 0;
+      if (b && (n < 5 || n > 26)) P.push(name + ', beat ' + k + ': ' + n + ' words; keep every beat to 10 to 16.');
+    });
+    var star = c.star && typeof c.star === 'object' ? c.star : {};
+    var st = { h: String(star.h == null ? '' : star.h), a: String(star.a == null ? '' : star.a) };
+    [['h', 'H'], ['a', 'A']].forEach(function (s) {
+      var codes = ((f[s[1]] && f[s[1]].xi) || []).map(function (x) { return String(x && x.code); });
+      if (codes.length && codes.indexOf(st[s[0]]) < 0) P.push(name + ': star.' + s[0] + ' "' + st[s[0]] + '" is not a code in ' + s[1] + '.xi.');
+    });
+    chapters.push({ home: home, away: away, star: st, beats: beats });
+  });
+  fx.forEach(function (x) { if (x && !seen[x.home + ' v ' + x.away]) P.push('Missing chapter: ' + x.home + ' v ' + x.away + '.'); });
+  /* the number guard: every number written must be one of the numbers that were sent (whole numbers, not a substring:
+   * "54" is not allowed just because a player code like 154561 contains it), a count up to 10, or a result's margin */
+  var texts = [open, close], bad = {}, ok = emtShowAllowed(allowed);
+  chapters.forEach(function (c) { texts = texts.concat(c.beats); });
+  texts.forEach(function (t) {
+    emtShowNums(t).forEach(function (n) {
+      if (!ok[n] && !ok[String(Number(n))] && !bad[n]) { bad[n] = 1; P.push('The number ' + n + ' (in "' + String(t).slice(0, 90) + '") is not in FACTS, QUOTES or NOTES.'); }
+    });
+  });
+  return P.length ? { problems: P, script: null } : { problems: [], script: { open: open, chapters: chapters, close: close } };
+}
+
+/* ask, check, and ask once more with the problems listed. { script, model, calls, billed, problems, error } */
+function emtShowWrite(gw, facts, dl) {
+  var P = emtShowPrompt(gw, facts, dl), model = emtProps().getProperty('EMT_SHOW_MODEL') || EMT_SHOW_WRITER_DEFAULT;
+  var W = { script: null, model: model, calls: 0, billed: 0, problems: [], error: '' }, ask = P.user;
+  for (var round = 0; round < 2; round++) {
+    var r = emtShowAsk(model, ask);
+    W.calls++;
+    if (r.error) { W.error = r.error; return W; }
+    W.billed++;
+    var c = emtShowCheck(r.text, facts, P.allowed, r.stop);
+    if (!c.problems.length) { W.script = c.script; W.problems = []; return W; }
+    W.problems = c.problems;
+    Logger.log('Show writer GW' + gw + ': reply ' + (round + 1) + ' rejected: ' + c.problems.join(' | '));
+    ask = P.user + '\n\nYOUR LAST REPLY WAS REJECTED. Fix every problem below and send the whole show again, JSON only:\n- ' + c.problems.slice(0, 25).join('\n- ');
+  }
+  return W;
+}
+
+/* the checked script (digits) → the stored script (words), in the same shape as a hand-written show/gw<N>.json.
+ * keep: names with digits in them, read as written (emtShowNames) */
+function emtShowSpoken(gw, s, at, keep) {
+  var say = function (t) { return emtSpeak(t, keep); };
+  return { gw: gw, voice: EMT_SHOW_VOICE_LABEL, model: EMT_SHOW_MODEL_DEFAULT, speed: 1.1, audio: 'sheet', source: 'ai', written: at.slice(0, 10),
+    open: say(s.open),
+    chapters: s.chapters.map(function (c) { return { home: c.home, away: c.away, star: { h: c.star.h, a: c.star.a }, beats: c.beats.map(say) }; }),
+    close: say(s.close) };
+}
+
+/* aiTick runs this every 15 minutes, before showTick, so a script written here is voiced in the same run */
+function showWriterTick(startedAt) {
+  var t0 = typeof startedAt === 'number' ? startedAt : Date.now(), p = emtProps();
+  var S = { ok: true, gw: 0, stopped: '', calls: 0 };
+  var say = function (m) { Logger.log('Show writer' + (S.gw ? ' GW' + S.gw : '') + ': ' + m); };
+  if (p.getProperty('EMT_SHOW_PAUSED') === 'yes') { S.stopped = 'paused'; return S; }
+  if (!emtAiKey()) {
+    if (!p.getProperty('EMT_SHOW_WRITER_NOKEY')) {
+      say('no ANTHROPIC_API_KEY in Script Properties, so the show is not written here (a hand-written show/gw<N>.json still works). Logged once.');
+      p.setProperty('EMT_SHOW_WRITER_NOKEY', '1');
+    }
+    S.stopped = 'nokey'; return S;
+  }
+  if (p.getProperty('EMT_SHOW_WRITER_NOKEY')) p.deleteProperty('EMT_SHOW_WRITER_NOKEY');
+  var gw = S.gw = emtShowNextGw();
+  if (!gw) { S.stopped = 'nogw'; return S; }
+  var now = Date.now(), dl = emtDeadlineMs(gw);
+  if (!dl || dl <= now) { S.stopped = 'closed'; return S; }
+  if (emtShowScriptRow(gw, false)) { S.stopped = 'written'; return S; }
+  var left = dl - now, facts = emtShowFactsLatest(gw, false);
+  if (!facts) {
+    S.stopped = 'nofacts';
+    if (left <= EMT_SHOW_WINDOW_MS) say('no facts from the app yet (the app sends them when a manager opens it).');
+    return S;
+  }
+  var age = now - facts.at;
+  if (!((left <= EMT_SHOW_WINDOW_MS && age <= EMT_SHOW_FRESH_MS) || left <= EMT_SHOW_LASTCALL_MS)) {
+    S.stopped = 'wait';
+    if (left <= EMT_SHOW_WINDOW_MS) say('the latest facts are ' + Math.round(age / 36e5 * 10) / 10 + ' hours old; writing when fresher ones arrive, or in the last 4 hours.');
+    return S;
+  }
+  var tries = Number(p.getProperty('EMT_SHOW_TRIES_' + gw) || 0);
+  if (tries >= EMT_SHOW_TRIES) { S.stopped = 'tries'; say('3 attempts failed; no more this gameweek (delete EMT_SHOW_TRIES_' + gw + ' to allow more).'); return S; }
+  if (Date.now() - t0 > EMT_SHOW_WRITE_LATE_MS) { S.stopped = 'time'; say('this run is already busy; the next one writes it.'); return S; }
+  var repo = emtShowFetch(gw);
+  if (repo.json) { S.stopped = 'repo'; return S; }                      /* hand-written: it wins */
+  if (repo.error) { S.ok = false; S.stopped = 'error'; S.error = repo.error; say('could not check the repo (' + repo.error + '); trying again next run.'); return S; }
+  if (!emtFlagClaim('EMT_SHOW_WRITING', EMT_SHOW_BUSY_MS)) { S.stopped = 'busy'; return S; }
+  try {
+    tries = Number(p.getProperty('EMT_SHOW_TRIES_' + gw) || 0);
+    if (tries >= EMT_SHOW_TRIES) { S.stopped = 'tries'; return S; }
+    if (emtShowScriptRow(gw, false)) { S.stopped = 'written'; return S; }
+    p.setProperty('EMT_SHOW_TRIES_' + gw, String(tries + 1));          /* counted first: a run that dies mid-call still counts */
+    facts = emtShowFactsLatest(gw, true);
+    if (!facts || !facts.data) {
+      p.setProperty('EMT_SHOW_TRIES_' + gw, String(tries));
+      S.ok = false; S.stopped = 'badfacts'; say('the stored facts could not be read; waiting for the next post from the app.'); return S;
+    }
+    var W = emtShowWrite(gw, facts.data, dl);
+    S.calls = W.calls; S.model = W.model;
+    if (W.error && !W.billed) {
+      p.setProperty('EMT_SHOW_TRIES_' + gw, String(tries));            /* Claude never answered: not an attempt */
+      S.ok = false; S.stopped = 'http'; S.error = W.error; say(W.error + ' (not counted; trying again next run).'); return S;
+    }
+    if (!W.script) {
+      S.ok = false; S.stopped = 'invalid'; S.problems = W.problems; S.error = W.error;
+      say('attempt ' + (tries + 1) + ' of ' + EMT_SHOW_TRIES + ' failed, nothing kept: ' + (W.error || W.problems.join(' | ')));
+      return S;
+    }
+    var lock = LockService.getScriptLock(), at = new Date().toISOString(), js = emtShowSpoken(gw, W.script, at, emtShowNames(facts.data));
+    lock.waitLock(10000);
+    try {
+      if (emtShowScriptRow(gw, false)) { S.stopped = 'written'; return S; }
+      emtHiddenSheet('ShowScripts', EMT_SCRIPTS_HEAD).appendRow([gw, "'" + at, emtCell(W.model), "'" + facts.iso, EMT_JSON_MARK + JSON.stringify(js)]);
+    } finally { lock.releaseLock(); }
+    S.written = true; S.script = js;
+    say('written by ' + W.model + ' (' + W.calls + ' call' + (W.calls > 1 ? 's' : '') + ', ' + js.chapters.length + ' chapters) from the facts of ' + facts.iso + '. The show voices it next.');
+    return S;
+  } finally { p.deleteProperty('EMT_SHOW_WRITING'); }
+}
+
+/* =====================================================================================================
+ * v3.12 · CODE.GS UPDATES ITSELF FROM GITHUB — the repo's Code.gs is the release.
+ *   selfUpdateTick (from aiTick, at most once an hour: EMT_SELF_CHECKED) fetches
+ *   raw.githubusercontent.com/parkerno2/el-matador-tire/main/Code.gs and refuses it unless it is over 50,000
+ *   characters, carries the markers (EL MATADOR TIRE, doPost, aiTick, selfUpdateTick) and a CHANGELOG version,
+ *   parses (V8), loads (its top level runs inside a function and defines doGet, doPost, aiTick and selfUpdateTick),
+ *   and is not older than the version running here; appsscript.json must keep its "webapp" section. Then, through the Apps Script API with this
+ *   script's own token: it reads the project; if the Code file differs it picks the web app deployment
+ *   (EMT_SELF_DEPLOYMENT, else the one at the Specials 'API URL', else the only versioned web app), writes the new
+ *   code (every other file, the manifest included, goes back untouched), saves a version and points that deployment
+ *   at it (the URL stays the same). When the editor already matches the repo but this never deployed it (pasted by
+ *   hand), it reads the web app's version and, if that is older, saves a version and points the web app at it.
+ *   EMT_SELF_STATE: 'current: ...' · 'updated to ...' · 'refused: ...' (nothing changed) · 'off: ...' (not set up:
+ *   see SETUP in the CHANGELOG) · 'half: ...' (the code is in but the web app was not switched yet; the next check
+ *   finishes it) · 'drift: ...' (edited by hand since the last update; left alone until the repo changes or
+ *   selfUpdateNow) · 'error: ...'.
+ *   EMT_SELF_UPDATE = off turns the hourly check off. Menu: Update Code.gs from GitHub now. selfUpdateStatus().
+ *   QUOTA: one GitHub fetch an hour, plus one API read once set up; an update is five API calls.
+ * ===================================================================================================== */
+var EMT_SELF_SRC = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/main/Code.gs';
+var EMT_SELF_API = 'https://script.googleapis.com/v1/projects/';
+var EMT_SELF_EVERY_MS = 60 * 60 * 1000;
+var EMT_SELF_LATE_MS = 300 * 1000;          // aiTick: not when the run is already 5 minutes old (Apps Script stops at 6)
+var EMT_SELF_BUSY_MS = 3 * 60 * 1000;
+var EMT_SELF_MIN_CHARS = 50000;
+var EMT_SELF_MARKS = ['EL MATADOR TIRE', 'function doPost', 'function aiTick', 'function selfUpdateTick'];
+
+function emtSelfNorm(s) { return String(s == null ? '' : s).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/\s+$/, ''); }
+/* the first version in the CHANGELOG, e.g. 'v3.12' ('' when none) */
+function emtSelfVersion(src) { var m = /CHANGELOG[\s\S]*?\n[ \t]*\*[ \t]*(v\d+(?:\.\d+)+)/.exec(String(src || '')); return m ? m[1] : ''; }
+function emtSelfCmp(a, b) {
+  var x = String(a).replace(/^v/, '').split('.'), y = String(b).replace(/^v/, '').split('.');
+  for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (Number(x[i]) || 0) - (Number(y[i]) || 0); if (d) return d < 0 ? -1 : 1; }
+  return 0;
+}
+/* '' when the fetched source looks like a real release, else why not */
+function emtSelfSane(src) {
+  if (src.length <= EMT_SELF_MIN_CHARS) return 'too short (' + src.length + ' characters)';
+  for (var i = 0; i < EMT_SELF_MARKS.length; i++) if (src.indexOf(EMT_SELF_MARKS[i]) < 0) return 'missing "' + EMT_SELF_MARKS[i] + '"';
+  if (!emtSelfVersion(src)) return 'no version in the CHANGELOG';
+  try { new Function(src); }                 /* parses only; nothing runs */
+  catch (e) {
+    if (e && e.name === 'SyntaxError') return 'syntax error: ' + String(e.message || e).slice(0, 140);
+    Logger.log('Self-update: the syntax check could not run here (' + e + ')');
+    return '';
+  }
+  /* loads: its top level (constants only) runs inside a function, so nothing here is replaced, and it defines its own
+   * entry points (not the ones of the code running now, which a bare typeof would also see). A file that throws as it
+   * loads would break every trigger and the web app, the self-update included. */
+  var probe = '\n;var G__ = typeof globalThis !== "undefined" ? globalThis : (function () { return this; })();\nreturn [' +
+    ['doGet', 'doPost', 'aiTick', 'selfUpdateTick'].map(function (n) { return '(typeof ' + n + ' === "function" && ' + n + ' !== G__.' + n + ' ? "" : "' + n + '")'; }).join(', ') +
+    '].filter(String).join(", ");';
+  try {
+    var missing = new Function(src + probe)();
+    if (missing) return 'no ' + missing + ' function of its own';
+  } catch (e) { return 'an error as it loads: ' + String((e && e.message) || e).slice(0, 140); }
+  return '';
+}
+/* '' when appsscript.json keeps the web app settings, else why not: a version made from a manifest without "webapp"
+ * is not a web app, and pointing the deployment at it would take the app's backend down */
+function emtSelfManifest(files) {
+  var m = (files || []).filter(function (f) { return f && f.type === 'JSON' && f.name === 'appsscript'; })[0], j = null;
+  try { j = JSON.parse(m ? m.source : ''); } catch (e) { j = null; }
+  if (!j || typeof j !== 'object') return 'appsscript.json could not be read';
+  if (!j.webapp) return 'appsscript.json has no "webapp" section, so a new version would not be a web app; add "webapp": {"executeAs": "USER_DEPLOYING", "access": "ANYONE_ANONYMOUS"} to it (keep the rest)';
+  return '';
+}
+function emtSelfSet(state, kind) {
+  emtProps().setProperty('EMT_SELF_STATE', state);
+  Logger.log('Self-update: ' + state);
+  return { ok: kind === 'current' || kind === 'updated', stopped: kind, state: state };
+}
+/* not set up (or not allowed): recorded every time, logged at most once a day */
+function emtSelfOff(reason) {
+  var p = emtProps(), state = 'off: ' + reason, day = new Date().toISOString().slice(0, 10);
+  p.setProperty('EMT_SELF_STATE', state);
+  if (p.getProperty('EMT_SELF_OFF_DAY') !== day) { p.setProperty('EMT_SELF_OFF_DAY', day); Logger.log('Self-update: ' + state + ' (logged once a day)'); }
+  return { ok: false, stopped: 'off', state: state };
+}
+function emtSelfApi(method, path, body) {
+  var o = { method: method, muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } };
+  if (body) { o.contentType = 'application/json'; o.payload = JSON.stringify(body); }
+  var res = UrlFetchApp.fetch(EMT_SELF_API + encodeURIComponent(ScriptApp.getScriptId()) + path, o);
+  var r = { code: res.getResponseCode(), text: String(res.getContentText() || ''), json: null };
+  try { r.json = JSON.parse(r.text); } catch (e) { }
+  return r;
+}
+function emtSelfErr(r) { var m = r.json && r.json.error && r.json.error.message; return String(m || r.text || '').replace(/\s+/g, ' ').slice(0, 160); }
+function emtSelfOffReason(r) {
+  var m = emtSelfErr(r);
+  if (/usersettings|User has not enabled/i.test(m)) return 'the Apps Script API is not turned on (script.google.com/home/usersettings)';
+  if (/has not been used|is disabled|SERVICE_DISABLED|accessNotConfigured/i.test(m)) return 'the Apps Script API is off in this script\'s Google Cloud project (' + m.slice(0, 120) + ')';
+  if (/scope/i.test(m)) return 'appsscript.json lacks the script.projects and script.deployments scopes';
+  return 'HTTP ' + r.code + (m ? ', ' + m.slice(0, 100) : '');
+}
+function emtSelfApiUrl() {
+  var r = emtRows('Specials').filter(function (x) { return String(x.Setting).trim() === 'API URL'; })[0];
+  return r ? String(r.Value || '').trim() : '';
+}
+/* the web app deployment to point at the new version: { d, how } | { error } | { off } */
+function emtSelfDeployment() {
+  var list = [], token = '', pages = 0;
+  do {
+    var r = emtSelfApi('get', '/deployments?pageSize=50' + (token ? '&pageToken=' + encodeURIComponent(token) : ''));
+    if (r.code === 401 || r.code === 403) return { off: emtSelfOffReason(r) };
+    if (r.code !== 200) return { error: 'listing the deployments failed, HTTP ' + r.code + ' ' + emtSelfErr(r) };
+    list = list.concat((r.json && r.json.deployments) || []);
+    token = (r.json && r.json.nextPageToken) || '';
+  } while (token && ++pages < 5);
+  var versioned = function (d) { return !!(d && d.deploymentConfig && d.deploymentConfig.versionNumber); };   /* HEAD has none */
+  var webs = function (d) { return ((d && d.entryPoints) || []).filter(function (e) { return e && e.webApp; }).map(function (e) { return String(e.webApp.url || ''); }); };
+  var want = emtProps().getProperty('EMT_SELF_DEPLOYMENT');
+  if (want) {
+    var w = list.filter(function (d) { return d && d.deploymentId === want; })[0];
+    return w ? { d: w, how: 'EMT_SELF_DEPLOYMENT' } : { error: 'EMT_SELF_DEPLOYMENT (' + want + ') is not a deployment of this project' };
+  }
+  var api = emtSelfApiUrl();
+  var key = function (u) { return String(u || '').trim().replace(/[?#].*$/, '').replace(/\/+$/, ''); };
+  var sid = function (u) { var m = /\/s\/([^\/?#]+)/.exec(String(u || '')); return m ? m[1] : ''; };
+  if (api) {
+    var hit = list.filter(function (d) { return versioned(d) && (sid(api) === d.deploymentId || webs(d).some(function (u) { return key(u) === key(api); })); });
+    if (hit.length === 1) return { d: hit[0], how: 'the API URL in Specials' };
+  }
+  var cands = list.filter(function (d) { return versioned(d) && webs(d).length; });
+  if (cands.length === 1) return { d: cands[0], how: 'the only web app deployment' };
+  return { error: cands.length ? cands.length + ' web app deployments and none is the API URL in Specials; set EMT_SELF_DEPLOYMENT to the right deployment ID'
+    : 'no versioned web app deployment to update' };
+}
+
+/* does the web app deployment run this source? { dep, same } | { dep, stale } | { off } | { error } */
+function emtSelfLive(name, src) {
+  var dep = emtSelfDeployment();
+  if (dep.off) return { off: dep.off };
+  if (dep.error) return { error: dep.error };
+  var v = dep.d.deploymentConfig.versionNumber, r = emtSelfApi('get', '/content?versionNumber=' + encodeURIComponent(v));
+  if (r.code === 401 || r.code === 403) return { off: emtSelfOffReason(r) };
+  var files = r.code === 200 && r.json && r.json.files;
+  if (!files) return { error: 'reading version ' + v + ' failed, HTTP ' + r.code + ' ' + emtSelfErr(r) };
+  var js = files.filter(function (f) { return f && f.type === 'SERVER_JS'; });
+  var f = js.filter(function (x) { return x.name === name; })[0] || (js.length === 1 ? js[0] : null);
+  return f && emtSelfNorm(f.source) === emtSelfNorm(src) ? { dep: dep, same: true } : { dep: dep, stale: true };
+}
+
+/* the code is in: save a version (unless saved already) and point the web app at it */
+function emtSelfFinish(pend, dep) {
+  var p = emtProps(), ver = pend.ver || '?';
+  var half = function (what) {
+    return emtSelfSet('half: the code is ' + ver + ' (the triggers already run it) but the web app still runs the old version: ' + what +
+      '. The next check tries again (or Deploy → Manage deployments → edit → New version).', 'half');
+  };
+  if (!dep) dep = emtSelfDeployment();
+  if (dep.off) return half('listing the deployments was refused (' + dep.off + ')');
+  if (dep.error) return half(dep.error);
+  if (!pend.version) {
+    var v = emtSelfApi('post', '/versions', { description: 'auto ' + ver });
+    if (v.code !== 200 || !v.json || !v.json.versionNumber) return half('saving a version failed, HTTP ' + v.code + ' ' + emtSelfErr(v));
+    pend.version = v.json.versionNumber;
+    p.setProperty('EMT_SELF_PENDING', JSON.stringify(pend));
+  }
+  var d = dep.d, u = emtSelfApi('put', '/deployments/' + encodeURIComponent(d.deploymentId),
+    { deploymentConfig: { scriptId: ScriptApp.getScriptId(), versionNumber: pend.version, manifestFileName: 'appsscript', description: 'auto ' + ver } });
+  if (u.code !== 200) return half('version ' + pend.version + ' is saved, but pointing the web app at it failed, HTTP ' + u.code + ' ' + emtSelfErr(u));
+  p.deleteProperty('EMT_SELF_PENDING');
+  p.setProperty('EMT_SELF_LAST_HASH', pend.hash);
+  var state = 'updated to ' + ver + ' v' + pend.version + ' at ' + new Date().toISOString() +
+    (pend.version >= 180 ? ' (version ' + pend.version + ': Apps Script keeps at most 200; delete old ones under Project History)' : '');
+  p.setProperty('EMT_SELF_UPDATED', state + ' (web app ' + d.deploymentId + ', found by ' + dep.how + ')');
+  return emtSelfSet(state, 'updated');
+}
+
+/* one check. force (selfUpdateNow) overwrites a hand-edited project too */
+function emtSelfUpdate(force) {
+  var p = emtProps(), res = UrlFetchApp.fetch(EMT_SELF_SRC + '?cb=' + Date.now(), { muteHttpExceptions: true }), code = res.getResponseCode();
+  if (code !== 200) {
+    var m = 'GitHub answered HTTP ' + code + ' for Code.gs; nothing changed.';
+    Logger.log('Self-update: ' + m);
+    return { ok: false, stopped: 'fetch', state: m };
+  }
+  var src = emtSelfNorm(res.getContentText()) + '\n', why = emtSelfSane(src);
+  if (why) return emtSelfSet('refused: the repo copy has ' + why + '. Nothing changed.', 'refused');
+  var ver = emtSelfVersion(src), hash = emtMd5hex(src);
+  var g = emtSelfApi('get', '/content');
+  if (g.code === 401 || g.code === 403) return emtSelfOff(emtSelfOffReason(g));
+  var files = g.code === 200 && g.json && g.json.files;
+  if (!files || !files.length) return emtSelfSet('error: reading this project failed, HTTP ' + g.code + ' ' + emtSelfErr(g), 'error');
+  var js = files.filter(function (f) { return f && f.type === 'SERVER_JS'; });
+  var target = js.length === 1 ? js[0] : (js.filter(function (f) { return String(f.source || '').indexOf('function doPost') > -1; })[0] || js.filter(function (f) { return f.name === 'Code'; })[0]);
+  if (!target) return emtSelfSet('error: this project has no Code file', 'error');
+  var cur = emtSelfVersion(target.source);
+  if (cur && emtSelfCmp(ver, cur) < 0) return emtSelfSet('refused: the repo has ' + ver + ' but this project runs ' + cur + ', which is newer. Nothing changed.', 'refused');
+  var pend = null;
+  try { pend = JSON.parse(p.getProperty('EMT_SELF_PENDING') || 'null'); } catch (e) { pend = null; }
+  if (emtSelfNorm(target.source) === emtSelfNorm(src)) {
+    if (pend && pend.hash === hash) return emtSelfFinish(pend, null);    /* the code went in last time; switch the web app */
+    if (pend) p.deleteProperty('EMT_SELF_PENDING');
+    if (force || p.getProperty('EMT_SELF_LAST_HASH') !== hash) {
+      /* the editor has it but this never switched the web app to it (pasted by hand without a new deployment, or a
+       * write whose answer was lost): make sure the web app runs it too */
+      var live = emtSelfLive(target.name, src);
+      if (live.off) return emtSelfOff(live.off);
+      if (live.error) return emtSelfSet('current: ' + ver + ' in the editor, but the web app could not be checked (' + live.error + '); the next check tries again', 'current');
+      if (live.stale) {
+        var man0 = emtSelfManifest(files);
+        if (man0) return emtSelfSet('refused: the web app runs an older version than the editor, but ' + man0 + '. Nothing changed.', 'refused');
+        pend = { hash: hash, ver: ver, at: new Date().toISOString() };
+        p.setProperty('EMT_SELF_PENDING', JSON.stringify(pend));
+        return emtSelfFinish(pend, live.dep);
+      }
+    }
+    p.setProperty('EMT_SELF_LAST_HASH', hash);
+    return emtSelfSet('current: ' + ver + ' (checked ' + new Date().toISOString() + ')', 'current');
+  }
+  if (!force && p.getProperty('EMT_SELF_LAST_HASH') === hash) {
+    return emtSelfSet('drift: this project was changed by hand after ' + ver + ' came from the repo. Left alone until the repo changes; run selfUpdateNow to overwrite it.', 'drift');
+  }
+  var man = emtSelfManifest(files);
+  if (man) return emtSelfSet('refused: ' + man + '. Nothing changed.', 'refused');
+  var dep = emtSelfDeployment();                                            /* chosen before anything is written */
+  if (dep.off) return emtSelfOff(dep.off);
+  if (dep.error) return emtSelfSet('refused: ' + dep.error + '. Nothing changed.', 'refused');
+  var put = emtSelfApi('put', '/content', { files: files.map(function (f) { return { name: f.name, type: f.type, source: f === target ? src : f.source }; }) });
+  if (put.code !== 200) return emtSelfSet('error: writing the new code failed, HTTP ' + put.code + ' ' + emtSelfErr(put) + '. Nothing changed.', 'error');
+  pend = { hash: hash, ver: ver, at: new Date().toISOString() };
+  p.setProperty('EMT_SELF_PENDING', JSON.stringify(pend));
+  return emtSelfFinish(pend, dep);
+}
+
+function emtSelfRun(force) {
+  if (!emtFlagClaim('EMT_SELF_BUSY', EMT_SELF_BUSY_MS)) return { ok: false, stopped: 'busy', state: 'another update is running; try again in a few minutes' };
+  try { return emtSelfUpdate(force); }
+  catch (e) { return emtSelfSet('error: ' + String((e && e.message) || e).slice(0, 200), 'error'); }
+  finally { emtProps().deleteProperty('EMT_SELF_BUSY'); }
+}
+
+/* aiTick: at most once an hour, unless EMT_SELF_UPDATE = off */
+function selfUpdateTick(startedAt) {
+  var p = emtProps();
+  if (String(p.getProperty('EMT_SELF_UPDATE') || '').toLowerCase() === 'off') return { ok: true, stopped: 'disabled' };
+  var now = Date.now(), last = Number(p.getProperty('EMT_SELF_CHECKED') || 0);
+  if (last && now - last >= 0 && now - last < EMT_SELF_EVERY_MS) return { ok: true, stopped: 'gate' };
+  if (typeof startedAt === 'number' && now - startedAt > EMT_SELF_LATE_MS) return { ok: true, stopped: 'late' };
+  p.setProperty('EMT_SELF_CHECKED', String(now));
+  return emtSelfRun(false);
+}
+
+/* menu: Update Code.gs from GitHub now (no hourly gate; overwrites hand edits; also installs the aiTick trigger if
+ * it is missing, so the hourly checks run) */
+function selfUpdateNow() {
+  emtProps().setProperty('EMT_SELF_CHECKED', String(Date.now()));
+  var r = emtSelfRun(true), trig = '';
+  try {
+    if (!ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'aiTick'; })) {
+      ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();
+      trig = ' The 15-minute aiTick trigger was missing; it is installed now.';
+    }
+  } catch (e) { trig = ' (The triggers could not be checked: ' + ((e && e.message) || e) + ')'; }
+  var msg = 'Code.gs self-update: ' + (r.state || r.stopped) + trig;
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { Logger.log(msg); }   /* no UI from the editor */
+  return r;
+}
+
+function selfUpdateStatus() {
+  var p = emtProps(), last = Number(p.getProperty('EMT_SELF_CHECKED') || 0), state = p.getProperty('EMT_SELF_STATE') || 'no check yet';
+  Logger.log('Self-update' + (String(p.getProperty('EMT_SELF_UPDATE') || '').toLowerCase() === 'off' ? ' (turned off: EMT_SELF_UPDATE = off)' : '') + ': ' + state +
+    '. Last check: ' + (last ? new Date(last).toISOString() : 'never') + '. Last update: ' + (p.getProperty('EMT_SELF_UPDATED') || 'none') +
+    (p.getProperty('EMT_SELF_PENDING') ? '. Unfinished: ' + p.getProperty('EMT_SELF_PENDING') : '') + '.');
+  return state;
 }
