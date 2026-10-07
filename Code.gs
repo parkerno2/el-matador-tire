@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.6 (live 10-minute refresh during matches; readable waiver results; FPL club strengths)
+ * Google Sheet + Apps Script · v3.7 (Matchweek club identity: new colour presets, custom colours, patterns)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,11 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.7 · 7 Oct 2026
+ *   Club identity for the new app: `save` accepts the new colour presets (steel, olive, orange, red, orchid, lime,
+ *   cream, rose, brown, mono) and any custom #rrggbb, plus a `pattern` ('' | stripes | hoops | halves | sash) written
+ *   to a new Managers column, Pattern. Old palette names still work for the classic app. Errors add 'badpattern'.
+ *   After pasting: Deploy → Manage deployments → edit the web app → Version: New version → Deploy (same URL).
  * v3.6 · 26 Sep 2026
  *   1. Live cadence. New liveTick() on a 10-minute trigger (install once: run installLiveTrigger(), or the
  *      menu item). It reads the sheet's own Club Fixtures tab (no URL fetch) and only refreshes while a PL
@@ -1026,12 +1031,15 @@ function logGwHistory(ss, boot, teams, perEntry) {
  *   in the Apps Script editor run  adminResetPin('Team Jacob')  (exact team name) — deletes his PIN + lockout,
  *   his profile row stays, he re-claims from the app with a new PIN.
  */
-var EMT_PALETTE = ['royal', 'sky', 'navy', 'amethyst', 'magenta', 'aurora', 'gold', 'crimson', 'tangerine', 'umber', 'forest', 'teal'];
+var EMT_PALETTE = ['royal', 'sky', 'navy', 'amethyst', 'magenta', 'aurora', 'gold', 'crimson', 'tangerine', 'umber', 'forest', 'teal',
+  /* v3.6 · Matchweek identity presets (any #rrggbb is accepted too) */
+  'steel', 'olive', 'orange', 'red', 'orchid', 'lime', 'cream', 'rose', 'brown', 'mono'];
+var EMT_PATTERNS = ['', 'stripes', 'hoops', 'halves', 'sash'];
 var EMT_SHAPES = ['shield', 'heater', 'roundel', 'pennant', 'hex'];
 var EMT_PHOTO_MAX = 45000;      // chars — sheet cells cap at 50k
 var EMT_LOCK_TRIES = 5;
 var EMT_LOCK_MIN = 10;
-var EMT_MGR_HEAD = ['Team', 'Color', 'Shape', 'Photo', 'Manager', 'Updated', 'Emblem'];
+var EMT_MGR_HEAD = ['Team', 'Color', 'Shape', 'Photo', 'Manager', 'Updated', 'Emblem', 'Pattern'];
 var EMT_EMBLEMS = ['', 'initials'];
 
 function emtProps() { return PropertiesService.getScriptProperties(); }
@@ -1109,7 +1117,7 @@ function emtManagersSheet() {
   else if (sh.getLastRow() < 1) sh.getRange(1, 1, 1, EMT_MGR_HEAD.length).setValues([EMT_MGR_HEAD]);
   return sh;
 }
-function emtUpsertManager(team, color, shape, photo, manager, emblem) {
+function emtUpsertManager(team, color, shape, photo, manager, emblem, pattern) {
   var sh = emtManagersSheet();
   var last = sh.getLastRow();
   var row = 0;
@@ -1119,7 +1127,7 @@ function emtUpsertManager(team, color, shape, photo, manager, emblem) {
   }
   if (!row) row = last + 1;
   if (sh.getLastColumn() < EMT_MGR_HEAD.length) sh.getRange(1, 1, 1, EMT_MGR_HEAD.length).setValues([EMT_MGR_HEAD]);
-  sh.getRange(row, 1, 1, EMT_MGR_HEAD.length).setValues([[team, color, shape, photo, manager, "'" + new Date().toISOString(), emblem || '']]);
+  sh.getRange(row, 1, 1, EMT_MGR_HEAD.length).setValues([[team, color, shape, photo, manager, "'" + new Date().toISOString(), emblem || '', pattern || '']]);
 }
 
 function emtHandle(req) {
@@ -1161,15 +1169,17 @@ function emtHandle(req) {
 
   if (action === 'save' || action === 'reset') {
     if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
-    if (action === 'reset') { emtUpsertManager(team, '', '', '', '', ''); return { ok: true }; }
+    if (action === 'reset') { emtUpsertManager(team, '', '', '', '', '', ''); return { ok: true }; }
     var color = String(req.color || ''), shape = String(req.shape || ''), photo = String(req.photo || '');
-    if (color && EMT_PALETTE.indexOf(color) < 0) return { ok: false, error: 'badcolor' };
+    if (color && EMT_PALETTE.indexOf(color) < 0 && !/^#[0-9a-fA-F]{6}$/.test(color)) return { ok: false, error: 'badcolor' };
+    var pattern = String(req.pattern || '');
+    if (EMT_PATTERNS.indexOf(pattern) < 0) return { ok: false, error: 'badpattern' };
     if (shape && EMT_SHAPES.indexOf(shape) < 0) return { ok: false, error: 'badshape' };
     if (photo && (photo.indexOf('data:image/jpeg;base64,') !== 0 || photo.length > EMT_PHOTO_MAX)) return { ok: false, error: 'badphoto' };
     var emblem = String(req.emblem || '');
     if (EMT_EMBLEMS.indexOf(emblem) < 0) return { ok: false, error: 'bademblem' };
     var manager = String(req.manager || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
-    emtUpsertManager(team, color, shape, photo, manager, emblem);
+    emtUpsertManager(team, color, shape, photo, manager, emblem, pattern);
     return { ok: true };
   }
 
