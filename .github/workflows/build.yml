@@ -1,7 +1,8 @@
 # El Matador Tire: build the app from its sources, no PC needed.
 #   Every push that touches the sources rebuilds the hidden preview page v12.html (production untouched).
-#   "Ship to production" (Actions tab → Build app → Run workflow → ship: yes) builds index.html from the same
-#   sources and commits it. Only run it after Parker has approved the preview.
+#   "Ship" (Actions tab → Build app → Run workflow → ship: yes) builds the CLASSIC app into classic.html and commits it.
+#   Since 7 Oct 2026 index.html is the new Matchweek app (source: fplgg/tools/matchweek/), so this workflow must never
+#   write index.html: doing so would replace the new app with the classic one.
 name: Build app
 on:
   push:
@@ -10,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       ship:
-        description: 'Also build production index.html (type yes)'
+        description: 'Also rebuild the classic app, classic.html (type yes). Never touches index.html'
         required: false
         default: 'no'
 permissions:
@@ -27,14 +28,14 @@ jobs:
         with: { node-version: '22' }
       - name: Build preview (v12.html)
         run: python3 fplgg/tools/v12/build_v12.py index-PREVIEW.html
-      - name: Build production (index.html)
+      - name: Build the classic app (classic.html)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.ship == 'yes'
-        run: python3 fplgg/tools/v12/build_v12.py index-PREVIEW.html --prod index.html
+        run: python3 fplgg/tools/v12/build_v12.py index-PREVIEW.html --prod classic.html
       - name: Commit build output
         run: |
           git config user.name "el-matador-build"
           git config user.email "actions@users.noreply.github.com"
-          git add v12.html index.html
+          git add v12.html classic.html
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
-          git commit -m "build: $( [ '${{ github.event.inputs.ship }}' = 'yes' ] && echo 'ship production + preview' || echo 'preview v12.html' ) from ${GITHUB_SHA::7}"
+          git commit -m "build: $( [ '${{ github.event.inputs.ship }}' = 'yes' ] && echo 'classic.html + preview' || echo 'preview v12.html' ) from ${GITHUB_SHA::7}"
           git push
