@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.8 (the Feed goes social: press-conference quotes, reactions, poll votes)
+ * Google Sheet + Apps Script · v3.9 (the AI writer: Claude posts to the Feed, with memory) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,10 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.9 · 7 Oct 2026
+ *   The AI writer (bottom of this file). Off until ANTHROPIC_API_KEY is set in Script Properties; then run
+ *   installAiTrigger() once. Posts land in a new Posts tab the app reads; the tab doubles as the writer's memory.
+ *   setup() keeps the AI trigger when a key is present. Menu: Install AI writer.
  * v3.8 · 7 Oct 2026
  *   The Feed goes social. New `social` action (signed-in managers only) appends to a new Social tab
  *   (When (UTC) · Team · Kind · Target · Value · Extra), which every phone reads like the other tabs:
@@ -92,12 +96,15 @@ function setup() {
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('refreshAll').timeBased().everyHours(1).create();
   ScriptApp.newTrigger('liveTick').timeBased().everyMinutes(10).create(); // v3.6: re-running setup() keeps live refresh
+  if (emtAiKey()) ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();   // v3.9
 }
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('⚽ FPL Draft')
     .addItem('Refresh now', 'refreshAll')
     .addItem('Install live refresh (every 10 min)', 'installLiveTrigger')
+    .addItem('Install AI writer (every 15 min)', 'installAiTrigger')
+    .addItem('Run the AI writer now', 'aiTick')
     .addToUi();
 }
 
@@ -1290,4 +1297,220 @@ function adminResetPin(team) {
   p.deleteProperty('EMT_PIN_' + team);
   p.deleteProperty('EMT_FAIL_' + team);
   Logger.log('PIN + lockout cleared for ' + team + ' — they can re-claim from the app.');
+}
+
+/* =====================================================================================================
+ * v3.9 · THE AI WRITER — Claude writes posts for the Feed when something happens, and remembers.
+ *   Off until you add an Anthropic API key (Project Settings → Script Properties → ANTHROPIC_API_KEY),
+ *   then run installAiTrigger() once (or the menu item). Every 15 minutes aiTick() looks for:
+ *     · new press-conference quotes (Social tab)          → one voice reacts to each
+ *     · a gameweek that has just finished                  → three posts: the booth, the terrace, the insider
+ *     · the build-up (the 3 days before a deadline)        → one post a day, voices take turns
+ *   Each post goes into the Posts tab, which the app shows in the Feed and which is the writer's memory:
+ *   the next prompt includes earlier posts and quotes about the same clubs, plus any 'note' rows (running jokes,
+ *   storylines), so the voices can call back. Guardrails: every number in a post must appear in the facts or the
+ *   memory it was given, otherwise the post is dropped. At most 4 posts a run and 24 a day.
+ *   Optional Script Properties: EMT_AI_MODEL (default claude-haiku-4-5), EMT_AI_PAUSED = yes to pause.
+ * ===================================================================================================== */
+var EMT_AI_HEAD = ['When (UTC)', 'Id', 'Voice', 'Kind', 'Event', 'Teams', 'Players', 'Text', 'Facts', 'Media'];
+var EMT_AI_MODEL_DEFAULT = 'claude-haiku-4-5';
+var EMT_AI_PER_RUN = 4, EMT_AI_PER_DAY = 24;
+var EMT_AI_VOICES = ['archizio', 'clark', 'malcolm'];
+var EMT_AI_SYSTEM = [
+  'You write short posts for the Feed of Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Head to head each gameweek: 3 points a win, 1 a draw.',
+  'Three fictional voices write the posts. They are not real people:',
+  '- archizio: Archizio Poblano, the insider. Every post opens with a caps tag such as EXCLUSIVE. / UNDERSTAND. / HERE WE GO. / DEAL DONE. Dry, clipped, transfer-insider style. Breaks news, frames beefs between managers.',
+  '- clark: Clark Moldridge of The Terrace, a loud fan channel. Punchy, exasperated, funny. Roasts managers for bad calls, loves receipts. His posts are video thumbnails, so also give "thumb": {"t1": big caps line, max 18 characters, "t2": second caps line, max 22, "lo": caps strap, max 22}.',
+  '- malcolm: Malcolm Tyre in the booth, a broadcaster. Measured, wry, sets the scene.',
+  'Rules:',
+  '1. Every number you write must appear in FACTS or MEMORY. Never invent a stat, score, odds, record or date.',
+  '2. Only quote managers, word for word, from FACTS or MEMORY. Never invent quotes. Never quote or name real journalists, pundits or YouTubers. Real footballers only as players in someone\'s team.',
+  '3. Banter is about this fantasy league only: picks, benchings, results, quotes, form, the table. Nothing about anyone\'s looks, family, health, money, job, relationships or life outside the league. No slurs, no swearing.',
+  '4. At most 240 characters per post. British spelling. No emoji, no hashtags, no em dashes.',
+  '5. Call managers by the first name or team name given in FACTS.',
+  '6. If MEMORY has a related earlier post, quote or note, call back to it (a receipt, a running joke) without repeating it. Never repeat an angle MEMORY already used.',
+  '7. Each post takes a different angle. Answer with JSON only: {"posts":[{"voice":"...","text":"...","teams":["exact team names"],"thumb":{...}}]}'
+].join('\n');
+
+function emtAiKey() { return emtProps().getProperty('ANTHROPIC_API_KEY') || ''; }
+function emtAiOn() { return !!emtAiKey() && emtProps().getProperty('EMT_AI_PAUSED') !== 'yes'; }
+function installAiTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'aiTick') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('aiTick').timeBased().everyMinutes(15).create();
+  Logger.log(emtAiKey() ? 'AI writer on: aiTick every 15 minutes.' : 'Trigger installed, but add ANTHROPIC_API_KEY in Script Properties before it writes anything.');
+}
+function aiPause() { emtProps().setProperty('EMT_AI_PAUSED', 'yes'); }
+function aiResume() { emtProps().deleteProperty('EMT_AI_PAUSED'); }
+
+/* a tab as objects keyed by its header row */
+function emtRows(name) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(name);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getDataRange().getValues(), h = v[0].map(String);
+  return v.slice(1).map(function (r) { var o = {}; h.forEach(function (k, i) { var x = r[i]; o[k] = x instanceof Date ? x.toISOString() : (x === null || x === undefined ? '' : x); }); return o; });
+}
+function emtPostsSheet() {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName('Posts');
+  if (!sh) { sh = ss.insertSheet('Posts'); sh.getRange(1, 1, 1, EMT_AI_HEAD.length).setValues([EMT_AI_HEAD]); sh.setFrozenRows(1); }
+  return sh;
+}
+function aiState() { try { return JSON.parse(emtProps().getProperty('EMT_AI_STATE') || '{}'); } catch (e) { return {}; } }
+function aiSaveState(s) { emtProps().setProperty('EMT_AI_STATE', JSON.stringify(s)); }
+var aiTs = function (v) { var t = Date.parse(String(v || '').replace(/^'/, '')); return isNaN(t) ? 0 : t; };
+
+/* ---------- the league, as facts ---------- */
+function aiLeague() {
+  var st = emtRows('Standings'), fx = emtRows('H2H Fixtures'), mw = emtRows('Matchweeks');
+  var mgr = {}; st.forEach(function (s) { mgr[s.Team] = String(s.Manager || ''); });
+  var first = function (t) { return String(mgr[t] || t).split(' ')[0]; };
+  var table = st.slice().sort(function (a, b) { return Number(b['League Pts']) - Number(a['League Pts']) || Number(b['Pts For']) - Number(a['Pts For']); })
+    .map(function (s, i) { return { pos: i + 1, team: s.Team, manager: first(s.Team), w: Number(s.W), d: Number(s.D), l: Number(s.L), pts: Number(s['League Pts']), pf: Number(s['Pts For']), pa: Number(s['Pts Against']) }; });
+  var done = mw.filter(function (w) { return String(w.Finished).toUpperCase() === 'TRUE'; }).map(function (w) { return Number(w.GW); });
+  var lastDone = done.length ? Math.max.apply(null, done) : 0;
+  var form = {}; table.forEach(function (t) { form[t.team] = []; });
+  fx.filter(function (f) { return String(f.Finished).toUpperCase() === 'TRUE'; }).sort(function (a, b) { return Number(a.GW) - Number(b.GW); }).forEach(function (f) {
+    var h = Number(f['Home pts']), a = Number(f['Away pts']);
+    if (form[f.Home]) form[f.Home].push(h > a ? 'W' : h < a ? 'L' : 'D');
+    if (form[f.Away]) form[f.Away].push(a > h ? 'W' : a < h ? 'L' : 'D');
+  });
+  table.forEach(function (t) { t.last3 = (form[t.team] || []).slice(-3).join(''); });
+  return { table: table, fx: fx, mw: mw, lastDone: lastDone, first: first };
+}
+function aiResults(L, gw) {
+  return L.fx.filter(function (f) { return Number(f.GW) === gw && String(f.Finished).toUpperCase() === 'TRUE'; })
+    .map(function (f) { return { home: f.Home, away: f.Away, score: Number(f['Home pts']) + '-' + Number(f['Away pts']) }; });
+}
+function aiStars(gw, n, started) {
+  return emtRows('GW Log').filter(function (r) { return Number(r.GW) === gw && String(r.Started) === started; })
+    .sort(function (a, b) { return Number(b['GW pts']) - Number(a['GW pts']); }).slice(0, n)
+    .map(function (r) { return { player: r.Player, team: r.Team, pts: Number(r['GW pts']) }; });
+}
+function aiQuotes(teams, sinceGw) {
+  return emtRows('Social').filter(function (r) { return r.Kind === 'quote' && (!teams || teams.indexOf(r.Team) > -1); }).map(function (r) {
+    var x = {}; try { x = JSON.parse(r.Extra || '{}'); } catch (e) { }
+    var m = /^(q|qr):(\d+)(?::(.+))?$/.exec(String(r.Target)) || [];
+    return { team: r.Team, gw: Number(m[2] || 0), answering: m[3] || null, said: x.line || '', calling: x.claim ? x.claim : null, model: x.p != null ? Math.round(x.p * 100) + '%' : null };
+  }).filter(function (q) { return q.said && (!sinceGw || q.gw >= sinceGw); });
+}
+
+/* ---------- what happened since last time ---------- */
+function aiEvents(S) {
+  var L = aiLeague(), out = [], now = Date.now();
+  /* 1. new quotes */
+  var soc = emtRows('Social').filter(function (r) { return r.Kind === 'quote'; });
+  if (S.socialAt === undefined) S.socialAt = now;            /* first run: only quotes from now on */
+  soc.filter(function (r) { return aiTs(r['When (UTC)']) > S.socialAt; }).forEach(function (r) {
+    var x = {}; try { x = JSON.parse(r.Extra || '{}'); } catch (e) { }
+    var m = /^(q|qr):(\d+)(?::(.+))?$/.exec(String(r.Target)) || [], gw = Number(m[2] || 0);
+    var f = L.fx.filter(function (z) { return Number(z.GW) === gw && (z.Home === r.Team || z.Away === r.Team); })[0];
+    var opp = f ? (f.Home === r.Team ? f.Away : f.Home) : null;
+    var teams = [r.Team].concat(opp ? [opp] : []).concat(m[3] ? [m[3]] : []);
+    out.push({ key: 'q:' + r.Target + ':' + r.Team, at: aiTs(r['When (UTC)']), teams: teams, n: 1,
+      ask: 'One post reacting to this quote. Use clark if the call is bold (the model gave it under 40%) or it is trash talk, otherwise archizio or malcolm.',
+      desc: L.first(r.Team) + ' (' + r.Team + ') went on the record' + (m[3] ? ', answering ' + L.first(m[3]) : '') + ' before GW' + gw + '.',
+      facts: { quote: { manager: L.first(r.Team), team: r.Team, said: x.line, calling: x.claim || null, model_chance: x.p != null ? Math.round(x.p * 100) + '%' : null, gameweek: gw, opponent: opp }, table: L.table },
+      line: 'The quote, the table' });
+  });
+  /* 2. a gameweek just finished */
+  if (S.doneGw === undefined) S.doneGw = L.lastDone;         /* first run: no backfill */
+  if (L.lastDone > S.doneGw) {
+    var g = L.lastDone;
+    out.push({ key: 'ft:' + g, at: now, teams: L.table.map(function (t) { return t.team; }), n: 3,
+      ask: 'Three posts about gameweek ' + g + ' at full time: one malcolm (the round-up), one clark (the take everyone will argue about), one archizio (the angle nobody else has).',
+      desc: 'Gameweek ' + g + ' has finished.',
+      facts: { gameweek: g, results: aiResults(L, g), top_scorers_started: aiStars(g, 4, 'XI'), best_on_benches: aiStars(g, 2, 'BEN'), table_now: L.table, quotes_before_this_gameweek: aiQuotes(null, g) },
+      line: 'H2H Fixtures, GW Log and the table after GW' + g });
+  }
+  /* 3. the build-up: one post a day in the 3 days before a deadline */
+  var next = L.mw.filter(function (w) { return String(w.Finished).toUpperCase() !== 'TRUE'; }).sort(function (a, b) { return Number(a.GW) - Number(b.GW); })[0];
+  if (next) {
+    var dl = aiTs(next['Deadline (UTC)']), day = new Date(now).toISOString().slice(0, 10), gwN = Number(next.GW);
+    if (dl > now && dl - now < 3 * 864e5 && S.buildDay !== day) {
+      var fxs = L.fx.filter(function (z) { return Number(z.GW) === gwN; }).map(function (z) { return { home: z.Home, away: z.Away }; });
+      var v = EMT_AI_VOICES[(Number(day.slice(8, 10)) + gwN) % 3];
+      var flags = emtRows('Rosters').filter(function (p) { return (p.Status === 'd' || p.Status === 'i') && String(p['GW XI'] || p['Best XI']) === 'XI'; })
+        .slice(0, 8).map(function (p) { return { player: p.Player, team: p.Team, news: String(p.News || '') }; });
+      out.push({ key: 'bu:' + gwN + ':' + day, at: now, teams: L.table.map(function (t) { return t.team; }), n: 1, day: day,
+        ask: 'One ' + v + ' post for the build-up to gameweek ' + gwN + '. Pick the best storyline in the facts and memory.',
+        desc: 'Gameweek ' + gwN + ' deadline is coming.',
+        facts: { gameweek: gwN, fixtures: fxs, table: L.table, flagged_starters: flags, quotes_this_gameweek: aiQuotes(null, gwN) },
+        line: 'Fixtures, the table, injury news' });
+    }
+  }
+  return out;
+}
+
+/* ---------- memory: earlier posts and quotes about the same clubs, and the notes ---------- */
+function aiMemory(ev) {
+  var rows = emtRows('Posts'), notes = rows.filter(function (r) { return r.Kind === 'note'; }).slice(-8);
+  var posts = rows.filter(function (r) { return r.Kind === 'ai'; });
+  var rel = posts.filter(function (r) { var t = String(r.Teams || '').split('|'); return ev.teams.some(function (x) { return t.indexOf(x) > -1; }); }).slice(-10);
+  var recent = posts.slice(-4).filter(function (r) { return rel.indexOf(r) < 0; });
+  var lines = [];
+  notes.forEach(function (r) { lines.push('[note] ' + r.Text); });
+  rel.concat(recent).forEach(function (r) { lines.push('[' + String(r['When (UTC)']).slice(0, 10) + ' ' + r.Voice + '] ' + r.Text); });
+  aiQuotes(ev.teams.length <= 3 ? ev.teams : null, 0).slice(-8).forEach(function (q) { lines.push('[quote GW' + q.gw + '] ' + q.team + ': "' + q.said + '"' + (q.calling ? ' (calling ' + JSON.stringify(q.calling) + (q.model ? ', model ' + q.model : '') + ')' : '')); });
+  return lines.join('\n');
+}
+
+/* ---------- one call to Claude, checked before anything is kept ---------- */
+function aiWrite(ev) {
+  var mem = aiMemory(ev), facts = JSON.stringify(ev.facts);
+  var user = 'EVENT: ' + ev.desc + '\nWRITE: ' + ev.ask + '\n\nFACTS (the only numbers you may use):\n' + facts + '\n\nMEMORY (earlier posts, quotes and notes):\n' + (mem || '(nothing yet)');
+  var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
+    payload: JSON.stringify({ model: emtProps().getProperty('EMT_AI_MODEL') || EMT_AI_MODEL_DEFAULT, max_tokens: 900, system: EMT_AI_SYSTEM, messages: [{ role: 'user', content: user }] })
+  });
+  var code = res.getResponseCode(), body = res.getContentText();
+  if (code !== 200) throw new Error('Claude API ' + code + ': ' + body.slice(0, 200));
+  var j = JSON.parse(body), txt = ((j.content || []).filter(function (c) { return c.type === 'text'; })[0] || {}).text || '';
+  var m = txt.match(/\{[\s\S]*\}/); if (!m) return [];
+  var out = (JSON.parse(m[0]).posts || []).slice(0, ev.n);
+  var allowed = facts + '\n' + mem, teams = aiLeague().table.map(function (t) { return t.team; });
+  var numsOk = function (s) { return (String(s).match(/\d+(?:\.\d+)?/g) || []).every(function (n) { return allowed.indexOf(n) > -1; }); };
+  return out.map(function (p) {
+    var voice = String(p.voice || '').toLowerCase(), text = emtClean(p.text, 300).replace(/—/g, ',');
+    if (EMT_AI_VOICES.indexOf(voice) < 0 || text.length < 15 || !numsOk(text)) { Logger.log('AI post dropped: ' + JSON.stringify(p)); return null; }
+    var th = null;
+    if (voice === 'clark' && p.thumb && p.thumb.t1) {
+      th = { t1: emtClean(p.thumb.t1, 22).toUpperCase(), t2: emtClean(p.thumb.t2, 26).toUpperCase(), lo: emtClean(p.thumb.lo, 26).toUpperCase() };
+      if (!numsOk(th.t1 + ' ' + th.t2 + ' ' + th.lo)) th = null;
+    }
+    return { voice: voice, text: text, teams: (p.teams || []).filter(function (t) { return teams.indexOf(t) > -1; }).slice(0, 4), thumb: th };
+  }).filter(Boolean);
+}
+
+function aiTick() {
+  if (!emtAiOn()) return;
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) return;
+  try {
+    var S = aiState(), day = new Date().toISOString().slice(0, 10);
+    if (S.day !== day) { S.day = day; S.count = 0; }
+    aiSeedNotes();
+    var evs = aiEvents(S).sort(function (a, b) { return a.at - b.at; }), made = 0, sh = emtPostsSheet();
+    for (var i = 0; i < evs.length; i++) {
+      var ev = evs[i];
+      if (made + ev.n > EMT_AI_PER_RUN || S.count + ev.n > EMT_AI_PER_DAY) break;
+      var posts = [];
+      try { posts = aiWrite(ev); } catch (e) { Logger.log('AI writer: ' + e); break; }   /* try again next run */
+      posts.forEach(function (p, k) {
+        var media = p.thumb ? JSON.stringify({ type: 'thumb', t1: p.thumb.t1, t2: p.thumb.t2, lo: p.thumb.lo, team: p.teams[0] || '' }) : '';
+        sh.appendRow(["'" + new Date().toISOString(), emtCell('ai:' + ev.key + ':' + k), p.voice, 'ai', emtCell(ev.key), emtCell(p.teams.join('|')), '', emtCell(p.text), emtCell(ev.line), emtCell(media)]);
+      });
+      made += posts.length; S.count += posts.length;
+      if (ev.key.indexOf('q:') === 0) S.socialAt = Math.max(S.socialAt || 0, ev.at);
+      if (ev.key.indexOf('ft:') === 0) S.doneGw = Number(ev.key.slice(3));
+      if (ev.key.indexOf('bu:') === 0) S.buildDay = ev.day;
+    }
+    aiSaveState(S);
+  } finally { lock.releaseLock(); }
+}
+/* running jokes and storylines the writer should know about (rows with Kind 'note' are memory only, never shown) */
+function aiSeedNotes() {
+  var sh = emtPostsSheet(), rows = emtRows('Posts');
+  if (rows.some(function (r) { return r.Id === 'note:baha-files'; })) return;
+  sh.appendRow(["'" + new Date().toISOString(), 'note:baha-files', 'archizio', 'note', 'storyline', 'Kobbie Mainoo Fan', '',
+    'Running joke since 7 Oct: Archizio broke a satirical story that UEFA and FPL are investigating Kobbie Mainoo Fan\'s finances (Manchester City comparisons), and Clark ran a video called The Baha Files. The league has a market named after Baha finishing last, yet his team went top after GW5.', 'Commissioner note', '']);
 }

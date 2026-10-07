@@ -1548,7 +1548,9 @@ function __loadBase(quiet){
 }
 
 function loadProfilesData(){
-  return Promise.all([readTab('Managers').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('Social').catch(()=>[])]).then(([m,sp,so])=>{
+  return Promise.all([readTab('Managers').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('Social').catch(()=>[]),readTab('Posts').catch(()=>[])]).then(([m,sp,so,po])=>{
+    /* the AI writer's posts (v3.9); notes are its memory only */
+    D.aiPosts=(po||[]).filter(r=>r&&r.Id&&r.Voice&&r.Text&&r.Kind==='ai');
     /* the Social log (v3.8): quotes, reactions, poll votes. A missing tab makes gviz return the first sheet, so keep only real rows */
     D.social=(so||[]).filter(r=>r&&r.Kind&&r.Target&&r.Team);
     const r=(sp||[]).find(x=>x.Setting==='API URL');D.api=r&&r.Value?String(r.Value).trim():'';

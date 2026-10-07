@@ -2303,6 +2303,43 @@ button.fl-more{width:calc(100% - 2 * var(--gutter))}
 .fpr .ap-mark{font-size:4.2cqw}
 .ps-art p{margin:0;padding:12px 16px;border-top:1px solid var(--hair);font-size:15px;line-height:1.5;color:var(--tx)}
 .ps-art p:first-child{border-top:0}
+/* ---------- Clark: the extra thumbnail looks ---------- */
+.fct-flame{background:radial-gradient(ellipse 90% 80% at 72% 115%,#FFC400 0,#FF6A00 28%,#D7191F 58%,#3A0606 100%)}
+.fct-fl{position:absolute;inset:0;background:radial-gradient(ellipse 40% 30% at 20% 110%,rgba(255,196,0,.55),transparent 70%)}
+.fct-flame .fct-t1{color:#FFE14D}
+.fct-breaking{background:linear-gradient(160deg,#14214F 0,#0A1030 70%)}
+.fct-bk{position:absolute;left:0;top:4cqw;z-index:4;font-style:normal;font-size:5.4cqw;letter-spacing:.04em;color:#fff;background:#E8222E;padding:1cqw 3.4cqw .8cqw 3.4cqw;box-shadow:0 0 0 .6cqw rgba(232,34,46,.25)}
+.fct-tk{position:absolute;left:0;right:0;bottom:0;height:2.4cqw;background:repeating-linear-gradient(90deg,#E8222E 0 12cqw,#FFD60A 12cqw 14cqw);z-index:2}
+.fct-breaking .fct-ttl{top:15cqw}
+.fct-breaking .fct-t1{color:#fff}
+.fct-breaking .fct-t2{color:#FFD60A}
+.fct-zoom{background:#FFD60A}
+.fct-dots{position:absolute;inset:0;background:radial-gradient(circle,rgba(232,34,46,.22) 1.1cqw,transparent 1.2cqw) 0 0/5cqw 5cqw}
+.fct-ring{position:absolute;right:4cqw;top:6cqw;width:38cqw;height:38cqw;border:1.6cqw solid #E8222E;border-radius:50%;z-index:2;box-shadow:0 0 0 .6cqw #fff}
+.fct-zoom .fct-t1{color:#E8222E}
+.fct-zoom .fct-t2{color:#0A0A0A;-webkit-text-stroke:0}
+.fct-chart{background:#0B1712}
+.fct-grid{position:absolute;inset:0;background:linear-gradient(rgba(25,210,122,.12) 1px,transparent 1px) 0 0/100% 9cqw,linear-gradient(90deg,rgba(25,210,122,.12) 1px,transparent 1px) 0 0/9cqw 100%}
+.fct-ch{position:absolute;inset:6cqw 2cqw 8cqw 2cqw;width:calc(100% - 4cqw);height:calc(100% - 14cqw);z-index:1;filter:drop-shadow(0 0 1.4cqw rgba(255,59,59,.5))}
+.fct-chart .fct-stk{opacity:.96}
+.fct-static{background:#1A1A1A}
+.fct-noise{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 70% 40%,#4A1D6E,#1A1A1A 70%)}
+.fct-static .fct-t1{color:#04F5FF}
+.fct-number{background:#0A0A0A}
+.fct-nb{position:absolute;right:-4cqw;top:-8cqw;width:66cqw;height:66cqw;border-radius:50%;background:radial-gradient(circle,rgba(255,214,10,.42),rgba(255,214,10,0) 66%)}
+.fct-number .fct-ttl{top:9cqw;transform:rotate(-2deg)}
+.fct-number .fct-t1{color:#FFD60A;line-height:.86}
+.fct-vs{background:#0A0A0A}
+.fct-vsl{position:absolute;left:0;top:0;bottom:0;width:56%;background:#E8222E;clip-path:polygon(0 0,100% 0,78% 100%,0 100%)}
+.fct-vsr{position:absolute;right:0;top:0;bottom:0;width:56%;background:#1E3DD6;clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)}
+.fct-crest.l{left:10cqw;right:auto;top:auto;bottom:6cqw;transform:rotate(-8deg)}
+.fct-crest.r{right:10cqw;top:auto;bottom:6cqw;transform:rotate(8deg)}
+.fct-crest.l .cr svg,.fct-crest.r .cr svg{width:24cqw}
+.fct-vst{position:absolute;left:50%;top:66%;transform:translate(-50%,-50%) rotate(-6deg);z-index:3;font-size:17cqw;color:#FFD60A;-webkit-text-stroke:.9cqw #0A0A0A;paint-order:stroke fill;font-style:normal}
+.fct-vs .fct-ttl{left:50%;top:3.6cqw;transform:translateX(-50%) rotate(-2deg);align-items:center;text-align:center}
+.fct-vs .fct-lo{left:50%;bottom:3.4cqw;transform:translateX(-50%);font-size:3.6cqw}
+.fct-vs .fct-chip{display:none}
+.fct-vs .fct-lbl{display:none}
 /* ===== sheets: player, manager, club identity, search, menu ===== */
 .sheet{--sk-good2:#A3D65C;--sk-fdr5:#A3263F}
 .sheet > .sk-end{height:12px}
