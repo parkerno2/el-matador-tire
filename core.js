@@ -1548,7 +1548,9 @@ function __loadBase(quiet){
 }
 
 function loadProfilesData(){
-  return Promise.all([readTab('Managers').catch(()=>[]),readTab('Specials').catch(()=>[])]).then(([m,sp])=>{
+  return Promise.all([readTab('Managers').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('Social').catch(()=>[])]).then(([m,sp,so])=>{
+    /* the Social log (v3.8): quotes, reactions, poll votes. A missing tab makes gviz return the first sheet, so keep only real rows */
+    D.social=(so||[]).filter(r=>r&&r.Kind&&r.Target&&r.Team);
     const r=(sp||[]).find(x=>x.Setting==='API URL');D.api=r&&r.Value?String(r.Value).trim():'';
     D.managers=m||[];
     Object.keys(PROFILE).forEach(k=>delete PROFILE[k]);

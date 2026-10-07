@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.7 (Matchweek club identity: new colour presets, custom colours, patterns)
+ * Google Sheet + Apps Script · v3.8 (the Feed goes social: press-conference quotes, reactions, poll votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,15 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.8 · 7 Oct 2026
+ *   The Feed goes social. New `social` action (signed-in managers only) appends to a new Social tab
+ *   (When (UTC) · Team · Kind · Target · Value · Extra), which every phone reads like the other tabs:
+ *     quote  · Target q:<gw> (your press conference) or qr:<gw>:<team> (your answer to <team>) · Extra {line, claim, p}
+ *              one per manager per target, first one stands, refused after that gameweek's deadline
+ *     react  · Target <post id> · Value fire|laugh|clown|eyes|cap · Extra on or off, latest row wins
+ *     vote   · Target poll:<gw>:<home>|<away> · Value h|d|a, latest row wins, refused after the deadline
+ *   40 writes a minute per manager. Text is cleaned (no < >, 140 characters) and nothing can start a formula.
+ *   Includes everything in v3.7. After pasting: Deploy → Manage deployments → edit → Version: New version → Deploy.
  * v3.7 · 7 Oct 2026
  *   Club identity for the new app: `save` accepts the new colour presets (steel, olive, orange, red, orchid, lime,
  *   cream, rose, brown, mono) and any custom #rrggbb, plus a `pattern` ('' | stripes | hoops | halves | sash) written
@@ -1183,7 +1192,81 @@ function emtHandle(req) {
     return { ok: true };
   }
 
+  if (action === 'social') {
+    if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
+    return emtSocial(team, req);
+  }
+
   return { ok: false, error: 'unknown action' };
+}
+
+/* ---------- v3.8 · the social log: quotes, reactions, poll votes ---------- */
+var EMT_SOCIAL_HEAD = ['When (UTC)', 'Team', 'Kind', 'Target', 'Value', 'Extra'];
+var EMT_REACTIONS = ['fire', 'laugh', 'clown', 'eyes', 'cap'];
+var EMT_SOCIAL_RATE = 40;              // writes per manager per minute
+
+function emtSocialSheet() {
+  var ss = SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName('Social');
+  if (!sh) { sh = ss.insertSheet('Social'); sh.getRange(1, 1, 1, EMT_SOCIAL_HEAD.length).setValues([EMT_SOCIAL_HEAD]); sh.setFrozenRows(1); }
+  else if (sh.getLastRow() < 1) sh.getRange(1, 1, 1, EMT_SOCIAL_HEAD.length).setValues([EMT_SOCIAL_HEAD]);
+  return sh;
+}
+/* nothing a manager sends can become a formula */
+function emtCell(v) { v = String(v == null ? '' : v); return /^[=+\-@]/.test(v) ? "'" + v : v; }
+function emtClean(t, max) { return String(t || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max); }
+/* the gameweek's deadline from the Matchweeks tab, as ms (0 when unknown) */
+function emtDeadlineMs(gw) {
+  var sh = SpreadsheetApp.getActive().getSheetByName('Matchweeks');
+  if (!sh || sh.getLastRow() < 2) return 0;
+  var v = sh.getRange(1, 1, sh.getLastRow(), 2).getValues();
+  for (var i = 1; i < v.length; i++) if (Number(v[i][0]) === gw) { var t = Date.parse(String(v[i][1]).replace(/^'/, '')); return isNaN(t) ? 0 : t; }
+  return 0;
+}
+function emtSocial(team, req) {
+  var kind = String(req.kind || ''), target = emtClean(req.target, 160), value = emtClean(req.value, 40);
+  if (['quote', 'react', 'vote'].indexOf(kind) < 0) return { ok: false, error: 'badkind' };
+  if (!target) return { ok: false, error: 'badtarget' };
+  var cache = CacheService.getScriptCache(), rk = 'EMT_RL_' + team, n = Number(cache.get(rk) || 0);
+  if (n >= EMT_SOCIAL_RATE) return { ok: false, error: 'slow' };
+  cache.put(rk, String(n + 1), 60);
+  var extra = '';
+  var gwm = /^(?:q|qr|poll):(\d+)/.exec(target), gw = gwm ? Number(gwm[1]) : 0;
+  if (kind === 'quote' || kind === 'vote') {
+    if (!gw) return { ok: false, error: 'badtarget' };
+    var dl = emtDeadlineMs(gw);
+    if (dl && Date.now() > dl) return { ok: false, error: 'closed' };
+  }
+  if (kind === 'react') {
+    if (EMT_REACTIONS.indexOf(value) < 0) return { ok: false, error: 'badvalue' };
+    extra = (String(req.extra) === '0' || String(req.extra) === 'off') ? 'off' : 'on';   // words, not 1/0: a mixed number/text column reads back empty
+  } else if (kind === 'vote') {
+    if (['h', 'd', 'a'].indexOf(value) < 0) return { ok: false, error: 'badvalue' };
+  } else {
+    var q;
+    try { q = JSON.parse(String(req.extra || '{}')); } catch (e) { return { ok: false, error: 'badextra' }; }
+    var line = emtClean(q.line, 140);
+    if (!line) return { ok: false, error: 'empty' };
+    var claim = q.claim && typeof q.claim === 'object' ? q.claim : null;
+    if (claim) { var c = {}; Object.keys(claim).slice(0, 8).forEach(function (k) { c[emtClean(k, 12)] = typeof claim[k] === 'number' ? claim[k] : emtClean(claim[k], 60); }); claim = c; }
+    var pr = Number(q.p); pr = isFinite(pr) ? Math.max(0, Math.min(1, Math.round(pr * 1000) / 1000)) : null;
+    extra = JSON.stringify({ line: line, claim: claim, p: pr, src: q.src === 'own' ? 'own' : 'pick' });
+  }
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sh = emtSocialSheet();
+    if (kind === 'quote') {             // one quote per manager per target: the first one stands
+      var last = sh.getLastRow();
+      if (last > 1) {
+        var rows = sh.getRange(2, 2, last - 1, 3).getValues();
+        for (var i = 0; i < rows.length; i++) if (String(rows[i][0]) === team && String(rows[i][1]) === 'quote' && String(rows[i][2]) === target) return { ok: false, error: 'already' };
+      }
+    }
+    var at = new Date().toISOString();
+    sh.appendRow(["'" + at, emtCell(team), kind, emtCell(target), emtCell(value), emtCell(extra)]);
+    return { ok: true, at: at };
+  } finally { lock.releaseLock(); }
 }
 
 function doPost(e) {

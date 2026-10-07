@@ -89,9 +89,9 @@ a{color:var(--b300);text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 img{display:block}
 :focus-visible{outline:2px solid var(--p300);outline-offset:2px} /* the outline follows each element's own radius */
-/* taps behave like an app, not a web page: no double-tap zoom (pinch zoom still works), no text selection,
+/* taps behave like an app, not a web page: no zoom (double-tap or pinch), no text selection,
    no "save image" or link preview on a long press. Typing fields keep selection and the callout */
-*{touch-action:manipulation}
+*{touch-action:pan-x pan-y}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 img,svg,a{-webkit-user-drag:none;-webkit-touch-callout:none}
 input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
@@ -115,10 +115,13 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .abar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:calc(12px + var(--safe-t)) 16px 12px}
 .abar .lg{display:flex;align-items:center;gap:10px;min-width:0;color:var(--tx)}
 .abar .lg{flex:0 1 auto;overflow:hidden;min-height:40px}
-.abar .lg b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:359px){.abar .lg b{display:none}.abar{gap:8px}}
+/* the Matchweek plate, with the league in small caps under it */
+.abar .lg{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
+.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;line-height:1;padding-left:2px}
+.abar .mwm{display:block;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
+@media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:7.5px;letter-spacing:.07em}}
 /* a longer state pill takes the league name's room rather than cutting it short */
-@media (max-width:419px){.abar.wp .lg b{display:none}}
+
 .abar .sp{margin-left:auto}
 .abar .ib{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex:none}
 .abar .ib svg{stroke:var(--tx2)}
@@ -246,6 +249,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .lands{animation:lands .4s ease-out both}
 @keyframes lands{from{opacity:0;transform:translateY(3px)}}
 @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.boot .mwm{margin-top:6px}
 .boot{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--tx3);font-size:13px}
 .boot .bar{width:120px;height:3px;border-radius:2px;background:var(--top);overflow:hidden}
 .boot .bar i{display:block;width:40%;height:100%;background:var(--logo);animation:bt 1s ease-in-out infinite alternate}
@@ -484,6 +488,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-lines .ar.b{bottom:72px;border-bottom-width:0;border-radius:32px 32px 0 0/18px 18px 0 0}
 .md-half{position:relative;z-index:1}
 .md-row{display:flex;justify-content:space-evenly;align-items:flex-start;height:var(--rowh);padding:8px 4px 0}
+.md-row.n1 .md-tk,.md-row.n2 .md-tk{flex-basis:120px}
 .md-tk{flex:0 1 84px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center}
 .md-ph{position:relative;width:48px;height:48px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid var(--md-rt);background:var(--md-bt);box-shadow:0 3px 10px rgba(0,0,0,.35)}
 .md-half.b .md-ph{border-color:var(--md-rb);background:var(--md-bb)}
@@ -491,10 +496,14 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-b{position:absolute;top:-6px;right:-14px;height:19px;min-width:22px;padding:0 5px;border-radius:10px;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .md-b.pj{line-height:16px}
 .pb.xp{background:var(--p700);color:#fff;border:1.5px solid var(--p300)}
-.md-ic{position:absolute;left:-7px;bottom:-3px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
+.pb.haul{background:var(--gold);color:var(--base)}
+.pb.lv.haul{box-shadow:0 0 0 2px var(--live),0 1px 4px rgba(0,0,0,.4)}
+.pb.bk.blank{background:#C9C2D6;color:#3A2F47}
+.md-ic{position:absolute;left:-7px;top:-4px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
 .md-ic.up{background:var(--win)} .md-ic.sw{background:var(--tx4)} .md-ic.dt{background:var(--doubt)} .md-ic.out{background:var(--loss)}
-.md-nm{max-width:100%;padding:1px 6px;border-radius:4px;background:rgba(8,6,12,.62);font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;margin-top:3px}
-.md-sl{max-width:100%;font-size:10px;font-weight:600;color:rgba(255,255,255,.74);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+/* the name sits on the bottom rim of the face, like a card's nameplate */
+.md-nm{position:relative;z-index:2;max-width:100%;padding:2px 7px;border-radius:5px;background:rgba(10,8,16,.86);box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:11px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:-9px}
+.md-sl{max-width:100%;margin-top:1px;font-size:10px;font-weight:600;color:rgba(255,255,255,.66);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
 .md-sl.lv{color:#5CF0A6}
 
 /* ---------- by line, head to head rows ---------- */
