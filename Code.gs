@@ -14,7 +14,7 @@
  *   (When (UTC) · Team · Kind · Target · Value · Extra), which every phone reads like the other tabs:
  *     quote  · Target q:<gw> (your press conference) or qr:<gw>:<team> (your answer to <team>) · Extra {line, claim, p}
  *              one per manager per target, first one stands, refused after that gameweek's deadline
- *     react  · Target <post id> · Value fire|laugh|clown|eyes|cap · Extra on or off, latest row wins
+ *     react  · Target <post id> · Value fire|laugh|clown|eyes|bin · Extra on or off, latest row wins
  *     vote   · Target poll:<gw>:<home>|<away> · Value h|d|a, latest row wins, refused after the deadline
  *   40 writes a minute per manager. Text is cleaned (no < >, 140 characters) and nothing can start a formula.
  *   Includes everything in v3.7. After pasting: Deploy → Manage deployments → edit → Version: New version → Deploy.
@@ -1202,7 +1202,7 @@ function emtHandle(req) {
 
 /* ---------- v3.8 · the social log: quotes, reactions, poll votes ---------- */
 var EMT_SOCIAL_HEAD = ['When (UTC)', 'Team', 'Kind', 'Target', 'Value', 'Extra'];
-var EMT_REACTIONS = ['fire', 'laugh', 'clown', 'eyes', 'cap'];
+var EMT_REACTIONS = ['fire', 'laugh', 'clown', 'eyes', 'bin'];
 var EMT_SOCIAL_RATE = 40;              // writes per manager per minute
 
 function emtSocialSheet() {
