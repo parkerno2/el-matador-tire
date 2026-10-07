@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.9 (the AI writer: Claude posts to the Feed, with memory) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,16 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.10 · 7 Oct 2026
+ *   The rumour mill. Two new `social` kinds:
+ *     rumour · Target r:<id> · Extra {text, about, anon} · 3 a day per manager
+ *     pass   · Target r:<id> · Value confirm|deny|twist · Extra {text} (a twist needs text) · one per manager per
+ *              rumour, never your own, and the rumour has to exist
+ *   Any other short lower-case kind is stored as cleaned text, so new features don't need a new Code.gs.
+ *   The AI writer writes less and better: 2 posts a run, 6 a day. New quotes are batched into one post (only quotes
+ *   with a call, in the manager's own words, or answering someone). Full time is 2 posts. The build-up is one post
+ *   per gameweek, in the last 30 hours. A rumour that gets passed on with a twist gets one retelling.
+ *   After pasting: Deploy → Manage deployments → edit → Version: New version → Deploy.
  * v3.9 · 7 Oct 2026
  *   The AI writer (bottom of this file). Off until ANTHROPIC_API_KEY is set in Script Properties; then run
  *   installAiTrigger() once. Posts land in a new Posts tab the app reads; the tab doubles as the writer's memory.
@@ -1230,10 +1240,13 @@ function emtDeadlineMs(gw) {
   for (var i = 1; i < v.length; i++) if (Number(v[i][0]) === gw) { var t = Date.parse(String(v[i][1]).replace(/^'/, '')); return isNaN(t) ? 0 : t; }
   return 0;
 }
+var EMT_RESERVED_KINDS = ['delete', 'remove', 'admin', 'auth', 'claim', 'reset', 'note', 'ai'];
+var EMT_RUMOURS_PER_DAY = 3;
 function emtSocial(team, req) {
   var kind = String(req.kind || ''), target = emtClean(req.target, 160), value = emtClean(req.value, 40);
-  if (['quote', 'react', 'vote'].indexOf(kind) < 0) return { ok: false, error: 'badkind' };
+  if (!/^[a-z]{3,12}$/.test(kind) || EMT_RESERVED_KINDS.indexOf(kind) > -1) return { ok: false, error: 'badkind' };
   if (!target) return { ok: false, error: 'badtarget' };
+  if ((kind === 'rumour' || kind === 'pass') && !/^r:[a-z0-9]{4,20}$/.test(target)) return { ok: false, error: 'badtarget' };
   var cache = CacheService.getScriptCache(), rk = 'EMT_RL_' + team, n = Number(cache.get(rk) || 0);
   if (n >= EMT_SOCIAL_RATE) return { ok: false, error: 'slow' };
   cache.put(rk, String(n + 1), 60);
@@ -1249,6 +1262,23 @@ function emtSocial(team, req) {
     extra = (String(req.extra) === '0' || String(req.extra) === 'off') ? 'off' : 'on';   // words, not 1/0: a mixed number/text column reads back empty
   } else if (kind === 'vote') {
     if (['h', 'd', 'a'].indexOf(value) < 0) return { ok: false, error: 'badvalue' };
+  } else if (kind === 'rumour' || kind === 'pass') {
+    var rx;
+    try { rx = JSON.parse(String(req.extra || '{}')) || {}; } catch (e) { return { ok: false, error: 'badextra' }; }
+    if (kind === 'rumour') {
+      var rt = emtClean(rx.text, 160);
+      if (!rt) return { ok: false, error: 'empty' };
+      value = '';
+      extra = JSON.stringify({ text: rt, about: emtClean(rx.about, 60), anon: rx.anon !== false });
+    } else {
+      if (['confirm', 'deny', 'twist'].indexOf(value) < 0) return { ok: false, error: 'badvalue' };
+      var pt = emtClean(rx.text, 140);
+      if (value === 'twist' && !pt) return { ok: false, error: 'empty' };
+      extra = JSON.stringify({ text: value === 'twist' ? pt : '' });
+    }
+  } else if (kind !== 'quote') {
+    /* a kind this version doesn't know yet: kept as plain cleaned text */
+    extra = emtClean(req.extra, 300);
   } else {
     var q;
     try { q = JSON.parse(String(req.extra || '{}')); } catch (e) { return { ok: false, error: 'badextra' }; }
@@ -1263,11 +1293,25 @@ function emtSocial(team, req) {
   lock.waitLock(10000);
   try {
     var sh = emtSocialSheet();
-    if (kind === 'quote') {             // one quote per manager per target: the first one stands
-      var last = sh.getLastRow();
-      if (last > 1) {
-        var rows = sh.getRange(2, 2, last - 1, 3).getValues();
-        for (var i = 0; i < rows.length; i++) if (String(rows[i][0]) === team && String(rows[i][1]) === 'quote' && String(rows[i][2]) === target) return { ok: false, error: 'already' };
+    if (kind === 'quote' || kind === 'rumour' || kind === 'pass') {
+      var last = sh.getLastRow(), rows = last > 1 ? sh.getRange(2, 1, last - 1, 4).getValues() : [];
+      var tm = function (r) { return String(r[1]); }, kd = function (r) { return String(r[2]); }, tg = function (r) { return String(r[3]).replace(/^'/, ''); };
+      if (kind === 'quote') {           // one quote per manager per target: the first one stands
+        for (var i = 0; i < rows.length; i++) if (tm(rows[i]) === team && kd(rows[i]) === 'quote' && tg(rows[i]) === target) return { ok: false, error: 'already' };
+      } else if (kind === 'rumour') {   // three a day, and an id can only be used once
+        var today = new Date().toISOString().slice(0, 10), mine = 0;
+        for (var j = 0; j < rows.length; j++) {
+          if (kd(rows[j]) !== 'rumour') continue;
+          if (tg(rows[j]) === target) return { ok: false, error: 'already' };
+          if (tm(rows[j]) === team && String(rows[j][0]).replace(/^'/, '').slice(0, 10) === today) mine++;
+        }
+        if (mine >= EMT_RUMOURS_PER_DAY) return { ok: false, error: 'toomany' };
+      } else {                          // pass: the rumour exists, it isn't yours, and you only pass it once
+        var by = null;
+        for (var k = 0; k < rows.length; k++) if (kd(rows[k]) === 'rumour' && tg(rows[k]) === target) { by = tm(rows[k]); break; }
+        if (!by) return { ok: false, error: 'norumour' };
+        if (by === team) return { ok: false, error: 'yours' };
+        for (var m = 0; m < rows.length; m++) if (kd(rows[m]) === 'pass' && tm(rows[m]) === team && tg(rows[m]) === target) return { ok: false, error: 'already' };
       }
     }
     var at = new Date().toISOString();
@@ -1303,18 +1347,19 @@ function adminResetPin(team) {
  * v3.9 · THE AI WRITER — Claude writes posts for the Feed when something happens, and remembers.
  *   Off until you add an Anthropic API key (Project Settings → Script Properties → ANTHROPIC_API_KEY),
  *   then run installAiTrigger() once (or the menu item). Every 15 minutes aiTick() looks for:
- *     · new press-conference quotes (Social tab)          → one voice reacts to each
- *     · a gameweek that has just finished                  → three posts: the booth, the terrace, the insider
- *     · the build-up (the 3 days before a deadline)        → one post a day, voices take turns
+ *     · new press-conference quotes worth a reaction       → one post for the lot (v3.10)
+ *     · a gameweek that has just finished                  → two posts: the booth and the terrace
+ *     · the build-up (the last 30 hours before a deadline) → one post per gameweek, voices take turns
+ *     · a rumour passed on with a twist (the rumour mill)  → one retelling
  *   Each post goes into the Posts tab, which the app shows in the Feed and which is the writer's memory:
  *   the next prompt includes earlier posts and quotes about the same clubs, plus any 'note' rows (running jokes,
  *   storylines), so the voices can call back. Guardrails: every number in a post must appear in the facts or the
- *   memory it was given, otherwise the post is dropped. At most 4 posts a run and 24 a day.
+ *   memory it was given, otherwise the post is dropped. At most 2 posts a run and 6 a day: fewer, better posts.
  *   Optional Script Properties: EMT_AI_MODEL (default claude-haiku-4-5), EMT_AI_PAUSED = yes to pause.
  * ===================================================================================================== */
 var EMT_AI_HEAD = ['When (UTC)', 'Id', 'Voice', 'Kind', 'Event', 'Teams', 'Players', 'Text', 'Facts', 'Media'];
 var EMT_AI_MODEL_DEFAULT = 'claude-haiku-4-5';
-var EMT_AI_PER_RUN = 4, EMT_AI_PER_DAY = 24;
+var EMT_AI_PER_RUN = 2, EMT_AI_PER_DAY = 6;   // v3.10: quality over quantity
 var EMT_AI_VOICES = ['archizio', 'clark', 'malcolm'];
 var EMT_AI_SYSTEM = [
   'You write short posts for the Feed of Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Head to head each gameweek: 3 points a win, 1 a draw.',
@@ -1329,7 +1374,9 @@ var EMT_AI_SYSTEM = [
   '4. At most 240 characters per post. British spelling. No emoji, no hashtags, no em dashes.',
   '5. Call managers by the first name or team name given in FACTS.',
   '6. If MEMORY has a related earlier post, quote or note, call back to it (a receipt, a running joke) without repeating it. Never repeat an angle MEMORY already used.',
-  '7. Each post takes a different angle. Answer with JSON only: {"posts":[{"voice":"...","text":"...","teams":["exact team names"],"thumb":{...}}]}'
+  '7. Each post takes a different angle. Answer with JSON only: {"posts":[{"voice":"...","text":"...","teams":["exact team names"],"thumb":{...}}]}',
+  '8. Fewer, better posts. The app already posts the plain facts (results, the table, deals), so only write what a sharp friend in the group chat would: a storyline, a receipt, a callback, a joke that lands. If nothing is worth it, return {"posts":[]}. Never pad.',
+  '9. Rumours come from the rumour mill: managers make them up or pass them on. Always present one as a rumour (hearing, apparently, word is), never as fact, and never say who started or passed it unless FACTS names them.'
 ].join('\n');
 
 function emtAiKey() { return emtProps().getProperty('ANTHROPIC_API_KEY') || ''; }
@@ -1394,49 +1441,87 @@ function aiQuotes(teams, sinceGw) {
 }
 
 /* ---------- what happened since last time ---------- */
+/* the latest deadline that has passed (ms), or 0 */
+function aiPrevDeadline(L, now) {
+  var best = 0;
+  L.mw.forEach(function (w) { var t = aiTs(w['Deadline (UTC)']); if (t && t <= now && t > best) best = t; });
+  return best;
+}
 function aiEvents(S) {
-  var L = aiLeague(), out = [], now = Date.now();
-  /* 1. new quotes */
-  var soc = emtRows('Social').filter(function (r) { return r.Kind === 'quote'; });
-  if (S.socialAt === undefined) S.socialAt = now;            /* first run: only quotes from now on */
-  soc.filter(function (r) { return aiTs(r['When (UTC)']) > S.socialAt; }).forEach(function (r) {
-    var x = {}; try { x = JSON.parse(r.Extra || '{}'); } catch (e) { }
-    var m = /^(q|qr):(\d+)(?::(.+))?$/.exec(String(r.Target)) || [], gw = Number(m[2] || 0);
+  var L = aiLeague(), out = [], now = Date.now(), soc = emtRows('Social');
+  var parse = function (r) { try { return JSON.parse(r.Extra || '{}') || {}; } catch (e) { return {}; } };
+  /* 1. new quotes worth a reaction, batched into one post: a call, the manager's own words, or an answer to someone */
+  if (S.socialAt === undefined) S.socialAt = aiPrevDeadline(L, now) || now;   /* first run: this gameweek's quotes */
+  var fresh = soc.filter(function (r) { return r.Kind === 'quote' && aiTs(r['When (UTC)']) > S.socialAt; });
+  var worth = fresh.map(function (r) {
+    var x = parse(r), m = /^(q|qr):(\d+)(?::(.+))?$/.exec(String(r.Target)) || [], gw = Number(m[2] || 0);
     var f = L.fx.filter(function (z) { return Number(z.GW) === gw && (z.Home === r.Team || z.Away === r.Team); })[0];
-    var opp = f ? (f.Home === r.Team ? f.Away : f.Home) : null;
-    var teams = [r.Team].concat(opp ? [opp] : []).concat(m[3] ? [m[3]] : []);
-    out.push({ key: 'q:' + r.Target + ':' + r.Team, at: aiTs(r['When (UTC)']), teams: teams, n: 1,
-      ask: 'One post reacting to this quote. Use clark if the call is bold (the model gave it under 40%) or it is trash talk, otherwise archizio or malcolm.',
-      desc: L.first(r.Team) + ' (' + r.Team + ') went on the record' + (m[3] ? ', answering ' + L.first(m[3]) : '') + ' before GW' + gw + '.',
-      facts: { quote: { manager: L.first(r.Team), team: r.Team, said: x.line, calling: x.claim || null, model_chance: x.p != null ? Math.round(x.p * 100) + '%' : null, gameweek: gw, opponent: opp }, table: L.table },
-      line: 'The quote, the table' });
-  });
+    return { at: aiTs(r['When (UTC)']), team: r.Team, manager: L.first(r.Team), said: emtClean(x.line, 140), calling: x.claim || null, own_words: x.src === 'own',
+      model_chance: x.p != null ? Math.round(x.p * 100) + '%' : null, gameweek: gw, answering: m[3] || null, opponent: f ? (f.Home === r.Team ? f.Away : f.Home) : null };
+  }).filter(function (q) { return q.said && (q.calling || q.own_words || q.answering); });
+  if (worth.length) {
+    var qt = []; worth.forEach(function (q) { [q.team, q.opponent, q.answering].forEach(function (t) { if (t && qt.indexOf(t) < 0) qt.push(t); }); });
+    var lastAt = Math.max.apply(null, worth.map(function (q) { return q.at; }));
+    out.push({ type: 'quotes', key: 'q:' + lastAt.toString(36), at: lastAt, last: lastAt, teams: qt, n: 1,
+      ask: worth.length === 1 ? 'One post about this quote. Use clark if the call is bold (the model gave it under 40%) or it is trash talk, otherwise archizio or malcolm.'
+        : 'One post about these quotes, together: pick the best beef or the boldest call and build the post around it. clark for trash talk, archizio for a beef, malcolm for the scene.',
+      desc: worth.length === 1 ? worth[0].manager + ' went on the record before GW' + worth[0].gameweek + '.' : worth.length + ' managers went on the record.',
+      facts: { quotes: worth.map(function (q) { var o = {}; Object.keys(q).forEach(function (k) { if (k !== 'at' && q[k] !== null && q[k] !== false) o[k] = q[k]; }); return o; }), table: L.table },
+      line: 'The quotes, the table' });
+  } else if (fresh.length) {
+    S.socialAt = Math.max.apply(null, fresh.map(function (r) { return aiTs(r['When (UTC)']); }));   /* nothing worth a post; move on */
+  }
   /* 2. a gameweek just finished */
   if (S.doneGw === undefined) S.doneGw = L.lastDone;         /* first run: no backfill */
   if (L.lastDone > S.doneGw) {
     var g = L.lastDone;
-    out.push({ key: 'ft:' + g, at: now, teams: L.table.map(function (t) { return t.team; }), n: 3,
-      ask: 'Three posts about gameweek ' + g + ' at full time: one malcolm (the round-up), one clark (the take everyone will argue about), one archizio (the angle nobody else has).',
+    out.push({ type: 'ft', key: 'ft:' + g, gw: g, at: now, teams: L.table.map(function (t) { return t.team; }), n: 2,
+      ask: 'Two posts about gameweek ' + g + ' at full time: one malcolm (the story of the week, not a list of scores), one clark (the take everyone will argue about).',
       desc: 'Gameweek ' + g + ' has finished.',
       facts: { gameweek: g, results: aiResults(L, g), top_scorers_started: aiStars(g, 4, 'XI'), best_on_benches: aiStars(g, 2, 'BEN'), table_now: L.table, quotes_before_this_gameweek: aiQuotes(null, g) },
       line: 'H2H Fixtures, GW Log and the table after GW' + g });
   }
-  /* 3. the build-up: one post a day in the 3 days before a deadline */
+  /* 3. the build-up: one post per gameweek, in the last 30 hours before the deadline */
   var next = L.mw.filter(function (w) { return String(w.Finished).toUpperCase() !== 'TRUE'; }).sort(function (a, b) { return Number(a.GW) - Number(b.GW); })[0];
   if (next) {
-    var dl = aiTs(next['Deadline (UTC)']), day = new Date(now).toISOString().slice(0, 10), gwN = Number(next.GW);
-    if (dl > now && dl - now < 3 * 864e5 && S.buildDay !== day) {
+    var dl = aiTs(next['Deadline (UTC)']), gwN = Number(next.GW);
+    if (dl > now && dl - now < 30 * 3600e3 && S.buildGw !== gwN) {
       var fxs = L.fx.filter(function (z) { return Number(z.GW) === gwN; }).map(function (z) { return { home: z.Home, away: z.Away }; });
-      var v = EMT_AI_VOICES[(Number(day.slice(8, 10)) + gwN) % 3];
+      var v = EMT_AI_VOICES[gwN % 3];
       var flags = emtRows('Rosters').filter(function (p) { return (p.Status === 'd' || p.Status === 'i') && String(p['GW XI'] || p['Best XI']) === 'XI'; })
         .slice(0, 8).map(function (p) { return { player: p.Player, team: p.Team, news: String(p.News || '') }; });
-      out.push({ key: 'bu:' + gwN + ':' + day, at: now, teams: L.table.map(function (t) { return t.team; }), n: 1, day: day,
-        ask: 'One ' + v + ' post for the build-up to gameweek ' + gwN + '. Pick the best storyline in the facts and memory.',
+      out.push({ type: 'build', key: 'bu:' + gwN, gw: gwN, at: now, teams: L.table.map(function (t) { return t.team; }), n: 1,
+        ask: 'One ' + v + ' post for the build-up to gameweek ' + gwN + '. Pick the single best storyline in the facts and memory.',
         desc: 'Gameweek ' + gwN + ' deadline is coming.',
         facts: { gameweek: gwN, fixtures: fxs, table: L.table, flagged_starters: flags, quotes_this_gameweek: aiQuotes(null, gwN) },
         line: 'Fixtures, the table, injury news' });
     }
   }
+  /* 4. the rumour mill: a rumour passed on with a twist gets retold (the starter stays anonymous unless they signed it) */
+  if (S.rumourAt === undefined) S.rumourAt = now;            /* first run: no backfill */
+  var R = {};
+  soc.forEach(function (r) {
+    var id = String(r.Target);
+    if (r.Kind === 'rumour' && !R[id]) { var x = parse(r); if (x.text) R[id] = { id: id, by: r.Team, text: emtClean(x.text, 160), about: x.about || null, anon: x.anon !== false, tw: [], c: 0, d: 0, seen: {} }; }
+  });
+  soc.forEach(function (r) {
+    var g2 = R[String(r.Target)]; if (r.Kind !== 'pass' || !g2 || r.Team === g2.by || g2.seen[r.Team]) return;
+    g2.seen[r.Team] = 1;
+    var x = parse(r), at = aiTs(r['When (UTC)']);
+    if (r.Value === 'confirm') g2.c++; else if (r.Value === 'deny') g2.d++;
+    else if (r.Value === 'twist' && x.text) g2.tw.push({ text: emtClean(x.text, 140), at: at });
+  });
+  Object.keys(R).forEach(function (id) {
+    var g3 = R[id], tw = g3.tw.filter(function (t) { return t.at > S.rumourAt; });
+    if (!tw.length) return;
+    var at = Math.max.apply(null, tw.map(function (t) { return t.at; }));
+    var facts = { rumour: { about: g3.about, first_heard: g3.text, versions_since: g3.tw.map(function (t) { return t.text; }), now_hearing: g3.tw[g3.tw.length - 1].text, times_passed_on: g3.tw.length, confirms: g3.c, denies: g3.d }, table: L.table };
+    if (!g3.anon) facts.rumour.started_by = L.first(g3.by);
+    out.push({ type: 'rumour', key: 'rm:' + id.slice(2) + ':' + g3.tw.length, at: at, teams: g3.about ? [g3.about] : [], n: 1,
+      ask: 'One clark post: the rumour mill is a game of telephone. Retell how this rumour changed as it was passed on, from what was first heard to what people are saying now. It is a rumour, not a fact.',
+      desc: 'A rumour is going round El Matador Tire and it just changed again.',
+      facts: facts, line: 'The rumour mill' });
+  });
   return out;
 }
 
@@ -1492,7 +1577,7 @@ function aiTick() {
     var evs = aiEvents(S).sort(function (a, b) { return a.at - b.at; }), made = 0, sh = emtPostsSheet();
     for (var i = 0; i < evs.length; i++) {
       var ev = evs[i];
-      if (made + ev.n > EMT_AI_PER_RUN || S.count + ev.n > EMT_AI_PER_DAY) break;
+      if (made + ev.n > EMT_AI_PER_RUN || S.count + ev.n > EMT_AI_PER_DAY) break;   /* the rest waits for the next run */
       var posts = [];
       try { posts = aiWrite(ev); } catch (e) { Logger.log('AI writer: ' + e); break; }   /* try again next run */
       posts.forEach(function (p, k) {
@@ -1500,9 +1585,10 @@ function aiTick() {
         sh.appendRow(["'" + new Date().toISOString(), emtCell('ai:' + ev.key + ':' + k), p.voice, 'ai', emtCell(ev.key), emtCell(p.teams.join('|')), '', emtCell(p.text), emtCell(ev.line), emtCell(media)]);
       });
       made += posts.length; S.count += posts.length;
-      if (ev.key.indexOf('q:') === 0) S.socialAt = Math.max(S.socialAt || 0, ev.at);
-      if (ev.key.indexOf('ft:') === 0) S.doneGw = Number(ev.key.slice(3));
-      if (ev.key.indexOf('bu:') === 0) S.buildDay = ev.day;
+      if (ev.type === 'quotes') S.socialAt = Math.max(S.socialAt || 0, ev.last);
+      if (ev.type === 'ft') S.doneGw = ev.gw;
+      if (ev.type === 'build') S.buildGw = ev.gw;
+      if (ev.type === 'rumour') S.rumourAt = Math.max(S.rumourAt || 0, ev.at);
     }
     aiSaveState(S);
   } finally { lock.releaseLock(); }
