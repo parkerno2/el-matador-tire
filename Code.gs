@@ -1372,7 +1372,7 @@ var EMT_AI_SYSTEM = [
   '2. Only quote managers, word for word, from FACTS or MEMORY. Never invent quotes. Never quote or name real journalists, pundits or YouTubers. Real footballers only as players in someone\'s team.',
   '3. Banter is about this fantasy league only: picks, benchings, results, quotes, form, the table. Nothing about anyone\'s looks, family, health, money, job, relationships or life outside the league. No slurs, no swearing.',
   '4. At most 240 characters per post. British spelling. No emoji, no hashtags, no em dashes.',
-  '5. Call managers by the first name or team name given in FACTS.',
+  '5. Call managers by the first name or team name given in FACTS. Describe a club\'s place in the table only as FACTS shows it (pos 1 is top); never guess who leads.',
   '6. If MEMORY has a related earlier post, quote or note, call back to it (a receipt, a running joke) without repeating it. Never repeat an angle MEMORY already used.',
   '7. Each post takes a different angle. Answer with JSON only: {"posts":[{"voice":"...","text":"...","teams":["exact team names"],"thumb":{...}}]}',
   '8. Fewer, better posts. The app already posts the plain facts (results, the table, deals), so only write what a sharp friend in the group chat would: a storyline, a receipt, a callback, a joke that lands. If nothing is worth it, return {"posts":[]}. Never pad.',
@@ -1485,8 +1485,10 @@ function aiEvents(S) {
   var next = L.mw.filter(function (w) { return String(w.Finished).toUpperCase() !== 'TRUE'; }).sort(function (a, b) { return Number(a.GW) - Number(b.GW); })[0];
   if (next) {
     var dl = aiTs(next['Deadline (UTC)']), gwN = Number(next.GW);
+    if (S.buildGw !== gwN && emtRows('Posts').some(function (r) { return String(r.Id).indexOf('ai:bu:' + gwN + ':') === 0; })) S.buildGw = gwN;   /* v3.9 already wrote it */
     if (dl > now && dl - now < 30 * 3600e3 && S.buildGw !== gwN) {
-      var fxs = L.fx.filter(function (z) { return Number(z.GW) === gwN; }).map(function (z) { return { home: z.Home, away: z.Away }; });
+      var pos = {}; L.table.forEach(function (t) { pos[t.team] = t.pos; });
+      var fxs = L.fx.filter(function (z) { return Number(z.GW) === gwN; }).map(function (z) { return { home: z.Home, home_table_pos: pos[z.Home], away: z.Away, away_table_pos: pos[z.Away] }; });
       var v = EMT_AI_VOICES[gwN % 3];
       var flags = emtRows('Rosters').filter(function (p) { return (p.Status === 'd' || p.Status === 'i') && String(p['GW XI'] || p['Best XI']) === 'XI'; })
         .slice(0, 8).map(function (p) { return { player: p.Player, team: p.Team, news: String(p.News || '') }; });
