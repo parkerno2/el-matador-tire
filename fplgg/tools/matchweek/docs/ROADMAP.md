@@ -1,0 +1,60 @@
+# Matchweek roadmap (from 8 Oct 2026)
+
+The agreed direction (assessment 6 Oct, Parker's decisions since):
+- **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
+- **Backend is Claude's call.** Parker said "backend stuff is all you".
+- **Articles publish themselves.**
+- **Tone:** clever, not rude.
+- **El Matador** moves onto the product pipeline and becomes league #1 on Matchweek.
+
+How items are worked:
+- Top to bottom: the first unchecked item without a "needs Parker" flag is next.
+- Every item ships behind passing tests through CI, and is logged in BUGS.md or the CHANGELOG.
+- Items marked **(Parker)** need a decision or an account action from him.
+
+## A. Reliability (now)
+- [ ] **A0 Facts without phones.** Today the GW preview, recap and show only start once a signed-in manager opens the app.
+  - Add a GitHub Action ("Facts bot"), every 3 h plus on dispatch.
+  - It loads the live app headless in Chromium, computes `MW.facts.preview()` and `MW.facts.recap()` with the app's own engine, and commits `facts/preview-gw<N>.json` and `facts/recap-gw<N>.json` when they change.
+  - Code.gs reads those raw files from the repo whenever phone facts are missing or older. The repo is the trust anchor, so no secret is needed.
+  - Tests in `tests/codegs/`.
+- [ ] **A1 CI gate for Code.gs.**
+  - Run every `tests/codegs/*.js` on each push that touches Code.gs or tests.
+  - The self-update reads Code.gs from a `release` branch that CI fast-forwards only when the suites pass. A broken push to main can then never reach the live script.
+- [ ] **A2 Monitor (no AI).** A GitHub Action every 15 min checks:
+  - the app loads (status 200 and a build stamp);
+  - the web app's `?health=1` is ok;
+  - the data is fresh: add `data.updated` (the last successful refreshAll or liveTick) to health. Thresholds: 2 h normally, 20 min while matches are live;
+  - the FPL API responds;
+  - the self-update state isn't `refused` or `error`.
+
+  On failure it opens or updates a GitHub issue labelled `outage`, which notifies Parker; it closes the issue when the check recovers.
+- [ ] **A3 Live status page.** `site/public/status.html` reads `?health=1` in the browser and shows each pipeline in plain words.
+- [ ] **A4 In-app error reporting.**
+  - `window.onerror` and `unhandledrejection` POST `clienterror` to the web app: rate-limited, no personal data, build stamp, route, message and stack, truncated.
+  - Errors go to a hidden Errors tab.
+  - `?health=1` gains an error count for the last 24 h.
+  - The monitor opens an issue on a spike.
+- [ ] **A5 Data guards.**
+  - #5: validate each tab by its header row in the app's readTab, showing an empty state rather than wrong data.
+  - #3: trim the GW Stats fetch.
+  - A stale-data banner when `data.updated` is old.
+- [ ] **A6 #8 Per-fixture BPS in Code.gs**, so double-gameweek bonus can be estimated per match. Must ship before the first double gameweek.
+- [ ] **A7 #25 Clubs strength mirror:** re-source it from FPL's new fields, or drop it.
+
+## B. One pipeline (Supabase)
+- [ ] **B1 Inventory** the Supabase project `vcokquhzqpqvwrybndnr`: is the ingest alive, are its functions deployed, is row-level security on. **(Parker: a Supabase access token or service key as a GitHub Actions secret and a Claude Code environment variable.)**
+- [ ] **B2 Parity:** league 45380 through Supabase matches the Sheet tab for tab across one live gameweek, in a CI report.
+- [ ] **B3 Switch** the app's data source behind a flag, then retire the Sheet as the live path. Code.gs keeps the social, articles and show jobs until those move too.
+
+## C. Beta for other leagues
+- [ ] **C1 `league.json`:** teams, aliases, derbies, seeded series, pot and MOTM periods move out of `core.gen.js` into config.
+- [ ] **C2 Per-league URL** `matchweek.gg/l/{slug}`, registration from the wizard, accounts (Supabase magic link), claim your team, roles. **(Parker: sign-in method.)**
+- [ ] **C3 House ratings** replace the EA ones in anything strangers see (rights-clean mode).
+- [ ] **C4** Per-league health page, onboarding copy, README, ARCHITECTURE and RUNBOOK.
+
+## D. Product (needs Parker's eye before it ships)
+- [ ] **D1** Tone pass on the app's built-in voice lines (the template posts in `src/feed/*`), to the TONE.md standard.
+- [ ] **D2** Lab v3: schedule luck (all-play record, close-game record) next to performance luck.
+- [ ] **D3** Lineup graphic and the "Matchday through the week" states from design round 2.
+- [ ] **D4** Home-screen name and icon (still "FPL Companion").
