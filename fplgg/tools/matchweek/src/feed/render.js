@@ -8,10 +8,11 @@ import { REACTS, reactions, votes, me as signedIn } from './social.js';
 /* ---------- small pieces ---------- */
 const AR = 0.42;                                     /* average glyph width of the condensed display faces, in em */
 const fit = (txt, room, max, k = AR) => Math.max(5, Math.min(max, room / (Math.max(3, String(txt).length) * k))).toFixed(2);
-/* a cut-out player image: the committed transparent render, then the PL photo, then nothing */
+/* a cut-out player image: the FC cutout or FPL photo (UI.faceSrcs), then nothing */
 export function cut(code, cls = '', alt = '') {
-  if (!code) return '';
-  return '<img class="' + cls + '" alt="' + esc(alt) + '" loading="lazy" decoding="async" src="faces/' + esc(code) + '.png" onerror="this.onerror=function(){this.style.visibility=\'hidden\'};this.src=\'https://resources.premierleague.com/premierleague/photos/players/110x140/p' + esc(code) + '.png\'">';
+  const urls = code ? UI.faceSrcs(code) : [];
+  if (!urls.length) return '';
+  return UI.chainImg(urls, 'class="' + cls + '" alt="' + esc(alt) + '" loading="lazy" decoding="async"', 'this.style.visibility=\'hidden\'');
 }
 const nameOf = code => { const p = UI.player(code); return p ? p.Player : ''; };
 const clubOf = code => { const p = UI.player(code); return p ? p.Club : ''; };
@@ -282,12 +283,13 @@ function show(m, post) {
 function call(m, post, compact) {
   const o = m.out, a = m.alt;
   const row = (l, k, r) => '<div class="jr"><span class="l">' + l + '</span><span class="m">' + k + '</span><span class="r">' + r + '</span></div>';
-  const note = m.kind === 'free' ? firstName(a.name) + '’s a free agent, gaffer. Your call.' : firstName(a.name) + '’s on your bench, gaffer. Your call.';
+  const W = m.kind === 'free' ? UI.waivers() : null, onWaivers = !!(W && W.phase === 'waivers');
+  const note = m.kind === 'free' ? (onWaivers ? firstName(a.name) + '’s on waivers, gaffer. Claim by ' + UI.soonWhen(W.wv) + '. Your call.' : firstName(a.name) + '’s a free agent, gaffer. Your call.') : firstName(a.name) + '’s on your bench, gaffer. Your call.';
   return '<div class="fjb">' + PITCH
     + '<div class="fjb-hd"><span class="f-mono fjb-t">SELECTION CALL</span><span class="f-mono fjb-m">GW' + m.gw + ' · ' + esc(m.pos) + '</span></div>'
     + '<div class="jc"><button class="jc-p" data-open="player:' + esc(o.code) + '"><span class="jc-f dash">' + cut(o.code, '', o.name) + '</span><b class="f-mono">' + esc(o.name.toUpperCase()) + '</b><span class="f-mono">' + esc(o.club) + ' · in your XI</span></button>'
     + '<span class="f-chalk jc-v">v</span>'
-    + '<button class="jc-p" data-open="player:' + esc(a.code) + '"><span class="jc-f gold">' + cut(a.code, '', a.name) + '</span><b class="f-mono">' + esc(a.name.toUpperCase()) + '</b><span class="f-mono">' + esc(a.club) + ' · ' + (m.kind === 'free' ? 'free agent' : 'your bench') + '</span></button></div>'
+    + '<button class="jc-p" data-open="player:' + esc(a.code) + '"><span class="jc-f gold">' + cut(a.code, '', a.name) + '</span><b class="f-mono">' + esc(a.name.toUpperCase()) + '</b><span class="f-mono">' + esc(a.club) + ' · ' + (m.kind === 'free' ? (onWaivers ? 'on waivers' : 'free agent') : 'your bench') + '</span></button></div>'
     + '<div class="jrs">' + row(o.mins, 'MINUTES, LAST ' + o.n, a.mins) + row(o.starts, 'STARTS', a.starts) + row(Math.round(o.ps * 100) + '%', 'START CHANCE', Math.round(a.ps * 100) + '%') + row(f1(o.pts), 'PROJECTED', f1(a.pts)) + '</div>'
     + '<div class="fjb-note"><span class="f-chalk">' + esc(note) + '</span>' + chalkArrow + '</div>'
     + (compact ? '' : '<div class="fjb-btns">' + (m.kind === 'free' ? '<a class="jbtn on f-mono" href="#/team/transfers">See free-agent ' + posWord(m.pos) + '</a>' : '<a class="jbtn on f-mono" href="#/team/lineup">Open the lineup</a>')

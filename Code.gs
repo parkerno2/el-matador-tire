@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,12 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.19 · 8 Oct 2026
+ *   The app knows the waiver window (Parker: Jive should know the waiver deadline).
+ *   1. Matchweeks gains a last column, Waivers (UTC): FPL's own waivers_time for each gameweek (claims are processed
+ *      then, 24 hours before the deadline; free agency runs from then until the deadline).
+ *   2. Standings gains a last column, Waiver pick: FPL's own waiver order (1 = first claim, the lowest team).
+ *   Both are new columns on the end, so every reader of the old columns is unchanged. No new setup or permissions.
  * v3.18 · 8 Oct 2026
  *   Phones report script errors (ROADMAP A4). The app posts `clienterror` (no login needed) with the build stamp, the
  *   route, the kind (error, rejection, or network for a flaky connection), the message and a truncated stack; nothing
@@ -974,20 +980,23 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
       }));
   } catch (e) { Logger.log('Transactions failed: ' + e); }
 
-  put('Standings', ['Team', 'Manager', 'W', 'D', 'L', 'Pts For', 'Pts Against', 'League Pts'],
+  /* v3.19: Waiver pick is FPL's own waiver order (league_entries waiver_pick: 1 = first claim, the lowest team in the table) */
+  put('Standings', ['Team', 'Manager', 'W', 'D', 'L', 'Pts For', 'Pts Against', 'League Pts', 'Waiver pick'],
     details.standings.map(function (s) {
       var t = teams[leToEntry[s.league_entry]] || {};
-      return [t.name || '', t.manager || '', s.matches_won, s.matches_drawn, s.matches_lost, s.points_for, s.points_against, s.total];
+      return [t.name || '', t.manager || '', s.matches_won, s.matches_drawn, s.matches_lost, s.points_for, s.points_against, s.total, t.waiver || ''];
     }));
 
   var periodOf = function (gw) {
     for (var i = 0; i < MOTM_PERIODS.length; i++) if (gw >= MOTM_PERIODS[i].from && gw <= MOTM_PERIODS[i].to) return MOTM_PERIODS[i].name;
     return '';
   };
-  put('Matchweeks', ['GW', 'Deadline (UTC)', 'MOTM period', 'Finished', 'Notes'],
+  /* v3.19: Waivers (UTC) is FPL's own waivers_time: claims for that gameweek are processed then (24 hours before the
+     deadline), and free agency runs from then until the deadline. New columns go on the end: readers use the first two. */
+  put('Matchweeks', ['GW', 'Deadline (UTC)', 'MOTM period', 'Finished', 'Notes', 'Waivers (UTC)'],
     (boot.events.data || boot.events).map(function (e) {
       var note = e.id === MIDSEASON_GW ? '💰 $' + PRIZES.mid + ' mid-season leader after this GW' : (e.id === 38 ? '🏆 Final GW' : '');
-      return [e.id, "'" + e.deadline_time, periodOf(e.id), e.finished, note];
+      return [e.id, "'" + e.deadline_time, periodOf(e.id), e.finished, note, e.waivers_time ? "'" + e.waivers_time : ''];
     }));
 
   var motmRows = [];
@@ -2912,7 +2921,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.18';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.19';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];

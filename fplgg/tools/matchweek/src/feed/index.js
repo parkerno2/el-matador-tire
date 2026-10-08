@@ -7,7 +7,7 @@ import { presser } from './claims.js';
 import { toggleReact, vote, sayQuote, quoteOf, me as signedIn, rumours, startRumour, passRumour } from './social.js';
 import { renderPost as R, cut } from './render.js';
 import { selectionCall, flagged, freeAgents, simWanted, showsWanted, shows, mmss } from './facts.js';
-import { lsGet, lsSet, ver, bump, hash, esc, list, chanceOf, statusWord, newsLabel, newsWhen, buildUpTime, gwDoneTime, words } from './util.js';
+import { lsGet, lsSet, ver, bump, hash, esc, list, chanceOf, statusWord, newsLabel, newsWhen, buildUpTime, gwDoneTime, words, ord } from './util.js';
 import { VOICES } from './voices.js';
 import * as GS from './showplay.js';
 
@@ -49,7 +49,9 @@ function outWhy(p) {
 export function jiveTodo(team) {
   team = team || UI.you();
   if (!team || !TEAMS[team] || !D || !D.ro || D.dlPassed) return [];
-  const out = [], F = flagged(team);
+  const out = [], F = flagged(team), W = UI.waivers(), onWaivers = !!(W && W.phase === 'waivers');
+  /* the waiver deadline: time-bound, so it leads. Absolute times only (the Jive thread's unread mark hashes this text) */
+  if (onWaivers) out.push({ html: '<b>Waivers close ' + esc(UI.soonWhen(W.wv)) + '.</b> Claims go in on FPL Draft' + (W.pick ? ', and you’re ' + ord(W.pick) + ' in the order' : '') + '. After the run, free agents are instant pickups until the deadline.', faces: [], action: { label: 'Transfers', href: '#/team/transfers' }, kind: 'waivers' });
   if (F.xi.length) {
     const d = F.xi.filter(p => p.Status === 'd'), same = d.length === F.xi.length && d.every(p => chanceOf(p) === chanceOf(d[0]));
     const nm = F.xi.slice(0, 3).map(p => esc(p.Player));
@@ -64,11 +66,11 @@ export function jiveTodo(team) {
     out.push({ html: '<b>' + esc(p.Player) + ' is ' + (p.Status === 's' ? 'suspended' : p.Status === 'u' ? 'unavailable' : 'out') + '</b>' + esc(outWhy(p)) + '.' + (hurt.length > 1 ? ' So ' + (hurt.length > 2 ? 'are ' : 'is ') + esc(list(hurt.slice(1).map(x => x.Player))) + '.' : '') + (hurt.length > 1 ? ' They’re on your bench.' : ' He’s on your bench.'), faces: hurt.slice(0, 2).map(x => String(x.Code)), action: { label: 'Transfers', href: '#/team/transfers' }, kind: 'bench' });
   }
   const c = jiveCall(team);
-  if (c) { const m = c.media; out.push({ html: '<b>Selection call:</b> ' + esc(m.out.name) + ' (' + Math.round(m.out.ps * 100) + '% to start) or ' + esc(m.alt.name) + ' (' + Math.round(m.alt.ps * 100) + '%, ' + (m.kind === 'free' ? 'free agent' : 'your bench') + ').', faces: [m.out.code, m.alt.code], action: m.kind === 'free' ? { label: 'Transfers', href: '#/team/transfers' } : { label: 'Lineup', href: '#/team/lineup' }, kind: 'call' }); }
+  if (c) { const m = c.media; out.push({ html: '<b>Selection call:</b> ' + esc(m.out.name) + ' (' + Math.round(m.out.ps * 100) + '% to start) or ' + esc(m.alt.name) + ' (' + Math.round(m.alt.ps * 100) + '%, ' + (m.kind === 'free' ? (onWaivers ? 'on waivers' : 'free agent') : 'your bench') + ').', faces: [m.out.code, m.alt.code], action: m.kind === 'free' ? { label: 'Transfers', href: '#/team/transfers' } : { label: 'Lineup', href: '#/team/lineup' }, kind: 'call' }); }
   const P = presser(team);
   if (P && !P.mine && out.length < 3) out.push({ html: '<b>Archizio wants a quote</b> before ' + esc(P.nm || 'GW' + P.g) + '. Everyone in the league will see it.', faces: [], action: { label: 'Press', href: '#/feed/messages/archizio' }, kind: 'press' });
   const fa = freeAgents(1)[0];
-  if (fa && out.length < 3) out.push({ html: '<b>' + esc(fa.p.Player) + '</b> is a free agent: ' + fa.l3 + ' points in the last ' + words(fa.n) + ' gameweeks.', faces: [String(fa.p.Code)], action: { label: fa.p.Player, open: 'player:' + fa.p.Code }, kind: 'fa' });
+  if (fa && out.length < 3) out.push({ html: '<b>' + esc(fa.p.Player) + '</b> ' + (onWaivers ? 'is on waivers' : 'is a free agent') + ': ' + fa.l3 + ' points in the last ' + words(fa.n) + ' gameweeks.' + (onWaivers ? ' A claim gets him.' : W && W.phase === 'free' ? ' He’s an instant pickup.' : ''), faces: [String(fa.p.Code)], action: { label: fa.p.Player, open: 'player:' + fa.p.Code }, kind: 'fa' });
   return out.slice(0, 3);
 }
 

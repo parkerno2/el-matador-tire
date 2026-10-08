@@ -361,8 +361,8 @@ function faceImgHTML(p){
  if(!urls.length)return'<span class="noface">'+initials(p.Player)+'</span>';
  return '<img decoding="async" src="'+urls[0]+'" data-alt="'+urls.slice(1).join('|')+'" alt="" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
-const face=c=>'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+c+'.png';
-const face250=c=>'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+c+'.png';
+const face=c=>'https://resources.premierleague.com/premierleague25/photos/players/110x140/'+c+'.png';
+const face250=c=>'https://resources.premierleague.com/premierleague25/photos/players/110x140/'+c+'.png';
 const NAT={};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
 const badgeImg=(club,px)=>{const code=(D.clubs||{})[club];

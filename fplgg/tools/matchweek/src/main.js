@@ -192,7 +192,7 @@ function boot() {
 window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI, facts: { preview: computeFacts, recap: computeRecapFacts } };
 /* no zoom at all. iOS ignores user-scalable=no, so its pinch gestures are stopped here; the CSS keeps panning only */
 ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
-/* warm the image cache once the first page is up: every club badge, every rostered player's flag and face (yours first).
+/* warm the image cache once the first page is up: every club badge, every rostered player's flag and face (FC cutout or FPL photo, yours first).
    The service worker keeps them across deploys, so sheets and pitches draw at once */
 function warmImages() {
   if (warmImages.done || !D || !D.ro || !D.ro.length) return; warmImages.done = 1;
@@ -200,7 +200,7 @@ function warmImages() {
   const urls = [];
   Object.values(D.clubs || {}).forEach(c => { if (c) urls.push('https://resources.premierleague.com/premierleague/badges/50/t' + c + '.png'); });
   [...new Set(ro.map(p => String(p.Nation || '').toLowerCase()).filter(Boolean))].forEach(n => urls.push('https://flagcdn.com/w80/' + n + '.png'));
-  ro.forEach(p => urls.push('faces/' + p.Code + '.png'));
+  ro.forEach(p => { const u = UI.faceSrcs(p.Code)[0]; if (u) urls.push(u); });
   let i = 0, live = 0;
   const next = () => {
     while (live < 3 && i < urls.length) {

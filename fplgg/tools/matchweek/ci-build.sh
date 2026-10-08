@@ -8,6 +8,14 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
 cd "$HERE"
 [ -f "$ROOT/Code.gs" ] && [ -f "$ROOT/classic.html" ] || { echo "repo root not found at $ROOT" >&2; exit 1; }
+# Player images (Parker, 8 Oct 2026): the FC cutouts in faces/ that FC_FACES lists, otherwise FPL's own photo. Every
+# listed code must have its file, and the stale PL CDN path (last season's kits, nothing for new signings) never ships.
+node -e '
+const fs=require("fs"),s=fs.readFileSync("core.gen.js","utf8"),m=/const FC_FACES=new Set\('"'"'([0-9 ]*)'"'"'\.split/.exec(s);
+if(!m){console.error("FC_FACES not found in core.gen.js");process.exit(1)}
+const miss=m[1].split(" ").filter(c=>!fs.existsSync(process.argv[1]+"/faces/"+c+".png"));
+if(miss.length){console.error("FC_FACES lists codes with no faces/<code>.png: "+miss.join(", "));process.exit(1)}' "$ROOT"
+if grep -rlE 'premierleague/photos/players' src core.gen.js; then echo "the old PL photo path is back (stale kits): use FPL_PHOTO / faceUrls" >&2; exit 1; fi
 BUILD=$(date -u +%Y%m%d%H%M%S)
 node_modules/.bin/esbuild src/main.js --bundle --minify --format=iife --target=es2020 --outfile="$ROOT/app.js" --log-level=warning --legal-comments=none
 cat src/css/*.css > "$ROOT/app.css"

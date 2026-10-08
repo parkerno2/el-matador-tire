@@ -107,15 +107,25 @@ export function player(code) {
   if (r) { r.__v = LOADED_AT; PLR[code] = r; }
   return r || null;
 }
-/* a face in a circle: the committed transparent render, then the PL photo, then initials */
+/* Player images (Parker, 8 Oct 2026): the FC cutout already in faces/ when there is one, otherwise FPL's own photo,
+   otherwise initials. The chain itself is core's faceUrls (FC_FACES, FPL_PHOTO), shared with the cards. */
+export const faceSrcs = code => (typeof faceUrls === 'function' ? faceUrls(code) : []);
+/* an <img> that walks its chain on error, then runs `last` (a JS statement, single quotes only) */
+export function chainImg(urls, attrs, last) {
+  return '<img ' + attrs + ' src="' + urls[0] + '" data-alt="' + urls.slice(1).join('|') + '" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.onerror=null;' + last + '}">';
+}
+/* a face in a circle: the FC cutout or FPL photo, then initials */
 export function face(p, px = 32, opt = {}) {
   if (!p) return '<span class="fc-i" style="width:' + px + 'px;height:' + px + 'px"></span>';
   if (typeof p !== 'object') p = player(p) || { Code: p, Player: '' };
   const code = String(p.Code), ini = esc(initials ? initials(p.Player || '') : '');
   const ring = opt.ring ? ';box-shadow:inset 0 0 0 ' + (opt.ringW || 2) + 'px ' + opt.ring : '';
   const bg = opt.bg ? ';background:' + opt.bg : '';
+  const urls = faceSrcs(code);
   return '<span class="fc-i' + (opt.cls ? ' ' + opt.cls : '') + '" style="width:' + px + 'px;height:' + px + 'px' + bg + ring + '">'
-    + '<img loading="lazy" decoding="async" alt="' + esc(p.Player || '') + '" src="faces/' + code + '.png" data-c="' + code + '" onerror="this.onerror=function(){this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ini\',textContent:\'' + ini + '\'}))};this.src=\'https://resources.premierleague.com/premierleague/photos/players/110x140/p' + code + '.png\'">'
+    + (urls.length
+      ? chainImg(urls, 'loading="lazy" decoding="async" alt="' + esc(p.Player || '') + '" data-c="' + esc(code) + '"', 'this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ini\',textContent:\'' + ini + '\'}))')
+      : '<span class="ini">' + ini + '</span>')
     + '</span>';
 }
 export function stack(list, px = 26, max = 5) {
@@ -159,6 +169,23 @@ export function week() {
   const last = D.gwsDone;
   return { mode, gw: D.gw, dl, last, preDl: !D.dlPassed };
 }
+/* ---------- waivers (FPL Draft) ----------
+   Claims for a gameweek are processed 24 hours before its deadline (FPL's rule; every 2026/27 gameweek matches it, and
+   the Matchweeks tab carries FPL's own waivers_time from Code.gs v3.15). After the run, free agency is open until the
+   deadline: free agents are instant pickups. From the deadline, new claims wait for the next gameweek's run.
+   The lowest team in the table picks first: Standings 'Waiver pick' is FPL's own order (waiver_pick). */
+export function waivers() {
+  const g = D.dlPassed ? D.gw + 1 : D.gw;
+  const row = (D.mw || []).find(x => num(x.GW) === g);
+  const dl = row ? dt(row['Deadline (UTC)']) : null;
+  if (!dl) return null;
+  const wv = dt(row['Waivers (UTC)']) || new Date(dl.getTime() - 24 * 3600e3), now = Date.now();
+  const me = you(), srow = me ? (D.stOfficial || D.st || []).find(s => s.Team === me) : null;
+  const pick = srow ? num(srow['Waiver pick']) || null : null;
+  return { gw: g, dl, wv, phase: now < wv.getTime() ? 'waivers' : now < dl.getTime() ? 'free' : 'closed', pick };
+}
+/* "Fri 5am" within the week, "Fri, Oct 16, 5am" further out */
+export const soonWhen = d => d ? (d.getTime() - Date.now() < 6 * 864e5 ? dayHm(d) : dayFull(d)) : '';
 export function untilText(d) {
   if (!d) return '';
   const ms = d.getTime() - Date.now(); if (ms <= 0) return 'now';

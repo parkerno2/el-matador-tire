@@ -231,8 +231,8 @@ tr.top td{background:linear-gradient(90deg,rgba(255,210,63,.22),transparent);fon
   document.querySelectorAll('.ph[data-code]').forEach(function(el){
     var code=el.getAttribute('data-code');
     var srcs=['faces/'+code+'.png',
-      'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+code+'.png',
-      'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+code+'.png'];
+      'https://resources.premierleague.com/premierleague25/photos/players/110x140/'+code+'.png',
+      'https://resources.premierleague.com/premierleague25/photos/players/110x140/'+code+'.png'];
     var i=0,img=new Image();
     img.onload=function(){el.textContent='';el.appendChild(img)};
     img.onerror=function(){if(++i<srcs.length)img.src=srcs[i]};

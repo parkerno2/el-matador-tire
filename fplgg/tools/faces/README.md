@@ -1,4 +1,14 @@
-# Faces fetcher
+# Faces fetcher (retired 8 Oct 2026)
+
+**Retired.** Parker, 8 Oct 2026: "only use the FPL images from now on other than the fc ones we already have". The
+daily workflow (`.github/workflows/faces.yml`) is gone and nothing fetches new FC renders. The app shows the FC cutouts
+already in `faces/` (the frozen list `FC_FACES` in `fplgg/tools/matchweek/core.gen.js`; the build fails if a listed file
+is missing), otherwise FPL's own photo (`https://resources.premierleague.com/premierleague25/photos/players/110x140/{code}.png`,
+what fantasy.premierleague.com itself uses), otherwise initials. The old `premierleague/photos/players/.../p{code}.png`
+path stopped updating (last season's kits, nothing for new signings) and must not come back. Four files that were not FC
+renders (three PL photos in old kits, one silhouette) were removed from `faces/` the same day. The script and the notes
+below are kept for history only.
+
 
 Player cards show `faces/{fpl_code}.png`: a transparent 160x160 head-and-shoulders cutout, bottom-aligned,
 hair top about 15 px down. When the file is missing the app falls back to the Premier League CDN photo, then

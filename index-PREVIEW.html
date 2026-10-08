@@ -913,8 +913,8 @@ const badgeImg=(club,px)=>{
     :(CLUBDOM[club]?('https://www.google.com/s2/favicons?domain='+CLUBDOM[club]+'&sz=64'):'');
   return src?'<img class="crest"'+(px?' style="height:'+px+'px"':'')+' decoding="async" src="'+src+'" alt="'+esc(club)+'" onerror="this.style.display=\'none\'">':'';
 };
-const face=c=>'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+c+'.png';
-const face250=c=>'https://resources.premierleague.com/premierleague/photos/players/250x250/p'+c+'.png';
+const face=c=>'https://resources.premierleague.com/premierleague25/photos/players/110x140/'+c+'.png';
+const face250=c=>'https://resources.premierleague.com/premierleague25/photos/players/110x140/'+c+'.png';
 const flagImg=(n,px)=>n?'<img decoding="async" class="flag" style="'+(px?'height:'+px+'px;':'')+'border-radius:2px" src="https://flagcdn.com/w80/'+String(n).toLowerCase()+'.png" alt="'+esc(NAT[n]||n)+'" onerror="this.style.display=\'none\'">':'';
 const mg=(name,sm)=>{const t=TEAMS[name];return t?'<span class="mg'+(sm?' sm':'')+'" style="background:'+t.col+'">'+t.ini+'</span>':''};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();

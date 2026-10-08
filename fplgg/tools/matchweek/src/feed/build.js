@@ -1026,12 +1026,14 @@ export const callKey = c => c.gw + ':' + c.out.p.Code + '>' + c.alt.p.Code;
 export function callPost(c, bu) {
   const o = c.out, a = c.alt, nm = o.p.Player;
   const offBench = o.starts === 0 && o.mins > 0;
-  const tx = 'Gaffer, a selection call before the deadline. ' + esc(nm) + ' has ' + o.mins + ' ' + plural(o.mins, 'minute') + ' in ' + words(o.n) + ' ' + plural(o.n, 'game') + (offBench ? ', all off the bench' : '') + '.';
+  const W = a.kind === 'free' ? UI.waivers() : null, onWaivers = !!(W && W.phase === 'waivers');
+  const tx = 'Gaffer, a selection call before the deadline. ' + esc(nm) + ' has ' + o.mins + ' ' + plural(o.mins, 'minute') + ' in ' + words(o.n) + ' ' + plural(o.n, 'game') + (offBench ? ', all off the bench' : '') + '.'
+    + (onWaivers ? ' ' + esc(a.p.Player) + ' needs a waiver claim, and waivers close ' + esc(UI.soonWhen(W.wv)) + '.' : W && W.phase === 'free' ? ' ' + esc(a.p.Player) + ' is a free agent: an instant pickup until the deadline.' : '');
   return {
     id: 'call:' + callKey(c), voice: 'jive', kind: 'call', ts: T(bu || buildUpTime(D.gw), 95), time: 'GW' + D.gw + ' build-up', gw: c.gw, teams: [c.team], players: [String(o.p.Code), String(a.p.Code)], audience: 'you', pin: true,
     text: tx, media: { type: 'call', out: pack(o), alt: pack(a), kind: a.kind, pos: o.p.Pos, gw: c.gw, key: callKey(c) },
     facts: 'Start chance and projection · minutes GW' + c.win[0] + '–' + c.win[c.win.length - 1],
-    detail: [{ k: esc(nm), v: o.mins + ' min · ' + o.starts + ' starts · ' + Math.round(o.ps * 100) + '% start · ' + f1(o.pts) + ' proj' }, { k: esc(a.p.Player) + (a.kind === 'free' ? ' (free agent)' : ' (your bench)'), v: a.mins + ' min · ' + a.starts + ' starts · ' + Math.round(a.ps * 100) + '% start · ' + f1(a.pts) + ' proj' }],
+    detail: [{ k: esc(nm), v: o.mins + ' min · ' + o.starts + ' starts · ' + Math.round(o.ps * 100) + '% start · ' + f1(o.pts) + ' proj' }, { k: esc(a.p.Player) + (a.kind === 'free' ? (onWaivers ? ' (on waivers)' : ' (free agent)') : ' (your bench)'), v: a.mins + ' min · ' + a.starts + ' starts · ' + Math.round(a.ps * 100) + '% start · ' + f1(a.pts) + ' proj' }],
     links: a.kind === 'free' ? [{ label: 'Transfers', href: '#/team/transfers' }] : [{ label: 'Lineup', href: '#/team/lineup' }], share: '',
   };
 }
