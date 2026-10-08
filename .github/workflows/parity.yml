@@ -1,0 +1,36 @@
+# El Matador Tire: the Supabase parity report (ROADMAP B2), no AI and no PC.
+#   Every 3 hours (minute 41), or Actions tab → Supabase parity → Run workflow. fplgg/tools/parity/parity.js reads
+#   every tab the app's engine reads from both pipelines, the Google Sheet (what the app uses today) and the Supabase
+#   project's public tabs function (what B3 would switch it to), compares them and writes the report: the columns one
+#   side lacks, the rows one side lacks, the cells that differ. The report is the run's summary (the Summary tab of
+#   the run) and the artifact parity-report-<run number> (JSON and Markdown, kept 90 days). The run is green whenever
+#   the comparison could be made; differences are the report, not a failure. Nothing here uses a secret: both sources
+#   are public and read only. Details: fplgg/tools/parity/README.md
+name: Supabase parity
+on:
+  schedule:
+    - cron: '41 */3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency: { group: parity, cancel-in-progress: false }
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Test the tool
+        run: node tests/parity.js
+      - name: Compare the Sheet and Supabase
+        run: node fplgg/tools/parity/parity.js --out parity/report.json --md parity/report.md
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-report-${{ github.run_number }}
+          path: parity/
+          retention-days: 90
+          if-no-files-found: ignore
