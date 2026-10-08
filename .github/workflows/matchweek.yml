@@ -7,7 +7,7 @@ name: Build Matchweek app
 on:
   push:
     branches: [main]
-    paths: ['fplgg/tools/matchweek/**']
+    paths: ['fplgg/tools/matchweek/**', '!fplgg/tools/matchweek/docs/**']   # docs (BUGS.md, ARTICLES.md, TONE.md) do not rebuild the app
   workflow_dispatch:
 permissions:
   contents: write
