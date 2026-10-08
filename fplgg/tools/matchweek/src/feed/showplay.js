@@ -5,6 +5,7 @@
    No audio yet = the same show with timed captions, so it plays from the moment the script is published.
    The picture is built live from the app's own data: the real XIs, the model's numbers, the press room. */
 import * as UI from '../ui.js';
+import { allArticles } from './articles.js';
 import * as M from '../pages/matchday/model.js';
 import { shows } from './facts.js';
 import { quotes } from './social.js';
@@ -140,7 +141,7 @@ function sceneClose(s) {
     return '<div class="gs-fx">' + UI.crest(f.Home, 30) + '<span class="gs-fxn"><b>' + esc(firstOf(f.Home)) + ' <i>v</i> ' + esc(firstOf(f.Away)) + '</b></span><span class="gs-fxw n">' + mid + '</span>' + UI.crest(f.Away, 30) + '</div>';
   }).join('');
   const live = s.gw === D.gw && !D.dlPassed;
-  const prev = (typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).find(p => p.gw === s.gw);
+  const prev = allArticles().find(p => p.kind === 'Preview' && p.gw === s.gw);
   return '<div class="gs-open gs-close"><span class="gs-k">Gameweek ' + s.gw + '</span><h2 class="gs-ttl f-cond">That’s the gameweek</h2>'
     + '<div class="gs-fxs">' + rows + '</div><span class="gs-wl">' + (live ? 'Predicted' : '') + '</span>'
     + '<div class="gs-cta">' + (live ? '<a class="btn" href="#/feed/messages/archizio" data-gs-go>Go on the record</a>' : '') + (prev ? '<a class="btn ghost" href="' + esc(prev.href) + '" data-gs-go>Read the preview</a>' : '')

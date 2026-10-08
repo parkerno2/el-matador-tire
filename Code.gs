@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,51 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.13 · 8 Oct 2026
+ *   Articles write themselves: the gameweek recap and the deadline preview, with nobody's computer on.
+ *   1. The app sends the facts. Recap facts go to the new `artfacts` action: signed-in managers only, one accepted
+ *      post per manager per 20 minutes, only for the latest gameweek whose head to head results are all final, and
+ *      every result in them must match H2H Fixtures. They are kept in a new hidden RecapFacts tab. Preview facts ride
+ *      the existing `showfacts` action (the app now sends them up to 54 hours before the deadline; the server never
+ *      limited how early).
+ *   2. Every 15 minutes aiTick runs articleTick, after the show and before the self-update. One article at a time:
+ *      the recap once a gameweek is final and fresh recap facts are in (up to 5 days after its last game), the
+ *      preview in the last 50 hours before a deadline once fresh preview facts are in; the recap goes first. Claude
+ *      researches the real football with web search, then writes the article as JSON, both through the Message
+ *      Batches API (no long calls). The article is checked: every fixture once with exact names, stars from the
+ *      right elevens, no dashes, emoji, hashtags or first person, no number that is not in the facts or the
+ *      research, 600 to 1,400 words. A failed check goes back once with the problems; 3 tries in all. The draft is
+ *      kept in a new hidden Articles tab (working files in a hidden ArticleWork tab).
+ *   3. The commissioner reads every draft in the app before anyone else and approves it, asks for a rewrite with a
+ *      note (3 at most) or drops it (new `articles` and `articlemod` actions). Only approved articles are served:
+ *      GET ?articles=1 (the list, plus what is still waiting, never its text) and ?article=<id>.
+ *      GET ?health=1 reports the pipelines for cloud monitors, with no secrets.
+ *      The sheet can be viewed by anyone with its link, hidden tabs included, so until an article is approved its
+ *      text, a rejected reply and the commissioner's note are stored sealed (encrypted with a random key the script
+ *      makes for itself in EMT_ART_SEAL; the Log keeps no draft text). Approving stores it as plain text.
+ *   4. Model chains. Each writer tries its models in order and moves to the next when one is retired (404, or a 400
+ *      about the model); a missing model is skipped for 3 days (EMT_MODEL_GONE). Articles: EMT_ARTICLE_MODEL, then
+ *      claude-sonnet-5-5, claude-opus-5-5, claude-sonnet-4-5. Show writer: EMT_SHOW_MODEL, then claude-sonnet-5-5,
+ *      claude-sonnet-4-5. AI writer: EMT_AI_MODEL, then claude-haiku-5-5, claude-haiku-4-5.
+ *   5. The writers are funnier: clever, football-Twitter jokes, each built on a real fact of the week; swearing is
+ *      allowed as seasoning (two at most in a piece, never the joke itself); the hard limits are unchanged (nothing
+ *      about anyone's real life, no slurs, nothing about race, religion, sexuality, disability or nationality as an
+ *      insult, nothing sexual). One tone block (THE READERS) goes into the AI writer, the show writer and the article
+ *      writer; Archizio, Clark and Malcolm keep their mannerisms. Show beats may run 10 to 22 words (was 10 to 16).
+ *   6. The punch-up pass. Once an article or a show script has passed its checks, Claude Haiku makes it funnier
+ *      without touching a fact, number, name, star or source, and every check runs again. If it fails a check, errors,
+ *      expires, has no model left or is still running 2 hours later, the checked version goes out as it was (the Log
+ *      says why). Articles: one more batch while the status stays 'writing'; it never counts as a try and drafts stay
+ *      sealed; the Model column reads '<writer> + <punch model>' when the punch-up was used. Show: one quick call,
+ *      skipped when the run is already late. Script Properties: EMT_PUNCH_MODEL (tried first, then claude-haiku-5-5,
+ *      claude-haiku-4-5) and EMT_PUNCH_OFF = yes (no punch-up for either). ?health=1 shows the last outcome of each.
+ *   No new setup: same ANTHROPIC_API_KEY, no new permissions. Optional Script Properties: EMT_COMMISH (the
+ *   commissioner's team, default Cold Palmers), EMT_ARTICLES_PAUSED = yes, EMT_ARTICLE_MODEL, EMT_PUNCH_MODEL,
+ *   EMT_PUNCH_OFF = yes. If web search is off for the key's Anthropic organisation (a 400 or 403 about it), or no
+ *   search result comes back at all, articles are written from the league data alone and say so in the Log. Do not
+ *   delete EMT_ART_SEAL: drafts written before that can no longer be read (ask for a rewrite, or use Articles: write
+ *   now).
+ *   Menu: Articles: status, Articles: write now. articlesStatus() logs the same from the editor.
  * v3.12 · 7 Oct 2026
  *   Everything runs from Google's servers now; nothing waits on anyone's computer.
  *   1. The show writes itself (bottom of this file). The app posts the gameweek's facts (fixtures, form, elevens,
@@ -163,6 +208,8 @@ function onOpen() {
     .addItem('Run the AI writer now', 'aiWriterTick')
     .addItem('Render the Gameweek Show now', 'renderShowNow')
     .addItem('Update Code.gs from GitHub now', 'selfUpdateNow')   // v3.12
+    .addItem('Articles: status', 'articlesStatus')                // v3.13
+    .addItem('Articles: write now', 'articlesWriteNow')           // v3.13
     .addToUi();
 }
 
@@ -1267,6 +1314,14 @@ function emtHandle(req) {
     return emtShowFacts(team, req);
   }
 
+  /* v3.13: the articles (bottom of this file) */
+  if (action === 'artfacts' || action === 'articles' || action === 'articlemod') {
+    if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
+    if (action === 'artfacts') return emtArtFacts(team, req);
+    if (action === 'articles') return emtArtDrafts(team);
+    return emtArtMod(team, req);
+  }
+
   return { ok: false, error: 'unknown action' };
 }
 
@@ -1386,6 +1441,9 @@ function doPost(e) {
 function doGet(e) {
   try {
     if (e && e.parameter && e.parameter.show) return emtOut(emtShowGet(e.parameter.show, e.parameter.meta));   // v3.11 the Gameweek Show; v3.12 &meta=1
+    if (e && e.parameter && e.parameter.health) return emtOut(emtHealth());                 // v3.13 pipeline health, no secrets
+    if (e && e.parameter && e.parameter.articles) return emtOut(emtArtList());              // v3.13 approved articles + what is waiting
+    if (e && e.parameter && e.parameter.article) return emtOut(emtArtGet(e.parameter.article));   // v3.13 one approved article
     return emtOut({ ok: true, service: 'emt', claimed: emtClaimed() });
   }
   catch (err) { return emtOut({ ok: false, error: String((err && err.message) || err) }); }
@@ -1411,29 +1469,60 @@ function adminResetPin(team) {
  *   the next prompt includes earlier posts and quotes about the same clubs, plus any 'note' rows (running jokes,
  *   storylines), so the voices can call back. Guardrails: every number in a post must appear in the facts or the
  *   memory it was given, otherwise the post is dropped. At most 2 posts a run and 6 a day: fewer, better posts.
- *   Optional Script Properties: EMT_AI_MODEL (default claude-haiku-4-5), EMT_AI_PAUSED = yes to pause.
+ *   Optional Script Properties: EMT_AI_MODEL (tried first; v3.13: then claude-haiku-5-5, then claude-haiku-4-5),
+ *   EMT_AI_PAUSED = yes to pause.
+ *   v3.13: the voices keep their mannerisms but aim the jokes at the league (EMT_TONE_LINES, THE READERS, below).
  * ===================================================================================================== */
 var EMT_AI_HEAD = ['When (UTC)', 'Id', 'Voice', 'Kind', 'Event', 'Teams', 'Players', 'Text', 'Facts', 'Media'];
-var EMT_AI_MODEL_DEFAULT = 'claude-haiku-4-5';
+var EMT_AI_MODEL_DEFAULT = 'claude-haiku-5-5';
+var EMT_AI_MODELS = [EMT_AI_MODEL_DEFAULT, 'claude-haiku-4-5'];   // v3.13: the chain after EMT_AI_MODEL (emtModelChain)
 var EMT_AI_PER_RUN = 2, EMT_AI_PER_DAY = 6;   // v3.10: quality over quantity
 var EMT_AI_VOICES = ['archizio', 'clark', 'malcolm'];
+/* v3.13 · the house tone (Parker, 8 Oct 2026; it replaces "jokes minimal and dry" and "no swearing"). One block, THE
+ * READERS, joined into every writer's system prompt: the AI writer, the show writer, the article writer and both
+ * punch-up prompts (EMT_PUNCH_*). Funny means clever: each joke is built on a real fact of the week. The hard limits
+ * (nothing about anyone's real life, no slurs, no identity insults, nothing sexual) hold whatever else a prompt says. */
+var EMT_TONE_LINES = [
+  'THE READERS. Eight lads in their early twenties who live on football Twitter and in the group chat. Write for them, not for a Sunday paper.',
+  '- Funny means clever, not rude. Every joke is built on something true this week:',
+  '  - the irony between two real facts (five defeats, zero points, and still leading the derby);',
+  '  - a team name or a cliché turned back on itself ("Bad week to have named your club after one of them"; "Form is temporary. Owning Parker is permanent");',
+  '  - a precise football-Twitter parallel ("CJ has basically become Arsenal"; "Baha has gone full Man City");',
+  '  - a structure that undercuts itself ("Ethan\'s plan is Haaland. Ethan\'s backup plan is also Haaland");',
+  '  - or a deadpan undercut in the last few words ("Fully fit. Just shite."; "Correctly, but still.").',
+  '',
+  '  These examples show the style only. Their facts are not this week\'s, so never reuse them.',
+  '- An insult with no observation in it is dead. Never write lines like "dogshit", "cowards", "thoughts and prayers" or "absolute clown" on their own. A swear (shit, shite, fuck, bollocks, bottled it) is seasoning on a real joke, never the joke, and there are at most two in a whole piece.',
+  '- Football Twitter is welcome when it is precise and earned: Man City\'s charges, Arsenal and set pieces, Spurs, fraud watch, "it\'s only a rivalry if you win some". Use one reference at a time. Never:',
+  '  - explain a joke or stack memes;',
+  '  - write "banter", "lads lads lads", "no cap", "it\'s giving" or "as the kids say";',
+  '  - use emoji or hashtags, or end on an exclamation mark.',
+  '- Hard limits, whatever else this prompt says:',
+  '  - nothing about anyone\'s real life: looks, family, partners, jobs, money, health;',
+  '  - no slurs of any kind, ableist ones included;',
+  '  - nothing about race, religion, sexuality, disability or nationality used as an insult;',
+  '  - nothing sexual.',
+  '',
+  '  Everything about football and this fantasy league is fair game.'
+];
 var EMT_AI_SYSTEM = [
   'You write short posts for the Feed of Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Head to head each gameweek: 3 points a win, 1 a draw.',
   'Three fictional voices write the posts. They are not real people:',
-  '- archizio: Archizio Poblano, the insider. Every post opens with a caps tag such as EXCLUSIVE. / UNDERSTAND. / HERE WE GO. / DEAL DONE. Dry, clipped, transfer-insider style. Breaks news, frames beefs between managers.',
-  '- clark: Clark Moldridge of The Terrace, a loud fan channel. Punchy, exasperated, funny. Roasts managers for bad calls, loves receipts. His posts are video thumbnails, so also give "thumb": {"t1": big caps line, max 18 characters, "t2": second caps line, max 22, "lo": caps strap, max 22}.',
-  '- malcolm: Malcolm Tyre in the booth, a broadcaster. Measured, wry, sets the scene.',
+  '- archizio: Archizio Poblano, the insider. Every post opens with a caps tag such as EXCLUSIVE. / UNDERSTAND. / HERE WE GO. / DEAL DONE. Clipped transfer-insider style. His comedy is world-exclusive gravity for trivial fantasy news, told in insider jargon. Breaks news and frames beefs between managers.',
+  '- clark: Clark Moldridge of The Terrace, a fan channel. The meltdown: furious, theatrical, calls for sackings, keeps receipts. The comedy is an overreaction to one real, specific decision. His posts are video thumbnails, so also give "thumb": {"t1": big caps line, max 18 characters, "t2": second caps line, max 22, "lo": caps strap, max 22}.',
+  '- malcolm: Malcolm Tyre in the booth, a broadcaster. Commentary-box calm with a knife in it: grave delivery and a deadpan undercut at the end.',
   'Rules:',
   '1. Every number you write must appear in FACTS or MEMORY. Never invent a stat, score, odds, record or date.',
   '2. Only quote managers, word for word, from FACTS or MEMORY. Never invent quotes. Never quote or name real journalists, pundits or YouTubers. Real footballers only as players in someone\'s team.',
-  '3. Banter is about this fantasy league only: picks, benchings, results, quotes, form, the table. Nothing about anyone\'s looks, family, health, money, job, relationships or life outside the league. No slurs, no swearing.',
+  '3. Banter is about this fantasy league only: picks, benchings, results, quotes, form, the table. THE READERS below sets what is funny and the hard limits.',
   '4. At most 240 characters per post. British spelling. No emoji, no hashtags, no em dashes.',
   '5. Call managers by the first name or team name given in FACTS. Describe a club\'s place in the table only as FACTS shows it (pos 1 is top); never guess who leads.',
   '6. If MEMORY has a related earlier post, quote or note, call back to it (a receipt, a running joke) without repeating it. Never repeat an angle MEMORY already used.',
   '7. Each post takes a different angle. Answer with JSON only: {"posts":[{"voice":"...","text":"...","teams":["exact team names"],"thumb":{...}}]}',
   '8. Fewer, better posts. The app already posts the plain facts (results, the table, deals), so only write what a sharp friend in the group chat would: a storyline, a receipt, a callback, a joke that lands. If nothing is worth it, return {"posts":[]}. Never pad.',
-  '9. Rumours come from the rumour mill: managers make them up or pass them on. Always present one as a rumour (hearing, apparently, word is), never as fact, and never say who started or passed it unless FACTS names them.'
-].join('\n');
+  '9. Rumours come from the rumour mill: managers make them up or pass them on. Always present one as a rumour (hearing, apparently, word is), never as fact, and never say who started or passed it unless FACTS names them.',
+  ''
+].concat(EMT_TONE_LINES).join('\n');
 
 function emtAiKey() { return emtProps().getProperty('ANTHROPIC_API_KEY') || ''; }
 function emtAiOn() { return !!emtAiKey() && emtProps().getProperty('EMT_AI_PAUSED') !== 'yes'; }
@@ -1602,13 +1691,21 @@ function aiMemory(ev) {
 function aiWrite(ev) {
   var mem = aiMemory(ev), facts = JSON.stringify(ev.facts);
   var user = 'EVENT: ' + ev.desc + '\nWRITE: ' + ev.ask + '\n\nFACTS (the only numbers you may use):\n' + facts + '\n\nMEMORY (earlier posts, quotes and notes):\n' + (mem || '(nothing yet)');
-  var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
-    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
-    payload: JSON.stringify({ model: emtProps().getProperty('EMT_AI_MODEL') || EMT_AI_MODEL_DEFAULT, max_tokens: 900, system: EMT_AI_SYSTEM, messages: [{ role: 'user', content: user }] })
-  });
-  var code = res.getResponseCode(), body = res.getContentText();
-  if (code !== 200) throw new Error('Claude API ' + code + ': ' + body.slice(0, 200));
+  /* v3.13: the model chain; a retired model (404, or a 400 about the model) passes to the next one */
+  var models = emtModelsLive(emtModelChain('EMT_AI_MODEL', EMT_AI_MODELS)), code = 0, body = '';
+  for (var mi = 0; mi < models.length; mi++) {
+    var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
+      payload: JSON.stringify({ model: models[mi], max_tokens: 900, system: EMT_AI_SYSTEM, messages: [{ role: 'user', content: user }] })
+    });
+    code = res.getResponseCode(); body = res.getContentText();
+    if (code === 200) break;
+    var er = emtApiErr(body);
+    if (mi === models.length - 1 || !emtModelMissing(code, er.type, er.msg)) break;
+    emtModelNoteGone(models[mi], er.msg);
+  }
+  if (code !== 200) throw new Error('Claude API ' + code + ': ' + String(body).slice(0, 200));
   var j = JSON.parse(body), txt = ((j.content || []).filter(function (c) { return c.type === 'text'; })[0] || {}).text || '';
   var m = txt.match(/\{[\s\S]*\}/); if (!m) return [];
   var out = (JSON.parse(m[0]).posts || []).slice(0, ev.n);
@@ -1631,12 +1728,14 @@ function aiWrite(ev) {
  * has had its turn) so failed runs keep showing up as before. The writer holds the script lock only while it writes;
  * the show takes its own flag (emtShowClaim) and never holds the script lock while it renders.
  * v3.12: four parts, in this order, each in its own try/catch: the AI writer, the show writer (writes the script),
- * the show (voices it), the self-update (at most hourly). Only an AI writer error is thrown, after all four ran. */
+ * the show (voices it), the self-update (at most hourly). Only an AI writer error is thrown, after all four ran.
+ * v3.13: five parts: the articles (articleTick) run after the show and before the self-update, in their own try/catch. */
 function aiTick() {
   var t0 = Date.now(), err = null;
   try { aiWriterTick(); } catch (e) { err = e; Logger.log('AI writer failed: ' + ((e && e.message) || e)); }
   try { showWriterTick(t0); } catch (e) { Logger.log('Show writer failed: ' + ((e && e.message) || e)); }
   try { showTick(t0); } catch (e) { Logger.log('Gameweek Show failed: ' + ((e && e.message) || e)); }
+  try { articleTick(t0); } catch (e) { Logger.log('Articles failed: ' + ((e && e.message) || e)); }
   try { selfUpdateTick(t0); } catch (e) { Logger.log('Self-update failed: ' + ((e && e.message) || e)); }
   if (err) throw err;
 }
@@ -2000,20 +2099,29 @@ function emtShowGet(gwParam, meta) {
  *   3. The reply is checked (emtShowCheck) and, if wrong, retried once with the problems listed. Digits become words
  *      for the voice (emtSpeak), and the script goes to the hidden ShowScripts tab (Script cell marked 'j:'), where
  *      renderShow and doGet ?show=<gw> find it when the repo has no json.
- *   Model: EMT_SHOW_MODEL (default claude-sonnet-4-5). To have a show rewritten, delete its ShowScripts row.
- *   QUOTA: an idle run reads a few narrow columns. A written show is 1 or 2 Claude calls (~10k tokens in, ~1k out).
+ *   Model: EMT_SHOW_MODEL, then (v3.13, the model chain) claude-sonnet-5-5, then claude-sonnet-4-5. To have a show
+ *   rewritten, delete its ShowScripts row.
+ *   v3.13: the facts may carry the preview article's extra keys (kind 'preview', collisions, slate, rosters, moves);
+ *   the show's prompt leaves them out, so the show is written exactly as before. A post with kind 'recap' is refused.
+ *   v3.13: the tone (THE READERS) is in the voice bible, beats run 10 to 22 words, and a checked script gets one
+ *   punch-up call (emtShowPunch: Haiku makes it funnier, emtShowCheck runs again; else the checked script stands).
+ *   QUOTA: an idle run reads a few narrow columns. A written show is 1 or 2 Claude calls (~10k tokens in, ~1k out),
+ *   plus the punch-up (~3k in, ~1k out, on Haiku).
  * ===================================================================================================== */
 var EMT_FACTS_HEAD = ['GW', 'Received (UTC)', 'Team', 'Part', 'Parts', 'Data'];
 var EMT_SCRIPTS_HEAD = ['GW', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Script'];
 var EMT_FACTS_MAX = 60000;                  // characters per post
 var EMT_FACTS_EVERY_S = 20 * 60;            // one accepted post per manager per 20 minutes
 var EMT_JSON_MARK = 'j:';                   // every json cell starts with this, so it can never be read as a formula
-var EMT_SHOW_WRITER_DEFAULT = 'claude-sonnet-4-5';
+var EMT_SHOW_WRITER_DEFAULT = 'claude-sonnet-5-5';                  // v3.13 (was claude-sonnet-4-5, which retires 30 Nov 2026)
+var EMT_SHOW_MODELS = [EMT_SHOW_WRITER_DEFAULT, 'claude-sonnet-4-5'];   // v3.13: the chain after EMT_SHOW_MODEL
 var EMT_SHOW_WINDOW_MS = 22 * 3600e3;       // write in the last 22 hours before the deadline ...
 var EMT_SHOW_FRESH_MS = 6 * 3600e3;         // ... from facts received in the last 6 hours,
 var EMT_SHOW_LASTCALL_MS = 4 * 3600e3;      // or in the last 4 hours from any facts
 var EMT_SHOW_TRIES = 3;                     // attempts per gameweek (one attempt = one run, with its one retry)
-var EMT_SHOW_WRITE_LATE_MS = 150 * 1000;    // aiTick: no new write once the run is 2.5 minutes old
+var EMT_SHOW_WRITE_LATE_MS = 150 * 1000;    // aiTick: no new write once the run is 2.5 minutes old (v3.13: nor a punch-up)
+var EMT_SHOW_BEAT_WORDS = [10, 22];         // v3.13: words per beat the prompts ask for (was 10 to 16) ...
+var EMT_SHOW_BEAT_HARD = [5, 32];           // ... and outside which emtShowCheck refuses a beat (was 5 to 26: the same slack)
 var EMT_SHOW_VOICE_LABEL = 'Malcolm Tyre — El Matador Booth';
 var EMT_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -2021,7 +2129,7 @@ var EMT_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 var EMT_SHOW_SYSTEM = [
   'You write the Gameweek Show for Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Every gameweek each club plays one head to head fixture (3 points a win, 1 a draw). The show is a spoken preview of about two minutes: a synthetic voice reads it while the screen shows each fixture.',
   '',
-  'THE VOICE. Malcolm Tyre, a fictional British broadcaster in "the booth". Dry, brisk, wry. He understates and never tries to be funny: the wit is in what he picks and what he leaves out. Short plain sentences, British spelling, no exclamation marks.',
+  'THE VOICE. Malcolm Tyre, a fictional British broadcaster in "the booth": commentary-box calm, short plain sentences, British spelling, no exclamation marks. The comedy is a deadpan undercut after a real fact, usually in the last few words of a beat. Not every beat needs a joke, but the show should make the group chat laugh at least five times.',
   '',
   'THE SHAPE. It must match what the screen shows.',
   '- open: about 20 words. "Gameweek <n>." then one hook for the whole week, then "Here\'s how it lines up."',
@@ -2032,7 +2140,7 @@ var EMT_SHOW_SYSTEM = [
   '  [3] the away eleven, as [1].',
   '  [4] the faceoff: the series (rec) and/or the model\'s win chance (win) or the predicted score (H.proj to A.proj).',
   '- close: "That\'s the gameweek." then the deadline and lineups, then a nudge to go on the record in the press room.',
-  '- 10 to 16 words per beat.',
+  '- 10 to 22 words per beat.',
   '- The app plays the chapters in its own order, so never say first, next, then, finally, later or last, and never refer to another chapter.',
   '- star.h is the code of the home player beat [1] is about and star.a the code of the away player beat [3] is about, copied from that fixture\'s H.xi and A.xi.',
   '',
@@ -2047,14 +2155,16 @@ var EMT_SHOW_SYSTEM = [
   '- Every claim must be checkable in FACTS, QUOTES or NOTES. Count streaks from results, newest last. Superlatives (best, most, only, highest) only when FACTS makes it certain. When in doubt, leave it out.',
   '- Managers by first name (mgr), clubs by team name, spelt exactly as in FACTS.',
   '- Never invent a quote. Quote a manager only word for word from QUOTES or FACTS.',
-  '- Banter only about the league: picks, form, the table, quotes, and the running jokes in NOTES. Nothing about anyone\'s looks, family, health, money, job or life outside the league. No swearing.',
+  '- Banter only about the league: picks, form, the table, quotes, and the running jokes in NOTES. THE READERS below sets what is funny and the hard limits.',
   '- Real footballers only as players in someone\'s team.',
   '',
-  'STYLE. No em dashes or en dashes, no emoji, no hashtags. Two beats as a style reference only (their facts are not this week\'s; never copy them): "Cold Palmers. Parker says he\'s winning Manager of the Month. The model says 9%." and "Gibbs-White tops the eleven. Not a single flag among PJ\'s starters."',
+  'STYLE. No em dashes or en dashes, no emoji, no hashtags. Three beats as a style reference only (their facts are not this week\'s; never copy them): "Gibbs-White tops the eleven. Not a single flag among PJ\'s starters. Fully fit. Just shite.", "Palmer, Mainoo, Rice and Jacquet all carry knocks. Bad week to have named your club after one of them." and "Haaland goes to Anfield. Ethan\'s plan is Haaland. Ethan\'s backup plan is also Haaland."',
+  ''
+].concat(EMT_TONE_LINES, [
   '',
   'REPLY with JSON only, no prose, no code fence:',
   '{"open":"...","chapters":[{"home":"<exact home team>","away":"<exact away team>","star":{"h":"<player code from H.xi>","a":"<player code from A.xi>"},"beats":["","","","",""]}],"close":"..."}'
-].join('\n');
+]).join('\n');
 
 /* a hidden tab with a frozen header row, created when missing */
 function emtHiddenSheet(name, head) {
@@ -2084,6 +2194,7 @@ function emtFlagClaim(prop, ms) {
 function emtShowFactsOk(f, gw) {
   if (!f || typeof f !== 'object' || Array.isArray(f)) return false;
   if (f.gw !== undefined && f.gw !== null && f.gw !== '' && Number(f.gw) !== gw) return false;
+  if (f.kind !== undefined && f.kind !== null && f.kind !== 'preview') return false;   /* v3.13: recap facts go to artfacts */
   var fx = f.fixtures, seen = {};
   if (!Array.isArray(fx) || fx.length < 1 || fx.length > 10) return false;
   for (var i = 0; i < fx.length; i++) {
@@ -2118,20 +2229,30 @@ function emtShowFacts(team, req) {
   lock.waitLock(10000);
   try {
     if (cache.get(rk)) return { ok: false, error: 'slow' };
-    var sh = emtHiddenSheet('ShowFacts', EMT_FACTS_HEAD), last = sh.getLastRow(), old = [];
-    if (last > 1) sh.getRange(2, 1, last - 1, 1).getValues().forEach(function (r, i) { if (Number(r[0]) === gw) old.push(i + 2); });
-    var at = new Date().toISOString(), n = Math.ceil(data.length / EMT_SHOW_CHUNK);
-    for (var q = 0; q < n; q++) sh.appendRow([gw, "'" + at, emtCell(team), q + 1, n, EMT_JSON_MARK + data.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK)]);
-    emtShowDeleteRows(sh, old);              /* only the latest facts per gameweek: the older rows go, bottom up */
+    var st = emtFactsStore('ShowFacts', gw, team, data);
     cache.put(rk, '1', EMT_FACTS_EVERY_S);
-    return { ok: true, at: at, parts: n };
+    return { ok: true, at: st.at, parts: st.parts };
   } finally { lock.releaseLock(); }
+}
+
+/* v3.13: ShowFacts and RecapFacts share one shape. Keeps a post (a JSON string) as the only facts of its gameweek:
+ * 45,000-character chunks, each Data cell marked 'j:', the older rows of that gameweek deleted bottom up. The caller
+ * holds the script lock. */
+function emtFactsStore(tab, gw, team, data) {
+  var sh = emtHiddenSheet(tab, EMT_FACTS_HEAD), last = sh.getLastRow(), old = [];
+  if (last > 1) sh.getRange(2, 1, last - 1, 1).getValues().forEach(function (r, i) { if (Number(r[0]) === gw) old.push(i + 2); });
+  var at = new Date().toISOString(), n = Math.ceil(data.length / EMT_SHOW_CHUNK);
+  for (var q = 0; q < n; q++) sh.appendRow([gw, "'" + at, emtCell(team), q + 1, n, EMT_JSON_MARK + data.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK)]);
+  emtShowDeleteRows(sh, old);              /* only the latest facts per gameweek: the older rows go, bottom up */
+  return { at: at, parts: n };
 }
 
 /* the newest complete facts for a gameweek: { at (ms), iso, team, parts, rows } (+ data when withData), or null.
  * Without data it reads five narrow columns only. */
-function emtShowFactsLatest(gw, withData) {
-  var sh = SpreadsheetApp.getActive().getSheetByName('ShowFacts'), last = sh ? sh.getLastRow() : 0;
+function emtShowFactsLatest(gw, withData) { return emtFactsLatest('ShowFacts', gw, withData); }
+/* v3.13: the same for any facts tab (ShowFacts, RecapFacts) */
+function emtFactsLatest(tab, gw, withData) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(tab), last = sh ? sh.getLastRow() : 0;
   if (last < 2) return null;
   var v = sh.getRange(2, 1, last - 1, 5).getValues(), sets = {}, best = null;
   for (var i = 0; i < v.length; i++) {
@@ -2290,6 +2411,7 @@ function emtShowTidy(t) {
 
 /* the prompt: FACTS (decimals to one place), the gameweek's QUOTES from Social, the NOTES from Posts */
 function emtShowPrompt(gw, facts, dl) {
+  facts = emtShowCore(facts);
   var sent = JSON.stringify(facts, function (k, v) { return typeof v === 'number' && isFinite(v) && v % 1 !== 0 ? Math.round(v * 10) / 10 : v; });
   var mgr = {};
   (facts.table || []).forEach(function (t) { if (t && t.team && t.mgr) mgr[t.team] = t.mgr; });
@@ -2306,15 +2428,26 @@ function emtShowPrompt(gw, facts, dl) {
   return { user: user, allowed: user };
 }
 
-/* one call to Claude, same style as aiWrite: { text, stop } or { error } (no answer, nothing billed) */
-function emtShowAsk(model, user) {
+/* v3.13: the show's facts without the preview article's extra keys, so the show is written exactly as before */
+var EMT_SHOW_ART_KEYS = ['kind', 'collisions', 'slate', 'rosters', 'moves'];
+function emtShowCore(facts) {
+  if (!facts || typeof facts !== 'object' || Array.isArray(facts)) return facts;
+  var o = {};
+  Object.keys(facts).forEach(function (k) { if (EMT_SHOW_ART_KEYS.indexOf(k) < 0) o[k] = facts[k]; });
+  return o;
+}
+
+/* one call to Claude, same style as aiWrite: { text, stop } or { error, missing } (no answer, nothing billed;
+ * missing = the model does not exist or is retired, so the chain moves on). system: EMT_SHOW_SYSTEM unless given
+ * (v3.13: the punch-up passes EMT_PUNCH_SHOW_SYSTEM) */
+function emtShowAsk(model, user, system) {
   var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
-    payload: JSON.stringify({ model: model, max_tokens: 2000, system: EMT_SHOW_SYSTEM, messages: [{ role: 'user', content: user }] })
+    payload: JSON.stringify({ model: model, max_tokens: 2000, system: system || EMT_SHOW_SYSTEM, messages: [{ role: 'user', content: user }] })
   });
   var code = res.getResponseCode(), body = String(res.getContentText() || '');
-  if (code !== 200) return { error: 'Claude API ' + code + ': ' + body.slice(0, 200) };
+  if (code !== 200) { var er = emtApiErr(body); return { error: 'Claude API ' + code + ': ' + body.slice(0, 200), missing: emtModelMissing(code, er.type, er.msg), msg: er.msg }; }
   var j = null;
   try { j = JSON.parse(body); } catch (e) { return { text: '', stop: '' }; }
   var txt = ((j.content || []).filter(function (c) { return c && c.type === 'text'; })[0] || {}).text || '';
@@ -2348,7 +2481,7 @@ function emtShowCheck(text, facts, allowed, stop) {
   var P = [], j = null, m = String(text || '').match(/\{[\s\S]*\}/);
   if (m) { try { j = JSON.parse(m[0]); } catch (e) { j = null; } }
   if (!j || typeof j !== 'object' || Array.isArray(j)) {
-    P.push(stop === 'max_tokens' ? 'The reply was cut off before the JSON ended: keep every beat to 10 to 16 words.' : 'The reply was not one JSON object in the shape asked for.');
+    P.push(stop === 'max_tokens' ? 'The reply was cut off before the JSON ended: keep every beat to ' + EMT_SHOW_BEAT_WORDS[0] + ' to ' + EMT_SHOW_BEAT_WORDS[1] + ' words.' : 'The reply was not one JSON object in the shape asked for.');
     return { problems: P, script: null };
   }
   var fx = (facts && facts.fixtures) || [], seen = {}, chapters = [];
@@ -2366,7 +2499,7 @@ function emtShowCheck(text, facts, allowed, stop) {
     if (beats.length !== 5 || beats.some(function (b) { return !b; })) P.push(name + ': needs exactly 5 beats, none empty (it has ' + beats.filter(Boolean).length + ').');
     beats.forEach(function (b, k) {
       var n = b ? b.split(/\s+/).length : 0;
-      if (b && (n < 5 || n > 26)) P.push(name + ', beat ' + k + ': ' + n + ' words; keep every beat to 10 to 16.');
+      if (b && (n < EMT_SHOW_BEAT_HARD[0] || n > EMT_SHOW_BEAT_HARD[1])) P.push(name + ', beat ' + k + ': ' + n + ' words; keep every beat to ' + EMT_SHOW_BEAT_WORDS[0] + ' to ' + EMT_SHOW_BEAT_WORDS[1] + '.');
     });
     var star = c.star && typeof c.star === 'object' ? c.star : {};
     var st = { h: String(star.h == null ? '' : star.h), a: String(star.a == null ? '' : star.a) };
@@ -2389,13 +2522,21 @@ function emtShowCheck(text, facts, allowed, stop) {
   return P.length ? { problems: P, script: null } : { problems: [], script: { open: open, chapters: chapters, close: close } };
 }
 
-/* ask, check, and ask once more with the problems listed. { script, model, calls, billed, problems, error } */
+/* ask, check, and ask once more with the problems listed. { script, model, calls, billed, problems, error, allowed }
+ * v3.13: the model chain (EMT_SHOW_MODEL, then EMT_SHOW_MODELS); a retired model passes to the next at once.
+ * allowed: what the script was checked against, so the punch-up (emtShowPunch) is checked against the same */
 function emtShowWrite(gw, facts, dl) {
-  var P = emtShowPrompt(gw, facts, dl), model = emtProps().getProperty('EMT_SHOW_MODEL') || EMT_SHOW_WRITER_DEFAULT;
-  var W = { script: null, model: model, calls: 0, billed: 0, problems: [], error: '' }, ask = P.user;
+  var P = emtShowPrompt(gw, facts, dl), models = emtModelsLive(emtModelChain('EMT_SHOW_MODEL', EMT_SHOW_MODELS)), mi = 0;
+  var W = { script: null, model: models[0], calls: 0, billed: 0, problems: [], error: '', allowed: P.allowed }, ask = P.user;
   for (var round = 0; round < 2; round++) {
-    var r = emtShowAsk(model, ask);
+    var r = emtShowAsk(models[mi], ask);
     W.calls++;
+    while (r.error && r.missing && mi < models.length - 1) {
+      emtModelNoteGone(models[mi], r.msg);
+      W.model = models[++mi];
+      r = emtShowAsk(W.model, ask);
+      W.calls++;
+    }
     if (r.error) { W.error = r.error; return W; }
     W.billed++;
     var c = emtShowCheck(r.text, facts, P.allowed, r.stop);
@@ -2476,16 +2617,1613 @@ function showWriterTick(startedAt) {
       say('attempt ' + (tries + 1) + ' of ' + EMT_SHOW_TRIES + ' failed, nothing kept: ' + (W.error || W.problems.join(' | ')));
       return S;
     }
-    var lock = LockService.getScriptLock(), at = new Date().toISOString(), js = emtShowSpoken(gw, W.script, at, emtShowNames(facts.data));
+    /* v3.13: the punch-up, one quick call. The checked script stays when it fails the checks, errors, or the run is
+     * already late; either way the script reaches emtSpeak and ShowScripts the same way. Model: writer + punch model. */
+    var PU = emtShowPunch(gw, W, facts.data, t0), model = W.model + (PU.used ? ' + ' + PU.model : '');
+    S.calls += PU.calls;
+    S.punch = { used: PU.used, model: PU.used ? PU.model : '', why: PU.why, off: PU.off };
+    var lock = LockService.getScriptLock(), at = new Date().toISOString(), js = emtShowSpoken(gw, PU.script, at, emtShowNames(facts.data));
     lock.waitLock(10000);
     try {
       if (emtShowScriptRow(gw, false)) { S.stopped = 'written'; return S; }
-      emtHiddenSheet('ShowScripts', EMT_SCRIPTS_HEAD).appendRow([gw, "'" + at, emtCell(W.model), "'" + facts.iso, EMT_JSON_MARK + JSON.stringify(js)]);
+      emtHiddenSheet('ShowScripts', EMT_SCRIPTS_HEAD).appendRow([gw, "'" + at, emtCell(model), "'" + facts.iso, EMT_JSON_MARK + JSON.stringify(js)]);
     } finally { lock.releaseLock(); }
     S.written = true; S.script = js;
-    say('written by ' + W.model + ' (' + W.calls + ' call' + (W.calls > 1 ? 's' : '') + ', ' + js.chapters.length + ' chapters) from the facts of ' + facts.iso + '. The show voices it next.');
+    say('written by ' + W.model + (PU.used ? ', punched up by ' + PU.model : '') + ' (' + W.calls + ' call' + (W.calls > 1 ? 's' : '') + ', ' + js.chapters.length + ' chapters) from the facts of ' + facts.iso + '.' +
+      (!PU.used && PU.why ? ' Punch-up not used: ' + (PU.why + (PU.detail ? ': ' + PU.detail : '')).replace(/[.\s]+$/, '') + '; the checked script stands.' : '') + ' The show voices it next.');
     return S;
   } finally { p.deleteProperty('EMT_SHOW_WRITING'); }
+}
+
+/* =====================================================================================================
+ * v3.13 · MODEL CHAINS — every writer tries its models in order, so a retired model never stops a pipeline.
+ *   emtModelChain(prop, defaults): the Script Property's model (when set), then the defaults, without repeats.
+ *   A model that answers 404 not_found_error, or a 400 about the model, is noted in EMT_MODEL_GONE and skipped for
+ *   3 days (when every model in a chain is noted, all of them are tried again).
+ * ===================================================================================================== */
+var EMT_MODEL_GONE_MS = 3 * 24 * 3600e3;
+
+function emtModelChain(prop, defaults) {
+  var out = [], add = function (m) { m = String(m == null ? '' : m).trim(); if (m && out.indexOf(m) < 0) out.push(m); };
+  add(emtProps().getProperty(prop));
+  (defaults || []).forEach(add);
+  return out;
+}
+function emtModelGoneMap() {
+  try { var g = JSON.parse(emtProps().getProperty('EMT_MODEL_GONE') || '{}'); return g && typeof g === 'object' ? g : {}; } catch (e) { return {}; }
+}
+function emtModelIsGone(g, m) { var t = Number(g[m] || 0), now = Date.now(); return !!t && now - t >= 0 && now - t < EMT_MODEL_GONE_MS; }
+/* the chain without the models noted as gone (the whole chain when that would leave none) */
+function emtModelsLive(chain) {
+  var g = emtModelGoneMap(), live = chain.filter(function (m) { return !emtModelIsGone(g, m); });
+  return live.length ? live : chain.slice();
+}
+function emtModelNoteGone(model, why) {
+  if (!model) return;
+  var g = emtModelGoneMap();
+  Object.keys(g).forEach(function (k) { if (!emtModelIsGone(g, k)) delete g[k]; });
+  g[model] = Date.now();
+  emtProps().setProperty('EMT_MODEL_GONE', JSON.stringify(g));
+  Logger.log('Model ' + model + ' is not available (' + String(why || '').replace(/\s+/g, ' ').slice(0, 140) + '); the next model in the chain takes over. Skipped for 3 days.');
+}
+/* does an API error say the model does not exist or is retired? 404 / not_found_error, or a 400 about the model */
+function emtModelMissing(code, type, msg) {
+  msg = String(msg || '');
+  if (code === 404 || type === 'not_found_error') return true;
+  return (code === 400 || type === 'invalid_request_error') && /\bmodel\b/i.test(msg) && !/web.?search/i.test(msg);
+}
+/* the type and message of an Anthropic error body ({ type: 'error', error: { type, message } }) */
+function emtApiErr(body) {
+  var j = null;
+  if (body && typeof body === 'object') j = body; else { try { j = JSON.parse(String(body || '')); } catch (e) { j = null; } }
+  var e = (j && (j.error && typeof j.error === 'object' ? (j.error.error && typeof j.error.error === 'object' ? j.error.error : j.error) : null)) || {};
+  return { type: String(e.type || ''), msg: String(e.message || (j ? '' : body) || '').slice(0, 400) };
+}
+
+/* =====================================================================================================
+ * v3.13 · ARTICLES WRITE THEMSELVES — the gameweek recap and the deadline preview, researched and written here.
+ *   1. Facts. Preview: the ShowFacts the app already posts (showfacts; kind 'preview', with collisions, slate,
+ *      rosters and moves). Recap: POST { action: 'artfacts', team, token, gw, kind: 'recap', facts: '<json string>' }:
+ *      signed-in managers only, one accepted post per manager per 20 minutes ('slow', its own counter, so a phone can
+ *      send both kinds), at most 60,000 characters ('badfacts'). gw must be the latest gameweek whose H2H Fixtures
+ *      rows are all Finished ('notdone' while one is not, 'closed' for an older one); the facts must hold exactly its
+ *      fixtures ('fixtures') with hs/as equal to Home pts/Away pts ('scores'). Kept in the hidden RecapFacts tab, like
+ *      ShowFacts (the latest post per gameweek).
+ *   2. articleTick (aiTick, every 15 minutes; one job at a time, in EMT_ART_JOB) starts, when no job runs:
+ *      a rewrite the commissioner asked for (EMT_ART_QUEUE) first; else the recap of that gameweek when it has no
+ *      Articles row yet, its recap facts arrived in the last 24 hours and its last game kicked off at most 5 days ago;
+ *      else the preview of the next gameweek whose deadline is at most 50 hours away, when it has no row yet and
+ *      preview facts (kind 'preview') arrived in the last 12 hours. A dropped or failed article is not restarted;
+ *      the menu's 'Articles: write now' ignores the windows and starts a new one.
+ *   3. Research: one Message Batches request with web search (10 searches at most): notes grouped by fixture and a
+ *      SOURCES list, of which only urls web search really returned are kept. pause_turn is continued twice at most.
+ *      Web search unavailable (a 400 about it): the article is written from the league data alone ('research
+ *      unavailable: ...' in the Log).
+ *   4. Writing: a second batch, no tools, the house style (EMT_ART_SYSTEM). emtArticleCheck checks the reply; a failed
+ *      check goes back once with the problems (the same try). 3 tries a job: an errored, expired or lost batch, one
+ *      still unfinished after 6 hours, or two failed checks is a try; a call that never reached Claude is not. Then
+ *      status failed, the reasons in Log. A job still open 36 hours after it started is given up.
+ *      v3.13: a checked article then goes to the punch-up (a third batch, <id>-p, see THE PUNCH-UP below) and the
+ *      punched-up version, or the checked one when the punch-up is not used, becomes the draft.
+ *   5. The Articles tab (hidden): Id · GW · Kind · Status (research, writing, draft, live, dropped, failed) · Written
+ *      (UTC) · Model (v3.13: '<writer> + <punch model>' when the punch-up was used) · Facts received (UTC) · Research ('t:' + notes) · Article ('j:' + json once live; sealed 's:'
+ *      before that, and again when a live one is dropped) · Note ('j:' + { s: <sealed note>, redos, at }) · Approved
+ *      (UTC) · Log (one line per event, newest last; quoted draft text redacted). ArticleWork (hidden) keeps a job's
+ *      working files (the facts it was given, a paused research turn, a rejected reply, sealed, and v3.13 the checked
+ *      article waiting for its punch-up, sealed) until the job ends.
+ *      Hidden is not private (the sheet is link-viewable), hence the sealing: see emtArtSeal.
+ *      Each job carries a run token: a run left over from before a drop and a rewrite stops instead of overwriting.
+ *   6. Serving: GET ?articles=1 → { ok, live: [{ id, gw, kind, title, sub, approved }] newest first, waiting: [{ gw,
+ *      kind, status, since }], commish } (cached 5 minutes, cleared on every change). GET ?article=<id> → { ok, id, gw,
+ *      kind, approved, written, a } for a live article, else { ok: false, error: 'notfound' }.
+ *      POST { action: 'articles', team, token } → { ok, commish, drafts: [{ id, gw, kind, status, written, model,
+ *      note, redos, a, error? }] }: drafts (research, writing, draft, and failed in the last 7 days) go to the
+ *      commissioner only. POST { action: 'articlemod', team, token, id, op, note } (commissioner only): approve (a
+ *      draft goes live), redo (draft, failed or dropped: rewritten with the note, 400 characters at most, from the
+ *      stored research; 3 per article) or drop. → { ok, status } | { ok: false, error }.
+ *      GET ?health=1 → { ok, version, self, show, articles: { job, last }, ai: { day, count } }, no secrets.
+ *   Commissioner: Script Property EMT_COMMISH, else Cold Palmers. EMT_ARTICLES_PAUSED = yes pauses articleTick.
+ *   Model: EMT_ARTICLE_MODEL, then claude-sonnet-5-5, claude-opus-5-5, claude-sonnet-4-5.
+ *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
+ *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
+ * ===================================================================================================== */
+var EMT_VERSION = 'v3.13';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
+var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
+var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
+var EMT_ART_MODELS = ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-sonnet-4-5'];
+var EMT_ART_BATCHES = 'https://api.anthropic.com/v1/messages/batches';
+var EMT_TEXT_MARK = 't:';                   // the Research cell: plain text behind a marker, never a formula
+var EMT_ART_RESEARCH_MAX = 45000;
+var EMT_ART_URL_MAX = 400;                  // a source url; keeps a sealed article well under the 50,000-character cell
+var EMT_ART_LOG_MAX = 20000;
+var EMT_ART_TRIES = 3;
+var EMT_ART_REDOS = 3;
+var EMT_ART_CONTS = 2;                      // pause_turn continuations of the research
+var EMT_ART_NOTE_MAX = 400;
+var EMT_ART_BATCH_MAX_MS = 6 * 3600e3;
+var EMT_ART_JOB_MAX_MS = 36 * 3600e3;
+var EMT_ART_RECAP_DAYS_MS = 5 * 24 * 3600e3;
+var EMT_ART_RECAP_FRESH_MS = 24 * 3600e3;
+var EMT_ART_PREVIEW_AHEAD_MS = 50 * 3600e3;
+var EMT_ART_PREVIEW_FRESH_MS = 12 * 3600e3;
+var EMT_ART_FAILED_SHOWN_MS = 7 * 24 * 3600e3;
+var EMT_ART_LATE_MS = 200 * 1000;           // aiTick: no article work once the run is 200 s old
+var EMT_ART_BUSY_MS = 390 * 1000;
+var EMT_ART_ACTIVE = ['research', 'writing'];
+var EMT_ART_WAITING = ['research', 'writing', 'draft'];
+var EMT_ART_LABELS = { recap: ['Star of the match', 'The zero'], preview: ['Player to watch', 'The limbo', 'The zero'] };
+var EMT_ART_AROUND = { recap: ['Around the league', 'Waiver watch', 'Next up'], preview: ['The slate', 'Transfer clock', 'Waiver wire'] };
+var EMT_ART_FOOT = { recap: 'Scores are provisional until FPL confirms bonus and stat corrections.',
+  preview: 'Predicted scores come from each side\'s projected XI; flags can change at Friday\'s pressers.' };
+var EMT_ART_WORDS = [600, 1400];
+var EMT_COMMISH_DEFAULT = 'Cold Palmers';
+var EMT_EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2300}-\u{23FF}\u{FE0F}\u{200D}\u{20E3}\u{3030}\u{303D}\u{3297}\u{3299}]/u;
+
+/* the house style (Parker's feedback on GW1 to GW4) */
+var EMT_ART_SYSTEM = [
+  'You write the weekly articles for Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Each gameweek every club plays one head to head fixture: 3 points for a win, 1 for a draw. There are two kinds of article: the RECAP after a gameweek and the PREVIEW before a deadline. The commissioner reads every draft before the league sees it.',
+  '',
+  'THE VOICE. An objective third-person narrator who reports straight and is funny on top: never first person (no I, we, our or us). Managers by first name (mgr), clubs by team name, spelt exactly as in FACTS. British spelling, plain sentences. Every matchup gets at least one real joke, built the way THE READERS describes. No pet phrase used twice, and no coinage that needs explaining.',
+  '',
+  'THE RECAP is the official summary of every single game: what happened and why, for someone who did not watch. It is not a stats dump. Football first, numbers as seasoning: use the real football in RESEARCH (the goals and how they came, assists, red cards, missed penalties, VAR, benchings) to explain each fantasy result. xP appears only where it answers "was this real?". Per matchup: the kicker, the star (Star of the match, or The zero for a memorable failure), a story of 2 to 3 sentences, 3 one-line bullets, and the number of the match with its caption.',
+  '',
+  'THE PREVIEW is built around who has who: the collisions in FACTS list, for each fixture, the real Premier League games in which both sides have players. Find the same-club stacks, the direct duels (his striker against your keeper), the split back lines. Look ahead; last week is one line of seasoning at most. The star is the Player to watch, or The limbo when the story is a doubt, or The zero. A predicted score is always labelled as predicted ("predicted 43 to 36") and never looks like a real score. Keep numbers that drift (win chances, projections) to a minimum: the screen shows the live figures.',
+  '',
+  'DERBIES. When a fixture has a derby name in FACTS, the kicker starts with it. Otherwise a plain kicker of a few words.',
+  '',
+  'NO CONTRADICTIONS. Check every player against the rosters in FACTS before you write about him: never suggest picking up a rostered player and never imply that one is a free agent. State each fact once. Keep every scoreline consistent across the article.',
+  '',
+  'BANTER stays inside the league: picks, form, the table, quotes, trades. Nothing about anyone\'s looks, family, health, money, work or life outside the league. THE READERS below sets what is funny and the hard limits. Quote a manager only word for word from the quotes in FACTS, in double quotes; never invent a quote. Real footballers appear only as footballers.',
+  '',
+  'NUMBERS. Every number you write must appear in FACTS or RESEARCH. The only exceptions: counts from 0 to 11, the years 2025 to 2027, and the margin of a scoreline in FACTS (55 to 42 is a win by 13). Never work anything else out: no sums, averages, differences or percentages of your own. Write stats as digits.',
+  '',
+  'STYLE. Plain text only: no markdown, no HTML, no emoji, no hashtags, no em dashes or en dashes (use a comma, a colon or a full stop; a hyphen only inside a word or a scoreline like 2-1). About 1,100 words in all, a 90-second read; never under 600 or over 1,400.',
+  ''
+].concat(EMT_TONE_LINES, [
+  '',
+  'REPLY with one JSON object only: no prose before or after it, no code fence.'
+]).join('\n');
+
+function emtCommish() { return String(emtProps().getProperty('EMT_COMMISH') || '').trim() || EMT_COMMISH_DEFAULT; }
+function emtTrue(v) { return v === true || String(v).toUpperCase() === 'TRUE'; }
+function emtUnq(v) { return v instanceof Date ? v.toISOString() : String(v == null ? '' : v).replace(/^'/, ''); }
+function emtIso(ms) { return ms ? new Date(ms).toISOString() : ''; }
+function emtSameNum(a, b) {
+  if (a === '' || a === null || a === undefined || b === '' || b === null || b === undefined) return false;
+  var x = Number(a), y = Number(b);
+  return isFinite(x) && isFinite(y) && Math.abs(x - y) < 1e-9;
+}
+function emtArtSay(job, m) { Logger.log('Articles, ' + job.kind + ' GW' + job.gw + ' (' + job.id + '): ' + m); }
+/* the cache behind ?articles=1, cleared on every change */
+function emtArtTouch() { try { CacheService.getScriptCache().remove('EMT_ART_LIST'); } catch (e) { } }
+/* a Log line without draft text: whitespace collapsed, quoted fragments of 24+ characters become "..." */
+function emtArtRedact(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').replace(/["\u201C][^"\u201C\u201D]{24,}["\u201D]/g, '"..."'); }
+
+/* ---------- sealed cells: drafts are unreadable in the sheet ----------
+ * The sheet is shared "anyone with the link can view" and the app's public code names it, so a hidden tab can still
+ * be read by anyone who asks for it by name. Until the commissioner approves an article, its text (Article cell, the
+ * rejected reply in ArticleWork) and his note are kept sealed: 's:' + nonce + ':' + base64 of the UTF-8 bytes XORed
+ * with an HMAC-SHA256 keystream (counter mode) under EMT_ART_SEAL, a random Script Property made on first use (no
+ * setup). Approving writes the article back as plain 'j:' json. If EMT_ART_SEAL is ever deleted, sealed drafts can no
+ * longer be read: ask for a rewrite or use Articles: write now. */
+var EMT_SEAL_MARK = 's:';
+/* the sealing key ('' when there is none and make is false). make: create it when missing (call outside the script
+ * lock: it takes the lock for a moment) */
+function emtArtSecret(make) {
+  var p = emtProps(), k = p.getProperty('EMT_ART_SEAL') || '';
+  if (k || !make) return k;
+  var lock = LockService.getScriptLock(), got = false;
+  try { got = lock.tryLock(10000); } catch (e) { got = false; }
+  try {
+    k = p.getProperty('EMT_ART_SEAL') || '';
+    if (!k) { k = (String(Utilities.getUuid()) + String(Utilities.getUuid())).replace(/[^0-9a-f]/gi, '').toLowerCase(); p.setProperty('EMT_ART_SEAL', k); }
+    return k;
+  } finally { if (got) lock.releaseLock(); }
+}
+function emtArtXor(bytes, key, nonce) {
+  var out = new Array(bytes.length), ks = null;
+  for (var i = 0; i < bytes.length; i++) {
+    if (i % 32 === 0) ks = Utilities.computeHmacSha256Signature(nonce + ':' + (i / 32), key);
+    out[i] = ((bytes[i] ^ ks[i % 32]) << 24) >> 24;   /* stays a signed byte, as Apps Script's byte arrays are */
+  }
+  return out;
+}
+/* seal a string with the key (from emtArtSecret(true)) → 's:...' */
+function emtArtSeal(str, key) {
+  var nonce = String(Utilities.getUuid()).replace(/[^0-9a-f]/gi, '').toLowerCase().slice(0, 16);
+  return EMT_SEAL_MARK + nonce + ':' + Utilities.base64Encode(emtArtXor(Utilities.newBlob(String(str)).getBytes(), key, nonce));
+}
+/* the string inside a sealed cell, or null (not sealed, no key, or not readable) */
+function emtArtOpen(v) {
+  var s = emtUnq(v), m = /^s:([0-9a-f]{8,32}):([A-Za-z0-9+\/=]*)$/.exec(s), key = m ? emtArtSecret(false) : '';
+  if (!m || !key) return null;
+  try { return Utilities.newBlob(emtArtXor(Utilities.base64Decode(m[2]), key, m[1])).getDataAsString(); } catch (e) { return null; }
+}
+
+/* ---------- gameweeks ---------- */
+/* the latest gameweek whose H2H Fixtures rows are all Finished (0 when none) */
+function emtArtRecapGw(rows) {
+  var by = {}, best = 0;
+  (rows || emtRows('H2H Fixtures')).forEach(function (r) {
+    var g = Number(r.GW); if (!(g > 0)) return;
+    var b = by[g] || (by[g] = { n: 0, done: 0 }); b.n++; if (emtTrue(r.Finished)) b.done++;
+  });
+  Object.keys(by).forEach(function (g) { if (by[g].n && by[g].done === by[g].n && Number(g) > best) best = Number(g); });
+  return best;
+}
+/* when a gameweek's last real game ended (ms): its last kickoff in Club Fixtures + 2h15; 0 when unknown */
+function emtArtGwEndMs(gw) {
+  var best = 0;
+  emtRows('Club Fixtures').forEach(function (r) { if (Number(r.GW) !== gw) return; var t = liveKickoffMs(r['Kickoff (UTC)']); if (t && t > best) best = t; });
+  return best ? best + LIVE_MATCH_MS : 0;
+}
+/* the next gameweek whose deadline is still ahead: { gw, dl } or null */
+function emtArtNextDeadline(now) {
+  var best = null;
+  emtRows('Matchweeks').forEach(function (w) { var g = Number(w.GW), t = aiTs(w['Deadline (UTC)']); if (g > 0 && t > now && (!best || t < best.dl)) best = { gw: g, dl: t }; });
+  return best;
+}
+
+/* ---------- 1. the recap facts, from the app ---------- */
+function emtArtFacts(team, req) {
+  var gw = Number(req.gw);
+  if (String(req.kind || '') !== 'recap') return { ok: false, error: 'badkind' };
+  if (!(gw > 0)) return { ok: false, error: 'badgw' };
+  var h2h = emtRows('H2H Fixtures'), real = h2h.filter(function (r) { return Number(r.GW) === gw; });
+  if (!real.length || real.some(function (r) { return !emtTrue(r.Finished); })) return { ok: false, error: 'notdone' };
+  if (gw !== emtArtRecapGw(h2h)) return { ok: false, error: 'closed' };    /* only the latest finished gameweek */
+  var raw = req.facts;
+  if (raw && typeof raw === 'object') raw = JSON.stringify(raw);
+  if (typeof raw !== 'string' || !raw || raw.length > EMT_FACTS_MAX) return { ok: false, error: 'badfacts' };
+  var f;
+  try { f = JSON.parse(raw); } catch (e) { return { ok: false, error: 'badfacts' }; }
+  if (!f || typeof f !== 'object' || Array.isArray(f)) return { ok: false, error: 'badfacts' };
+  if (f.kind !== undefined && f.kind !== 'recap') return { ok: false, error: 'badkind' };
+  if (f.gw !== undefined && f.gw !== null && f.gw !== '' && Number(f.gw) !== gw) return { ok: false, error: 'badfacts' };
+  /* exactly the gameweek's fixtures, then exactly its scores */
+  var fx = f.fixtures, seen = {}, pairs = [];
+  if (!Array.isArray(fx) || fx.length !== real.length) return { ok: false, error: 'fixtures' };
+  for (var i = 0; i < fx.length; i++) {
+    var x = fx[i];
+    if (!x || typeof x !== 'object' || typeof x.home !== 'string' || typeof x.away !== 'string') return { ok: false, error: 'fixtures' };
+    var k = x.home + '|' + x.away, r = real.filter(function (z) { return String(z.Home) + '|' + String(z.Away) === k; })[0];
+    if (!r || seen[k]) return { ok: false, error: 'fixtures' };
+    seen[k] = 1; pairs.push([x, r]);
+  }
+  for (var j = 0; j < pairs.length; j++) {
+    if (!emtSameNum(pairs[j][0].hs, pairs[j][1]['Home pts']) || !emtSameNum(pairs[j][0].as, pairs[j][1]['Away pts'])) return { ok: false, error: 'scores' };
+  }
+  var cache = CacheService.getScriptCache(), rk = 'EMT_RF_' + team;
+  if (cache.get(rk)) return { ok: false, error: 'slow' };
+  var data = JSON.stringify(f);
+  if (data.length > EMT_FACTS_MAX) return { ok: false, error: 'badfacts' };
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    if (cache.get(rk)) return { ok: false, error: 'slow' };
+    var st = emtFactsStore('RecapFacts', gw, team, data);
+    cache.put(rk, '1', EMT_FACTS_EVERY_S);
+    return { ok: true, at: st.at, parts: st.parts };
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- the Articles tab ---------- */
+/* the Note cell: 'j:' + { s: <the note, sealed>, redos, at } (or { text } as written by hand) */
+function emtArtNote(v) {
+  var s = emtUnq(v);
+  if (s.indexOf(EMT_JSON_MARK) === 0) {
+    try {
+      var j = JSON.parse(s.slice(EMT_JSON_MARK.length));
+      if (j && typeof j === 'object') {
+        var t = String(j.text || '');
+        if (j.s) { var o = emtArtOpen(j.s); try { t = o === null ? '' : String(JSON.parse(o)); } catch (e) { t = ''; } }
+        return { text: t, redos: Number(j.redos) || 0, at: String(j.at || '') };
+      }
+    } catch (e) { }
+  }
+  return { text: s, redos: 0, at: '' };
+}
+/* the time of the newest Log line (ms) and its text without the time */
+function emtArtLogAt(log) { var l = String(log || '').split('\n').filter(Boolean), m = l.length ? /^(\S+)/.exec(l[l.length - 1]) : null; return m ? aiTs(m[1]) : 0; }
+function emtArtLogLast(log) { var l = String(log || '').split('\n').filter(Boolean); return l.length ? l[l.length - 1].replace(/^\S+\s+/, '') : ''; }
+
+/* every row's metadata, without Research and Article (two narrow reads) */
+function emtArtMeta() {
+  var sh = SpreadsheetApp.getActive().getSheetByName('Articles'), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return [];
+  var a = sh.getRange(2, 1, last - 1, 7).getValues(), b = sh.getRange(2, 10, last - 1, 3).getValues(), out = [];
+  a.forEach(function (r, i) {
+    var id = emtUnq(r[0]);
+    if (!id) return;
+    var note = emtArtNote(b[i][0]), log = emtUnq(b[i][2]);
+    out.push({ row: i + 2, id: id, gw: Number(r[1]) || 0, kind: emtUnq(r[2]), status: emtUnq(r[3]), written: emtUnq(r[4]), model: emtUnq(r[5]),
+      factsAt: emtUnq(r[6]), note: note.text, redos: note.redos, approved: emtUnq(b[i][1]), log: log, since: emtArtLogAt(log) });
+  });
+  return out;
+}
+function emtArtFind(id, meta) { meta = meta || emtArtMeta(); for (var i = 0; i < meta.length; i++) if (meta[i].id === id) return meta[i]; return null; }
+function emtArtCell(row, col) { var sh = SpreadsheetApp.getActive().getSheetByName('Articles'); return sh ? sh.getRange(row, col, 1, 1).getValues()[0][0] : ''; }
+/* the Article cell: 'j:' + json once live, sealed ('s:') before that */
+function emtArtArticle(v) {
+  var s = emtUnq(v), js = null;
+  if (s.indexOf(EMT_JSON_MARK) === 0) js = s.slice(EMT_JSON_MARK.length);
+  else if (s.indexOf(EMT_SEAL_MARK) === 0) js = emtArtOpen(s);
+  if (js === null) return null;
+  try { var j = JSON.parse(js); return j && typeof j === 'object' && !Array.isArray(j) ? j : null; } catch (e) { return null; }
+}
+function emtArtResearchText(v) { var s = emtUnq(v); return s.indexOf(EMT_TEXT_MARK) === 0 ? s.slice(EMT_TEXT_MARK.length) : ''; }
+
+/* change one row, found by id: fields (status, written, model, factsAt, research, article, note, approved) are cell
+ * values; logLine is appended to Log. onlyIf: the statuses the row must be in, else nothing changes. run (a job's
+ * run token): when given, nothing changes if another job, or a newer run of this article, is in EMT_ART_JOB.
+ * The Log never keeps draft text: quoted fragments of 24 characters or more become "..." (the Articles tab is
+ * hidden, not private). → { row, was } | { missing } | { skipped: status } */
+function emtArtUpdate(id, fields, logLine, onlyIf, run) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try { return emtArtUpdateLocked(id, fields, logLine, onlyIf, run); } finally { lock.releaseLock(); }
+}
+function emtArtUpdateLocked(id, fields, logLine, onlyIf, run) {
+  var sh = SpreadsheetApp.getActive().getSheetByName('Articles'), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return { missing: true };
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues(), row = 0;
+  for (var i = 0; i < ids.length; i++) if (emtUnq(ids[i][0]) === id) { row = i + 2; break; }
+  if (!row) return { missing: true };
+  var status = emtUnq(sh.getRange(row, EMT_ART_COL.status, 1, 1).getValues()[0][0]);
+  if (onlyIf && onlyIf.indexOf(status) < 0) return { skipped: status, row: row };
+  if (run !== undefined && emtArtStale({ id: id, run: run })) return { skipped: 'stale', row: row };
+  Object.keys(fields || {}).forEach(function (k) { if (EMT_ART_COL[k]) sh.getRange(row, EMT_ART_COL[k], 1, 1).setValues([[fields[k]]]); });
+  if (logLine) {
+    var cur = emtUnq(sh.getRange(row, EMT_ART_COL.log, 1, 1).getValues()[0][0]);
+    var line = new Date().toISOString() + ' ' + ((fields && fields.status) || status) + ': ' + emtArtRedact(logLine).slice(0, 1500);
+    var all = (cur ? cur + '\n' : '') + line;
+    if (all.length > EMT_ART_LOG_MAX) all = all.slice(all.length - EMT_ART_LOG_MAX).replace(/^[^\n]*\n/, '');
+    sh.getRange(row, EMT_ART_COL.log, 1, 1).setValues([["'" + all]]);
+  }
+  emtArtTouch();
+  return { row: row, was: status };
+}
+
+/* ---------- the job (EMT_ART_JOB) and the rewrite queue (EMT_ART_QUEUE) ---------- */
+function emtArtJob() {
+  try { var j = JSON.parse(emtProps().getProperty('EMT_ART_JOB') || 'null'); return j && typeof j === 'object' && j.id ? j : null; } catch (e) { return null; }
+}
+function emtArtQueue() {
+  try { var q = JSON.parse(emtProps().getProperty('EMT_ART_QUEUE') || '[]'); return Array.isArray(q) ? q.map(String) : []; } catch (e) { return []; }
+}
+function emtArtSetQueue(q) { if (q.length) emtProps().setProperty('EMT_ART_QUEUE', JSON.stringify(q.slice(-10))); else emtProps().deleteProperty('EMT_ART_QUEUE'); }
+/* is this job object stale: another job, or a newer run of the same article (dropped, then a rewrite asked for while
+ * this run was working), is the one in EMT_ART_JOB now? No stored job at all is not stale (its state was lost). */
+function emtArtStale(job) {
+  var cur = emtArtJob();
+  return !!(cur && (cur.id !== job.id || String(cur.run || '') !== String(job.run || '')));
+}
+/* save the job, unless its article stopped being worked on meanwhile (the commissioner dropped it) or a newer run took
+ * over: then this run's job is forgotten → false */
+function emtArtJobPut(job) {
+  var lock = LockService.getScriptLock(), ok = false, mine = false;
+  lock.waitLock(10000);
+  try {
+    var m = emtArtFind(job.id), p = emtProps(), stale = emtArtStale(job);
+    mine = !stale;
+    if (m && EMT_ART_ACTIVE.indexOf(m.status) > -1 && !stale) { p.setProperty('EMT_ART_JOB', JSON.stringify(job)); ok = true; }
+    else if (!stale && emtArtJob()) p.deleteProperty('EMT_ART_JOB');
+  } finally { lock.releaseLock(); }
+  if (!ok && mine) emtWorkClear(job.id);   /* a newer run of the same article keeps its files */
+  return ok;
+}
+/* the job is over: forget it (only this run of it) and delete its files */
+function emtArtJobEnd(id, run) {
+  var lock = LockService.getScriptLock(), mine = true;
+  lock.waitLock(10000);
+  try {
+    var cur = emtArtJob();
+    if (cur && cur.id === id) {
+      if (run === undefined || String(cur.run || '') === String(run || '')) emtProps().deleteProperty('EMT_ART_JOB'); else mine = false;
+    }
+  } finally { lock.releaseLock(); }
+  if (mine) emtWorkClear(id);
+}
+
+/* ---------- ArticleWork: a job's working files, 45,000-character chunks marked 'j:' ---------- */
+function emtWorkPut(id, key, str) {
+  var sh = emtHiddenSheet('ArticleWork', EMT_WORK_HEAD), lock = LockService.getScriptLock();
+  str = String(str);
+  lock.waitLock(10000);
+  try {
+    var last = sh.getLastRow(), old = [];
+    if (last > 1) sh.getRange(2, 1, last - 1, 2).getValues().forEach(function (r, i) { if (emtUnq(r[0]) === id && String(r[1]) === key) old.push(i + 2); });
+    emtShowDeleteRows(sh, old);
+    var at = "'" + new Date().toISOString(), n = Math.max(1, Math.ceil(str.length / EMT_SHOW_CHUNK));
+    for (var q = 0; q < n; q++) sh.appendRow([emtCell(id), key, q + 1, n, EMT_JSON_MARK + str.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK), at]);
+  } finally { lock.releaseLock(); }
+}
+/* a file's text, or null: four narrow columns find its rows, then only those Data cells are read */
+function emtWorkGet(id, key) {
+  var sh = SpreadsheetApp.getActive().getSheetByName('ArticleWork'), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return null;
+  var rows = [], n = 0, got = 0, parts = [];
+  sh.getRange(2, 1, last - 1, 4).getValues().forEach(function (r, i) {
+    if (emtUnq(r[0]) !== id || String(r[1]) !== key) return;
+    n = Number(r[3]) || 0; rows[Number(r[2]) - 1] = i + 2; got++;
+  });
+  if (!n || got !== n) return null;
+  for (var q = 0; q < n; q++) {
+    if (!rows[q]) return null;
+    var d = String(sh.getRange(rows[q], 5, 1, 1).getValues()[0][0]);
+    if (d.indexOf(EMT_JSON_MARK) !== 0) return null;
+    parts.push(d.slice(EMT_JSON_MARK.length));
+  }
+  return parts.join('');
+}
+function emtWorkJson(id, key) { var s = emtWorkGet(id, key); if (s === null) return null; try { return JSON.parse(s); } catch (e) { return null; } }
+/* delete a job's files (keys: only those; id '': every file) */
+function emtWorkClear(id, keys) {
+  var sh = SpreadsheetApp.getActive().getSheetByName('ArticleWork'), last = sh ? sh.getLastRow() : 0;
+  if (last < 2) return;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    last = sh.getLastRow();
+    if (last < 2) return;
+    var rows = [];
+    sh.getRange(2, 1, last - 1, 2).getValues().forEach(function (r, i) { if ((!id || emtUnq(r[0]) === id) && (!keys || keys.indexOf(String(r[1])) > -1)) rows.push(i + 2); });
+    emtShowDeleteRows(sh, rows);
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- the Message Batches API ---------- */
+function emtArtApi(method, url, body) {
+  var o = { method: method, contentType: 'application/json', muteHttpExceptions: true, headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' } };
+  if (body) o.payload = JSON.stringify(body);
+  var r = { code: 0, text: '', json: null };
+  try {
+    var res = UrlFetchApp.fetch(url, o);
+    r.code = res.getResponseCode(); r.text = String(res.getContentText() || '');
+  } catch (e) { r.text = String((e && e.message) || e); return r; }
+  try { r.json = JSON.parse(r.text); } catch (e) { r.json = null; }
+  return r;
+}
+function emtArtCancel(batch) { if (batch) { try { emtArtApi('post', EMT_ART_BATCHES + '/' + encodeURIComponent(batch) + '/cancel'); } catch (e) { } } }
+function emtArtSearchOff(type, msg) { return /web.?search/i.test(String(msg || '')) && (!type || type === 'invalid_request_error' || type === 'permission_error'); }
+/* v3.13: a phase's request id and model chain. research '-r' and write '-w' on the article chain (EMT_ARTICLE_MODEL);
+ * punch '-p' on the punch-up chain (EMT_PUNCH_MODEL, then EMT_PUNCH_MODELS) */
+function emtArtCid(job) { return job.id + (job.phase === 'research' ? '-r' : job.phase === 'punch' ? '-p' : '-w'); }
+function emtArtChain(phase) { return phase === 'punch' ? emtModelChain('EMT_PUNCH_MODEL', EMT_PUNCH_MODELS) : emtModelChain('EMT_ARTICLE_MODEL', EMT_ART_MODELS); }
+/* the next model in the phase's chain after one that turned out to be gone ('' when none is left) */
+function emtArtModelAfter(cur, phase) {
+  var c = emtArtChain(phase), g = emtModelGoneMap();
+  return c.slice(c.indexOf(cur) + 1).filter(function (m) { return !emtModelIsGone(g, m); })[0] || '';
+}
+/* one batch with one request, built per model by build(model).
+ * → { batch, model } | { wait } (never reached Claude: not counted) | { searchOff } | { missing } | { bad } */
+function emtArtCreate(job, build) {
+  var models = emtModelsLive(emtArtChain(job.phase)), i = Math.max(0, models.indexOf(job.model));
+  for (; i < models.length; i++) {
+    var r = emtArtApi('post', EMT_ART_BATCHES, { requests: [{ custom_id: emtArtCid(job), params: build(models[i]) }] });
+    if (r.code === 200 && r.json && r.json.id) return { batch: String(r.json.id), model: models[i] };
+    var er = emtApiErr(r.json || r.text);
+    /* web search off for the organisation can come back as a 400 or as a 403 permission_error: either way the article
+     * is written from the league data (checked before the 401/403 wait, which would otherwise hold it for 36 hours) */
+    if (r.code && r.code !== 429 && r.code < 500 && job.phase === 'research' && emtArtSearchOff(er.type, er.msg)) return { searchOff: er.msg };
+    if (!r.code || r.code === 429 || r.code >= 500 || r.code === 401 || r.code === 403) return { wait: 'the Batches API answered ' + (r.code || 'nothing') + (er.msg ? ': ' + er.msg.slice(0, 160) : '') };
+    if (emtModelMissing(r.code, er.type, er.msg)) { emtModelNoteGone(models[i], er.msg); continue; }
+    return { bad: 'the Batches API refused the request (HTTP ' + r.code + '): ' + er.msg.slice(0, 200) };
+  }
+  return { missing: 'no model in the chain is available (' + models.join(', ') + ')' };
+}
+/* → { pending } | { wait } | { lost } | { result } */
+function emtArtPoll(job) {
+  var r = emtArtApi('get', EMT_ART_BATCHES + '/' + encodeURIComponent(job.batch));
+  if (r.code === 404) return { lost: 'the batch ' + job.batch + ' is gone (404)' };
+  if (r.code !== 200 || !r.json) return { wait: 'checking the batch answered ' + (r.code || 'nothing') };
+  if (r.json.processing_status !== 'ended') return { pending: String(r.json.processing_status || 'in_progress') };
+  var g = emtArtApi('get', r.json.results_url || (EMT_ART_BATCHES + '/' + encodeURIComponent(job.batch) + '/results'));
+  if (g.code !== 200) return { wait: 'reading the batch results answered ' + (g.code || 'nothing') };
+  var want = emtArtCid(job), hit = null;
+  g.text.split('\n').forEach(function (l) {
+    if (hit || !l.trim()) return;
+    try { var o = JSON.parse(l); if (o && o.custom_id === want) hit = o; } catch (e) { }
+  });
+  if (!hit || !hit.result) return { lost: 'the batch results have no line for ' + want };
+  return { result: hit.result };
+}
+function emtArtTexts(content) {
+  return (content || []).filter(function (c) { return c && c.type === 'text'; }).map(function (c) { return String(c.text || ''); }).join('');
+}
+
+/* ---------- 2. the research ---------- */
+function emtArtResearchSystem(kind) {
+  return [
+    'You research the real football behind an article for Matchweek, the app of a private FPL Draft (fantasy Premier League) league. Search the web and write research notes in plain text. A writer will use only what is in your notes, so be complete and exact, and never guess.',
+    '',
+    kind === 'recap'
+      ? 'WHAT TO FIND. For every game in PREMIER LEAGUE RESULTS: how it happened. Every scorer and how the goal came about, the assists, red cards, missed or saved penalties, VAR decisions, injuries during the game, and what the managers said afterwards. Then how the KEY PLAYERS earned their points, and for the PLAYERS TO CHECK why they started on the bench or did not play (injury, illness, suspension, rotation, a transfer) and when they are expected back.'
+      : 'WHAT TO FIND. For every game in THE SLATE: team news and what the managers said at the pre-match press conferences. For every FLAGGED PLAYER: the latest on the injury or doubt and whether he is expected to play. Then any transfer story or manager saga that touches a ROSTERED PLAYER (a move, a contract stand-off, a manager under pressure).',
+    '',
+    'DATE-CHECK EVERYTHING. Use only reports about the dates given; ignore last season, other competitions and stale previews. When reports disagree or are unclear, say so.',
+    '',
+    'FORMAT. Notes grouped by game (Home v Away), one fact per line, each line ending with its source name in brackets, for example: Saka scored the opener from a Rice corner (BBC Sport). Numbers as digits. Quote people only word for word, in double quotes. No opinions, no padding, no markdown, no em dashes.',
+    'End with a line that says SOURCES: and then one line per source you used, as: name | url (the exact url you read).'
+  ].join('\n');
+}
+/* the trimmed facts the research needs: the real games, the players to explain or check, the flags */
+function emtArtResearchUser(job, f) {
+  f = f && typeof f === 'object' ? f : {};
+  var L = [], today = new Date().toISOString().slice(0, 10), seen = {};
+  var who = function (p) { return String((p && p.name) || '?') + (p && p.club ? ' (' + p.club + ')' : ''); };
+  var once = function (arr, line) { if (!seen[line]) { seen[line] = 1; arr.push(line); } };
+  var span = function (games) {
+    var t = games.map(function (g) { return aiTs(g && g.ko); }).filter(Boolean).sort(function (a, b) { return a - b; });
+    return t.length ? ' Its Premier League games ' + (job.kind === 'recap' ? 'were played' : 'are') + ' from ' + emtIso(t[0]).slice(0, 10) + ' to ' + emtIso(t[t.length - 1]).slice(0, 10) + '.' : '';
+  };
+  if (job.kind === 'recap') {
+    var pl = Array.isArray(f.pl) ? f.pl : [], key = [], check = [];
+    L.push('THE RECAP OF GAMEWEEK ' + job.gw + '. Today is ' + today + '.' + span(pl), '', 'PREMIER LEAGUE RESULTS:');
+    pl.forEach(function (g) {
+      if (!g) return;
+      /* a game without a result in the league data (postponed, abandoned, not played yet) is named, never "undefined-undefined" */
+      var res = emtSameNum(g.hs, Number(g.hs)) && emtSameNum(g.as, Number(g.as));
+      L.push('- ' + (res ? g.home + ' ' + g.hs + '-' + g.as + ' ' + g.away : g.home + ' v ' + g.away + ' (no result in the league data: postponed or not played; check)') + (g.ko ? ' (kick-off ' + g.ko + ')' : ''));
+    });
+    if (!pl.length) L.push('- (none listed)');
+    (Array.isArray(f.fixtures) ? f.fixtures : []).forEach(function (x) {
+      ['H', 'A'].forEach(function (k) {
+        var s = x && x[k]; if (!s) return;
+        (s.xi || []).forEach(function (p) {
+          if (!p) return;
+          var mins = Number(p.mins) || 0, pts = Number(p.pts) || 0;
+          if (!mins) once(check, '- ' + who(p) + ': did not play');
+          else if (mins < 45) once(check, '- ' + who(p) + ': played ' + mins + ' minutes');
+          if (mins && pts >= 6) key.push({ pts: pts, line: '- ' + who(p) + ': ' + pts + ' points' + (p.g ? ', ' + p.g + ' goal' + (p.g > 1 ? 's' : '') : '') + (p.a ? ', ' + p.a + ' assist' + (p.a > 1 ? 's' : '') : '') + (p.cs ? ', a clean sheet' : '') });
+        });
+        (s.bench || []).forEach(function (p) { if (p && !(Number(p.mins) > 0)) once(check, '- ' + who(p) + ': did not play (on a fantasy bench)'); });
+      });
+    });
+    key.sort(function (a, b) { return b.pts - a.pts; });
+    L.push('', 'KEY PLAYERS (explain how they got their points):');
+    if (key.length) key.slice(0, 14).forEach(function (k) { once(L, k.line); }); else L.push('- (none)');
+    L.push('', 'PLAYERS TO CHECK (rostered in the league; why did they start on the bench or not play?):');
+    if (check.length) L.push.apply(L, check.slice(0, 25)); else L.push('- (none)');
+  } else {
+    var slate = Array.isArray(f.slate) ? f.slate : [], flags = [], byClub = {}, dl = aiTs(f.deadline);
+    L.push('THE PREVIEW OF GAMEWEEK ' + job.gw + '. Today is ' + today + '.' + (dl ? ' The deadline is ' + emtIso(dl) + '.' : '') + span(slate), '', 'THE SLATE:');
+    slate.forEach(function (g) { if (g) L.push('- ' + g.home + ' v ' + g.away + (g.ko ? ' (kick-off ' + g.ko + ')' : '')); });
+    if (!slate.length) L.push('- (none listed)');
+    (Array.isArray(f.fixtures) ? f.fixtures : []).forEach(function (x) {
+      ['H', 'A'].forEach(function (k) {
+        var s = x && x[k]; if (!s) return;
+        (s.xi || []).concat(s.bench || []).forEach(function (p) {
+          if (p && emtArtFlagged(p)) once(flags, '- ' + who(p) + ': ' + [p.chance !== '' && p.chance != null ? p.chance + '%' : '', String(p.news || '').trim() || 'status ' + p.status].filter(Boolean).join(', '));
+        });
+      });
+    });
+    L.push('', 'FLAGGED PLAYERS (rostered, with an injury or availability flag):');
+    if (flags.length) L.push.apply(L, flags.slice(0, 30)); else L.push('- (none)');
+    var ros = f.rosters && typeof f.rosters === 'object' ? f.rosters : {};
+    Object.keys(ros).forEach(function (t) {
+      (Array.isArray(ros[t]) ? ros[t] : []).forEach(function (e) {
+        var m = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(String(e)), nm = m ? m[1] : String(e), club = m ? m[2] : '?';
+        (byClub[club] = byClub[club] || []).push(nm);
+      });
+    });
+    L.push('', 'ROSTERED PLAYERS BY CLUB (look for transfer stories and manager sagas that touch them):');
+    var clubs = Object.keys(byClub).sort();
+    if (clubs.length) clubs.forEach(function (c) { L.push('- ' + c + ': ' + byClub[c].join(', ')); }); else L.push('- (none listed)');
+  }
+  L.push('', 'WRITE the research notes.');
+  return L.join('\n');
+}
+function emtArtResearchParams(job, facts, model, cont) {
+  var msgs = [{ role: 'user', content: emtArtResearchUser(job, facts) }];
+  if (cont && cont.length) msgs.push({ role: 'assistant', content: cont });   /* pause_turn: the paused turn, unchanged */
+  return { model: model, max_tokens: 3000, system: emtArtResearchSystem(job.kind),
+    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 10 }], messages: msgs };
+}
+function emtArtUrlKey(u) { return String(u || '').trim().replace(/#.*$/, '').replace(/\/+$/, '').toLowerCase(); }
+function emtArtSrcName(title, url) { var h = /^https?:\/\/(?:www\.)?([^\/?#]+)/i.exec(String(url || '')); return emtClean(title, 80) || (h ? h[1] : 'source'); }
+/* the research notes from the model's content: every text block joined (citations split them), then the SOURCES
+ * list rebuilt from the urls web search really returned (or cited). → { text, sources, searched } */
+function emtArtResearch(content) {
+  var text = '', real = {}, cited = [];
+  (content || []).forEach(function (c) {
+    if (!c) return;
+    if (c.type === 'text') {
+      text += String(c.text || '');
+      (Array.isArray(c.citations) ? c.citations : []).forEach(function (z) { if (z && z.url) { real[emtArtUrlKey(z.url)] = 1; cited.push({ name: emtArtSrcName('', z.url), url: String(z.url) }); } });
+    } else if (c.type === 'web_search_tool_result' && Array.isArray(c.content)) {
+      c.content.forEach(function (z) { if (z && z.url) real[emtArtUrlKey(z.url)] = 1; });
+    }
+  });
+  text = text.replace(/\r/g, '');
+  var re = /(?:^|\n)[ \t*#]*SOURCES[ \t*]*:/gi, mm, at = -1, end = -1;
+  while ((mm = re.exec(text))) { at = mm.index; end = re.lastIndex; }
+  var notes = at > -1 ? text.slice(0, at) : text, list = [], keys = {};
+  var add = function (name, url) {
+    url = String(url || '').replace(/[.,;]+$/, '');
+    var k = emtArtUrlKey(url);
+    if (!url || url.length > EMT_ART_URL_MAX || keys[k] || !real[k]) return;   /* a url over 400 characters is left out */
+    /* the name as the article may show it: no pipe, no dash, no emoji */
+    name = emtClean(name, 80).replace(/\|/g, '/').replace(/\s*[\u2014\u2013]\s*/g, ' - ').replace(new RegExp(EMT_EMOJI.source, 'gu'), '').trim() || emtArtSrcName('', url);
+    keys[k] = 1; list.push(name + ' | ' + url);
+  };
+  if (at > -1) text.slice(end).split('\n').forEach(function (l) {
+    var u = /(https?:\/\/[^\s)\]>|]+)/.exec(l);
+    if (!u) return;
+    var nm = l.slice(0, u.index).replace(/^[\s\-*\d.)]+/, '').replace(/[\s|:\-]+$/, '').trim();
+    add(nm || emtArtSrcName('', u[1]), u[1]);
+  });
+  cited.forEach(function (c) { add(c.name, c.url); });
+  list = list.slice(0, 40);
+  var tail = list.length ? '\n\nSOURCES:\n' + list.join('\n') : '';
+  notes = notes.replace(/[\s\-*#]+$/, '').trim();
+  if (notes.length + tail.length > EMT_ART_RESEARCH_MAX) notes = notes.slice(0, EMT_ART_RESEARCH_MAX - tail.length - 20).replace(/\s+\S*$/, '') + ' [cut]';
+  return { text: notes ? notes + tail : tail.replace(/^\s+/, ''), sources: list.length, searched: Object.keys(real).length };
+}
+/* the urls of the SOURCES list at the end of stored research notes (as keys) */
+function emtArtSourceUrls(research) {
+  var s = String(research || ''), i = s.lastIndexOf('SOURCES:\n'), out = [];
+  if (i < 0 || (i > 0 && s.charAt(i - 1) !== '\n')) return out;
+  s.slice(i + 9).split('\n').forEach(function (l) { var u = /\|\s*(https?:\/\/\S+)\s*$/.exec(l); if (u) { var k = emtArtUrlKey(u[1]); if (out.indexOf(k) < 0) out.push(k); } });
+  return out;
+}
+
+/* ---------- 3. the writing ---------- */
+/* the facts as sent: decimals to one place, as the show writer does; dashes in text as hyphens (the app writes
+ * formations like 3\u20135\u20132, and the article must not copy an en dash) */
+function emtArtSent(facts) {
+  return JSON.stringify(facts, function (k, v) {
+    if (typeof v === 'number' && isFinite(v) && v % 1 !== 0) return Math.round(v * 10) / 10;
+    return typeof v === 'string' ? v.replace(/[\u2013\u2014]/g, '-') : v;
+  });
+}
+function emtArtFlagged(p) {
+  var st = String(p.status == null || p.status === '' ? 'a' : p.status).toLowerCase(), ch = p.chance;
+  return st !== 'a' || !!String(p.news || '').trim() || (ch !== '' && ch !== null && ch !== undefined && isFinite(Number(ch)) && Number(ch) < 100);
+}
+function emtArtContract(kind, facts) {
+  var rec = kind === 'recap', n = ((facts && facts.fixtures) || []).length, q = function (s) { return '"' + s + '"'; };
+  var shape = { gw: Number(facts && facts.gw) || 0, kind: kind, title: '...', sub: '...', lede: '...',
+    matchups: [{ home: '<exact home team>', away: '<exact away team>', kicker: '...', star: { code: '<player code>', label: EMT_ART_LABELS[kind][0] },
+      story: '...', bullets: ['...', '...', '...'], number: { value: '<a number from FACTS>', caption: '...' } }],
+    around: [{ h: EMT_ART_AROUND[kind][0], body: '...', bullets: ['...'] }], sources: [{ name: '...', url: 'https://...' }], foot: EMT_ART_FOOT[kind] };
+  return [
+    'THE CONTRACT. Reply with one JSON object of exactly this shape:',
+    JSON.stringify(shape),
+    'Rules:',
+    '- matchups: one per fixture in FACTS (' + n + ' in all), home and away spelt exactly as in FACTS.',
+    '- title: one headline line, up to 20 words. sub: one line, up to 25 words. lede: 2 or 3 sentences that set up the week.',
+    '- kicker: when the fixture has a derby name in FACTS, the kicker starts with it; otherwise 2 to 6 plain words.',
+    rec ? '- star.code: the code of a player in that fixture\'s H.xi or A.xi (a bench player from H.bench or A.bench only with the label "The zero"). star.label: "Star of the match", or "The zero" for a memorable failure.'
+      : '- star.code: the code of a player in that fixture\'s H.xi or A.xi. star.label: "Player to watch"; "The limbo" when the story is his doubt (he must carry a flag in FACTS: a status other than a, a chance or news); or "The zero".',
+    rec ? '- story: 2 or 3 sentences: what happened and why, for someone who did not watch.' : '- story: 2 or 3 sentences built on who has who (the collisions in FACTS), looking ahead.',
+    '- bullets: exactly 3 strings, one line each.',
+    '- number.value: one number from FACTS, written as text (like "23", "4.5" or "61%"). number.caption: one line saying what it is.',
+    '- around: 1 to 3 sections, each heading used once, from: ' + EMT_ART_AROUND[kind].map(q).join(', ') + '. body: one short paragraph. bullets: optional, up to 4 short lines.',
+    rec ? '  Waiver watch names only players from "free" in FACTS (nobody owns them). Next up uses "next" in FACTS.'
+      : '  The slate uses "slate" in FACTS. Transfer clock covers "moves" in FACTS and real transfer news from RESEARCH. Waiver wire names only players who are in no roster.',
+    '- sources: 2 to 12 entries copied from the SOURCES list at the end of RESEARCH (name and url exactly as listed); [] when RESEARCH is empty.',
+    '- foot: ' + q(EMT_ART_FOOT[kind]) + (rec ? ', then one more sentence only when FACTS shows a dispute.' : '.'),
+    '- 600 to 1,400 words in all; aim for about 1,100.'
+  ].join('\n');
+}
+function emtArtWriteUser(job, facts, sent, research, prev) {
+  var u = [
+    'ARTICLE: the ' + job.kind + ' of gameweek ' + job.gw + '.',
+    '',
+    'FACTS (the league\'s own data, from the app; the only source for league numbers):',
+    sent,
+    '',
+    'RESEARCH (notes from web research on the real football, with SOURCES at the end):',
+    research || '(none: the research came back empty. Write from FACTS alone, keep real-football detail to what FACTS shows, and leave "sources" empty.)',
+    '',
+    emtArtContract(job.kind, facts)
+  ];
+  if (job.redos) {
+    u.push('', 'A REWRITE. The commissioner read the last draft and asks for a rewrite.' + (job.note ? ' His note: "' + job.note + '"' : ' He left no note.'));
+    if (prev) u.push('THE LAST DRAFT:', JSON.stringify(prev));
+    u.push('Write the whole article again: apply the note and keep everything that was right.');
+  }
+  u.push('', 'WRITE the ' + job.kind + ' of gameweek ' + job.gw + '. JSON only.');
+  return u.join('\n');
+}
+/* fix: { reply, problems } after a rejected reply: the reply goes back as the assistant turn with the problems */
+function emtArtWriteParams(user, fix, model) {
+  var msgs = [{ role: 'user', content: user }];
+  if (fix && fix.problems && fix.problems.length) {
+    var ask = 'Your article was rejected by the checks. Fix every problem below and send the whole article again, JSON only:\n- ' + fix.problems.slice(0, 25).join('\n- ');
+    var reply = String(fix.reply || '').replace(/\s+$/, '');
+    if (reply) msgs.push({ role: 'assistant', content: reply }, { role: 'user', content: ask });
+    else msgs[0].content = user + '\n\n' + ask;
+  }
+  return { model: model, max_tokens: 6000, system: EMT_ART_SYSTEM, messages: msgs };
+}
+
+/* every number the article may use (as a set): each number in the facts as sent and in the research (emtShowAllowed:
+ * also rounded and without decimals, plus 0 to 10 and the margin of every "a-b"), 11, the years 2025 to 2027, and the
+ * margin of every result in the facts (fixtures hs/as, pl hs/as) */
+function emtArtAllowed(text, facts) {
+  var ok = emtShowAllowed(text);
+  ['11', '2025', '2026', '2027'].forEach(function (n) { ok[n] = 1; });
+  var margin = function (x) { if (x && emtSameNum(x.hs, Number(x.hs)) && emtSameNum(x.as, Number(x.as))) ok[String(Math.abs(Number(x.hs) - Number(x.as)))] = 1; };
+  ((facts && facts.fixtures) || []).forEach(margin);
+  ((facts && facts.pl) || []).forEach(margin);
+  return ok;
+}
+function emtArtNorm(s) {
+  return String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[\u2018\u2019\u201B`]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function emtArtReEsc(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+/* the reply, checked against the facts and the research. → { problems: [...], article: <clean json> | null, words }
+ * extra: more text whose numbers are allowed (the commissioner's note) */
+function emtArticleCheck(text, facts, research, kind, gw, sent, extra) {
+  var P = [], s = String(text || ''), a = s.indexOf('{'), b = s.lastIndexOf('}'), j = null;
+  if (a > -1 && b > a) { try { j = JSON.parse(s.slice(a, b + 1)); } catch (e) { j = null; } }
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return { problems: ['The reply was not one JSON object in the shape asked for (JSON only, no prose).'], article: null, words: 0 };
+  facts = facts && typeof facts === 'object' ? facts : {};
+  research = String(research || '');
+  sent = typeof sent === 'string' ? sent : emtArtSent(facts);
+  var rec = kind === 'recap', labels = EMT_ART_LABELS[kind] || [], heads = EMT_ART_AROUND[kind] || [];
+  var T = function (v) { return typeof v === 'string' ? v.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim() : ''; };
+  var W = function (t) { return t ? t.split(/\s+/).length : 0; };
+  /* a label or heading in another case ("Star of the Match") is the allowed one, spelt as the app expects */
+  var canon = function (v, list) { var n = String(v || '').toLowerCase(); for (var c = 0; c < list.length; c++) if (list[c].toLowerCase() === n) return list[c]; return v; };
+  var span = function (t, where, lo, hi) { var n = W(t); if (!t) P.push(where + ' is empty.'); else if (n < lo || n > hi) P.push(where + ' has ' + n + ' words; it needs ' + lo + ' to ' + hi + '.'); };
+  var out = { gw: gw, kind: kind };
+  if (j.gw !== undefined && j.gw !== null && Number(j.gw) !== gw) P.push('"gw" must be ' + gw + '.');
+  if (j.kind !== undefined && j.kind !== null && String(j.kind) !== kind) P.push('"kind" must be "' + kind + '".');
+  out.title = T(j.title); span(out.title, '"title"', 3, 22);
+  out.sub = T(j.sub); span(out.sub, '"sub"', 3, 30);
+  out.lede = T(j.lede); span(out.lede, '"lede"', 15, 110);
+
+  /* matchups: one per fixture, exact names; the star from the right eleven */
+  var fx = Array.isArray(facts.fixtures) ? facts.fixtures : [], seen = {};
+  out.matchups = [];
+  (Array.isArray(j.matchups) ? j.matchups : []).forEach(function (m, i) {
+    m = m && typeof m === 'object' ? m : {};
+    var home = typeof m.home === 'string' ? m.home : '', away = typeof m.away === 'string' ? m.away : '', name = home + ' v ' + away;
+    var f = fx.filter(function (x) { return x && x.home === home && x.away === away; })[0];
+    if (!f) { P.push('Matchup ' + (i + 1) + ' (' + name + ') is not a fixture in FACTS: use the exact home and away team names.'); return; }
+    if (seen[name]) { P.push(name + ' has more than one matchup.'); return; }
+    seen[name] = 1;
+    var o = { home: home, away: away, kicker: T(m.kicker) };
+    if (!o.kicker) P.push(name + ': the kicker is empty.');
+    else if (W(o.kicker) > 12) P.push(name + ': the kicker has ' + W(o.kicker) + ' words; keep it to a few.');
+    if (f.derby && o.kicker && emtArtNorm(o.kicker).indexOf(emtArtNorm(f.derby)) !== 0) P.push(name + ': the kicker must start with the derby name, ' + f.derby + '.');
+    var st = m.star && typeof m.star === 'object' ? m.star : {};
+    o.star = { code: st.code === undefined || st.code === null ? '' : String(st.code).trim(), label: canon(T(st.label), labels) };
+    if (labels.indexOf(o.star.label) < 0) P.push(name + ': star.label "' + o.star.label + '" must be one of: ' + labels.join(', ') + '.');
+    var xi = [], bench = [];
+    ['H', 'A'].forEach(function (k) { var sd = f[k] || {}; (sd.xi || []).forEach(function (p) { if (p) xi.push(p); }); (sd.bench || []).forEach(function (p) { if (p) bench.push(p); }); });
+    var pick = function (list) { return list.filter(function (p) { return String(p.code) === o.star.code; })[0] || null; };
+    var px = pick(xi), pb = pick(bench);
+    if (!o.star.code) P.push(name + ': star.code is empty.');
+    else if (!px && !(rec && pb && o.star.label === 'The zero')) P.push(name + ': star.code "' + o.star.code + '" is not a player in this matchup\'s XI' + (rec ? (pb ? ' (a bench player only with the label The zero)' : '') : '') + '.');
+    if (o.star.label === 'The limbo' && px && !emtArtFlagged(px)) P.push(name + ': The limbo is for a doubt, and ' + (px.name || o.star.code) + ' carries no flag in FACTS.');
+    o.story = T(m.story); span(o.story, name + ': the story', 20, 120);
+    o.bullets = (Array.isArray(m.bullets) ? m.bullets : []).map(T);
+    if (o.bullets.length !== 3 || o.bullets.some(function (x) { return !x; })) P.push(name + ': needs exactly 3 bullets, none empty.');
+    o.bullets.forEach(function (x, k) { if (x && W(x) > 32) P.push(name + ': bullet ' + (k + 1) + ' has ' + W(x) + ' words; one line each.'); });
+    var nb = m.number && typeof m.number === 'object' ? m.number : {};
+    o.number = { value: T(typeof nb.value === 'number' ? String(nb.value) : nb.value), caption: T(nb.caption) };
+    if (!o.number.value || !/\d/.test(o.number.value) || o.number.value.length > 14) P.push(name + ': number.value must be one number from FACTS, as short text.');
+    span(o.number.caption, name + ': number.caption', 2, 30);
+    out.matchups.push(o);
+  });
+  fx.forEach(function (x) { if (x && !seen[x.home + ' v ' + x.away]) P.push('Missing matchup: ' + x.home + ' v ' + x.away + '.'); });
+
+  /* around */
+  var ar = Array.isArray(j.around) ? j.around : [], hs = {};
+  out.around = [];
+  if (ar.length < 1 || ar.length > 4) P.push('"around" needs 1 to 4 sections (it has ' + ar.length + ').');
+  ar.slice(0, 4).forEach(function (x, i) {
+    x = x && typeof x === 'object' ? x : {};
+    var o = { h: canon(T(x.h), heads), body: T(x.body) };
+    if (heads.indexOf(o.h) < 0) P.push('around ' + (i + 1) + ': the heading "' + o.h + '" must be one of: ' + heads.join(', ') + '.');
+    else if (hs[o.h]) P.push('around: "' + o.h + '" is used twice.');
+    hs[o.h] = 1;
+    span(o.body, 'around "' + o.h + '": the body', 12, 220);
+    if (x.bullets !== undefined && x.bullets !== null) {
+      var bl = (Array.isArray(x.bullets) ? x.bullets : []).map(T).filter(Boolean);
+      if (!Array.isArray(x.bullets) || bl.length > 6) P.push('around "' + o.h + '": bullets must be a list of up to 6 short lines.');
+      bl.forEach(function (y, k) { if (W(y) > 32) P.push('around "' + o.h + '": bullet ' + (k + 1) + ' has ' + W(y) + ' words; one line each.'); });
+      if (bl.length) o.bullets = bl.slice(0, 6);
+    }
+    out.around.push(o);
+  });
+
+  /* sources: from the research's SOURCES list only */
+  var okUrls = emtArtSourceUrls(research), src = Array.isArray(j.sources) ? j.sources : (j.sources === undefined || j.sources === null ? [] : null);
+  out.sources = [];
+  if (!src) P.push('"sources" must be a list.');
+  else {
+    src.forEach(function (x, i) {
+      x = x && typeof x === 'object' ? x : {};
+      var nm = T(x.name), url = typeof x.url === 'string' ? x.url.trim() : '';
+      if (!nm || nm.length > 80 || !/^https?:\/\/\S+$/.test(url) || url.length > EMT_ART_URL_MAX) { P.push('sources ' + (i + 1) + ' needs a name and a full url (400 characters at most).'); return; }
+      if (okUrls.indexOf(emtArtUrlKey(url)) < 0) { P.push('sources ' + (i + 1) + ' (' + url.slice(0, 100) + ') is not in the SOURCES list of RESEARCH: copy name and url from it.'); return; }
+      out.sources.push({ name: nm, url: url });
+    });
+    if (src.length > 12) P.push('"sources" has ' + src.length + ' entries; 12 at most.');
+    else if (okUrls.length >= 2 && src.length < 2) P.push('"sources" needs 2 to 12 entries from the SOURCES list of RESEARCH (it has ' + src.length + ').');
+  }
+
+  /* foot */
+  out.foot = T(j.foot).replace(/[\u2018\u2019]/g, "'");
+  if (!out.foot) out.foot = EMT_ART_FOOT[kind];
+  else if (out.foot.indexOf(EMT_ART_FOOT[kind]) !== 0) P.push('"foot" must start with: ' + EMT_ART_FOOT[kind]);
+
+  /* every text field: dashes, emoji, hashtags, markdown, first person, invented quotes, the number guard */
+  var texts = [['the title', out.title], ['the sub', out.sub], ['the lede', out.lede]];
+  out.matchups.forEach(function (m) {
+    var n = m.home + ' v ' + m.away;
+    texts.push([n + ', the kicker', m.kicker], [n + ', star.label', m.star.label], [n + ', the story', m.story]);
+    m.bullets.forEach(function (x, k) { texts.push([n + ', bullet ' + (k + 1), x]); });
+    texts.push([n + ', the number', m.number.value + ' ' + m.number.caption]);
+  });
+  out.around.forEach(function (x) { texts.push(['around "' + x.h + '"', x.h + ' ' + x.body]); (x.bullets || []).forEach(function (y, k) { texts.push(['around "' + x.h + '", bullet ' + (k + 1), y]); }); });
+  texts.push(['the foot', out.foot]);
+  var allText = texts.slice();
+  out.sources.forEach(function (x, k) { allText.push(['sources ' + (k + 1), x.name]); });
+  var badDash = [], badEmoji = [], badTag = [], badMd = [];
+  allText.forEach(function (t) {
+    var v = t[1] || '';
+    if (/[\u2014\u2013]/.test(v)) badDash.push(t[0]);
+    if (EMT_EMOJI.test(v)) badEmoji.push(t[0]);
+    if (/(^|[\s(])#[A-Za-z0-9_]/.test(v)) badTag.push(t[0]);
+    if (/\*\*|__|`|^\s*#{1,6}\s/.test(v)) badMd.push(t[0]);
+  });
+  if (badDash.length) P.push('An em dash or en dash in ' + badDash.slice(0, 6).join('; ') + ': use a comma, a colon or a full stop.');
+  if (badEmoji.length) P.push('An emoji in ' + badEmoji.slice(0, 6).join('; ') + ': no emoji.');
+  if (badTag.length) P.push('A hashtag in ' + badTag.slice(0, 6).join('; ') + ': no hashtags.');
+  if (badMd.length) P.push('Markdown in ' + badMd.slice(0, 6).join('; ') + ': plain text only.');
+
+  var qLines = (Array.isArray(facts.quotes) ? facts.quotes : []).map(function (x) { return emtArtNorm(x && (x.line || x.said || x.text)); }).filter(Boolean);
+  var nRes = emtArtNorm(research);
+  var names = [], addName = function (v) { v = String(v == null ? '' : v).trim(); if (v && /\b(I|we|our|ours|us|ourselves)\b/i.test(v) && names.indexOf(v) < 0) names.push(v); };
+  (facts.table || []).forEach(function (t) { if (t) { addName(t.team); addName(t.mgr); } });
+  fx.forEach(function (x) {
+    if (!x) return;
+    addName(x.home); addName(x.away); addName(x.derby);
+    ['H', 'A'].forEach(function (k) { var sd = x[k]; if (!sd) return; addName(sd.team); addName(sd.mgr); (sd.xi || []).concat(sd.bench || []).forEach(function (p) { if (p) addName(p.name); }); });
+  });
+  var ros = facts.rosters && typeof facts.rosters === 'object' ? facts.rosters : {};
+  Object.keys(ros).forEach(function (t) { addName(t); (Array.isArray(ros[t]) ? ros[t] : []).forEach(function (e) { addName(String(e).replace(/\s*\([^)]*\)\s*$/, '')); }); });
+  names.sort(function (x, y) { return y.length - x.length; });
+  var okAll = emtArtAllowed(sent + '\n' + research + '\n' + String(extra || ''), facts), okFacts = emtArtAllowed(sent, facts), badN = {}, fp = [];
+  texts.forEach(function (t) {
+    var where = t[0], v = t[1] || '';
+    var plain = v.replace(/["\u201C\u201D]([^"\u201C\u201D]{1,600})["\u201C\u201D]/g, function (m, qt) {
+      var nq = emtArtNorm(qt), long = W(nq) >= 2;                                         /* one quoted word is not a quote */
+      if (long && qLines.some(function (l) { return l.indexOf(nq) > -1; })) return ' ';   /* a manager's own line: exempt */
+      if (long && nRes.indexOf(nq) > -1) return ' ';                                       /* a quote from the research */
+      if (W(qt.trim()) >= 4) P.push(where + ': the quote "' + qt.trim().slice(0, 70) + '" is not in the quotes in FACTS or in RESEARCH; quote word for word or not at all.');
+      return m;
+    });
+    var bare = plain;
+    /* names with I, we, our or us in them (I Am a Baleba), in any case, and initials (I. Sarr) are not first person */
+    names.forEach(function (n) { bare = bare.replace(new RegExp(emtArtReEsc(n), 'gi'), ' '); });
+    bare = bare.replace(/\bI\.\s?(?=[A-Z])/g, ' ');
+    if (/\bI\b/.test(bare) || /\b(we|our|ours|us|ourselves)\b/i.test(bare)) fp.push(where);
+    emtShowNums(plain).forEach(function (n) {
+      if (!okAll[n] && !okAll[String(Number(n))] && !badN[n]) { badN[n] = 1; P.push('The number ' + n + ' (' + where + ': "' + plain.slice(0, 90) + '") is not in FACTS or RESEARCH.'); }
+    });
+  });
+  if (fp.length) P.push('First person in ' + fp.slice(0, 6).join('; ') + ': no I, we, our or us; write in the third person.');
+  out.matchups.forEach(function (m) {
+    var ns = emtShowNums(m.number.value);
+    if (ns.length && ns.some(function (n) { return !okFacts[n] && !okFacts[String(Number(n))]; })) P.push(m.home + ' v ' + m.away + ': number.value "' + m.number.value + '" is not a number in FACTS.');
+  });
+
+  /* never call a rostered player free */
+  var freeN = {}, rostered = [];
+  (Array.isArray(facts.free) ? facts.free : []).forEach(function (p) { if (p && p.name) freeN[emtArtNorm(p.name)] = 1; });
+  Object.keys(ros).forEach(function (t) {
+    (Array.isArray(ros[t]) ? ros[t] : []).forEach(function (e) { var nm = String(e).replace(/\s*\([^)]*\)\s*$/, '').trim(); if (nm.length >= 4 && !freeN[emtArtNorm(nm)]) rostered.push({ name: nm, team: t }); });
+  });
+  if (rostered.length) texts.forEach(function (t) {
+    String(t[1] || '').split(/[.!?]+\s+/).forEach(function (sn) {
+      if (!/\b(free agents?|unowned|up for grabs|nobody owns|no one owns|without an owner|(?:still|sitting|available) on the (?:waiver )?wire)\b/i.test(sn)) return;
+      rostered.forEach(function (r) {
+        if (new RegExp('(^|[^A-Za-z])' + emtArtReEsc(r.name) + '([^A-Za-z]|$)').test(sn)) P.push(t[0] + ': ' + r.name + ' is on the ' + r.team + ' roster; never call a rostered player free or suggest picking him up.');
+      });
+    });
+  });
+
+  var words = 0;
+  texts.forEach(function (t) { words += W(t[1]); });
+  if (words < EMT_ART_WORDS[0] || words > EMT_ART_WORDS[1]) P.push('The article has ' + words + ' words; it needs 600 to 1,400 (aim for about 1,100).');
+  var uniq = [];
+  P.forEach(function (x) { if (uniq.indexOf(x) < 0) uniq.push(x); });
+  return { problems: uniq, article: uniq.length ? null : out, words: words };
+}
+
+/* ---------- 4. the job, one step at a time ---------- */
+/* what to start: the recap, else the preview. → { gw, kind, facts, why } | { gw: 0, why } */
+function emtArtDue(force, now) {
+  var meta = emtArtMeta(), why = [];
+  var taken = function (gw, kind) {
+    return meta.some(function (m) { return m.gw === gw && m.kind === kind && (!force || ['research', 'writing', 'draft', 'live'].indexOf(m.status) > -1); });
+  };
+  var hrs = function (ms) { return Math.round(ms / 36e5 * 10) / 10; };
+  var rg = emtArtRecapGw();
+  if (rg) {
+    if (taken(rg, 'recap')) why.push('the recap of GW' + rg + ' is already in the Articles tab');
+    else {
+      var end = emtArtGwEndMs(rg);
+      if (!force && end && now - end > EMT_ART_RECAP_DAYS_MS) why.push('the recap of GW' + rg + ' is out of its window (its last game was over 5 days ago)');
+      else {
+        var f = emtFactsLatest('RecapFacts', rg, false);
+        if (!f) why.push('the recap of GW' + rg + ' waits for recap facts from the app (a signed-in manager opening it sends them)');
+        else if (!force && now - f.at > EMT_ART_RECAP_FRESH_MS) why.push('the recap of GW' + rg + ' waits for fresher facts (the latest are ' + hrs(now - f.at) + ' hours old; 24 at most)');
+        else return { gw: rg, kind: 'recap', facts: f, why: why };
+      }
+    }
+  }
+  var nx = emtArtNextDeadline(now);
+  if (nx && (force || nx.dl - now <= EMT_ART_PREVIEW_AHEAD_MS)) {
+    if (taken(nx.gw, 'preview')) why.push('the preview of GW' + nx.gw + ' is already in the Articles tab');
+    else {
+      var sf = emtShowFactsLatest(nx.gw, false);
+      if (!sf) why.push('the preview of GW' + nx.gw + ' waits for preview facts from the app');
+      else if (!force && now - sf.at > EMT_ART_PREVIEW_FRESH_MS) why.push('the preview of GW' + nx.gw + ' waits for fresher facts (the latest are ' + hrs(now - sf.at) + ' hours old; 12 at most)');
+      else {
+        var sd = force ? null : emtShowFactsLatest(nx.gw, true);
+        if (!force && (!sd || !sd.data || sd.data.kind !== 'preview')) why.push('the preview of GW' + nx.gw + ' waits for facts from the new app (the latest have no kind "preview" and no collisions)');
+        else return { gw: nx.gw, kind: 'preview', facts: sf, why: why };
+      }
+    }
+  } else if (nx) why.push('the preview of GW' + nx.gw + ' starts in the last 50 hours before its deadline (' + hrs(nx.dl - now) + ' hours away)');
+  return { gw: 0, why: why };
+}
+/* run: a token for this run of the article, so a run left over from before a drop and a rewrite can never overwrite
+ * the newer one (emtArtStale) */
+function emtArtNewJob(id, gw, kind, phase, redos, note) {
+  return { id: id, gw: gw, kind: kind, phase: phase, batch: '', tries: 0, redos: redos || 0, startedAt: Date.now(), note: note || '', model: '', cont: 0, fix: false,
+    run: String(Utilities.getUuid()).replace(/[^0-9a-f]/gi, '').toLowerCase().slice(0, 8) };
+}
+/* a new Articles row and its job (null when a job appeared meanwhile: a rewrite the commissioner just asked for) */
+function emtArtStart(due) {
+  var id = due.kind + '-gw' + due.gw + '-' + String(Utilities.getUuid()).replace(/[^0-9a-f]/gi, '').toLowerCase().slice(0, 6);
+  var job = emtArtNewJob(id, due.gw, due.kind, 'research'), at = new Date().toISOString(), lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    if (emtArtJob()) return null;
+    emtHiddenSheet('Articles', EMT_ART_HEAD).appendRow([id, due.gw, due.kind, 'research', '', '', "'" + due.facts.iso, '', '', '', '',
+      "'" + at + ' research: started from the facts of ' + due.facts.iso + ' (sent by ' + due.facts.team + ').']);
+    emtProps().setProperty('EMT_ART_JOB', JSON.stringify(job));
+  } finally { lock.releaseLock(); }
+  emtArtTouch();
+  return job;
+}
+/* the next job: a queued rewrite, else what is due. → { job, how } | { why } */
+function emtArtNext(force) {
+  var lock = LockService.getScriptLock(), job = null;
+  lock.waitLock(10000);
+  try {
+    job = emtArtJob();
+    if (job) return { job: job, how: 'running' };
+    var q = emtArtQueue(), n0 = q.length, meta = n0 ? emtArtMeta() : [];
+    while (q.length && !job) {
+      var m = emtArtFind(q.shift(), meta);
+      if (m && m.status === 'writing') job = emtArtNewJob(m.id, m.gw, m.kind, 'write', m.redos, m.note);
+    }
+    if (n0 !== q.length) emtArtSetQueue(q);
+    if (job) { emtProps().setProperty('EMT_ART_JOB', JSON.stringify(job)); return { job: job, how: 'rewrite' }; }
+    /* an article still marked research or writing with no job behind it (its job state was lost): carry on with it */
+    var lost = emtArtMeta().filter(function (m) { return EMT_ART_ACTIVE.indexOf(m.status) > -1; })[0];
+    if (lost) {
+      job = emtArtNewJob(lost.id, lost.gw, lost.kind, lost.status === 'writing' ? 'write' : 'research', lost.redos, lost.note);
+      emtProps().setProperty('EMT_ART_JOB', JSON.stringify(job));
+      return { job: job, how: 'resumed' };
+    }
+  } finally { lock.releaseLock(); }
+  var due = emtArtDue(force, Date.now());
+  if (!due.gw) return { why: due.why };
+  var started = emtArtStart(due);
+  return started ? { job: started, how: due.kind } : { why: ['another job started meanwhile'] };
+}
+/* a try failed: count it; after 3 the article fails → false when the job is over */
+function emtArtTry(job, why, S) {
+  job.tries = (job.tries || 0) + 1; job.batch = ''; job.fix = false; job.cont = 0;
+  emtWorkClear(job.id, ['cont', 'fix']);
+  S.did.push('try ' + job.tries + ' failed');
+  if (job.tries >= EMT_ART_TRIES) { emtArtFail(job, 'try ' + job.tries + ' of ' + EMT_ART_TRIES + ' failed, no more: ' + why, S); return false; }
+  emtArtUpdate(job.id, {}, 'try ' + job.tries + ' of ' + EMT_ART_TRIES + ' failed: ' + why + ' Trying again.', null, job.run || '');
+  emtArtSay(job, 'try ' + job.tries + ' of ' + EMT_ART_TRIES + ' failed (' + String(why).slice(0, 300) + '); trying again.');
+  if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
+  return true;
+}
+function emtArtFail(job, why, S) {
+  emtArtUpdate(job.id, { status: 'failed' }, why, EMT_ART_ACTIVE, job.run || '');
+  emtArtJobEnd(job.id, job.run || '');
+  S.ok = false; S.stopped = 'failed'; S.error = why;
+  emtArtSay(job, 'failed. ' + String(why).slice(0, 400) + ' Nothing goes out; the commissioner can ask for a rewrite or drop it.');
+}
+/* research finished (or unavailable): keep it and move to the writing → false when the job is over */
+function emtArtResearchDone(job, text, logMsg, S) {
+  var u = emtArtUpdate(job.id, { status: 'writing', research: EMT_TEXT_MARK + text }, logMsg, EMT_ART_ACTIVE, job.run || '');
+  if (!u || u.missing || u.skipped) { emtArtJobEnd(job.id, job.run || ''); S.stopped = 'gone'; return false; }
+  job.phase = 'write'; job.batch = ''; job.cont = 0; job.fix = false;
+  emtWorkClear(job.id, ['cont']);
+  S.did.push(logMsg);
+  emtArtSay(job, logMsg);
+  if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
+  return true;
+}
+/* the checked article becomes the draft. punch (v3.13): { model } when it is the punched-up version (the Model cell
+ * then reads 'writer + punch model'), { why } when the punch-up was not used (the checked base went out), { off } */
+function emtArtDraft(job, C, S, punch) {
+  punch = punch || {};
+  var writer = job.writer || job.model, model = writer + (punch.model ? ' + ' + punch.model : '');
+  var at = new Date().toISOString(), sealed = emtArtSeal(JSON.stringify(C.article), emtArtSecret(true));   /* sealed until approved */
+  var how = punch.model ? ', punched up by ' + punch.model : '';
+  var why = String(punch.why || '').replace(/[.\s]+$/, ''), tail = why ? '; punch-up not used: ' + why : punch.off ? '; punch-up off (EMT_PUNCH_OFF = yes)' : '';
+  var u = emtArtUpdate(job.id, { status: 'draft', written: "'" + at, model: emtCell(model), article: sealed },
+    'written by ' + writer + how + ', ' + C.words + ' words' + (job.redos ? ', rewrite ' + job.redos + ' of ' + EMT_ART_REDOS : '') +
+    (job.tries ? ', after ' + job.tries + ' failed tr' + (job.tries > 1 ? 'ies' : 'y') : '') + tail + '. Waiting for the commissioner.', ['writing'], job.run || '');
+  emtArtJobEnd(job.id, job.run || '');
+  if (!u || u.missing || u.skipped) { S.stopped = 'gone'; emtArtSay(job, 'written, but its article was ' + (u && u.skipped ? u.skipped : 'removed') + ' meanwhile; nothing kept.'); return; }
+  S.stopped = 'draft'; S.written = true; S.words = C.words; S.model = model;
+  if (punch.model || punch.why) S.punch = punch.model ? 'punched up by ' + punch.model : 'punch-up not used';
+  emtArtSay(job, 'draft written by ' + writer + how + ' (' + C.words + ' words)' + (why ? '; punch-up not used: ' + emtArtRedact(why).slice(0, 700) : '') +
+    '. It waits for ' + emtCommish() + ' to read it in the app.');
+}
+
+/* one run's work on the job: at most one batch sent (the run then ends) and at most one collected.
+ * v3.13: three phases, research → write → punch. An article that passes the checks is kept sealed as the base and goes
+ * to the punch-up (emtArtPunchStart); whatever happens there (emtArtPunchEnd), the punched-up version or the checked
+ * base becomes the draft. The punch phase never counts a try and never fails the job. */
+function emtArtRun(job, S, t0, force) {
+  var facts = null;
+  for (var step = 0; step < 10; step++) {
+    var meta = emtArtFind(job.id);
+    if (!meta || EMT_ART_ACTIVE.indexOf(meta.status) < 0) {
+      emtArtJobEnd(job.id, job.run || ''); S.stopped = 'gone';
+      emtArtSay(job, 'its article is ' + (meta ? meta.status : 'not in the Articles tab') + '; the job stops.');
+      return;
+    }
+    if (emtArtStale(job)) { S.stopped = 'gone'; emtArtSay(job, 'a newer job took over (dropped, then a rewrite asked for); this run stops.'); return; }
+    if (Date.now() - Number(job.startedAt || 0) > EMT_ART_JOB_MAX_MS) {
+      if (job.phase === 'punch') { emtArtCancel(job.batch); emtArtPunchEnd(job, null, 'the job reached its 36-hour limit', '', S); return; }
+      emtArtFail(job, 'given up: still unfinished 36 hours after it started.', S); return;
+    }
+    if (!force && Date.now() - t0 > EMT_ART_LATE_MS + 60e3) { S.stopped = 'time'; emtArtJobPut(job); return; }
+    /* the facts it is given, kept for the whole job (the research, the writing and the check see the same facts) */
+    if (!facts) facts = emtWorkJson(job.id, 'facts');
+    /* the punch-up is checked against the very facts the base was checked against, or not at all */
+    if (!facts && job.phase === 'punch') { emtArtCancel(job.batch); emtArtPunchEnd(job, null, 'the facts it was checked against could not be read back', '', S); return; }
+    if (!facts) {
+      var ftab = job.kind === 'recap' ? 'RecapFacts' : 'ShowFacts', fl = emtFactsLatest(ftab, job.gw, true);
+      if (!fl || !fl.data) {
+        /* facts that are there but could not be read were being replaced by a new post as they were read: next run */
+        if (emtFactsLatest(ftab, job.gw, false)) { S.stopped = 'wait'; S.error = 'the ' + job.kind + ' facts were being replaced as they were read'; emtArtSay(job, S.error + '; trying again next run (not counted).'); emtArtJobPut(job); return; }
+        emtArtFail(job, 'no ' + job.kind + ' facts for GW' + job.gw + ' could be read.', S); return;
+      }
+      emtWorkPut(job.id, 'facts', JSON.stringify(fl.data));
+      facts = fl.data;
+      emtArtUpdate(job.id, { factsAt: "'" + fl.iso }, '', null, job.run || '');
+    }
+    var sent = emtArtSent(facts);
+    /* the punch-up, turned off meanwhile (EMT_PUNCH_OFF = yes) or past its 2 hours: the checked base goes out */
+    if (job.phase === 'punch' && emtPunchOff()) { emtArtCancel(job.batch); emtArtPunchEnd(job, null, 'turned off (EMT_PUNCH_OFF = yes)', '', S); return; }
+    var late = job.phase === 'punch' && Date.now() - Number(job.punchAt || 0) > EMT_PUNCH_MAX_MS;
+    if (!job.batch) {
+      var sub;
+      if (job.phase === 'research') {
+        var cont = job.cont ? emtWorkJson(job.id, 'cont') : null;
+        if (job.cont && !cont) job.cont = 0;                                   /* the paused turn is lost: start again */
+        sub = emtArtCreate(job, function (model) { return emtArtResearchParams(job, facts, model, cont); });
+      } else if (job.phase === 'punch') {
+        var base = emtArtPunchBase(job);
+        if (!base) { if (!emtArtPunchLost(job, S)) return; continue; }
+        sub = emtArtCreate(job, function (model) { return emtArtPunchParams(job, base.article, model); });
+      } else {
+        var research = emtArtResearchText(emtArtCell(meta.row, EMT_ART_COL.research));
+        var prev = job.redos ? emtArtArticle(emtArtCell(meta.row, EMT_ART_COL.article)) : null;
+        var fix = null;
+        if (job.fix) { var fixS = emtWorkGet(job.id, 'fix'), fixO = fixS === null ? null : emtArtOpen(fixS); try { fix = fixO === null ? null : JSON.parse(fixO); } catch (e) { fix = null; } }
+        var user = emtArtWriteUser(job, facts, sent, research, prev);
+        sub = emtArtCreate(job, function (model) { return emtArtWriteParams(user, fix, model); });
+      }
+      if (sub.batch) {
+        job.batch = sub.batch; job.batchAt = Date.now(); job.model = sub.model;
+        if (!emtArtJobPut(job)) { emtArtCancel(sub.batch); S.stopped = 'gone'; return; }
+        S.stopped = 'submitted'; S.did.push(job.phase + ' batch sent to ' + sub.model);
+        emtArtSay(job, (job.phase === 'research' ? (job.cont ? 'research continued (' + job.cont + ' of ' + EMT_ART_CONTS + ')' : 'research sent')
+          : job.phase === 'punch' ? 'the checked article went to the punch-up' : (job.fix ? 'the rejected article went back with its problems' : 'writing sent')) +
+          ' to ' + sub.model + ' (batch ' + sub.batch + '); the next runs collect it.');
+        return;
+      }
+      /* the punch-up could not be sent: the checked base goes out (a busy API waits, for 2 hours at most) */
+      if (job.phase === 'punch' && !(sub.wait && !late)) {
+        emtArtPunchEnd(job, null, sub.missing ? 'no punch-up model is available' : sub.bad ? 'the Batches API refused it' : 'the Batches API was still refusing it after 2 hours',
+          sub.missing ? String(sub.missing).replace(/^no model in the chain is available\s*/, 'tried ') : String(sub.bad || sub.wait || ''), S);
+        return;
+      }
+      if (sub.searchOff) { if (!emtArtResearchDone(job, '', 'research unavailable: ' + String(sub.searchOff).slice(0, 300) + '. Written from the league data alone.', S)) return; continue; }
+      if (sub.wait) { S.stopped = 'wait'; S.error = sub.wait; emtArtSay(job, sub.wait + '; trying again next run (not counted).'); emtArtJobPut(job); return; }
+      if (sub.missing) { emtArtFail(job, sub.missing, S); return; }
+      if (!emtArtTry(job, sub.bad, S)) return;
+      continue;
+    }
+    var poll = emtArtPoll(job);
+    /* a punch-up batch that is lost, or still unfinished 2 hours after the punch-up started: the checked base goes out */
+    if (job.phase === 'punch' && !poll.result && (poll.lost || late)) {
+      if (!poll.lost) emtArtCancel(job.batch);
+      emtArtPunchEnd(job, null, poll.lost ? 'the punch-up batch was lost' : 'the punch-up was still unfinished after 2 hours', poll.lost || '', S);
+      return;
+    }
+    if (poll.wait) { S.stopped = 'wait'; S.error = poll.wait; emtArtSay(job, poll.wait + '; trying again next run.'); return; }
+    if (poll.pending) {
+      if (Date.now() - Number(job.batchAt || 0) > EMT_ART_BATCH_MAX_MS) {
+        emtArtCancel(job.batch);
+        if (!emtArtTry(job, 'the ' + job.phase + ' batch was still unfinished after 6 hours.', S)) return;
+        continue;
+      }
+      S.stopped = 'waiting'; S.did.push('batch ' + poll.pending);
+      return;
+    }
+    if (poll.lost) { if (!emtArtTry(job, poll.lost + '.', S)) return; continue; }
+    var res = poll.result;
+    if (res.type === 'succeeded' && res.message) {
+      var msg = res.message, content = Array.isArray(msg.content) ? msg.content : [];
+      if (job.phase === 'research') {
+        var all = (job.cont ? (emtWorkJson(job.id, 'cont') || []) : []).concat(content);
+        if (msg.stop_reason === 'pause_turn' && (job.cont || 0) < EMT_ART_CONTS) {
+          emtWorkPut(job.id, 'cont', JSON.stringify(all));
+          job.cont = (job.cont || 0) + 1; job.batch = '';
+          if (!emtArtJobPut(job)) { S.stopped = 'gone'; return; }          /* saved at once: the stored turn and the count stay in step */
+          S.did.push('research paused, continuation ' + job.cont);
+          continue;
+        }
+        var R = emtArtResearch(all);
+        /* no search result came back at all (every search errored, or none was made): the notes could only come from
+         * the model's memory, which no number in an article may rest on, so they are not kept */
+        if (!R.searched) {
+          if (!emtArtResearchDone(job, '', 'research unavailable: web search returned no results' + (R.text ? ' (' + R.text.length + ' characters of notes from memory not kept)' : '') + '. Written from the league data alone.', S)) return;
+          continue;
+        }
+        if (!emtArtResearchDone(job, R.text, 'research done: ' + R.text.length + ' characters, ' + R.sources + ' source' + (R.sources === 1 ? '' : 's') +
+          (msg.stop_reason === 'pause_turn' ? ' (still paused after ' + EMT_ART_CONTS + ' continuations; kept what it had)' : '') + '.', S)) return;
+        continue;
+      }
+      var text = emtArtTexts(content), research2 = emtArtResearchText(emtArtCell(meta.row, EMT_ART_COL.research));
+      var C = emtArticleCheck(text, facts, research2, job.kind, job.gw, sent, job.note);
+      if (job.phase === 'punch') {
+        /* the punched-up article: the full check again (same facts, research, note), then only the jokes may differ */
+        var pb = emtArtPunchBase(job);
+        if (!pb) { if (!emtArtPunchLost(job, S)) return; continue; }
+        var PP = C.article ? emtArtPunchSame(pb, C) : C.problems;
+        if (!C.article && msg.stop_reason === 'max_tokens') PP = ['The reply was cut off before the JSON ended.'].concat(PP);
+        if (PP.length) emtArtPunchEnd(job, null, 'the check found ' + PP.length + ' problem' + (PP.length === 1 ? '' : 's'), PP.slice(0, 5).join(' | '), S, pb);
+        else emtArtPunchEnd(job, C, '', '', S);
+        return;
+      }
+      if (!C.article && msg.stop_reason === 'max_tokens') C.problems.unshift('The reply was cut off before the JSON ended: keep the article near 1,100 words.');
+      if (C.article) {
+        if (emtPunchOff()) { emtArtDraft(job, C, S, { off: true }); return; }
+        if (!emtArtPunchStart(job, C, S)) return;
+        continue;
+      }
+      if (!job.fix) {
+        emtWorkPut(job.id, 'fix', emtArtSeal(JSON.stringify({ reply: text.slice(0, 60000), problems: C.problems.slice(0, 25) }), emtArtSecret(true)));   /* a rejected draft: sealed too */
+        job.fix = true; job.batch = '';
+        if (!emtArtJobPut(job)) { S.stopped = 'gone'; return; }
+        emtArtUpdate(job.id, {}, 'the article failed the checks (' + C.problems.length + ' problem' + (C.problems.length === 1 ? '' : 's') + '); sent back once: ' + C.problems.slice(0, 8).join(' | '), null, job.run || '');
+        emtArtSay(job, 'the article failed the checks; sending it back once with the problems: ' + C.problems.slice(0, 5).join(' | '));
+        S.did.push('article rejected, sent back');
+        continue;
+      }
+      if (!emtArtTry(job, 'the article failed the checks twice: ' + C.problems.slice(0, 8).join(' | '), S)) return;
+      continue;
+    }
+    var err = (res.error && typeof res.error === 'object' ? (res.error.error && typeof res.error.error === 'object' ? res.error.error : res.error) : {}) || {};
+    var et = String(err.type || ''), em = String(err.message || '');
+    if (res.type === 'errored' && emtModelMissing(0, et, em)) {
+      emtModelNoteGone(job.model, em);
+      var nxt = emtArtModelAfter(job.model, job.phase);
+      if (!nxt) {
+        if (job.phase === 'punch') { emtArtPunchEnd(job, null, 'no punch-up model is available', 'the last, ' + job.model + ', answered: ' + em.slice(0, 160), S); return; }
+        emtArtFail(job, 'no model in the chain is available (the last, ' + job.model + ', answered: ' + em.slice(0, 160) + ').', S); return;
+      }
+      job.model = nxt; job.batch = '';
+      continue;
+    }
+    if (job.phase === 'punch') {                 /* errored, expired or canceled: never a try, the checked base goes out */
+      emtArtPunchEnd(job, null, 'the punch-up request ' + (res.type || 'failed'), em ? (et ? et + ': ' : '') + em.slice(0, 200) : '', S);
+      return;
+    }
+    if (res.type === 'errored' && job.phase === 'research' && emtArtSearchOff(et, em)) {
+      if (!emtArtResearchDone(job, '', 'research unavailable: ' + em.slice(0, 300) + '. Written from the league data alone.', S)) return;
+      continue;
+    }
+    if (!emtArtTry(job, 'the ' + job.phase + ' request ' + (res.type || 'failed') + (em ? ' (' + (et ? et + ': ' : '') + em.slice(0, 200) + ')' : '') + '.', S)) return;
+  }
+  emtArtJobPut(job);
+  S.stopped = S.stopped || 'steps';
+}
+
+/* aiTick runs this every 15 minutes, after the show and before the self-update. force (the menu's 'Articles: write
+ * now') ignores EMT_ARTICLES_PAUSED, the late-run guard and the windows. → a summary { ok, stopped, id, ... } */
+function articleTick(startedAt, force) {
+  var t0 = typeof startedAt === 'number' ? startedAt : Date.now(), p = emtProps();
+  var S = { ok: true, stopped: '', did: [], why: [] };
+  if (!force && p.getProperty('EMT_ARTICLES_PAUSED') === 'yes') { S.stopped = 'paused'; return S; }
+  if (!emtAiOn()) { S.stopped = 'off'; return S; }
+  if (!force && Date.now() - t0 > EMT_ART_LATE_MS) { S.stopped = 'time'; return S; }
+  if (!emtFlagClaim('EMT_ART_BUSY', EMT_ART_BUSY_MS)) { S.stopped = 'busy'; return S; }
+  try {
+    var job = emtArtJob();
+    if (!job) {
+      emtWorkClear('');                         /* files left by a job that ended elsewhere (a drop) */
+      var nx = emtArtNext(!!force);
+      if (!nx.job) { S.stopped = 'idle'; S.why = nx.why || []; return S; }
+      job = nx.job;
+      if (nx.how !== 'running') emtArtSay(job, nx.how === 'rewrite' ? 'rewrite ' + job.redos + ' of ' + EMT_ART_REDOS + ' starts' + (job.note ? ', with the note "' + job.note + '"' : '') + '.'
+        : nx.how === 'resumed' ? 'resumed: its article was still ' + (job.phase === 'write' ? 'writing' : 'researching') + ' with no job behind it.'
+        : (force ? 'started from the menu.' : 'started: the facts are in and the window is open.'));
+    }
+    S.id = job.id; S.gw = job.gw; S.kind = job.kind;
+    emtArtRun(job, S, t0, !!force);
+    S.phase = job.phase;
+    return S;
+  } finally { p.deleteProperty('EMT_ART_BUSY'); }
+}
+
+/* ---------- 5. serving and the commissioner ---------- */
+/* GET ?articles=1 */
+function emtArtList() {
+  var cache = null;
+  try { cache = CacheService.getScriptCache(); var hit = cache.get('EMT_ART_LIST'); if (hit) return JSON.parse(hit); } catch (e) { }
+  var meta = emtArtMeta(), live = [], waiting = [], rows = meta.filter(function (m) { return m.status === 'live'; });
+  if (rows.length) {
+    var sh = SpreadsheetApp.getActive().getSheetByName('Articles'), nums = rows.map(function (m) { return m.row; });
+    var lo = Math.min.apply(null, nums), hi = Math.max.apply(null, nums), col = sh.getRange(lo, EMT_ART_COL.article, hi - lo + 1, 1).getValues();
+    rows.forEach(function (m) {
+      var a = emtArtArticle(col[m.row - lo][0]);
+      if (a) live.push({ id: m.id, gw: m.gw, kind: m.kind, title: String(a.title || ''), sub: String(a.sub || ''), approved: m.approved });
+    });
+  }
+  live.sort(function (x, y) { return y.gw - x.gw || (x.kind === y.kind ? 0 : x.kind === 'recap' ? -1 : 1) || aiTs(y.approved) - aiTs(x.approved); });
+  meta.forEach(function (m) { if (EMT_ART_WAITING.indexOf(m.status) > -1) waiting.push({ gw: m.gw, kind: m.kind, status: m.status, since: emtIso(m.since) }); });
+  var out = { ok: true, live: live, waiting: waiting, commish: emtCommish() };
+  try { if (cache) cache.put('EMT_ART_LIST', JSON.stringify(out), 300); } catch (e) { }
+  return out;
+}
+/* GET ?article=<id>: live articles only */
+function emtArtGet(idParam) {
+  var id = String(idParam == null ? '' : idParam).trim(), m = id ? emtArtFind(id) : null;
+  if (!m || m.status !== 'live') return { ok: false, error: 'notfound' };
+  var a = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
+  if (!a) return { ok: false, error: 'notfound' };
+  return { ok: true, id: m.id, gw: m.gw, kind: m.kind, approved: m.approved, written: m.written, a: a };
+}
+/* POST articles: the drafts, for the commissioner only */
+function emtArtDrafts(team) {
+  if (team !== emtCommish()) return { ok: true, commish: false, drafts: [] };
+  var now = Date.now();
+  var drafts = emtArtMeta().filter(function (m) {
+    return EMT_ART_WAITING.indexOf(m.status) > -1 || (m.status === 'failed' && now - m.since < EMT_ART_FAILED_SHOWN_MS);
+  }).map(function (m) {
+    var d = { id: m.id, gw: m.gw, kind: m.kind, status: m.status, written: m.written, model: m.model, note: m.note, redos: m.redos,
+      a: m.status === 'draft' || m.status === 'failed' ? emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article)) : null };
+    if (m.status === 'failed') d.error = emtArtLogLast(m.log).slice(0, 400);
+    return d;
+  }).reverse();
+  return { ok: true, commish: true, drafts: drafts };
+}
+/* POST articlemod: approve | redo | drop, commissioner only */
+function emtArtMod(team, req) {
+  if (team !== emtCommish()) return { ok: false, error: 'commish' };
+  var id = String(req.id == null ? '' : req.id).trim(), op = String(req.op || '');
+  if (['approve', 'redo', 'drop'].indexOf(op) < 0) return { ok: false, error: 'badop' };
+  if (!id) return { ok: false, error: 'notfound' };
+  var key = op === 'approve' ? '' : emtArtSecret(true);   /* made outside the lock: a note and a taken-down article are sealed */
+  var cancel = '', out = null, lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var m = emtArtFind(id), p = emtProps(), now = new Date().toISOString();
+    if (!m) return { ok: false, error: 'notfound' };
+    if (op === 'approve') {
+      if (m.status !== 'draft') return { ok: false, error: m.status === 'live' ? 'live' : 'notdraft', status: m.status };
+      var art = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
+      if (!art) return { ok: false, error: 'noarticle', status: m.status };
+      /* published: the article is kept as plain json from now on (?articles and ?article read it without the key) */
+      emtArtUpdateLocked(id, { status: 'live', approved: "'" + now, article: EMT_JSON_MARK + JSON.stringify(art) }, 'approved by ' + team + '; every manager can read it now.', ['draft']);
+      out = { ok: true, status: 'live' };
+    } else if (op === 'drop') {
+      var dropF = { status: 'dropped' };
+      if (m.status === 'live') {                   /* taken down: its text is sealed again, like a draft */
+        var liveA = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
+        if (liveA && key) dropF.article = emtArtSeal(JSON.stringify(liveA), key);
+      }
+      if (m.status !== 'dropped') emtArtUpdateLocked(id, dropF, 'dropped by ' + team + ' (was ' + m.status + '); it is not rewritten automatically.', null);
+      var cur = emtArtJob();
+      if (cur && cur.id === id) { cancel = cur.batch || ''; p.deleteProperty('EMT_ART_JOB'); }
+      var q = emtArtQueue(), q2 = q.filter(function (x) { return x !== id; });
+      if (q2.length !== q.length) emtArtSetQueue(q2);
+      out = { ok: true, status: 'dropped' };
+    } else {
+      if (EMT_ART_ACTIVE.indexOf(m.status) > -1) return { ok: false, error: 'busy', status: m.status };
+      if (m.status === 'live') return { ok: false, error: 'live', status: m.status };
+      if (m.redos >= EMT_ART_REDOS) return { ok: false, error: 'redos', status: m.status };
+      var note = emtClean(req.note, EMT_ART_NOTE_MAX), n = m.redos + 1;
+      emtArtUpdateLocked(id, { status: 'writing', note: EMT_JSON_MARK + JSON.stringify({ s: note && key ? emtArtSeal(JSON.stringify(note), key) : '', redos: n, at: now }) },
+        'rewrite ' + n + ' of ' + EMT_ART_REDOS + ' asked by ' + team + (note ? ', with a note' : ' (no note)') + '.', null);
+      if (!emtArtJob()) p.setProperty('EMT_ART_JOB', JSON.stringify(emtArtNewJob(id, m.gw, m.kind, 'write', n, note)));
+      else { var q3 = emtArtQueue(); if (q3.indexOf(id) < 0) q3.push(id); emtArtSetQueue(q3); }
+      out = { ok: true, status: 'writing' };
+    }
+  } finally { lock.releaseLock(); }
+  if (cancel) emtArtCancel(cancel);
+  emtArtTouch();
+  return out;
+}
+
+/* ---------- 6. health, status, the menu ---------- */
+function emtShowHealth() {
+  var p = emtProps(), gw = emtShowNextGw(), out = { gw: gw, on: !!emtShowKey(), paused: p.getProperty('EMT_SHOW_PAUSED') === 'yes' };
+  try {
+    var f = gw ? emtShowFactsLatest(gw, false) : null;
+    out.facts = f ? f.iso : null;
+    out.script = !!(gw && emtShowScriptRow(gw, false));
+    out.tries = gw ? Number(p.getProperty('EMT_SHOW_TRIES_' + gw) || 0) : 0;
+    var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh && gw ? emtShowIndex(sh, gw) : {}, exp = gw ? emtShowExpected(gw) : null;
+    out.clips = (exp || Object.keys(idx)).filter(function (k) { return idx[k] && idx[k].ok; }).length;
+    out.expected = exp ? exp.length : 0;
+    out.punch = { off: emtPunchOff(), last: emtPunchLast().show || null };        /* v3.13: the punch-up's last outcome */
+  } catch (e) { out.error = String((e && e.message) || e).slice(0, 160); }
+  return out;
+}
+/* GET ?health=1: no keys, tokens, PIN hashes or article text */
+function emtHealth() {
+  var p = emtProps(), A = aiState(), job = emtArtJob(), meta = [];
+  try { meta = emtArtMeta(); } catch (e) { meta = []; }
+  return { ok: true, version: EMT_VERSION, self: p.getProperty('EMT_SELF_STATE') || 'no check yet', show: emtShowHealth(),
+    articles: { job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
+        writer: job.writer || '', startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
+      queue: emtArtQueue().length, paused: p.getProperty('EMT_ARTICLES_PAUSED') === 'yes',
+      punch: { off: emtPunchOff(), last: emtPunchLast().article || null },        /* v3.13: the punch-up's last outcome */
+      last: meta.slice(-3).reverse().map(function (m) { return { id: m.id, gw: m.gw, kind: m.kind, status: m.status, written: m.written, model: m.model, approved: m.approved, since: emtIso(m.since) }; }) },
+    ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn() } };
+}
+function emtArtSummary(S) {
+  S = S || {};
+  var head = 'Articles' + (S.id ? ' (' + S.kind + ' GW' + S.gw + ', ' + S.id + ')' : '') + ': ';
+  var did = S.did && S.did.length ? ' (' + S.did.join('; ') + ')' : '';
+  var m = {
+    paused: 'paused (EMT_ARTICLES_PAUSED = yes).',
+    off: 'off: no ANTHROPIC_API_KEY in Script Properties, or EMT_AI_PAUSED = yes.',
+    time: 'this run is already busy; the next one carries on.',
+    busy: 'another run is working on the articles; try again in a few minutes.',
+    idle: 'nothing to write now.' + (S.why && S.why.length ? ' ' + S.why.join('; ') + '.' : ''),
+    submitted: 'sent to Claude' + did + '. The runs every 15 minutes collect it.',
+    waiting: 'Claude is still on it' + did + '; the next run checks again.',
+    wait: 'not this run: ' + (S.error || '') + '. The next run tries again.',
+    draft: 'the draft is written (' + (S.words || 0) + ' words, ' + (S.model || '') + (S.punch === 'punch-up not used' ? '; the punch-up was not used, the checked version stands' : '') +
+      ') and waits for ' + emtCommish() + ' in the app.',
+    failed: 'failed: ' + (S.error || '') + '.',
+    gone: 'its article was dropped or removed; the job stopped.',
+    steps: 'worked through several steps' + did + '; the next run carries on.'
+  };
+  return head + (m[S.stopped] || (S.stopped || 'done') + did);
+}
+/* menu: Articles: status (also from the editor: articlesStatus()) */
+function articlesStatus() {
+  var p = emtProps(), job = emtArtJob(), q = emtArtQueue(), meta = emtArtMeta(), L = [];
+  L.push('Articles' + (p.getProperty('EMT_ARTICLES_PAUSED') === 'yes' ? ' (paused: EMT_ARTICLES_PAUSED = yes)' : '') + (emtAiOn() ? '' : ' (off: no ANTHROPIC_API_KEY, or EMT_AI_PAUSED = yes)') +
+    '. Commissioner: ' + emtCommish() + '. Models: ' + emtModelsLive(emtModelChain('EMT_ARTICLE_MODEL', EMT_ART_MODELS)).join(', ') + '.');
+  if (job) L.push('Job: the ' + job.kind + ' of GW' + job.gw + ' (' + job.id + '), ' + (job.phase === 'research' ? 'researching' : job.phase === 'punch' ? 'punching up what ' + (job.writer || 'the writer') + ' wrote' : 'writing') +
+    (job.batch ? ', batch sent ' + Math.round((Date.now() - Number(job.batchAt || 0)) / 60000) + ' minutes ago to ' + job.model : ', its next step is at the next run') +
+    ', try ' + ((job.tries || 0) + 1) + ' of ' + EMT_ART_TRIES + (job.redos ? ', rewrite ' + job.redos + ' of ' + EMT_ART_REDOS : '') + '.');
+  else {
+    L.push('No job running.');
+    var d = emtArtDue(false, Date.now());
+    if (d.gw) L.push('Next: the ' + d.kind + ' of GW' + d.gw + ' starts at the next run.');
+    d.why.forEach(function (w) { L.push('Waiting: ' + w + '.'); });
+  }
+  if (q.length) L.push('Rewrites waiting their turn: ' + q.join(', ') + '.');
+  var pl = emtPunchLast(), pa = pl.article, ps = pl.show;   /* v3.13: the punch-up */
+  L.push('Punch-up: ' + (emtPunchOff() ? 'off (EMT_PUNCH_OFF = yes)' : 'on, models ' + emtModelsLive(emtModelChain('EMT_PUNCH_MODEL', EMT_PUNCH_MODELS)).join(', ')) +
+    '. Last article: ' + (pa ? pa.id + ', ' + (pa.used ? 'punched up by ' + pa.model : 'not used (' + pa.why + ')') + ', ' + String(pa.at || '').slice(0, 16) : 'none yet') +
+    '. Last show: ' + (ps ? 'GW' + ps.gw + ', ' + (ps.used ? 'punched up by ' + ps.model : 'not used (' + ps.why + ')') + ', ' + String(ps.at || '').slice(0, 16) : 'none yet') + '.');
+  meta.slice(-6).reverse().forEach(function (m) {
+    L.push(m.id + ': ' + m.status + (m.written ? ', written ' + m.written.slice(0, 16) : '') + (m.model ? ' by ' + m.model : '') + (m.approved ? ', approved ' + m.approved.slice(0, 16) : '') +
+      (m.redos ? ', ' + m.redos + ' rewrite' + (m.redos > 1 ? 's' : '') : '') + '. Last: ' + emtArtLogLast(m.log).slice(0, 200));
+  });
+  if (!meta.length) L.push('The Articles tab is empty.');
+  var msg = L.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { }   /* no UI from the editor */
+  return msg;
+}
+/* menu: Articles: write now (ignores the windows and EMT_ARTICLES_PAUSED; carries on a running job, else starts the
+ * recap of the latest finished gameweek, else the preview of the next deadline) */
+function articlesWriteNow() {
+  var S;
+  try { S = articleTick(Date.now(), true); }
+  catch (e) { S = { ok: false, stopped: 'error', error: String((e && e.message) || e), did: [], why: [] }; }
+  var msg = S.stopped === 'error' ? 'Articles: error: ' + S.error : emtArtSummary(S);
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { }
+  return S;
+}
+
+/* =====================================================================================================
+ * v3.13 · THE PUNCH-UP — a second, funnier pass over a checked article or show script, checked all over again.
+ *   The writers (Sonnet) write the accurate version. The punch-up (Haiku: EMT_PUNCH_MODEL, then claude-haiku-5-5,
+ *   claude-haiku-4-5) gets it as JSON with THE READERS (EMT_TONE_LINES) and may only rework the jokes: every fact,
+ *   number, name, code, label, heading, source and the shape stay. Then the full checks run again with the same
+ *   inputs (emtArticleCheck / emtShowCheck), plus what the checks alone cannot see (emtArtPunchSame /
+ *   emtShowPunchSame): the same matchups or chapters in the same order with the same stars, the same number values,
+ *   headings, sources and foot, no number the checked version did not have, about the same length.
+ *   Articles: a third batch, custom_id <id>-p, after the writing (status stays 'writing'; the checked base waits in
+ *   ArticleWork, sealed). Used when it passes: the Model cell reads '<writer> + <punch model>', Log 'punched up by
+ *   ...'. Otherwise (a failed check, an errored, expired or lost batch, no punch model left, still unfinished 2 hours
+ *   after the punch-up started, the job's 36 hours) the checked base is the draft, Log 'punch-up not used: <why>'
+ *   with the first 5 problems (redacted). Never a try, never a failure. On a rewrite the commissioner's note goes
+ *   along. Show: one synchronous call after a checked script (emtShowPunch), skipped once the run is past
+ *   EMT_SHOW_WRITE_LATE_MS; the ShowScripts Model cell reads the same way.
+ *   EMT_PUNCH_OFF = yes skips both. ?health=1 shows the last outcome of each (EMT_PUNCH_LAST: no draft text).
+ *   QUOTA: per article one more batch, ~5k tokens in and out on Haiku at batch prices; per show one ~4k-token call.
+ * ===================================================================================================== */
+var EMT_PUNCH_MODELS = ['claude-haiku-5-5', 'claude-haiku-4-5'];
+var EMT_PUNCH_MAX_MS = 2 * 3600e3;          // an article's punch-up: the checked base goes out 2 hours after it started
+var EMT_PUNCH_ART_SYSTEM = [
+  'You are the punch-up writer for Matchweek, the app of El Matador Tire, a private FPL Draft league of eight friends. You get a finished article as JSON that has already been fact-checked. Make it funnier for the readers below and change nothing else. Rules: keep every fact, number, name, team name, scoreline, player code, label, heading, source and the JSON shape exactly as they are; never add a number, a fact, a claim or a quote; quotes stay word for word. You may rephrase a sentence, reorder a clause, sharpen a joke, replace a weak joke with a better one built only on facts already in the article, or cut a dead one. Keep each field within about 15 percent of its length. Third person only, never I, we, our or us. No em dashes or en dashes, no emoji, no hashtags. REPLY with the whole JSON object only, no prose, no code fence.',
+  ''
+].concat(EMT_TONE_LINES).join('\n');
+var EMT_PUNCH_SHOW_SYSTEM = [
+  'You are the punch-up writer for the Gameweek Show, read aloud by Malcolm Tyre, a fictional British broadcaster with commentary-box calm. You get a finished, fact-checked script as JSON. Make it funnier for the readers below and change nothing else. Keep every fact, number (as digits), name, team name, player code, chapter, beat count and the JSON shape exactly; never add a number, a fact, a claim or a quote. Each beat stays 10 to 22 words. Never say first, next, then, finally, later or last. No em dashes or en dashes, no emoji, no hashtags, no exclamation marks. REPLY with the whole JSON object only, no prose, no code fence.',
+  ''
+].concat(EMT_TONE_LINES).join('\n');
+
+function emtPunchOff() { return emtProps().getProperty('EMT_PUNCH_OFF') === 'yes'; }
+/* the last outcome per pipeline, for ?health and the status logs: { article: { id, used, model, why, at }, show: { gw,
+ * used, model, why, at } }. why is a short reason only, never draft text (the problems go to the Log, redacted) */
+function emtPunchLast() {
+  try { var o = JSON.parse(emtProps().getProperty('EMT_PUNCH_LAST') || '{}'); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; } catch (e) { return {}; }
+}
+function emtPunchNote(kind, o) {
+  try { var L = emtPunchLast(); o.at = new Date().toISOString(); L[kind] = o; emtProps().setProperty('EMT_PUNCH_LAST', JSON.stringify(L)); } catch (e) { }
+}
+/* the punch-up may not add a number: every number in the new texts must be one the checked texts already have */
+function emtPunchNewNums(before, after) {
+  var have = {}, seen = {}, P = [];
+  before.forEach(function (t) { emtShowNums(t).forEach(function (n) { have[n] = 1; have[String(Number(n))] = 1; }); });
+  after.forEach(function (t) {
+    emtShowNums(t).forEach(function (n) {
+      if (!have[n] && !have[String(Number(n))] && !seen[n]) { seen[n] = 1; P.push('The punch-up added the number ' + n + ', which the checked version does not have.'); }
+    });
+  });
+  return P;
+}
+
+/* ---------- articles: the punch phase of the job (emtArtRun) ---------- */
+/* every text of a checked article, in order */
+function emtArtTextsOf(a) {
+  var t = [a.title, a.sub, a.lede];
+  (a.matchups || []).forEach(function (m) {
+    t.push(m.kicker, m.story, m.number && m.number.value, m.number && m.number.caption);
+    (m.bullets || []).forEach(function (x) { t.push(x); });
+  });
+  (a.around || []).forEach(function (x) { t.push(x.h, x.body); (x.bullets || []).forEach(function (y) { t.push(y); }); });
+  t.push(a.foot);
+  return t.map(function (x) { return String(x == null ? '' : x); });
+}
+/* what the punch-up must have kept, beyond emtArticleCheck. base and C: { article, words } → problems */
+function emtArtPunchSame(base, C) {
+  var a = base.article, b = C.article, P = [], am = a.matchups || [], bm = b.matchups || [];
+  if (bm.length !== am.length) P.push('The matchups must stay ' + am.length + '.');
+  am.forEach(function (m, i) {
+    var x = bm[i], n = m.home + ' v ' + m.away;
+    if (!x || x.home !== m.home || x.away !== m.away) { P.push('Matchup ' + (i + 1) + ' must stay ' + n + ', in the same order.'); return; }
+    if (x.star.code !== m.star.code || x.star.label !== m.star.label) P.push(n + ': the star must stay ' + m.star.code + ', ' + m.star.label + '.');
+    if (x.number.value !== m.number.value) P.push(n + ': number.value must stay ' + m.number.value + '.');
+  });
+  var shape = function (o) { return (o.around || []).map(function (x) { return x.h + ':' + (x.bullets || []).length; }).join('|'); };
+  if (shape(b) !== shape(a)) P.push('The around sections (headings, order and bullet counts) must stay as they were.');
+  if (JSON.stringify(b.sources || []) !== JSON.stringify(a.sources || [])) P.push('The sources must stay exactly as they were.');
+  if (b.foot !== a.foot) P.push('The foot must stay exactly as it was.');
+  P = P.concat(emtPunchNewNums(emtArtTextsOf(a), emtArtTextsOf(b)));
+  var bw = Number(base.words) || 0, pw = Number(C.words) || 0;
+  if (bw && (pw < bw * 0.75 || pw > bw * 1.25)) P.push('The punch-up made it ' + pw + ' words from ' + bw + '; every field stays near its length.');
+  return P;
+}
+/* the checked base, kept sealed in ArticleWork: { article, words } or null */
+function emtArtPunchBase(job) {
+  var s = emtWorkGet(job.id, 'base'), o = s === null ? null : emtArtOpen(s), b = null;
+  try { b = o === null ? null : JSON.parse(o); } catch (e) { b = null; }
+  return b && b.article && typeof b.article === 'object' && !Array.isArray(b.article) ? b : null;
+}
+function emtArtPunchParams(job, article, model) {
+  var u = 'THE ARTICLE:\n' + JSON.stringify(article);
+  if (job.redos && job.note) u += '\n\nTHE COMMISSIONER\'S NOTE (he asked for this rewrite; the punch-up keeps to it too): "' + job.note + '"';
+  return { model: model, max_tokens: 6000, system: EMT_PUNCH_ART_SYSTEM, messages: [{ role: 'user', content: u }] };
+}
+/* the writing passed the checks: keep it sealed as the base and move to the punch phase (status stays 'writing').
+ * → false when the job is over */
+function emtArtPunchStart(job, C, S) {
+  emtWorkPut(job.id, 'base', emtArtSeal(JSON.stringify({ article: C.article, words: C.words }), emtArtSecret(true)));
+  emtWorkClear(job.id, ['fix']);
+  job.writer = job.model; job.model = ''; job.phase = 'punch'; job.batch = ''; job.fix = false; job.punchAt = Date.now();
+  if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
+  emtArtUpdate(job.id, {}, 'written by ' + job.writer + ', ' + C.words + ' words, and it passed the checks; the punch-up is next.', null, job.run || '');
+  S.did.push('article checked, punch-up next');
+  emtArtSay(job, 'the article passed the checks (' + C.words + ' words, ' + job.writer + '); the punch-up is next.');
+  return true;
+}
+/* the base could not be read back (ArticleWork cleared by hand, or EMT_ART_SEAL deleted): the article is written
+ * again, not counted as a try. → false when the job is over */
+function emtArtPunchLost(job, S) {
+  job.phase = 'write'; job.model = job.writer || ''; job.writer = ''; job.batch = ''; job.fix = false; job.punchAt = 0;
+  emtWorkClear(job.id, ['base', 'fix']);
+  emtArtUpdate(job.id, {}, 'the checked article could not be read back for the punch-up; it is written again (not counted as a try).', null, job.run || '');
+  emtArtSay(job, 'the checked article could not be read back for the punch-up; writing it again (not counted).');
+  S.did.push('checked article lost, written again');
+  if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
+  return true;
+}
+/* the punch-up is over and the article becomes the draft. P: the punched-up version, checked ({ article, words });
+ * null: the checked base goes out instead. reason: short, no draft text (?health keeps it); detail: the problems, for
+ * the Log (redacted there) and the execution log. base: when the caller already read it. */
+function emtArtPunchEnd(job, P, reason, detail, S, base) {
+  if (!P) {
+    base = base || emtArtPunchBase(job);
+    if (!base) { emtArtPunchLost(job, S); return; }
+  }
+  S.did.push(P ? 'punched up by ' + job.model : 'punch-up not used: ' + reason);
+  if (P) emtArtDraft(job, P, S, { model: job.model });
+  else emtArtDraft(job, base, S, { why: reason + (detail ? ': ' + detail : '') });
+  if (S.stopped === 'draft') emtPunchNote('article', { id: job.id, used: !!P, model: P ? job.model : '', why: P ? '' : reason });
+}
+
+/* ---------- the show: one call, from showWriterTick ---------- */
+/* what the punch-up must have kept, beyond emtShowCheck: the chapters in order with their stars, no beat grown past
+ * 22 words, no new number. a, b: checked scripts (digits) → problems */
+function emtShowPunchSame(a, b) {
+  var P = [], W = function (t) { t = String(t || '').trim(); return t ? t.split(/\s+/).length : 0; };
+  if (b.chapters.length !== a.chapters.length) P.push('The chapters must stay ' + a.chapters.length + '.');
+  a.chapters.forEach(function (c, i) {
+    var d = b.chapters[i], n = c.home + ' v ' + c.away;
+    if (!d || d.home !== c.home || d.away !== c.away) { P.push('Chapter ' + (i + 1) + ' must stay ' + n + ', in the same order.'); return; }
+    if (d.star.h !== c.star.h || d.star.a !== c.star.a) P.push(n + ': the stars must stay ' + c.star.h + ' and ' + c.star.a + '.');
+    d.beats.forEach(function (t, k) { var w = W(t); if (w > EMT_SHOW_BEAT_WORDS[1] && w > W(c.beats[k])) P.push(n + ', beat ' + k + ': ' + w + ' words; ' + EMT_SHOW_BEAT_WORDS[1] + ' at most.'); });
+  });
+  var texts = function (s) { var t = [s.open, s.close]; s.chapters.forEach(function (c) { t = t.concat(c.beats); }); return t; };
+  return P.concat(emtPunchNewNums(texts(a), texts(b)));
+}
+/* W: what emtShowWrite returned (a checked script, and the allowed numbers it was checked against). Never throws.
+ * → { script (the punched-up one, or W.script), used, model, why, detail, calls, off } */
+function emtShowPunch(gw, W, facts, t0) {
+  var out = { script: W.script, used: false, model: '', why: '', detail: '', calls: 0, off: false }, age = Date.now() - (typeof t0 === 'number' ? t0 : Date.now());
+  if (emtPunchOff()) { out.off = true; return out; }
+  if (age > EMT_SHOW_WRITE_LATE_MS) out.why = 'skipped, the run was already ' + Math.round(age / 1000) + ' seconds old';
+  else {
+    try {
+      var models = emtModelsLive(emtModelChain('EMT_PUNCH_MODEL', EMT_PUNCH_MODELS)), user = 'THE SCRIPT:\n' + JSON.stringify(W.script), r = null;
+      for (var i = 0; i < models.length; i++) {
+        out.model = models[i];
+        r = emtShowAsk(models[i], user, EMT_PUNCH_SHOW_SYSTEM);
+        out.calls++;
+        if (!r.error || !r.missing) break;
+        emtModelNoteGone(models[i], r.msg);
+      }
+      if (r.error) { out.why = r.missing ? 'no punch-up model is available' : 'the call failed'; out.detail = String(r.error).slice(0, 200); }
+      else {
+        var c = emtShowCheck(r.text, facts, W.allowed, r.stop), P = c.script ? emtShowPunchSame(W.script, c.script) : c.problems;
+        if (P.length) { out.why = 'the check found ' + P.length + ' problem' + (P.length === 1 ? '' : 's'); out.detail = P.slice(0, 5).join(' | '); }
+        else { out.script = c.script; out.used = true; }
+      }
+    } catch (e) { out.why = 'the call failed'; out.detail = String((e && e.message) || e).slice(0, 200); }
+  }
+  if (!out.used) out.model = '';
+  emtPunchNote('show', { gw: gw, used: out.used, model: out.model, why: out.why });
+  return out;
 }
 
 /* =====================================================================================================

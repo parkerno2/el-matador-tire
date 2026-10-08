@@ -11,7 +11,9 @@ import { VOICES, ORDER, avatar, tagChip } from '../feed/voices.js';
 import { shows, mmss, selectionCall } from '../feed/facts.js';
 import { callKey } from '../feed/build.js';
 import { cut, mediaHTML } from '../feed/render.js';
-import { esc, short, dayMonth, lsGet, firstOf } from '../feed/util.js';
+import { esc, short, dayMonth, lsGet, firstOf, dt, relTime } from '../feed/util.js';
+import { articlesWanted, allArticles, waiting as artWaiting, drafts as artDrafts, commishFirst, isCommish, KIND, artHref, maxRedos } from '../feed/articles.js';
+import { reader, readerHead, restoreNote, REV } from '../feed/article.js';
 
 const hasSeen = () => { try { return !!localStorage.getItem('emt-feed-seen'); } catch (e) { return false; } };
 /* Everyone comes first: the whole league, about the whole league. For you narrows it to your club */
@@ -57,9 +59,7 @@ function forYou() {
 }
 function latestArticle() {
   const s = shows()[0];
-  const arts = [].concat((typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).map(a => ({ ...a, kind: 'Preview', ord: a.gw * 2 })), (typeof RECAPS !== 'undefined' ? RECAPS : []).map(a => ({ ...a, kind: 'Recap', ord: a.gw * 2 + 1 })));
-  arts.sort((a, b) => b.ord - a.ord);
-  const a = arts[0];
+  const a = allArticles()[0];
   if (s && (!a || s.gw * 2 >= a.ord)) return { show: s };
   return a ? { art: a } : null;
 }
@@ -121,14 +121,45 @@ function showCard(s) {
 function artCard(a) {
   return '<a class="far" href="' + esc(a.href) + '"><span class="far-k"><b class="n">GW' + a.gw + '</b><em>' + esc(a.kind.toUpperCase()) + '</em></span><span class="far-t"><b>' + esc(a.title) + '</b><span>' + esc(a.sub) + '</span></span><span class="far-go">' + UI.icon('chev', 16, 'var(--p300)') + '</span></a>';
 }
-function articles() {
+/* the commissioner's queue: drafts to read first, then the ones still being written */
+function draftCard(d) {
+  const kind = KIND(d.kind), g = +d.gw, ready = d.status === 'draft' && d.a;
+  const k = '<span class="far-k dr"><b class="n">GW' + g + '</b><em>' + esc(kind.toUpperCase()) + '</em></span>';
+  if (ready) {
+    const w = dt(d.written);
+    return '<a class="far ar-dr" href="' + esc(artHref(d.id)) + '">' + k + '<span class="far-t"><span class="ar-st"><i></i>Draft · only you can see it</span><b>' + esc(d.a.title || 'GW' + g + ' ' + kind.toLowerCase()) + '</b><span>' + (w ? 'Written ' + esc(ago(w)) + '. ' : '') + 'Read it, then approve, rewrite or drop.</span></span><span class="far-go">' + UI.icon('chev', 16, 'var(--b300)') + '</span></a>';
+  }
+  const failed = d.status === 'failed', left = Math.max(0, maxRedos - (+d.redos || 0)), busy = REV.busy && REV.id === d.id;
+  const why = d.error ? esc(String(d.error).slice(0, 160).replace(/[.\s]*$/, '')) + '. ' : 'It stopped after three tries. ';
+  /* a failed one can be sent again from here (no computer needed): a rewrite from the stored research */
+  const retry = failed && left ? '<button class="btn ghost ar-again" data-am="again" data-id="' + esc(d.id) + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Sending…' : 'Try again') + '</button>' : '';
+  return '<div class="far ar-dr wip' + (failed ? ' bad' : '') + '">' + k + '<span class="far-t"><span class="ar-st' + (failed ? ' bad' : ' run') + '"><i></i>' + (failed ? 'Couldn’t be written' : d.status === 'research' ? 'Researching the week' : 'Being written') + '</span><b>The GW' + g + ' ' + kind.toLowerCase() + '</b><span>' + (failed ? why + (left ? (left === 1 ? 'One retry left.' : left + ' retries left.') : 'No retries left; the sheet’s Articles: write now starts a fresh one.') : (d.note ? 'Rewriting with your note. ' : '') + 'It lands here for your read when it’s done.') + '</span>' + retry + '</span></div>';
+}
+const ago = d => { const r = relTime(d); return /^\d+[mh]$/.test(r) ? r + ' ago' : r; };
+/* what a missing article is doing: "GW6 preview: written, waiting for Parker’s read" */
+function waitLine(gw, kind) {
+  const w = artWaiting().find(x => +x.gw === gw && KIND(x.kind) === kind);
+  if (!w) return null;
+  return 'GW' + gw + ' ' + kind.toLowerCase() + ': ' + (w.status === 'draft' ? 'written, waiting for ' + commishFirst() + '’s read' : 'being written');
+}
+function articles(args) {
   const S = shows();
-  const arts = [].concat((typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).map(a => ({ ...a, kind: 'Preview', ord: a.gw * 2 })), (typeof RECAPS !== 'undefined' ? RECAPS : []).map(a => ({ ...a, kind: 'Recap', ord: a.gw * 2 + 1 }))).sort((a, b) => b.ord - a.ord);
-  const missing = [];
-  if (D.gwsDone && !(typeof RECAPS !== 'undefined' && RECAPS.some(r => r.gw === D.gwsDone))) missing.push('GW' + D.gwsDone + ' recap');
-  if (!(typeof PREVIEWS !== 'undefined' && PREVIEWS.some(r => r.gw === D.gw))) missing.push('GW' + D.gw + ' preview');
-  return (S.length ? UI.sh('The Gameweek Show') + S.map(s => '<div class="ar-show">' + showCard(s) + '</div>').join('') : '')
+  const arts = allArticles();
+  const has = (gw, kind) => arts.some(a => a.gw === gw && a.kind === kind);
+  const lines = [], missing = [];
+  [[D.gwsDone, 'Recap'], [D.gw, 'Preview']].forEach(([g, kind]) => {
+    if (!g || has(g, kind)) return;
+    const l = waitLine(g, kind); if (l) lines.push(l); else missing.push('GW' + g + ' ' + kind.toLowerCase());
+  });
+  /* anything else in the queue (a rewrite of an older week, say) */
+  artWaiting().forEach(w => { const g = +w.gw, kind = KIND(w.kind); if ((g === D.gwsDone && kind === 'Recap') || (g === D.gw && kind === 'Preview') || has(g, kind)) return; const l = waitLine(g, kind); if (l && !lines.includes(l)) lines.push(l); });
+  const Q = isCommish() ? artDrafts().filter(d => ['draft', 'research', 'writing', 'failed'].includes(d.status)).sort((a, b) => (b.status === 'draft') - (a.status === 'draft') || b.gw - a.gw) : [];
+  /* the commissioner has those in his queue above; everyone else gets one line each */
+  const notes = lines.filter(l => !Q.some(d => l.indexOf('GW' + d.gw + ' ' + KIND(d.kind).toLowerCase() + ':') === 0));
+  return (Q.length ? UI.sh('Waiting for your read', { aside: Q.filter(d => d.status === 'draft' && d.a).length ? Q.filter(d => d.status === 'draft' && d.a).length + ' to read' : '' }) + '<div class="ar-list ar-q">' + Q.map(draftCard).join('') + '</div>' : '')
+    + (S.length ? UI.sh('The Gameweek Show') + S.map(s => '<div class="ar-show">' + showCard(s) + '</div>').join('') : '')
     + UI.sh('Previews and recaps', { aside: arts.length + ' articles' })
+    + (notes.length ? '<div class="ar-waits">' + notes.map(l => '<p class="ar-wait"><i></i>' + esc(l) + '.</p>').join('') + '</div>' : '')
     + (arts.length ? '<div class="ar-list">' + arts.map(artCard).join('') + '</div>' : UI.empty('No articles yet', 'Previews land before each deadline, recaps after each gameweek.'))
     + (missing.length ? '<p class="ar-note">Not published yet: ' + esc(missing.join(' and ')) + '.</p>' : '');
 }
@@ -267,15 +298,18 @@ export default {
     try {
       if (sub === 'foryou') body = forYou();
       else if (sub === 'league') body = league(args);
-      else if (sub === 'articles') body = articles();
+      else if (sub === 'articles') body = args[0] ? reader(args[0]) : articles(args);
       else if (sub === 'messages') body = messages(args);
     } catch (e) { console.error(e); body = '<div class="err">Couldn’t build the feed. ' + esc(e.message) + '</div>'; }
     const showStories = sub === 'foryou' || sub === 'league';
+    if (sub === 'articles' && args[0]) return readerHead() + '<div class="feed f-reader">' + body + '</div>';
     return head(sub, args) + (showStories ? stories(sub, args) : '') + '<div class="feed f-' + sub + '">' + body + '</div>';
   },
   mount(root, sub, args) {
     UI.showOn(root);
     warm();
+    articlesWanted();
+    if (sub === 'articles' && args[0]) restoreNote();
     if (sub === 'foryou' || sub === 'league') markSeen();
     if (sub === 'messages' && args[0]) markThread(args[0]);
     restoreCarousels(root);

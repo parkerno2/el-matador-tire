@@ -553,3 +553,6 @@
 .mn-mr.tot{color:#fff;font-weight:700}
 .mn-mr.tot b{font-size:22px}
 .ps-own::after{content:"";position:absolute;inset:-4px -2px}
+.mn-legal{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 16px 0;font-size:12px}
+.mn-legal a{display:inline-flex;align-items:center;min-height:40px;padding:0 6px;color:var(--tx3);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.mn-legal i{width:3px;height:3px;border-radius:50%;background:var(--tx4)}

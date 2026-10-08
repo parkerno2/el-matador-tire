@@ -1,5 +1,6 @@
 /* matchday/overview.js — three blocks: your matchup (biggest), the other matchups, the latest from the feed */
 import * as UI from '../../ui.js';
+import { allArticles } from '../../feed/articles.js';
 import * as M from './model.js';
 import { buildPosts, renderPost, shows, mmss } from '../../feed/index.js';
 
@@ -165,8 +166,9 @@ function footState(list) {
 
 /* ---------- 3. the feed rail ---------- */
 function articleCard() {
-  const rc = (RECAPS || []).find(r => r.gw === D.gw && D.provOver) || (RECAPS || []).find(r => r.gw === D.gwsDone);
-  const pv = (PREVIEWS || []).find(p => p.gw === D.gw && !D.dlPassed);
+  const all = allArticles(), R = all.filter(a => a.kind === 'Recap'), P = all.filter(a => a.kind === 'Preview');
+  const rc = R.find(r => r.gw === D.gw && D.provOver) || R.find(r => r.gw === D.gwsDone);
+  const pv = P.find(p => p.gw === D.gw && !D.dlPassed);
   const a = pv || rc; if (!a) return '';
   const k = pv ? 'preview' : 'recap';
   return '<a class="md-rc md-art" href="' + esc(a.href) + '"><span class="md-ak">Gameweek ' + a.gw + ' ' + k + '</span><b>' + esc(a.title) + '</b><span class="sub">' + esc(a.sub || '') + '</span><span class="md-go">Read the ' + k + ' ›</span></a>';

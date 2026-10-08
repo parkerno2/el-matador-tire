@@ -43,7 +43,8 @@ function mainView() {
     + UI.sh('Data') + '<div class="card mn-data"><div class="mn-fr"><div><b data-ago>Updated ' + ago() + '</b><span class="sub">Refreshes every ' + (live ? '90 seconds while games are on' : '5 minutes, and every 90 seconds while games are on') + '. Live scores can trail the TV by a few minutes.</span></div>'
     + '<button type="button" class="btn ghost mn-rf" data-refresh>' + UI.icon('refresh', 16, 'var(--tx)') + 'Refresh now</button></div></div>'
     + '<div class="card mn-classic"><a class="row tap mn-row" href="classic.html" target="_blank" rel="noopener"><span class="mn-ic">' + UI.icon('share', 18, 'var(--p300)') + '</span><span class="mn-rt"><b>Open the classic app</b><span class="sub">The previous version, everything still in place</span></span>' + UI.icon('chev', 16, 'var(--tx3)') + '</a></div>'
-    + '<p class="mn-foot">Matchweek for El Matador Tire. No ads, no analytics.</p></div>';
+    + '<p class="mn-foot">Matchweek for El Matador Tire. No ads, no analytics.</p>'
+    + '<nav class="mn-legal" aria-label="Legal"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a><i aria-hidden="true"></i><a href="terms.html" target="_blank" rel="noopener">Terms</a></nav></div>';
 }
 
 /* ---------- how it works ---------- */

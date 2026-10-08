@@ -5,7 +5,8 @@ import team from './pages/team.js';
 import league from './pages/league.js';
 import feed from './pages/feed.js';
 import { SHEETS } from './sheets/index.js';
-import { maybeSendFacts } from './feed/showfacts.js';
+import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } from './feed/showfacts.js';
+import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
 
 const PAGES = { matchday, team, league, feed };
 const app = document.getElementById('app');
@@ -156,7 +157,7 @@ let BUSY = false;
 export function reload(quiet) {
   if (BUSY) return Promise.resolve(true);
   BUSY = true;
-  return loadData(quiet).then(() => { BUSY = false; render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); setTimeout(() => idle(maybeSendFacts), 9000); return true; })
+  return loadData(quiet).then(() => { BUSY = false; render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
     .catch(e => {
       BUSY = false;
       if (D.ro && D.ro.length) return false;   /* keep what's on screen; the caller says so */
@@ -186,7 +187,7 @@ function boot() {
   app.innerHTML = '<div class="boot">' + UI.leagueCrest(44) + UI.mwMark(30) + '<div class="bar"><i></i></div><span>Loading El Matador Tire</span></div>';
   reload(false);
 }
-window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI };
+window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI, facts: { preview: computeFacts, recap: computeRecapFacts } };
 /* no zoom at all. iOS ignores user-scalable=no, so its pinch gestures are stopped here; the CSS keeps panning only */
 ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
 /* warm the image cache once the first page is up: every club badge, every rostered player's flag and face (yours first).

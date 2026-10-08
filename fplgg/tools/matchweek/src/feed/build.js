@@ -13,6 +13,7 @@ import {
 import { socialPosts } from './social-posts.js';
 import { editorialPosts } from './editorial.js';
 import { aiPosts } from './ai-posts.js';
+import { live as liveArticles, KIND as artKind, artHref } from './articles.js';
 
 const T = (d, min) => new Date((d ? d.getTime() : 0) + (min || 0) * 60e3);
 const strong = s => '<strong>' + s + '</strong>';
@@ -944,14 +945,26 @@ function malcolm(out, you) {
     }
   });
 
-  /* articles: recaps and previews, and the Gameweek Show */
+  /* articles: recaps and previews, and the Gameweek Show. A week with an approved article from the sheet uses it (as
+     Feed › Articles does), so the post and the list never point at two different pieces */
+  const sheetArt = new Set(liveArticles().map(a => +a.gw + artKind(a.kind)));
   (typeof RECAPS !== 'undefined' ? RECAPS : []).forEach(a => {
+    if (sheetArt.has(a.gw + 'Recap')) return;
     const at = gwDoneTime(a.gw);
     out.push({ id: 'recap:' + a.gw, voice: 'malcolm', kind: 'article', ts: T(at, 40), time: 'GW' + a.gw + ' recap', gw: a.gw, teams: [], players: [], text: 'The GW' + a.gw + ' recap is up.', media: { type: 'article', kind: 'Recap', gw: a.gw, href: a.href, title: a.title, sub: a.sub }, facts: '', detail: [], links: [{ label: 'Read the recap', href: a.href, ext: true }], share: 'GW' + a.gw + ' recap: ' + a.title });
   });
   (typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).forEach(a => {
+    if (sheetArt.has(a.gw + 'Preview')) return;
     const at = buildUpTime(a.gw);
     out.push({ id: 'preview:' + a.gw, voice: 'malcolm', kind: 'article', ts: T(at, 60), time: 'GW' + a.gw + ' preview', gw: a.gw, teams: [], players: [], text: 'The GW' + a.gw + ' preview is up.', media: { type: 'article', kind: 'Preview', gw: a.gw, href: a.href, title: a.title, sub: a.sub }, facts: '', detail: [], links: [{ label: 'Read the preview', href: a.href, ext: true }], share: 'GW' + a.gw + ' preview: ' + a.title });
+  });
+  /* articles written in the cloud and approved by the commissioner: read in the app */
+  const seenArt = new Set();
+  liveArticles().forEach(a => {   /* newest first: one post per gameweek and kind (post ids are recap:<gw> / preview:<gw>) */
+    const kind = artKind(a.kind), g = +a.gw, rec = kind === 'Recap'; if (!g || seenArt.has(g + kind)) return;
+    seenArt.add(g + kind);
+    const at = dt(a.approved) || (rec ? T(gwDoneTime(g), 40) : T(buildUpTime(g), 60)), href = artHref(a.id), lc = kind.toLowerCase();
+    out.push({ id: lc + ':' + g, voice: 'malcolm', kind: 'article', ts: at, time: 'GW' + g + ' ' + lc, gw: g, teams: [], players: [], text: 'The GW' + g + ' ' + lc + ' is up.', media: { type: 'article', kind, gw: g, href, title: a.title || '', sub: a.sub || '' }, facts: '', detail: [], links: [{ label: 'Read the ' + lc, href }], share: 'GW' + g + ' ' + lc + ': ' + (a.title || '') });
   });
   shows().forEach(s => {
     const at = s.at || buildUpTime(s.gw);

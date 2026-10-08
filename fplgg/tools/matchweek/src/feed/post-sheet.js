@@ -1,5 +1,6 @@
 /* feed/post-sheet.js — a post opened large, with the facts it was built from and where to go next. data-open="post:<id>" */
 import * as UI from '../ui.js';
+import { allArticles } from './articles.js';
 import { postById, renderPost, restoreCarousels, stopSpeaking } from './index.js';
 import { VOICES } from './voices.js';
 import { shows, mmss } from './facts.js';
@@ -9,7 +10,7 @@ import { REACTS, reactions } from './social.js';
 /* the show opened from the feed: watch it all, or jump straight to one matchup */
 function showPlayer(gw) {
   const s = shows().find(x => x.gw === gw); if (!s) return '';
-  const prev = (typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).find(p => p.gw === gw);
+  const prev = allArticles().find(p => p.kind === 'Preview' && p.gw === gw);
   return '<div class="show-player" data-gw="' + gw + '">'
     + '<button class="btn block gs-watch" data-fx="show:' + gw + '">' + UI.icon('play', 16) + ' Watch the show · ' + mmss(s.dur) + '</button>'
     + UI.sh('Matchups') + '<div class="card">' + s.j.chapters.map((c, i) => '<button class="row tap spl-c" data-fx="showch:' + gw + '|' + i + '">' + UI.crest(c.home, 22) + '<b>' + esc(firstOf(c.home)) + '</b><i>v</i><b>' + esc(firstOf(c.away)) + '</b>' + UI.crest(c.away, 22) + '<span class="spl-dn">' + esc(derbyName(c.home, c.away) || '') + '</span>' + UI.icon('play', 12, 'var(--p300)') + '</button>').join('') + '</div>'
