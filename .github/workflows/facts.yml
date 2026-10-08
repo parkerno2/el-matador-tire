@@ -1,0 +1,73 @@
+# El Matador Tire: the Facts bot (ROADMAP A0), no PC and no phone needed.
+#   Every 3 hours, or Actions tab → Facts bot → Run workflow. Loads the live app headless in Chromium, has the app's
+#   own engine compute the preview facts (what a phone posts as showfacts) and the recap facts (artfacts), and commits
+#   facts/preview-gw<N>.json, facts/recap-gw<N>.json and facts/index.json to the `facts` branch when they change.
+#   Code.gs (v3.15+) reads them from raw.githubusercontent.com whenever a phone's facts are missing or older, after the
+#   same checks a phone's post passes. Touches nothing on main. Details: fplgg/tools/factsbot/README.md
+name: Facts bot
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Write both facts even outside their windows (type yes)'
+        required: false
+        default: 'no'
+permissions:
+  contents: write
+concurrency: { group: facts-bot, cancel-in-progress: false }
+jobs:
+  facts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: fplgg/tools/factsbot/package-lock.json
+      - name: Install Playwright
+        working-directory: fplgg/tools/factsbot
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Test the bot
+        run: node tests/factsbot.js
+      - name: Check out the facts branch
+        run: |
+          if git fetch origin facts:facts 2>/dev/null; then
+            git worktree add facts-wt facts
+          else
+            echo "no facts branch yet: starting it"
+            git worktree add --detach facts-wt
+            cd facts-wt && git checkout --orphan facts && git rm -rfq . && cd ..
+          fi
+          if [ ! -f facts-wt/README.md ]; then
+            printf '%s\n' '# Facts branch' '' 'Written by the Facts bot (.github/workflows/facts.yml on main): the gameweek facts the Matchweek writers use when no phone has sent them.' '- facts/index.json: which files exist and when each last changed.' '- facts/preview-gw<N>.json: what a phone posts as showfacts (MW.facts.preview()).' '- facts/recap-gw<N>.json: what a phone posts as artfacts (MW.facts.recap()).' '' 'Code.gs (v3.15+) reads them from raw.githubusercontent.com. Do not edit by hand; the next run overwrites them.' > facts-wt/README.md
+          fi
+      - name: Compute the facts
+        id: bot
+        env:
+          MW_FORCE: ${{ github.event.inputs.force }}
+        run: node fplgg/tools/factsbot/factsbot.js --out facts-wt/facts
+      - name: Commit to the facts branch
+        working-directory: facts-wt
+        run: |
+          git config user.name "el-matador-build"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A -- facts README.md
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git commit -m "facts: ${{ steps.bot.outputs.summary }}"
+          for i in 1 2 3; do
+            if git push origin HEAD:refs/heads/facts; then exit 0; fi
+            echo "push rejected, pulling and retrying ($i)"; sleep $((i * 5))
+            git pull --rebase origin facts || true
+          done
+          exit 1
+      - name: Report a kind that could not be computed
+        if: steps.bot.outputs.failed != ''
+        run: |
+          echo "::error::the Facts bot could not compute: ${{ steps.bot.outputs.failed }} (see the step summary)"
+          exit 1

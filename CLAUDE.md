@@ -11,6 +11,7 @@ This repo runs Parker's 8-manager FPL Draft league app (El Matador Tire). The pr
 | matchweek.gg (landing, demo, legal) | `site/public/`, config `site/wrangler.jsonc` | Cloudflare Workers Builds deploys on every push to `main`. |
 | Gameweek Show scripts | `show/gw<N>.json`, optional (the repo copy wins over an AI-written one) | Apps Script voices new lines with ElevenLabs within 15 min. |
 | Faces | `faces/` | `.github/workflows/faces.yml`, daily. |
+| Facts bot (the gameweek facts without a phone) | `fplgg/tools/factsbot/` | `.github/workflows/facts.yml`, every 3 h and on dispatch: loads the live app headless, computes `MW.facts.preview()` and `MW.facts.recap()`, commits `facts/*.json` to the **`facts` branch** (orphan; main stays clean). Code.gs v3.15+ reads them when a phone's facts are missing or older. |
 
 The data lives in the public Google Sheet `1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk`. Read any tab with `gviz/tq?tqx=out:csv&sheet=<Tab>`. Hidden tabs are readable by anyone with the ID, so anything not yet published (drafts in review mode, a rewrite in progress, the commissioner's notes) is stored encrypted (`EMT_ART_SEAL`).
 
@@ -30,16 +31,17 @@ The data lives in the public Google Sheet `1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZi
 - **Articles** (Parker, 8 Oct 2026: "i don't want to approve it just go for it"): recaps and previews publish automatically once they pass the checks. Parker, as commissioner (team Cold Palmers, `EMT_COMMISH`), fixes things afterwards from his phone: ask for a rewrite of a live article (the live version stays up until the new one passes) or take it down. Script Property `EMT_ART_REVIEW = yes` brings back approve-before-publish; respect it when it is set.
 - **Testing before you push:**
   - App: test changes with `cd fplgg/tools/matchweek && npm ci && bash ci-build.sh`.
-  - Code.gs: run `node tests/codegs/<file>.js` for v314, v313, v312, show and test; all must print ALL PASS (test.js prints rows). A broken Code.gs on `main` goes live within the hour.
+  - Code.gs: run `node tests/codegs/<file>.js` for v315, v314, v313, v312, show and test; all must print ALL PASS (test.js prints rows). A broken Code.gs on `main` goes live within the hour.
+  - Facts bot: `node tests/factsbot.js` (and `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/factsbot/factsbot.js --out /tmp/facts` runs it for real against the live app).
   - Run `node --check` on a `.js` copy of Code.gs.
 
-## Pipelines (Code.gs v3.14)
+## Pipelines (Code.gs v3.15)
 - **`aiTick`, every 15 minutes:**
   1. `aiWriterTick`: feed posts on Haiku.
   2. `showWriterTick`: show script on Sonnet, with a Haiku punch-up.
   3. `showTick`: ElevenLabs voice.
   4. `articleTick`: recap and preview through the Message Batches API: research with web search, writing on Sonnet, then a Haiku punch-up. An article that passes the checks goes live at once (with `EMT_ART_REVIEW = yes` it waits as a draft for the commissioner).
   5. `selfUpdateTick`.
-- **Facts:** phones send them (`showfacts` for previews and the show, `artfacts` for recaps), computed by the app's own engine, so articles match the screen.
-- **Health:** `GET <web app>?health=1` (`articles.mode` is `auto` or `review`). Without a browser, read the Articles, ShowScripts, RecapFacts and ShowFacts tabs over gviz.
+- **Facts:** phones send them (`showfacts` for previews and the show, `artfacts` for recaps), computed by the app's own engine, so articles match the screen. Since v3.15 the Facts bot sends the same facts from the cloud (`facts` branch); Code.gs takes whichever is newer and checks a repo file exactly as a phone's post.
+- **Health:** `GET <web app>?health=1` (`articles.mode` is `auto` or `review`; `facts` says where the newest preview and recap facts came from, phone or repo). Without a browser, read the Articles, ShowScripts, RecapFacts and ShowFacts tabs over gviz, and `https://raw.githubusercontent.com/parkerno2/el-matador-tire/facts/facts/index.json`.
 - **Model chains:** every writer has a fallback chain (`EMT_*_MODEL` Script Property first), so a retired model falls through by itself.

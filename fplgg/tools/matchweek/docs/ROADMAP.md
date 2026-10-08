@@ -13,7 +13,7 @@ How items are worked:
 - Items marked **(Parker)** need a decision or an account action from him.
 
 ## A. Reliability (now)
-- [ ] **A0 Facts without phones.** Today the GW preview, recap and show only start once a signed-in manager opens the app.
+- [x] **A0 Facts without phones.** (Shipped 8 Oct 2026: Code.gs v3.15, `.github/workflows/facts.yml`, `fplgg/tools/factsbot/`; the files live on the `facts` branch.) Today the GW preview, recap and show only start once a signed-in manager opens the app.
   - Add a GitHub Action ("Facts bot"), every 3 h plus on dispatch.
   - It loads the live app headless in Chromium, computes `MW.facts.preview()` and `MW.facts.recap()` with the app's own engine, and commits `facts/preview-gw<N>.json` and `facts/recap-gw<N>.json` when they change.
   - Code.gs reads those raw files from the repo whenever phone facts are missing or older. The repo is the trust anchor, so no secret is needed.

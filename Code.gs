@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,24 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.15 · 8 Oct 2026
+ *   The facts without anyone's phone: the Facts bot.
+ *   1. A GitHub Action (.github/workflows/facts.yml, every 3 hours and on demand) loads the live app headless in
+ *      Chromium, has the app's own engine compute the preview facts (what a phone posts as showfacts) and the recap
+ *      facts (artfacts), and commits them to the repo's `facts` branch when they change: facts/index.json (which
+ *      files there are and when each last changed), facts/preview-gw<N>.json and facts/recap-gw<N>.json. The same
+ *      windows as the phones (the preview in the last 54 hours before the deadline, the recap for 5 days after the
+ *      gameweek's last game) and the same trimming, so a file is byte for byte what a phone would have sent.
+ *   2. The show writer and the articles read whichever is newer, a phone's post or the repo's file (emtFactsBest). A
+ *      repo file passes exactly the checks a phone's post passes (this gameweek's fixtures; for a recap a finished
+ *      gameweek with its exact scores) or it is ignored and the log says why. The repo is the trust anchor (only the
+ *      Action and the commissioner can write to it), so no secret is involved. One read of the index a run (cached
+ *      4 minutes), a file only when it is the newer one and its data is wanted. A GitHub that does not answer costs
+ *      nothing: the phones' facts count as before.
+ *   3. ?health=1 adds facts: the newest preview and recap facts, where each came from (phone or repo) and the repo's
+ *      index; show.factsFrom says the same for the show.
+ *   No new setup and no new permissions (UrlFetchApp to raw.githubusercontent.com, which the self-update already
+ *   uses). Tests: tests/codegs/v315.js; the bot's own in tests/factsbot.js.
  * v3.14 · 8 Oct 2026
  *   Recaps and previews publish themselves. The commissioner's call: no approval step from now on.
  *   1. An article that passes every check (after the punch-up, where the draft used to be made) goes live at once:
@@ -1459,6 +1477,7 @@ function doPost(e) {
 
 function doGet(e) {
   try {
+    emtRepoReset();                                                                 /* v3.15 */
     if (e && e.parameter && e.parameter.show) return emtOut(emtShowGet(e.parameter.show, e.parameter.meta));   // v3.11 the Gameweek Show; v3.12 &meta=1
     if (e && e.parameter && e.parameter.health) return emtOut(emtHealth());                 // v3.13 pipeline health, no secrets
     if (e && e.parameter && e.parameter.articles) return emtOut(emtArtList());              // v3.13 approved articles + what is waiting
@@ -1751,6 +1770,7 @@ function aiWrite(ev) {
  * v3.13: five parts: the articles (articleTick) run after the show and before the self-update, in their own try/catch. */
 function aiTick() {
   var t0 = Date.now(), err = null;
+  emtRepoReset();                                                                   /* v3.15: this run's facts memo */
   try { aiWriterTick(); } catch (e) { err = e; Logger.log('AI writer failed: ' + ((e && e.message) || e)); }
   try { showWriterTick(t0); } catch (e) { Logger.log('Show writer failed: ' + ((e && e.message) || e)); }
   try { showTick(t0); } catch (e) { Logger.log('Gameweek Show failed: ' + ((e && e.message) || e)); }
@@ -2297,6 +2317,105 @@ function emtFactsLatest(tab, gw, withData) {
   return best;
 }
 
+/* ---------- v3.15: the facts from the repo (the Facts bot) ----------
+ * .github/workflows/facts.yml loads the live app headless every 3 hours, has its engine compute the preview and the
+ * recap facts (what a phone would post) and commits them to the repo's `facts` branch: facts/index.json names the
+ * files and says when each last changed; facts/preview-gw<N>.json and facts/recap-gw<N>.json hold the JSON. The
+ * writers read whichever is newer, a phone's facts (ShowFacts, RecapFacts) or the repo's (emtFactsBest); a repo file
+ * passes exactly the checks a phone's post passes (emtFactsCheck) or is ignored. The repo is the trust anchor: only
+ * the Action and the commissioner can write to it, so no secret is needed. Reads: the index once a run (cached 4
+ * minutes), a file only when it is the newer one and its data is wanted. Nothing here ever throws. */
+var EMT_FACTS_SRC = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/facts/facts/';
+var EMT_FACTS_BOT = 'Facts bot';
+var EMT_FACTS_INDEX_S = 240;
+var EMT_FACTS_KIND = { ShowFacts: 'preview', RecapFacts: 'recap' };
+var EMT_REPO_RUN = {};                      /* this execution's memo: the index, the files, what was already logged */
+function emtRepoReset() { EMT_REPO_RUN = {}; }
+/* one raw file of the facts branch: { text } | { none } | { error }, read once an execution */
+function emtRepoGet(name) {
+  var k = 'f:' + name;
+  if (EMT_REPO_RUN[k]) return EMT_REPO_RUN[k];
+  var r;
+  try {
+    var res = UrlFetchApp.fetch(EMT_FACTS_SRC + name + '?cb=' + Date.now(), { muteHttpExceptions: true }), code = res.getResponseCode();
+    r = code === 200 ? { text: String(res.getContentText() || '') } : code === 404 ? { none: true } : { error: 'HTTP ' + code };
+  } catch (e) { r = { error: String((e && e.message) || e).replace(/\s+/g, ' ').slice(0, 120) }; }
+  if (r.error) Logger.log(EMT_FACTS_BOT + ': facts/' + name + ' could not be read (' + r.error + '); only the phones\' facts count this run.');
+  return (EMT_REPO_RUN[k] = r);
+}
+function emtRepoBad(name, why) {
+  var k = 'bad:' + name;
+  if (!EMT_REPO_RUN[k]) { EMT_REPO_RUN[k] = why; Logger.log(EMT_FACTS_BOT + ': facts/' + name + ' is ignored: ' + why + '.'); }
+}
+/* facts/index.json: { files: { 'preview-gw6.json': { kind, gw, at, ... } }, updated, app } | null (none, or unreadable) */
+function emtRepoIndex() {
+  if (EMT_REPO_RUN.index !== undefined) return EMT_REPO_RUN.index;
+  var cache = null, hit = null, j = null;
+  try { cache = CacheService.getScriptCache(); hit = cache.get('EMT_FACTS_INDEX'); } catch (e) { cache = null; }
+  if (hit === '0') return (EMT_REPO_RUN.index = null);
+  if (hit) { try { j = JSON.parse(hit); } catch (e) { j = null; } }
+  if (!j) {
+    var r = emtRepoGet('index.json');
+    if (r.text) { try { j = JSON.parse(r.text); } catch (e) { j = null; emtRepoBad('index.json', 'it does not parse'); } }
+    if (j && (typeof j !== 'object' || !j.files || typeof j.files !== 'object')) { j = null; emtRepoBad('index.json', 'it lists no files'); }
+    if (cache && !r.error) { try { cache.put('EMT_FACTS_INDEX', j ? JSON.stringify(j) : '0', EMT_FACTS_INDEX_S); } catch (e) { } }
+  }
+  return (EMT_REPO_RUN.index = j);
+}
+/* the repo's facts of a kind for a gameweek, in emtFactsLatest's shape: { at, iso, team: 'Facts bot', parts: 1, source:
+ * 'repo', name } (+ data when withData, only if the file reads and passes the checks), else null */
+function emtRepoFacts(kind, gw, withData) {
+  var idx = emtRepoIndex(), name = kind + '-gw' + gw + '.json', e = idx && idx.files ? idx.files[name] : null;
+  if (!e || typeof e !== 'object') return null;
+  var at = aiTs(e.at);
+  if (!(at > 0) || (e.gw !== undefined && Number(e.gw) !== gw) || (e.kind && e.kind !== kind)) return null;
+  var out = { at: at, iso: new Date(at).toISOString(), team: EMT_FACTS_BOT, parts: 1, source: 'repo', name: name };
+  if (!withData) return out;
+  var r = emtRepoGet(name);
+  if (!r.text) { if (r.none) emtRepoBad(name, 'the index lists it but it is not in the facts branch'); return null; }
+  if (r.text.length > EMT_FACTS_MAX) { emtRepoBad(name, 'over ' + EMT_FACTS_MAX + ' characters'); return null; }
+  var f = null;
+  try { f = JSON.parse(r.text); } catch (x) { emtRepoBad(name, 'it does not parse'); return null; }
+  var why = emtFactsCheck(kind, f, gw);
+  if (why) { emtRepoBad(name, 'it fails a check a phone\'s facts must pass (' + why + ')'); return null; }
+  out.data = f;
+  return out;
+}
+/* '' when the facts pass what a phone's post passes (emtShowFacts / emtArtFacts): the kind and the gameweek, the
+ * sheet's fixtures and, for a recap, a finished gameweek with its exact scores; else that error code */
+function emtFactsCheck(kind, f, gw) {
+  if (kind === 'preview') return emtShowFactsOk(f, gw) ? '' : 'badfacts';
+  if (kind === 'recap') return emtArtFactsCheck(f, gw, emtRows('H2H Fixtures'));
+  return 'badkind';
+}
+/* the newer of a phone's facts (the tab) and the repo's for a gameweek, in emtFactsLatest's shape plus source ('phone'
+ * | 'repo'); a tie goes to the phone. With data: the newest whose data reads and passes the checks (a post being
+ * replaced as it is read, or a repo file that fails them, lets the other one through). */
+function emtFactsBest(tab, gw, withData) {
+  var kind = EMT_FACTS_KIND[tab] || '', phone = emtFactsLatest(tab, gw, false), repo = kind ? emtRepoFacts(kind, gw, false) : null;
+  if (phone) phone.source = 'phone';
+  var order = [phone, repo].filter(Boolean).sort(function (a, b) { return (b.at - a.at) || (a.source === 'phone' ? -1 : 1); });
+  if (!withData) return order[0] || null;
+  for (var i = 0; i < order.length; i++) {
+    var full = order[i].source === 'phone' ? emtFactsLatest(tab, gw, true) : emtRepoFacts(kind, gw, true);
+    if (full && full.data) { full.source = order[i].source; return full; }
+  }
+  return null;
+}
+/* ?health=1 facts: the newest preview and recap facts and where each came from, plus the repo's index */
+function emtFactsHealth() {
+  var out = { preview: null, recap: null, repo: null };
+  try {
+    var gw = emtShowNextGw(), rg = emtArtRecapGw();
+    var p = gw ? emtFactsBest('ShowFacts', gw, false) : null, r = rg ? emtFactsBest('RecapFacts', rg, false) : null;
+    out.preview = p ? { gw: gw, at: p.iso, from: p.source } : null;
+    out.recap = r ? { gw: rg, at: r.iso, from: r.source } : null;
+    var idx = emtRepoIndex(), got = EMT_REPO_RUN['f:index.json'] || {};
+    out.repo = idx ? { updated: idx.updated || null, app: idx.app || null, files: Object.keys(idx.files).sort() } : got.error ? { error: got.error } : null;
+  } catch (e) { out.error = String((e && e.message) || e).slice(0, 160); }
+  return out;
+}
+
 /* ---------- the written scripts ---------- */
 /* the ShowScripts row for a gameweek (the newest): { row } or, withScript, { row, json }; null when none */
 function emtShowScriptRow(gw, withScript) {
@@ -2596,10 +2715,10 @@ function showWriterTick(startedAt) {
   var now = Date.now(), dl = emtDeadlineMs(gw);
   if (!dl || dl <= now) { S.stopped = 'closed'; return S; }
   if (emtShowScriptRow(gw, false)) { S.stopped = 'written'; return S; }
-  var left = dl - now, facts = emtShowFactsLatest(gw, false);
+  var left = dl - now, facts = emtFactsBest('ShowFacts', gw, false);                  /* v3.15: a phone's or the repo's */
   if (!facts) {
     S.stopped = 'nofacts';
-    if (left <= EMT_SHOW_WINDOW_MS) say('no facts from the app yet (the app sends them when a manager opens it).');
+    if (left <= EMT_SHOW_WINDOW_MS) say('no facts from the app yet (a signed-in manager opening it sends them, and so does the Facts bot).');
     return S;
   }
   var age = now - facts.at;
@@ -2620,7 +2739,7 @@ function showWriterTick(startedAt) {
     if (tries >= EMT_SHOW_TRIES) { S.stopped = 'tries'; return S; }
     if (emtShowScriptRow(gw, false)) { S.stopped = 'written'; return S; }
     p.setProperty('EMT_SHOW_TRIES_' + gw, String(tries + 1));          /* counted first: a run that dies mid-call still counts */
-    facts = emtShowFactsLatest(gw, true);
+    facts = emtFactsBest('ShowFacts', gw, true);
     if (!facts || !facts.data) {
       p.setProperty('EMT_SHOW_TRIES_' + gw, String(tries));
       S.ok = false; S.stopped = 'badfacts'; say('the stored facts could not be read; waiting for the next post from the app.'); return S;
@@ -2648,7 +2767,7 @@ function showWriterTick(startedAt) {
       emtHiddenSheet('ShowScripts', EMT_SCRIPTS_HEAD).appendRow([gw, "'" + at, emtCell(model), "'" + facts.iso, EMT_JSON_MARK + JSON.stringify(js)]);
     } finally { lock.releaseLock(); }
     S.written = true; S.script = js;
-    say('written by ' + W.model + (PU.used ? ', punched up by ' + PU.model : '') + ' (' + W.calls + ' call' + (W.calls > 1 ? 's' : '') + ', ' + js.chapters.length + ' chapters) from the facts of ' + facts.iso + '.' +
+    say('written by ' + W.model + (PU.used ? ', punched up by ' + PU.model : '') + ' (' + W.calls + ' call' + (W.calls > 1 ? 's' : '') + ', ' + js.chapters.length + ' chapters) from the facts of ' + facts.iso + ' (' + facts.team + ').' +
       (!PU.used && PU.why ? ' Punch-up not used: ' + (PU.why + (PU.detail ? ': ' + PU.detail : '')).replace(/[.\s]+$/, '') + '; the checked script stands.' : '') + ' The show voices it next.');
     return S;
   } finally { p.deleteProperty('EMT_SHOW_WRITING'); }
@@ -2763,7 +2882,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.14';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.15';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -2917,22 +3036,8 @@ function emtArtFacts(team, req) {
   if (typeof raw !== 'string' || !raw || raw.length > EMT_FACTS_MAX) return { ok: false, error: 'badfacts' };
   var f;
   try { f = JSON.parse(raw); } catch (e) { return { ok: false, error: 'badfacts' }; }
-  if (!f || typeof f !== 'object' || Array.isArray(f)) return { ok: false, error: 'badfacts' };
-  if (f.kind !== undefined && f.kind !== 'recap') return { ok: false, error: 'badkind' };
-  if (f.gw !== undefined && f.gw !== null && f.gw !== '' && Number(f.gw) !== gw) return { ok: false, error: 'badfacts' };
-  /* exactly the gameweek's fixtures, then exactly its scores */
-  var fx = f.fixtures, seen = {}, pairs = [];
-  if (!Array.isArray(fx) || fx.length !== real.length) return { ok: false, error: 'fixtures' };
-  for (var i = 0; i < fx.length; i++) {
-    var x = fx[i];
-    if (!x || typeof x !== 'object' || typeof x.home !== 'string' || typeof x.away !== 'string') return { ok: false, error: 'fixtures' };
-    var k = x.home + '|' + x.away, r = real.filter(function (z) { return String(z.Home) + '|' + String(z.Away) === k; })[0];
-    if (!r || seen[k]) return { ok: false, error: 'fixtures' };
-    seen[k] = 1; pairs.push([x, r]);
-  }
-  for (var j = 0; j < pairs.length; j++) {
-    if (!emtSameNum(pairs[j][0].hs, pairs[j][1]['Home pts']) || !emtSameNum(pairs[j][0].as, pairs[j][1]['Away pts'])) return { ok: false, error: 'scores' };
-  }
+  var bad = emtArtFactsCheck(f, gw, h2h);                                            /* v3.15: shared with the repo's facts */
+  if (bad) return { ok: false, error: bad };
   var cache = CacheService.getScriptCache(), rk = 'EMT_RF_' + team;
   if (cache.get(rk)) return { ok: false, error: 'slow' };
   var data = JSON.stringify(f);
@@ -2945,6 +3050,31 @@ function emtArtFacts(team, req) {
     cache.put(rk, '1', EMT_FACTS_EVERY_S);
     return { ok: true, at: st.at, parts: st.parts };
   } finally { lock.releaseLock(); }
+}
+
+/* '' when recap facts are what the sheet says, else the error emtArtFacts answers: an object of kind recap for this
+ * gameweek, every H2H row of it Finished, the latest finished gameweek, exactly its fixtures with exactly its scores */
+function emtArtFactsCheck(f, gw, h2h) {
+  if (!f || typeof f !== 'object' || Array.isArray(f)) return 'badfacts';
+  if (f.kind !== undefined && f.kind !== 'recap') return 'badkind';
+  if (f.gw !== undefined && f.gw !== null && f.gw !== '' && Number(f.gw) !== gw) return 'badfacts';
+  var real = h2h.filter(function (r) { return Number(r.GW) === gw; });
+  if (!real.length || real.some(function (r) { return !emtTrue(r.Finished); })) return 'notdone';
+  if (gw !== emtArtRecapGw(h2h)) return 'closed';                                   /* only the latest finished gameweek */
+  /* exactly the gameweek's fixtures, then exactly its scores */
+  var fx = f.fixtures, seen = {}, pairs = [];
+  if (!Array.isArray(fx) || fx.length !== real.length) return 'fixtures';
+  for (var i = 0; i < fx.length; i++) {
+    var x = fx[i];
+    if (!x || typeof x !== 'object' || typeof x.home !== 'string' || typeof x.away !== 'string') return 'fixtures';
+    var k = x.home + '|' + x.away, r = real.filter(function (z) { return String(z.Home) + '|' + String(z.Away) === k; })[0];
+    if (!r || seen[k]) return 'fixtures';
+    seen[k] = 1; pairs.push([x, r]);
+  }
+  for (var j = 0; j < pairs.length; j++) {
+    if (!emtSameNum(pairs[j][0].hs, pairs[j][1]['Home pts']) || !emtSameNum(pairs[j][0].as, pairs[j][1]['Away pts'])) return 'scores';
+  }
+  return '';
 }
 
 /* ---------- the Articles tab ---------- */
@@ -3625,10 +3755,10 @@ function emtArtDue(force, now) {
       var end = emtArtGwEndMs(rg);
       if (!force && end && now - end > EMT_ART_RECAP_DAYS_MS) why.push('the recap of GW' + rg + ' is out of its window (its last game was over 5 days ago)');
       else {
-        var f = emtFactsLatest('RecapFacts', rg, false);
-        if (!f) why.push('the recap of GW' + rg + ' waits for recap facts from the app (a signed-in manager opening it sends them)');
+        var f = emtFactsBest('RecapFacts', rg, false);                                   /* v3.15: a phone's or the repo's */
+        if (!f) why.push('the recap of GW' + rg + ' waits for recap facts from the app (a signed-in manager opening it sends them) or from the Facts bot');
         else if (!force && now - f.at > EMT_ART_RECAP_FRESH_MS) why.push('the recap of GW' + rg + ' waits for fresher facts (the latest are ' + hrs(now - f.at) + ' hours old; 24 at most)');
-        else return { gw: rg, kind: 'recap', facts: f, why: why };
+        else return { gw: rg, kind: 'recap', facts: f, why: why };          /* the job reads the data (emtArtRun) */
       }
     }
   }
@@ -3636,13 +3766,13 @@ function emtArtDue(force, now) {
   if (nx && (force || nx.dl - now <= EMT_ART_PREVIEW_AHEAD_MS)) {
     if (taken(nx.gw, 'preview')) why.push('the preview of GW' + nx.gw + ' is already in the Articles tab');
     else {
-      var sf = emtShowFactsLatest(nx.gw, false);
-      if (!sf) why.push('the preview of GW' + nx.gw + ' waits for preview facts from the app');
+      var sf = emtFactsBest('ShowFacts', nx.gw, false);                                 /* v3.15: a phone's or the repo's */
+      if (!sf) why.push('the preview of GW' + nx.gw + ' waits for preview facts from the app or from the Facts bot');
       else if (!force && now - sf.at > EMT_ART_PREVIEW_FRESH_MS) why.push('the preview of GW' + nx.gw + ' waits for fresher facts (the latest are ' + hrs(now - sf.at) + ' hours old; 12 at most)');
       else {
-        var sd = force ? null : emtShowFactsLatest(nx.gw, true);
-        if (!force && (!sd || !sd.data || sd.data.kind !== 'preview')) why.push('the preview of GW' + nx.gw + ' waits for facts from the new app (the latest have no kind "preview" and no collisions)');
-        else return { gw: nx.gw, kind: 'preview', facts: sf, why: why };
+        var sd = force ? null : emtFactsBest('ShowFacts', nx.gw, true);
+        if (!force && (!sd || !sd.data || sd.data.kind !== 'preview')) why.push('the preview of GW' + nx.gw + ' waits for facts from the new app (the latest have no kind "preview" and no collisions, or could not be read, or failed the checks)');
+        else return { gw: nx.gw, kind: 'preview', facts: sd || sf, why: why };
       }
     }
   } else if (nx) why.push('the preview of GW' + nx.gw + ' starts in the last 50 hours before its deadline (' + hrs(nx.dl - now) + ' hours away)');
@@ -3807,10 +3937,10 @@ function emtArtRun(job, S, t0, force) {
     /* the punch-up is checked against the very facts the base was checked against, or not at all */
     if (!facts && job.phase === 'punch') { emtArtCancel(job.batch); emtArtPunchEnd(job, null, 'the facts it was checked against could not be read back', '', S); return; }
     if (!facts) {
-      var ftab = job.kind === 'recap' ? 'RecapFacts' : 'ShowFacts', fl = emtFactsLatest(ftab, job.gw, true);
+      var ftab = job.kind === 'recap' ? 'RecapFacts' : 'ShowFacts', fl = emtFactsBest(ftab, job.gw, true);   /* v3.15: a phone's or the repo's */
       if (!fl || !fl.data) {
         /* facts that are there but could not be read were being replaced by a new post as they were read: next run */
-        if (emtFactsLatest(ftab, job.gw, false)) { S.stopped = 'wait'; S.error = 'the ' + job.kind + ' facts were being replaced as they were read'; emtArtSay(job, S.error + '; trying again next run (not counted).'); emtArtJobPut(job); return; }
+        if (emtFactsBest(ftab, job.gw, false)) { S.stopped = 'wait'; S.error = 'the ' + job.kind + ' facts were being replaced as they were read'; emtArtSay(job, S.error + '; trying again next run (not counted).'); emtArtJobPut(job); return; }
         emtArtFail(job, 'no ' + job.kind + ' facts for GW' + job.gw + ' could be read.', S); return;
       }
       emtWorkPut(job.id, 'facts', JSON.stringify(fl.data));
@@ -4114,8 +4244,9 @@ function emtArtMod(team, req) {
 function emtShowHealth() {
   var p = emtProps(), gw = emtShowNextGw(), out = { gw: gw, on: !!emtShowKey(), paused: p.getProperty('EMT_SHOW_PAUSED') === 'yes' };
   try {
-    var f = gw ? emtShowFactsLatest(gw, false) : null;
+    var f = gw ? emtFactsBest('ShowFacts', gw, false) : null;                           /* v3.15: a phone's or the repo's */
     out.facts = f ? f.iso : null;
+    out.factsFrom = f ? f.source : null;
     out.script = !!(gw && emtShowScriptRow(gw, false));
     out.tries = gw ? Number(p.getProperty('EMT_SHOW_TRIES_' + gw) || 0) : 0;
     var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh && gw ? emtShowIndex(sh, gw) : {}, exp = gw ? emtShowExpected(gw) : null;
@@ -4132,6 +4263,7 @@ function emtHealth() {
   var p = emtProps(), A = aiState(), job = emtArtJob(), meta = [];
   try { meta = emtArtMeta(); } catch (e) { meta = []; }
   return { ok: true, version: EMT_VERSION, self: p.getProperty('EMT_SELF_STATE') || 'no check yet', show: emtShowHealth(),
+    facts: emtFactsHealth(),                                                        /* v3.15 */
     articles: { mode: emtArtReview() ? 'review' : 'auto',
       job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
         writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,

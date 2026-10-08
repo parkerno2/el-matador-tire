@@ -159,7 +159,7 @@ let S, R, id;
 
 /* ===================== V · the release ===================== */
 console.log('--- V the release');
-check('V1 the CHANGELOG starts at v3.14 (what the self-update reads) and EMT_VERSION follows it', ctx.emtSelfVersion(src) === 'v3.14' && ctx.EMT_VERSION === 'v3.14' && /\* v3\.14 · 8 Oct 2026\n \*   Recaps and previews publish themselves\./.test(src) && /No new setup and no new permissions\. Optional Script Property: EMT_ART_REVIEW = yes\./.test(src));
+check('V1 the CHANGELOG has the v3.14 entry, its first version is v3.14 or later (what the self-update reads) and EMT_VERSION follows it', ctx.emtSelfVersion(src) === ctx.EMT_VERSION && ctx.emtSelfCmp(ctx.EMT_VERSION, 'v3.14') >= 0 && /\* v3\.14 · 8 Oct 2026\n \*   Recaps and previews publish themselves\./.test(src) && /No new setup and no new permissions\. Optional Script Property: EMT_ART_REVIEW = yes\./.test(src));
 check('V2 the writer\'s prompt no longer promises a read by the commissioner (true in both modes now)', ctx.EMT_ART_SYSTEM.includes('Every article is checked automatically before the league sees it.') && !/commissioner reads every draft/i.test(ctx.EMT_ART_SYSTEM));
 check('V3 the default is auto: emtArtReview() false; ?articles=1 review false; ?health=1 articles.mode auto', !ctx.emtArtReview() && get({ articles: '1' }).review === false && get({ health: '1' }).articles.mode === 'auto');
 

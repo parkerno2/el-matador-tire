@@ -587,9 +587,9 @@ props.EMT_AI_STATE = JSON.stringify({ day: '2026-10-08', count: 3, socialAt: 1 }
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tokTJ);
 PLAN = [{ result: ok(F.recapResearch()).result, after: 9 }]; reset(); tick();
 const hz = get({ health: '1' }), hzs = JSON.stringify(hz);
-check('?health=1: ok, version, self, show, articles {job, last}, ai {day, count}', hz.ok === true && hz.version === ctx.emtSelfVersion(src) && hz.version === 'v3.14' && hz.self === 'current: v3.13 (checked x)' &&
+check('?health=1: ok, version, self, show, articles {job, last}, ai {day, count}', hz.ok === true && hz.version === ctx.emtSelfVersion(src) && ctx.emtSelfCmp(hz.version, 'v3.14') >= 0 && hz.self === 'current: v3.13 (checked x)' &&
   hz.show && hz.show.gw === 6 && 'facts' in hz.show && 'clips' in hz.show && hz.articles.job && hz.articles.job.kind === 'recap' && hz.articles.job.phase === 'research' && hz.articles.last.length === 1 &&
-  hz.articles.last[0].status === 'research' && hz.ai.day === '2026-10-08' && hz.ai.count === 3 && Object.keys(hz).sort().join() === 'ai,articles,ok,self,show,version', hzs.slice(0, 300));
+  hz.articles.last[0].status === 'research' && hz.ai.day === '2026-10-08' && hz.ai.count === 3 && Object.keys(hz).sort().join() === 'ai,articles,facts,ok,self,show,version', hzs.slice(0, 300));
 check('?health=1 carries no secrets (keys, PIN hashes, tokens, the batch id, article text)', !/sk-test|el-secret-key|pin-secret|msgbatch|EMT_PIN|Brobbey/.test(hzs) && !Object.values(props).filter(v => /^[0-9a-f]{64}$/.test(v)).some(v => hzs.includes(v)));
 reset(); const st = ctx.articlesStatus();
 check('articlesStatus logs the job and the latest rows', /Job: the recap of GW5 \(recap-gw5-/.test(st) && /researching, batch sent 0 minutes ago to claude-sonnet-5-5/.test(st) && /recap-gw5-[0-9a-f]{6}: research/.test(st) && logs.some(l => l === st), st);
@@ -932,7 +932,7 @@ check('S5 show: a punch-up call that throws -> caught, the checked script stored
 const hz17 = get({ health: '1' }), hz17s = JSON.stringify(hz17);
 check('P10 ?health=1 shows the punch-up: articles.punch and show.punch with the last outcome (a short reason, no draft or script text)', hz17.articles.punch.off === false && hz17.articles.punch.last.used === true &&
   hz17.articles.punch.last.model === 'claude-haiku-5-5' && /^recap-gw5-/.test(hz17.articles.punch.last.id) && hz17.show.punch.off === false && hz17.show.punch.last.gw === 6 && hz17.show.punch.last.used === false &&
-  hz17.show.punch.last.why === 'the call failed' && !/loudest side|nobody fancies|sk-test|msgbatch/.test(hz17s) && Object.keys(hz17).sort().join() === 'ai,articles,ok,self,show,version', JSON.stringify(hz17.articles.punch) + JSON.stringify(hz17.show.punch));
+  hz17.show.punch.last.why === 'the call failed' && !/loudest side|nobody fancies|sk-test|msgbatch/.test(hz17s) && Object.keys(hz17).sort().join() === 'ai,articles,facts,ok,self,show,version', JSON.stringify(hz17.articles.punch) + JSON.stringify(hz17.show.punch));
 sfAge(13); showReset(); setDeadline(20); MSG = []; clearArticles();
 
 /* ===================== C14 · aiTick ===================== */

@@ -1,0 +1,12 @@
+{
+  "name": "matchweek-factsbot",
+  "private": true,
+  "description": "The Facts bot: loads the live Matchweek app headless and writes the gameweek facts for Code.gs (ROADMAP A0). Run: node factsbot.js --out <dir>",
+  "scripts": {
+    "facts": "node factsbot.js",
+    "test": "node ../../../tests/factsbot.js"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}
