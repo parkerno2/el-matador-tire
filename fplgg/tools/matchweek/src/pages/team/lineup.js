@@ -104,14 +104,18 @@ function benchBlock(L, asList) {
   return UI.sh('Bench') + (asList ? subLine.replace('tm-subs', 'tm-subs pad') : '') + body + (asList ? coverNote(L).replace(/tm-cover/g, 'tm-cover solo') : '');
 }
 
-/* list view row: face, name, position, club, this week's opponent (difficulty) or score, the number alone (no pill:
-   projection muted, live points green, banked points bold; UI.plateNum, the same number the small Plate wears), status */
+/* list view row: face, name, position, the club's crest and short name, this week's opponent (its crest and short name:
+   the difficulty chip, the live score or the final score; a blank gameweek has neither), the number alone (no pill:
+   projection muted, live points green, banked points bold; UI.plateNum, the same number the small Plate wears), status.
+   The crests (Parker, 8 Oct 2026) are the PL badges the Plates wear (UI.badge over the engine's badgeImg); one that fails
+   to load hides itself and the short name stays, so a row never shows a broken image. */
+const CREST = 16, OPP_CREST = 14;
 function listRow(p, L, lab, off) {
   const g = gwFix(p);
   let opp = '<span class="tm-fd blank">BLANK</span>', pts;
   if (!g.blank) {
-    if (g.started) opp = '<span class="tm-lsc' + (g.done ? '' : ' on') + '"><b>' + esc(g.opp) + '</b> ' + (g.home ? 'H' : 'A') + ' <span class="n">' + g.sc + '</span>' + (g.done ? '' : ' <span class="live-c n">' + g.min + '′</span>') + '</span>';
-    else opp = oppChip(p.Club, g.f) + (g.dbl ? '<span class="tm-dgw">DGW</span>' : '');
+    if (g.started) opp = '<span class="tm-lsc' + (g.done ? '' : ' on') + '">' + UI.badge(g.opp, OPP_CREST) + '<b>' + esc(g.opp) + '</b> ' + (g.home ? 'H' : 'A') + ' <span class="n">' + g.sc + '</span>' + (g.done ? '' : ' <span class="live-c n">' + g.min + '′</span>') + '</span>';
+    else opp = oppChip(p.Club, g.f, { crest: OPP_CREST }) + (g.dbl ? '<span class="tm-dgw">DGW</span>' : '');
   }
   const pn = UI.plateNum(p);
   pts = '<span class="tm-lpts n ' + pn.st + '" title="' + (pn.st === 'bk' ? 'Points' : pn.st === 'live' ? 'Live points' : 'Projected points') + '">' + pn.txt + '</span>';
@@ -120,7 +124,7 @@ function listRow(p, L, lab, off) {
   return '<div class="row tap tm-lr' + (off ? ' off' : '') + '" data-open="player:' + esc(p.Code) + '" role="button" tabindex="0">'
     + (lab ? '<span class="tm-lslot n">' + esc(off ? 'Off' : lab) + '</span>' : '')
     + UI.face(p, 36, p.Status === 'd' ? { ring: 'var(--doubt)' } : flaggedOut(p) ? { ring: 'var(--loss)' } : {})
-    + '<span class="tm-lm"><b class="ell">' + esc(p.Player) + '</b><span class="sub tm-lmeta">' + POSN[p.Pos] + ' · ' + esc(p.Club) + tag + UI.statusChip(p) + '</span></span>'
+    + '<span class="tm-lm"><b class="ell">' + esc(p.Player) + '</b><span class="sub tm-lmeta">' + POSN[p.Pos] + ' · ' + UI.badge(p.Club, CREST) + esc(p.Club) + tag + UI.statusChip(p) + '</span></span>'
     + '<span class="tm-lopp">' + opp + '</span>' + pts + '</div>';
 }
 

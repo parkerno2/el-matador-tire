@@ -87,9 +87,10 @@ export function chips(p, n = 5, sm) { const l = lastN(p, n); return l.length ? '
 
 /* ---------- fixtures ---------- */
 export const fdK = n => n <= 2 ? 'e' : n === 3 ? 'n' : n === 4 ? 'h' : 'x';
+/* opt.crest: the opponent's PL crest at that many px before the short name (UI.badge, the same image the Plates wear; it hides itself if it fails to load) */
 export function oppChip(club, f, opt = {}) {
   const home = f.Home === club, opp = home ? f.Away : f.Home, n = fdrOf(club, f);
-  return '<span class="tm-fd fd-' + fdK(n) + (opt.cls ? ' ' + opt.cls : '') + '" title="' + esc(clubName(opp)) + ' (' + (home ? 'H' : 'A') + '), ' + FDRLAB[n].toLowerCase() + '"><b>' + esc(opp) + '</b><i>' + (home ? 'H' : 'A') + '</i></span>';
+  return '<span class="tm-fd fd-' + fdK(n) + (opt.cls ? ' ' + opt.cls : '') + '" title="' + esc(clubName(opp)) + ' (' + (home ? 'H' : 'A') + '), ' + FDRLAB[n].toLowerCase() + '">' + (opt.crest ? UI.badge(opp, opt.crest) : '') + '<b>' + esc(opp) + '</b><i>' + (home ? 'H' : 'A') + '</i></span>';
 }
 /* a player's fixture this gameweek as a short state: upcoming (difficulty chip), live score, or full-time score */
 export function gwFix(p) {
