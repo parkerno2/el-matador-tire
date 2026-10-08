@@ -7,6 +7,8 @@ import feed from './pages/feed.js';
 import { SHEETS } from './sheets/index.js';
 import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } from './feed/showfacts.js';
 import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
+import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
+installErrorReporting();
 
 const PAGES = { matchday, team, league, feed };
 const app = document.getElementById('app');
@@ -157,7 +159,7 @@ let BUSY = false;
 export function reload(quiet) {
   if (BUSY) return Promise.resolve(true);
   BUSY = true;
-  return loadData(quiet).then(() => { BUSY = false; render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
+  return loadData(quiet).then(() => { BUSY = false; flushErrors(); render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
     .catch(e => {
       BUSY = false;
       if (D.ro && D.ro.length) return false;   /* keep what's on screen; the caller says so */

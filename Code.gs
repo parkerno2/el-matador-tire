@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,14 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.18 · 8 Oct 2026
+ *   Phones report script errors (ROADMAP A4). The app posts `clienterror` (no login needed) with the build stamp, the
+ *   route, the kind (error, rejection, or network for a flaky connection), the message and a truncated stack; nothing
+ *   personal. They go to a new hidden Errors tab: the same error from the same build and route within 10 minutes
+ *   counts up on one row, the tab keeps 1,000 rows, and all phones together are limited to 60 accepted posts per 10
+ *   minutes. ?health=1 adds errors: h24 (occurrences in the last 24 hours, network ones aside), net24, rows and the
+ *   latest one (build, route, message), cached a minute. The monitor opens an outage issue at 20 in 24 hours.
+ *   No new setup and no new permissions.
  * v3.17 · 8 Oct 2026
  *   ?health=1 adds data, for the cloud monitor (.github/workflows/monitor.yml, every 15 minutes, no AI): updated (when
  *   the last refresh from FPL finished, whichever trigger or app tap ran it; EMT_DATA_UPDATED, set only when refreshCore
@@ -1365,6 +1373,8 @@ function emtHandle(req) {
     if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
     return emtSocial(team, req);
   }
+
+  if (action === 'clienterror') return emtClientError(req);   // v3.18: a phone reports a script error (no login: nothing personal in it)
 
   if (action === 'showfacts') {          // v3.12: the facts the Gameweek Show is written from (signed-in managers only)
     if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
@@ -2902,7 +2912,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.17';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.18';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4285,6 +4295,7 @@ function emtHealth() {
   return { ok: true, version: EMT_VERSION, self: p.getProperty('EMT_SELF_STATE') || 'no check yet', show: emtShowHealth(),
     facts: emtFactsHealth(),                                                        /* v3.15 */
     data: emtDataHealth(),                                                          /* v3.17 */
+    errors: emtErrorsHealth(),                                                      /* v3.18 */
     articles: { mode: emtArtReview() ? 'review' : 'auto',
       job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
         writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
@@ -4296,6 +4307,71 @@ function emtHealth() {
         return o;
       }) },
     ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn() } };
+}
+/* ---------- v3.18: errors reported by phones (ROADMAP A4) ----------
+ * The app's window.onerror and unhandledrejection post `clienterror`: build, route, kind, msg, stack, online. No login
+ * (nothing personal is in it), so the limits are the guard: all phones together get 60 accepted posts per 10 minutes,
+ * a message is 300 characters and a stack 1,500, the same error (build, route, kind, message) within 10 minutes counts
+ * up on one row of the hidden Errors tab, and the tab keeps its last 1,000 rows. ?health=1 errors (emtErrorsHealth)
+ * counts the last 24 hours for the monitor and the status page. */
+var EMT_ERR_HEAD = ['When (UTC)', 'Build', 'Route', 'Kind', 'Message', 'Stack', 'Count', 'Last (UTC)'];
+var EMT_ERR_KINDS = ['error', 'rejection', 'network'];
+var EMT_ERR_MAX_ROWS = 1000, EMT_ERR_TRIM = 200;
+var EMT_ERR_RATE = 60, EMT_ERR_RATE_S = 600;
+var EMT_ERR_SAME_MS = 10 * 60e3;
+var EMT_ERR_LOOK = 50;                      /* rows looked at for a repeat */
+var EMT_ERR_HEALTH_ROWS = 400, EMT_ERR_HEALTH_S = 60;
+function emtErrCacheClear() { try { CacheService.getScriptCache().remove('EMT_ERR_HEALTH'); } catch (e) { } }
+function emtClientError(req) {
+  var msg = emtClean(req.msg, 300), route = emtClean(req.route, 80), build = String(req.build || '').replace(/\D/g, '').slice(0, 16);
+  var stack = String(req.stack || '').replace(/[<>]/g, '').replace(/\r/g, '').slice(0, 1500);
+  var kind = EMT_ERR_KINDS.indexOf(String(req.kind)) > -1 ? String(req.kind) : 'error';
+  if (!msg) return { ok: false, error: 'badmsg' };
+  var cache = CacheService.getScriptCache(), n = Number(cache.get('EMT_CE_N') || 0);
+  if (n >= EMT_ERR_RATE) return { ok: true, dropped: true };
+  cache.put('EMT_CE_N', String(n + 1), EMT_ERR_RATE_S);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(5000);
+  try {
+    var sh = emtHiddenSheet('Errors', EMT_ERR_HEAD), last = sh.getLastRow(), now = Date.now(), at = new Date(now).toISOString();
+    if (last > 1) {
+      var from = Math.max(2, last - EMT_ERR_LOOK + 1), v = sh.getRange(from, 1, last - from + 1, EMT_ERR_HEAD.length).getValues();
+      for (var i = v.length - 1; i >= 0; i--) {
+        var r = v[i];
+        if (String(r[1]) === build && String(r[2]).replace(/^'/, '') === route && String(r[3]) === kind && String(r[4]).replace(/^'/, '') === msg && now - aiTs(r[7]) < EMT_ERR_SAME_MS) {
+          var c = (Number(r[6]) || 1) + 1;
+          sh.getRange(from + i, 7, 1, 2).setValues([[c, "'" + at]]);
+          emtErrCacheClear();
+          return { ok: true, count: c };
+        }
+      }
+    }
+    sh.appendRow(["'" + at, emtCell(build), emtCell(route), kind, emtCell(msg), emtCell(stack), 1, "'" + at]);
+    if (sh.getLastRow() > EMT_ERR_MAX_ROWS + 1) sh.deleteRows(2, EMT_ERR_TRIM);
+    emtErrCacheClear();
+    return { ok: true };
+  } finally { lock.releaseLock(); }
+}
+/* ?health=1 errors: { h24, net24, rows, last: { when, build, route, kind, msg } | null }, from the last 400 rows, cached a minute */
+function emtErrorsHealth() {
+  var cache = null, hit = null;
+  try { cache = CacheService.getScriptCache(); hit = cache.get('EMT_ERR_HEALTH'); if (hit) return JSON.parse(hit); } catch (e) { }
+  var out = { h24: 0, net24: 0, rows: 0, last: null };
+  try {
+    var sh = SpreadsheetApp.getActive().getSheetByName('Errors'), last = sh ? sh.getLastRow() : 0;
+    out.rows = Math.max(0, last - 1);
+    if (last > 1) {
+      var from = Math.max(2, last - EMT_ERR_HEALTH_ROWS + 1), v = sh.getRange(from, 1, last - from + 1, EMT_ERR_HEAD.length).getValues(), cut = Date.now() - 24 * 3600e3;
+      for (var i = 0; i < v.length; i++) {
+        var r = v[i], t = aiTs(r[7]) || aiTs(r[0]), c = Number(r[6]) || 1, net = String(r[3]) === 'network';
+        if (t < cut) continue;
+        if (net) out.net24 += c; else out.h24 += c;
+        if (!net) out.last = { when: emtIso(t), build: String(r[1]), route: String(r[2]).replace(/^'/, ''), kind: String(r[3]), msg: String(r[4]).replace(/^'/, '').slice(0, 160) };
+      }
+    }
+  } catch (e) { out.error = String((e && e.message) || e).slice(0, 120); }
+  if (cache) { try { cache.put('EMT_ERR_HEALTH', JSON.stringify(out), EMT_ERR_HEALTH_S); } catch (e) { } }
+  return out;
 }
 /* v3.17 ?health=1 data: when the sheet's data was last refreshed from FPL (the last refreshCore that finished, from any
  * trigger or the app's Refresh), the last attempt, and whether a match is live now (liveWindow: what liveTick refreshes
