@@ -2,7 +2,7 @@
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
-- A6 #8 Per-fixture BPS in Code.gs: builder started 2026-10-08T16:33:00Z
+- (nothing claimed)
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
@@ -43,7 +43,7 @@ How items are worked:
   - [x] #5: validate each tab by its header row in the app's readTab, showing an empty state rather than wrong data.
   - [x] #3: trim the GW Stats fetch.
   - [x] A stale-data banner when `data.updated` is old.
-- [ ] **A6 #8 Per-fixture BPS in Code.gs**, so double-gameweek bonus can be estimated per match. Must ship before the first double gameweek.
+- [x] **A6 #8 Per-fixture BPS in Code.gs**, so double-gameweek bonus can be estimated per match. Must ship before the first double gameweek. (Shipped 8 Oct 2026: Code.gs v3.21 writes the hidden `Fixture BPS` tab every refresh, the current gameweek's BPS and bonus per match from the draft live feed's fixtures with the classic fixtures feed per match when fresher; the engine (`src-prod/base.js`, `core.gen.js`) reads it, optional, and ranks a club's second match on its own BPS; a club's only match keeps the GW Stats path. Tests: `tests/codegs/v321.js`, `tests/app-bonus.js`. The first double gameweek is the live check: the matchup page should show provisional bonus for both of a doubled club's matches.)
 - [ ] **A7 #25 Clubs strength mirror:** re-source it from FPL's new fields, or drop it.
 
 ## B. One pipeline (Supabase)

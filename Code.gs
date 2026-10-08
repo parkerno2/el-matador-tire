@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,18 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.21 · 8 Oct 2026
+ *   Per-fixture BPS, so a double gameweek's second match gets a provisional bonus (ROADMAP A6, BUGS #8). A GW Stats
+ *   row sums a player's whole gameweek, so the app could rank one match's BPS only while it was the club's only match
+ *   under way; the second match of a double showed no bonus until FPL confirmed it.
+ *   1. Every refresh rewrites a hidden Fixture BPS tab for the current gameweek: GW, Fixture (FPL's id), Home, Away,
+ *      Kickoff (UTC), Started, Finished, Code, Player, Club, BPS, Bonus; one row per player per fixture with a BPS
+ *      entry, the fixture's official bonus beside it once FPL confirms it. Sources: the draft live feed's fixtures
+ *      (stats bps and bonus) and the classic fixtures feed (fixtures/?event=); per fixture the fresher feed wins, as
+ *      the live overlay does. When neither feed lists the fixtures the tab is left as it was.
+ *   2. The app reads the tab (optional) and, for a club with more than one match started this gameweek, ranks each
+ *      finished match's own BPS for its provisional 3-2-1; a club's only match keeps the GW Stats path, unchanged.
+ *   No new setup and no new permissions.
  * v3.20 · 8 Oct 2026
  *   The writers work again on the Claude 5.5 models. Since v3.13 the feed writer, the show writer and the articles
  *   ask claude-haiku-5-5 and claude-sonnet-5-5, which think before they answer unless told otherwise, and the
@@ -471,6 +483,7 @@ function refreshCore() {
   try { writePredictions(ss, boot, classicByCode); } catch (e) { Logger.log('Predictions failed: ' + e); }
   try { writePlayers(ss, boot, ownerByEl, classicByCode); } catch (e) { Logger.log('Players failed: ' + e); }
   try { writeGwStats(ss, boot, ownerByEl, gwLive, curEv); } catch (e) { Logger.log('GW Stats failed: ' + e); }
+  try { writeFixtureBps(ss, boot, gwLive, curEv, classicIdToCode); } catch (e) { Logger.log('Fixture BPS failed: ' + e); }   /* v3.21, BUGS #8 */
 }
 
 /* ---------- live-feed resilience: classic overlay on the draft live feed ----------
@@ -631,6 +644,73 @@ function writeGwStats(ss, boot, ownerByEl, gwLive, curEv) {
   });
   // live rewrite of the current in-play GW
   if (curEv && !finished[curEv] && gwLive) writeBlock(curEv, gwLive, false);
+}
+
+/* ---------- Fixture BPS (v3.21, BUGS #8): the current gameweek's BPS and bonus per fixture ----------
+   A GW Stats row sums a player's whole gameweek, so in a double gameweek the app cannot rank one match's BPS and the
+   club's second match shows no provisional bonus. FPL publishes the lists per fixture (the draft live feed's fixtures
+   carry stats bps and bonus with draft element ids; the classic fixtures feed carries the same with classic ids), so
+   every refresh rewrites the hidden Fixture BPS tab for the current gameweek: one row per player per fixture with a
+   BPS entry, the fixture's official bonus beside it once FPL confirms it. Per fixture the fresher feed wins (the
+   classic one when it lists more players, or has the bonus the draft one lacks), as the live overlay does. The app
+   ranks these rows for a club's second match of the gameweek; a club's only match keeps the GW Stats path, unchanged.
+   Nothing reads older gameweeks: once FPL confirms a gameweek every bonus is in GW Stats. */
+var FIXBPS_TAB = 'Fixture BPS';
+var FIXBPS_HEAD = ['GW', 'Fixture', 'Home', 'Away', 'Kickoff (UTC)', 'Started', 'Finished', 'Code', 'Player', 'Club', 'BPS', 'Bonus'];
+
+/* one feed's fixtures of gameweek gw as { key: { id, h, a, kickoff, started, finished, bps: {code: n}, bonus: {code: n} } };
+   the key is FPL's fixture code (the same in both feeds), the id as a fallback; idToCode maps the feed's element ids */
+function fixBpsFromFeed(fixtures, gw, idToCode) {
+  var out = {};
+  (Array.isArray(fixtures) ? fixtures : []).forEach(function (f) {
+    if (!f || f.id == null || (f.event != null && Number(f.event) !== Number(gw))) return;
+    var o = { id: f.id, h: f.team_h, a: f.team_a, kickoff: f.kickoff_time || '', started: !!f.started, finished: !!(f.finished || f.finished_provisional), bps: {}, bonus: {} };
+    (f.stats || []).forEach(function (st) {
+      var key = st.identifier || st.s;
+      if (key !== 'bps' && key !== 'bonus') return;
+      ['h', 'a'].forEach(function (side) {
+        (st[side] || []).forEach(function (e) {
+          var code = idToCode[e.element];
+          if (code != null && e.value != null) o[key][String(code)] = Number(e.value) || 0;
+        });
+      });
+    });
+    out[String(f.code != null ? f.code : f.id)] = o;
+  });
+  return out;
+}
+
+function writeFixtureBps(ss, boot, gwLive, curEv, classicIdToCode) {
+  if (!curEv) return { ok: false, why: 'no current gameweek' };
+  var dId = {}, names = {}, clubs = {};
+  boot.elements.forEach(function (e) { dId[e.id] = e.code; names[String(e.code)] = e; });
+  boot.teams.forEach(function (t) { clubs[t.id] = t.short_name; });
+  var draft = fixBpsFromFeed(gwLive && gwLive.fixtures, curEv, dId), classic = {};
+  try { if (classicIdToCode && Object.keys(classicIdToCode).length) classic = fixBpsFromFeed(getUrl(CLASSIC + 'fixtures/?event=' + curEv), curEv, classicIdToCode); }
+  catch (e) { Logger.log('Fixture BPS: the classic fixtures feed failed: ' + e); }
+  var keys = {};
+  Object.keys(draft).forEach(function (k) { keys[k] = 1; });
+  Object.keys(classic).forEach(function (k) { keys[k] = 1; });
+  var list = Object.keys(keys);
+  if (!list.length) { Logger.log('Fixture BPS GW' + curEv + ': neither feed lists the fixtures; the tab is left as it was'); return { ok: false, why: 'no fixtures' }; }
+  var rows = [], fromClassic = 0, n = function (o) { return Object.keys(o).length; };
+  list.map(function (k) {
+    var d = draft[k], c = classic[k];
+    var fresher = !!(c && (!d || n(c.bps) > n(d.bps) || (n(c.bonus) && !n(d.bonus))));
+    if (fresher) fromClassic++;
+    return fresher ? c : d;
+  }).sort(function (x, y) { return (x.kickoff < y.kickoff ? -1 : x.kickoff > y.kickoff ? 1 : 0) || x.id - y.id; }).forEach(function (f) {
+    Object.keys(f.bps).sort(function (x, y) { return f.bps[y] - f.bps[x] || (x < y ? -1 : 1); }).forEach(function (code) {
+      var p = names[code] || {};
+      rows.push([curEv, f.id, clubs[f.h] || f.h, clubs[f.a] || f.a, "'" + f.kickoff, f.started, f.finished,
+        code, p.web_name || '', clubs[p.team] || '', f.bps[code], f.bonus[code] || 0]);
+    });
+  });
+  var sh = emtHiddenSheet(FIXBPS_TAB, FIXBPS_HEAD);
+  sh.clearContents();
+  sh.getRange(1, 1, rows.length + 1, FIXBPS_HEAD.length).setValues([FIXBPS_HEAD].concat(rows));
+  Logger.log('Fixture BPS GW' + curEv + ': ' + list.length + ' fixtures, ' + rows.length + ' player lines' + (fromClassic ? ', ' + fromClassic + ' fixtures from the classic feed' : ''));
+  return { ok: true, fixtures: list.length, rows: rows.length, classic: fromClassic };
 }
 
 /* ---------- per-pick grades (draft history, unchanged) ---------- */
@@ -2966,7 +3046,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.20';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.21';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];

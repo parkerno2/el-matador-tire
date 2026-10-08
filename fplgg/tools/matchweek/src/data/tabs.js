@@ -33,6 +33,7 @@ export const TABS = {
   Managers: ['Team', 'Color', 'Shape'],
   Social: ['When (UTC)', 'Team', 'Kind', 'Target', 'Value'],
   Posts: ['When (UTC)', 'Id', 'Voice', 'Kind', 'Text'],
+  'Fixture BPS': ['GW', 'Home', 'Away', 'Code', 'BPS', 'Bonus'],
 };
 /* '' when the header has what the tab needs, else what is missing */
 export function tabProblem(name, cols) {

@@ -16,6 +16,7 @@ const LIVE = {
   'GW Stats': 'GW,Code,Player,Pos,Club,Owner,Mins,Pts,G,A,CS,GC,OG,PS,PM,YC,RC,Saves,Bonus,BPS,DefCon,xG,xA,xGC,Starts,Final',
   Players: 'Code,Player,Pos,Club,Owner,Status,News,Draft rank,Season pts,Mins,Form,xGI,EP next,Proj,Nation,Full name', 'GW Log': 'GW,Team,Player,Code,Pos,Club,GW pts,GW mins,Started,TOTW,Logged (UTC)',
   Managers: 'Team,Color,Shape,Photo,Manager,Updated,Emblem,Pattern', Social: 'When (UTC),Team,Kind,Target,Value,Extra', Posts: 'When (UTC),Id,Voice,Kind,Event,Teams,Players,Text,Facts,Media',
+  'Fixture BPS': 'GW,Fixture,Home,Away,Kickoff (UTC),Started,Finished,Code,Player,Club,BPS,Bonus',   /* Code.gs v3.21 */
 };
 const FIRST_SHEET = 'Rank,Team,Manager,Grade,Note'.split(',');   /* what gviz returns for a tab that does not exist (bug #5) */
 function load() {

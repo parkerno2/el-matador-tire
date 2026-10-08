@@ -397,23 +397,33 @@ function rowsFor(xi,mirror){
       +c.map(p=>card(p,D.ro.indexOf(p))).join('')+'</div>').join('');
   }).join('');
 }
+function provTiers(rows,pb){ /* 3/2/1 by BPS with FPL's tie rules, added to pb (a double can earn in both legs) */
+  const vals=[...new Set(rows.map(r=>r.BPS))].sort((a,b)=>b-a);
+  let pos=0;
+  for(const v of vals){
+    if(pos>=3)break;
+    const tier=[3,2,1][pos];
+    const winners=rows.filter(r=>r.BPS===v);
+    winners.forEach(r=>{pb[String(r.Code)]=(pb[String(r.Code)]||0)+tier});
+    pos+=winners.length;
+  }
+}
 function computeProvBonus(curFx){
   const pb={};
   const own=(club,f)=>(curFx||[]).every(x=>x===f||(x.Home!==club&&x.Away!==club)||(!fin(x.Started)&&!fin(x.Finished)));
   (curFx||[]).forEach(f=>{
     if(!fin(f.Finished))return;
-    if(!own(f.Home,f)||!own(f.Away,f))return;
-    const rows=Object.values(D.gwsCur||{}).filter(r=>(r.Club===f.Home||r.Club===f.Away)&&r.Mins>0);
-    if(!rows.length||rows.some(r=>r.Bonus>0))return;
-    const vals=[...new Set(rows.map(r=>r.BPS))].sort((a,b)=>b-a);
-    let pos=0;
-    for(const v of vals){
-      if(pos>=3)break;
-      const tier=[3,2,1][pos];
-      const winners=rows.filter(r=>r.BPS===v);
-      winners.forEach(r=>{pb[String(r.Code)]=tier});
-      pos+=winners.length;
+    if(own(f.Home,f)&&own(f.Away,f)){
+      const rows=Object.values(D.gwsCur||{}).filter(r=>(r.Club===f.Home||r.Club===f.Away)&&r.Mins>0);
+      if(!rows.length||rows.some(r=>r.Bonus>0))return;
+      provTiers(rows,pb);return;
     }
+    /* a club's second match (BUGS #8): the Fixture BPS tab (Code.gs v3.21) lists this match's own BPS and, once FPL
+       confirms it, its bonus. Skip the match when its bonus is in: in the tab, or in GW Stats for a player whose club
+       has no other match under way (that bonus can only be this match's). An old sheet without the tab changes nothing. */
+    const per=(D.fbps||{})[f.Home+'|'+f.Away]||[];
+    if(!per.length||per.some(r=>r.Bonus>0||(own(r.Club,f)&&(((D.gwsCur||{})[r.Code]||{}).Bonus>0))))return;
+    provTiers(per,pb);
   });
   return pb;
 }
@@ -1477,8 +1487,8 @@ function __loadBase(quiet){
     readTab('Rosters'),readTab('Standings'),readTab('H2H Fixtures'),readTab('Matchweeks'),
     readTab('Club Fixtures').catch(()=>[]),readTab('Clubs').catch(()=>[]),readTab('Specials').catch(()=>[]),readTab('EA Map').catch(()=>[]),readTab('FC27').catch(()=>[]),readTab('Transactions').catch(()=>[]),
     readTab('Predictions').catch(()=>[]),readTab('GW Stats').catch(()=>[]),readTab('Players').catch(()=>[]),
-    readTab('GW Log').catch(()=>[])
-  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea,f27,tx,pred,gws,plr,gl])=>{
+    readTab('GW Log').catch(()=>[]),readTab('Fixture BPS').catch(()=>[])
+  ]).then(([ro,st,fx,mw,cf,clubs,sp,ea,f27,tx,pred,gws,plr,gl,fb])=>{
     D.gl=gl||[];
     D.tx=tx||[];
     /* --- Predictions: GW → {code: EP} --- */
@@ -1528,6 +1538,8 @@ function __loadBase(quiet){
     /* provisional full time: every current-GW fixture at the whistle, FPL yet to close the GW */
     const curFx=cf.filter(f=>num(f.GW)===D.gw);
     D.provOver=!!(D.dlPassed&&curFx.length&&curFx.every(f=>fin(f.Finished))&&cur&&!fin(cur.Finished));
+    /* Fixture BPS (Code.gs v3.21, BUGS #8): this gameweek's BPS and bonus per match, keyed home|away, for a double */
+    D.fbps={};(fb||[]).forEach(r=>{if(num(r.GW)!==D.gw||!r.Home||!r.Away)return;const k=r.Home+'|'+r.Away;(D.fbps[k]=D.fbps[k]||[]).push({Code:String(r.Code),Club:r.Club,BPS:num(r.BPS),Bonus:num(r.Bonus)});});
     D.pbonus=D.dlPassed?computeProvBonus(curFx):{};
     if(D.provOver){
       const eff={};st.forEach(s=>{eff[s.Team]={...s}});

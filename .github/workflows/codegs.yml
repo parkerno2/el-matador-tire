@@ -8,7 +8,7 @@ name: Code.gs tests and release
 on:
   push:
     branches: [main]
-    paths: ['Code.gs', 'tests/**', 'fplgg/tools/factsbot/**', 'fplgg/tools/monitor/**', 'fplgg/tools/matchweek/src/**', 'site/worker.mjs', 'site/wrangler.jsonc', '.github/workflows/codegs.yml']
+    paths: ['Code.gs', 'tests/**', 'fplgg/tools/factsbot/**', 'fplgg/tools/monitor/**', 'fplgg/tools/matchweek/src/**', 'fplgg/tools/matchweek/src-prod/**', 'fplgg/tools/matchweek/core.gen.js', 'site/worker.mjs', 'site/wrangler.jsonc', '.github/workflows/codegs.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -37,7 +37,7 @@ jobs:
               echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1
             fi
           done
-          for f in tests/factsbot.js tests/monitor.js tests/app-errors.js tests/app-tabs.js tests/worker.js; do
+          for f in tests/factsbot.js tests/monitor.js tests/app-errors.js tests/app-tabs.js tests/app-bonus.js tests/worker.js; do
             echo "== $f"
             if out=$(node "$f" 2>&1); then echo "$out" | tail -1; echo "$out" | grep -q '^ALL PASS$' || { echo "::error::$f did not print ALL PASS"; fail=1; }; else echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1; fi
           done

@@ -16,6 +16,7 @@ Sheet.prototype.getRange = function (r, c, nr, nc) { const sh = this; nr = nr ||
   setValue(x) { this.setValues([[x]]); } }; };
 Sheet.prototype.getDataRange = function () { return this.getRange(1, 1, this.getLastRow(), this.getLastColumn()); };
 Sheet.prototype.appendRow = function (row) { this.rows.push(row.slice()); };
+Sheet.prototype.clearContents = function () { this.rows = []; };
 Sheet.prototype.setFrozenRows = function (n) { this.frozen = n; };
 Sheet.prototype.hideSheet = function () { this.hidden = true; };
 Sheet.prototype.deleteRows = function (r, n) { if (r < 2) throw new Error('deleteRows hit the header'); this.rows.splice(r - 1, n); };
