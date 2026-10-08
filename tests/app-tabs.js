@@ -24,7 +24,7 @@ function load() {
     canonTeam: v => (v === 'Cold Palmer' ? 'Cold Palmers' : v), window: {}, setTimeout: (f, ms) => 1, clearTimeout: () => {},
     document: { createElement: () => { const s = { remove() { s.removed = true; } }; scripts.push(s); return s; }, head: { appendChild: () => {} } } };
   ctx.window = ctx; vm.createContext(ctx);
-  vm.runInContext(src + '\n;this.__x = { TABS, tabProblem, readRaw, guardedReadTab, installReadTab, metaUpdated, readMeta, matchOn, staleInfo };', ctx);
+  vm.runInContext(src + '\n;this.__x = { TABS, QUERIES, queryProblem, tabProblem, readRaw, guardedReadTab, installReadTab, metaUpdated, readMeta, matchOn, staleInfo };', ctx);
   return { x: ctx.__x, ctx, scripts };
 }
 /* answer the last JSONP request as gviz would: cols from labels, rows of cells */
@@ -56,6 +56,29 @@ setImmediate(() => {
     setImmediate(() => {
       check('a tab without a guard (Meta) still reads', got && got[0]['League Updated Pot'] === 'Current GW');
       check('installReadTab puts the guarded reader on window', L.x.installReadTab() === true && L.ctx.window.readTab === L.x.guardedReadTab && L.ctx.window.readTab.guarded === true);
+      /* bug #3: GW Stats is read with a query, checked against the header, with the whole tab as the fallback */
+      const GWS = LIVE['GW Stats'].split(',');
+      check('queryProblem: the live GW Stats header has Owner in F and Mins in G; a moved column is named', L.x.queryProblem('GW Stats', GWS) === '' && /column F is "Mins", not Owner/.test(L.x.queryProblem('GW Stats', GWS.filter(c => c !== 'Owner'))) && L.x.queryProblem('Rosters', ['x']) === '');
+      L = load(); got = null; err = null;
+      L.x.guardedReadTab('GW Stats').then(r => { got = r; }, e => { err = e; });
+      check('the GW Stats request carries the query (owned or played rows) after the sheet name', /&sheet=GW%20Stats&tq=select%20\*%20where%20G%20%3E%200%20or%20F%20is%20not%20null$/.test(L.scripts[0].src) && L.scripts.length === 1, L.scripts[0].src);
+      answer(L, GWS, [[5, 1, 'A', 'MID', 'ARS', 'Cold Palmers', 0, 0], [5, 2, 'B', 'FWD', 'CHE', null, 90, 9]]);
+      setImmediate(() => {
+        check('a trimmed read whose header is right is used as is: one request, the rows', got && got.length === 2 && got[0].Owner === 'Cold Palmers' && L.scripts.length === 1 && !err, err && err.message);
+        L = load(); got = null; err = null;
+        L.x.guardedReadTab('GW Stats').then(r => { got = r; }, e => { err = e; });
+        answer(L, ['GW', 'Code', 'Player', 'Pos', 'Club', 'Mins', 'Owner', 'Pts'], [[5, 2, 'B', 'FWD', 'CHE', 90, null, 9]]);
+        setImmediate(() => {
+          check('Owner and Mins swapped in the sheet: the trimmed answer is dropped and the whole tab is requested without a query', got === null && !err && L.scripts.length === 2 && !/tq=/.test(L.scripts[1].src) && /sheet=GW%20Stats$/.test(L.scripts[1].src), L.scripts.map(s => s.src).join(' | '));
+          answer(L, ['GW', 'Code', 'Player', 'Pos', 'Club', 'Mins', 'Owner', 'Pts', 'Bonus'], [[5, 2, 'B', 'FWD', 'CHE', 90, null, 9, 0], [5, 3, 'C', 'DEF', 'LIV', 0, null, 0, 0]]);
+          setImmediate(() => {
+            check('... and the whole tab (header still valid for the engine) comes back', got && got.length === 2 && !err, err && err.message);
+            check('only GW Stats has a query', Object.keys(L.x.QUERIES).join() === 'GW Stats');
+            afterQueries();
+          });
+        });
+      });
+      function afterQueries() {
       /* the Meta time and the banner */
       const t = L.x.metaUpdated(['League Updated Pot', 'El Matador Tire 2026-10-08T12:13:18.508Z $1200'], [{ 'League Updated Pot': 'Current GW' }]);
       check('metaUpdated finds the refresh time in the header cell', t === Date.parse('2026-10-08T12:13:18.508Z'));
@@ -71,6 +94,7 @@ setImmediate(() => {
       check('no em or en dashes in the banner text', !/[–—]/.test(L.x.staleInfo(now - 200 * MIN, now, false).text));
       console.log(fails ? fails + ' FAILED' : 'ALL PASS');
       process.exit(fails ? 1 : 0);
+      }
     });
   });
 });

@@ -6,7 +6,13 @@
    header row against the columns the engine needs (TABS): a mismatch rejects, so a required tab shows the "could not
    reach the league data" screen and an optional one falls back to empty, never to another sheet's rows.
    readMeta() reads the Meta tab for the time of the last refresh from FPL (written by Code.gs on every refresh), for the
-   banner: data older than 2 hours, or 20 minutes while a match is on, is said so at the top of every page. */
+   banner: data older than 2 hours, or 20 minutes while a match is on, is said so at the top of every page.
+   The GW Stats tab (bug #3) is read with a gviz query that leaves out the rows nothing uses: Code.gs writes every player
+   in FPL's live feed each gameweek, and the engine ignores a player who was neither owned nor on the pitch (every
+   aggregate skips a missing row and a zero-minute row alike; no row has points without minutes). Owned players keep
+   their zero-minute rows, so ownership and "did not play" history are intact. Measured 8 Oct 2026: 1,636 of 3,216 rows,
+   219 KB instead of 410 KB. The query names the Owner and Mins columns by letter, so the read checks the header puts them
+   where Code.gs writes them (F and G) and otherwise reads the whole tab, as before, and says so. */
 const TIMEOUT_MS = 15000, STALE_MIN = 120, STALE_LIVE_MIN = 20, MATCH_PRE_MS = 5 * 60e3, MATCH_MS = (2 * 60 + 15) * 60e3;
 /* the columns each tab must have (a name with | means any one of them). A tab not listed here is read as before. */
 export const TABS = {
@@ -35,11 +41,22 @@ export function tabProblem(name, cols) {
   const miss = need.filter(c => !c.split('|').some(alt => have.has(alt)));
   return miss.length ? 'missing ' + miss.join(', ') + ' (header: ' + (cols || []).slice(0, 6).join(', ') + ')' : '';
 }
+/* a tab read with a gviz query: { tq, at: { column letter: the label it must have } } */
+export const QUERIES = {
+  'GW Stats': { tq: 'select * where G > 0 or F is not null', at: { F: 'Owner', G: 'Mins' } },
+};
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+/* '' when the header has the queried columns where the query expects them, else why not */
+export function queryProblem(name, cols) {
+  const q = QUERIES[name]; if (!q) return '';
+  const bad = Object.keys(q.at).filter(L => (cols || [])[LETTERS.indexOf(L)] !== q.at[L]);
+  return bad.length ? 'column ' + bad.map(L => L + ' is ' + JSON.stringify((cols || [])[LETTERS.indexOf(L)] || '') + ', not ' + q.at[L]).join('; ') : '';
+}
 let N = 0;
 const gv = name => (typeof SHEET === 'string' ? SHEET : '');
 const canon = v => { try { return typeof canonTeam === 'function' ? canonTeam(v) : v; } catch (e) { return v; } };
 /* the JSONP read: { cols, rows } (rows keyed by column label, every value through canonTeam, as the engine's readTab did) */
-export function readRaw(name) {
+export function readRaw(name, tq) {
   return new Promise((resolve, reject) => {
     const cb = '__mwgv' + (++N), s = document.createElement('script');
     const to = setTimeout(() => { cleanup(); reject(new Error(name + ' timed out')); }, TIMEOUT_MS);
@@ -53,16 +70,24 @@ export function readRaw(name) {
         resolve({ cols, rows });
       } catch (e) { reject(e); }
     };
-    s.src = 'https://docs.google.com/spreadsheets/d/' + gv(name) + '/gviz/tq?tqx=' + encodeURIComponent('out:json;responseHandler:' + cb) + '&headers=1&sheet=' + encodeURIComponent(name);
+    s.src = 'https://docs.google.com/spreadsheets/d/' + gv(name) + '/gviz/tq?tqx=' + encodeURIComponent('out:json;responseHandler:' + cb) + '&headers=1&sheet=' + encodeURIComponent(name) + (tq ? '&tq=' + encodeURIComponent(tq) : '');
     s.onerror = () => { cleanup(); reject(new Error(name + ' failed to load')); };
     document.head.appendChild(s);
   });
 }
 export function guardedReadTab(name) {
-  return readRaw(name).then(({ cols, rows }) => {
+  const q = QUERIES[name];
+  const checked = ({ cols, rows }) => {
     const why = tabProblem(name, cols);
     if (why) { console.warn('tab "' + name + '" refused: ' + why); throw new Error(name + ' tab is missing or has the wrong columns: ' + why); }
     return rows;
+  };
+  if (!q) return readRaw(name).then(checked);
+  return readRaw(name, q.tq).then(r => {
+    const qp = queryProblem(name, r.cols);
+    if (!qp) return checked(r);
+    console.warn('tab "' + name + '": the trimmed read cannot be trusted (' + qp + '); reading the whole tab');
+    return readRaw(name).then(checked);
   });
 }
 export function installReadTab() { try { guardedReadTab.guarded = true; window.readTab = guardedReadTab; return true; } catch (e) { return false; } }

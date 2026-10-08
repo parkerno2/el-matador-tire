@@ -2,7 +2,7 @@
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
-- A5 #3 trim the GW Stats fetch: backend session (Fable) started 2026-10-08T13:57:00Z
+- (nothing claimed)
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
@@ -39,9 +39,9 @@ How items are worked:
   - Errors go to a hidden Errors tab.
   - `?health=1` gains an error count for the last 24 h.
   - The monitor opens an issue on a spike.
-- [ ] **A5 Data guards.** (8 Oct 2026: #5 and the banner shipped, `src/data/tabs.js`; #3 stays open, measured in BUGS.md with the lossless approach, which is an engine change.)
+- [x] **A5 Data guards.** (Shipped 8 Oct 2026, all in `src/data/tabs.js`: the header guard (#5), the GW Stats trim (#3: 219 KB instead of 410 KB, lossless for the engine, measured in BUGS.md) and the stale banner.)
   - [x] #5: validate each tab by its header row in the app's readTab, showing an empty state rather than wrong data.
-  - [ ] #3: trim the GW Stats fetch.
+  - [x] #3: trim the GW Stats fetch.
   - [x] A stale-data banner when `data.updated` is old.
 - [ ] **A6 #8 Per-fixture BPS in Code.gs**, so double-gameweek bonus can be estimated per match. Must ship before the first double gameweek.
 - [ ] **A7 #25 Clubs strength mirror:** re-source it from FPL's new fields, or drop it.

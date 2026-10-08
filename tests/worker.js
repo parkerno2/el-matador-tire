@@ -31,6 +31,11 @@ const check = (label, cond, info) => { if (!cond) fails++; console.log((cond ? '
   let served = null;
   const res = await W.default.fetch({ url: 'https://matchweek.gg/status' }, { ASSETS: { fetch: async req => { served = req; return { status: 200 }; } } });
   check('a request is served by the ASSETS binding untouched', res.status === 200 && served && served.url === 'https://matchweek.gg/status');
+  const diag = await W.default.fetch({ url: 'https://matchweek.gg/__worker' }, { GITHUB_TOKEN: 'secret-value', ASSETS: { fetch: async () => ({ status: 404 }) } });
+  const dj = JSON.parse(await diag.text());
+  check('/__worker says the script is deployed, its crons, and whether the token is set, never the token', diag.status === 200 && dj.worker === 'matchweek' && dj.crons.length === 2 && dj.token === true && !/secret-value/.test(JSON.stringify(dj)) && diag.headers.get('cache-control') === 'no-store');
+  const diag2 = JSON.parse(await (await W.default.fetch({ url: 'https://matchweek.gg/__worker' }, { ASSETS: { fetch: async () => ({ status: 404 }) } })).text());
+  check('/__worker without the secret: token false', diag2.token === false);
   console.log(fails ? fails + ' FAILED' : 'ALL PASS');
   process.exit(fails ? 1 : 0);
 })().catch(e => { console.error('FAILED', e); process.exit(1); });

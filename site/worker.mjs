@@ -31,5 +31,11 @@ export default {
     const r = await dispatch(env, workflow);
     console.log(JSON.stringify(Object.assign({ cron: event.cron }, r)));
   },
-  async fetch(request, env) { return env.ASSETS.fetch(request); },
+  async fetch(request, env) {
+    /* /__worker: is this script deployed, with which crons, and is the token set (yes or no, never the value) */
+    if (new URL(request.url).pathname === '/__worker') {
+      return new Response(JSON.stringify({ worker: 'matchweek', crons: Object.keys(JOBS), token: !!(env && env.GITHUB_TOKEN), time: new Date().toISOString() }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+    }
+    return env.ASSETS.fetch(request);
+  },
 };
