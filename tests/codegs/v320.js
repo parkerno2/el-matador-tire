@@ -21,7 +21,7 @@ props.ANTHROPIC_API_KEY = 'sk-test';
 
 console.log('--- V the release');
 check('V1 EMT_VERSION is v3.20 or later and the CHANGELOG has the entry', ctx.emtSelfVersion(src) === ctx.EMT_VERSION && ctx.emtSelfCmp(ctx.EMT_VERSION, 'v3.20') >= 0 && /\* v3\.20 · 8 Oct 2026\n \*   The writers work again on the Claude 5\.5 models\./.test(src));
-check('V2 the budgets: feed 2000, show 4000, research 8000, writing 16000, punch-up 16000', ctx.EMT_AI_MAX_TOKENS === 2000 && ctx.EMT_SHOW_MAX_TOKENS === 4000 && ctx.EMT_ART_RESEARCH_MAX_TOKENS === 8000 && ctx.EMT_ART_WRITE_MAX_TOKENS === 16000 && ctx.EMT_ART_PUNCH_MAX_TOKENS === 16000);
+check('V2 the budgets: feed 2000, show 4000, research at least 8000, writing and punch-up at least 16000 (v3.23 raised the batch ones; never lower them)', ctx.EMT_AI_MAX_TOKENS === 2000 && ctx.EMT_SHOW_MAX_TOKENS === 4000 && ctx.EMT_ART_RESEARCH_MAX_TOKENS >= 8000 && ctx.EMT_ART_WRITE_MAX_TOKENS >= 16000 && ctx.EMT_ART_PUNCH_MAX_TOKENS >= 16000);
 
 console.log('--- P the parameters per model');
 const P = (m, mode) => JSON.stringify(ctx.emtModelParams(m, mode));
@@ -69,7 +69,7 @@ check('S5 a 400 about the model: not retried, reported as missing (the chain mov
 console.log('--- B the batch calls');
 const job = { id: 'preview-gw6-abc123', gw: 6, kind: 'preview', phase: 'research', redos: 0, note: '' };
 const rp = ctx.emtArtResearchParams(job, PREV, 'claude-sonnet-5-5', null), wp = ctx.emtArtWriteParams('user text', null, 'claude-sonnet-5-5'), pp = ctx.emtArtPunchParams(job, { title: 'x' }, 'claude-haiku-5-5');
-check('B1 research 8000, writing 16000, punch-up 16000; no thinking or effort parameter (adaptive thinking stays on, with room)', rp.max_tokens === 8000 && wp.max_tokens === 16000 && pp.max_tokens === 16000 && [rp, wp, pp].every(x => !('thinking' in x) && !('output_config' in x)));
+check('B1 research at least 8000, writing and punch-up at least 16000 (the constants); no thinking or effort parameter (adaptive thinking stays on, with room)', rp.max_tokens === ctx.EMT_ART_RESEARCH_MAX_TOKENS && rp.max_tokens >= 8000 && wp.max_tokens === ctx.EMT_ART_WRITE_MAX_TOKENS && wp.max_tokens >= 16000 && pp.max_tokens === ctx.EMT_ART_PUNCH_MAX_TOKENS && pp.max_tokens >= 16000 && [rp, wp, pp].every(x => !('thinking' in x) && !('output_config' in x)));
 
 console.log('--- R a failed article is tried again by a newer Code.gs');
 const at1 = iso(Date.now() - H);

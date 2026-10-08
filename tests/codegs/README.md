@@ -3,6 +3,7 @@
 Plain Node, no dependencies. Each file mocks the Apps Script services it needs (SpreadsheetApp, PropertiesService, UrlFetchApp, LockService, CacheService, Utilities) and loads `../../Code.gs` in a vm.
 
 ```bash
+node tests/codegs/v323.js   # the research budget and its log: 32,000 tokens for the batch calls, the Log says when the budget ran out (v3.23)
 node tests/codegs/v322.js   # the Clubs tab mirrors FPL's difficulty ratings: Str H and Str A, the zeroed attack and defence columns dropped (v3.22)
 node tests/codegs/v321.js   # per-fixture BPS: the Fixture BPS tab from the draft and classic fixture feeds, for a double gameweek's bonus (v3.21)
 node tests/codegs/v320.js   # the writers on the Claude 5.5 models: thinking off for quick calls, room for it in batch calls, old failures retried (v3.20)

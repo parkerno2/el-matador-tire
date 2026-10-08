@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,17 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.23 · 8 Oct 2026
+ *   The articles' research gets the room it needs and its log says when it ran out (BUGS #28). Both GW6 preview jobs
+ *   ended their research with "0 characters, 0 sources": claude-sonnet-5-5 thinks before and between its web searches,
+ *   and that thinking and the searches count against max_tokens, so with up to 10 searches the 8,000 tokens of v3.20
+ *   were spent before any notes were written and both previews went out from the league data alone. The first writing
+ *   try of each job ran out of its 16,000 tokens the same way; only the second try passed.
+ *   1. The batch budgets: 32,000 tokens each for the research, the writing and the punch-up (billed only as generated;
+ *      a batch request has no HTTP timeout to keep under). emtModelParams is unchanged: the quick calls keep thinking off.
+ *   2. The research line in the Log (Articles tab) names the budget when the reply ended at max_tokens, says when the
+ *      model searched but wrote no notes, and keeps the pause_turn note (emtArtResearchLog).
+ *   No new setup and no new permissions.
  * v3.22 · 8 Oct 2026
  *   The Clubs tab mirrors what FPL publishes now (ROADMAP A7, BUGS #25). Since this season FPL's classic
  *   bootstrap-static carries 0 in strength_attack_* and strength_defence_* for every club, and its 1 to 5 fixture
@@ -1881,7 +1892,7 @@ function aiMemory(ev) {
  * mode 'quick': a synchronous call that must answer inside UrlFetchApp's minute (the feed writer, the show writer and
  * its punch-up): thinking off, the way each model allows. mode 'batch': the articles through the Batches API, where
  * time does not matter: the model keeps its thinking and max_tokens leaves room for it. Older models get nothing. */
-var EMT_AI_MAX_TOKENS = 2000, EMT_SHOW_MAX_TOKENS = 4000, EMT_ART_RESEARCH_MAX_TOKENS = 8000, EMT_ART_WRITE_MAX_TOKENS = 16000, EMT_ART_PUNCH_MAX_TOKENS = 16000;
+var EMT_AI_MAX_TOKENS = 2000, EMT_SHOW_MAX_TOKENS = 4000, EMT_ART_RESEARCH_MAX_TOKENS = 32000, EMT_ART_WRITE_MAX_TOKENS = 32000, EMT_ART_PUNCH_MAX_TOKENS = 32000;   /* v3.23: the batch budgets (8,000 and 16,000 in v3.20 ran out before the notes or the JSON, BUGS #28) */
 function emtModelParams(model, mode) {
   var m = String(model || '');
   if (mode !== 'quick' || !/^claude-(sonnet|haiku|opus|fable)-5/.test(m)) return {};
@@ -3061,7 +3072,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.22';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.23';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -3646,6 +3657,18 @@ function emtArtResearch(content) {
   if (notes.length + tail.length > EMT_ART_RESEARCH_MAX) notes = notes.slice(0, EMT_ART_RESEARCH_MAX - tail.length - 20).replace(/\s+\S*$/, '') + ' [cut]';
   return { text: notes ? notes + tail : tail.replace(/^\s+/, ''), sources: list.length, searched: Object.keys(real).length };
 }
+/* v3.23: the research step's log line (BUGS #28). R from emtArtResearch, the batch message's stop_reason and the
+ * continuations allowed. A reply the token budget ended (stop_reason max_tokens) names the budget: the notes end where
+ * the model stopped, and with no notes at all the article is written from the league data alone, which the log now says. */
+function emtArtResearchLog(R, stop, conts) {
+  var n = String((R || {}).text || '').length, k = Number((R || {}).sources) || 0;
+  var s = 'research done: ' + n + ' characters, ' + k + ' source' + (k === 1 ? '' : 's');
+  if (stop === 'max_tokens') s += n ? ' (cut off at the budget of ' + EMT_ART_RESEARCH_MAX_TOKENS + ' tokens, thinking included; the notes end where the model stopped)'
+    : ' (the model used its whole budget of ' + EMT_ART_RESEARCH_MAX_TOKENS + ' tokens, thinking included, before writing any notes; the article is written from the league data alone)';
+  else if (stop === 'pause_turn') s += ' (still paused after ' + conts + ' continuations; kept what it had)';
+  else if (!n) s += ' (the model searched but wrote no notes; the article is written from the league data alone)';
+  return s + '.';
+}
 /* the urls of the SOURCES list at the end of stored research notes (as keys) */
 function emtArtSourceUrls(research) {
   var s = String(research || ''), i = s.lastIndexOf('SOURCES:\n'), out = [];
@@ -4220,8 +4243,7 @@ function emtArtRun(job, S, t0, force) {
           if (!emtArtResearchDone(job, '', 'research unavailable: web search returned no results' + (R.text ? ' (' + R.text.length + ' characters of notes from memory not kept)' : '') + '. Written from the league data alone.', S)) return;
           continue;
         }
-        if (!emtArtResearchDone(job, R.text, 'research done: ' + R.text.length + ' characters, ' + R.sources + ' source' + (R.sources === 1 ? '' : 's') +
-          (msg.stop_reason === 'pause_turn' ? ' (still paused after ' + EMT_ART_CONTS + ' continuations; kept what it had)' : '') + '.', S)) return;
+        if (!emtArtResearchDone(job, R.text, emtArtResearchLog(R, msg.stop_reason, EMT_ART_CONTS), S)) return;   /* v3.23: says when the budget ran out */
         continue;
       }
       var text = emtArtTexts(content), research2 = emtArtResearchText(emtArtCell(meta.row, EMT_ART_COL.research));

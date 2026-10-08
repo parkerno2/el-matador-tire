@@ -2,7 +2,6 @@
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
-- BUGS #28 (the research budget and its log; Code.gs v3.23): backend session started 2026-10-08T20:40Z
 - Plates, player photos and Feed first impression (Parker's request): builder plates run started 2026-10-08T20:29:04Z
 - Gameweek Show fix and GW6 redo (Parker's request): builder show run started 2026-10-08T20:45:00Z
 
