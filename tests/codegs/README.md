@@ -3,6 +3,7 @@
 Plain Node, no dependencies. Each file mocks the Apps Script services it needs (SpreadsheetApp, PropertiesService, UrlFetchApp, LockService, CacheService, Utilities) and loads `../../Code.gs` in a vm.
 
 ```bash
+node tests/codegs/v320.js   # the writers on the Claude 5.5 models: thinking off for quick calls, room for it in batch calls, old failures retried (v3.20)
 node tests/codegs/v319.js   # waiver times (Matchweeks) and waiver order (Standings) in the sheet (v3.19)
 node tests/codegs/v318.js   # errors reported by phones: clienterror, the Errors tab, ?health=1 errors (v3.18)
 node tests/codegs/v317.js   # ?health=1 data: the last refresh, the live window (v3.17); uses harness.js
