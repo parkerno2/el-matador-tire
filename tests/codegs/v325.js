@@ -6,7 +6,7 @@
 const T = require(__dirname + '/harness.js').make();
 const { ctx, check, src, sheets, props, cache, logs } = T;
 const H = 3600e3, iso = ms => new Date(ms).toISOString();
-const MODEL = 'eleven_multilingual_v2';
+const MODEL = 'eleven_v4_turbo';
 
 /* the ElevenLabs mock: the balance (SUB), then text to speech as v324 mocks it; SEQ records the order of the calls */
 let SHOW = {}, MODE = 'ok', SUB = { code: 200, count: 1000, limit: 10000, reset: Math.floor(Date.now() / 1000) + 20 * 86400 }, SUB_THROW = false, tts = [], subs = [], SEQ = [];

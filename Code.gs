@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,34 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.26 · 9 Oct 2026
+ *   The Gameweek Show is voiced by ElevenLabs v4 Turbo, with more emotion (Parker, 8 Oct 2026: "Give V4 Turbo a good
+ *   shot. And let's try and give the voice more emotion.").
+ *   1. The model: eleven_v4_turbo (EMT_SHOW_MODEL_DEFAULT). The Script Property EMT_TTS_MODEL still wins when set; the
+ *      script json's "model" is a label now, never the choice (every written script carried eleven_multilingual_v2),
+ *      so GW6 and every later script are voiced with the default. The take's hash stays md5(text|voice|model|speed)
+ *      with the model that is actually used, so the change re-voices every line once.
+ *   2. The settings a v4 model takes, and only those: voice_settings { stability, similarity_boost }, no style, speed
+ *      or speaker boost (v4 has none of them and SSML is not supported). Stability 0 (ElevenLabs' "Creative": the
+ *      expressive end; EMT_SHOW_STABILITY, 0 to 1, changes it), similarity 0.75. previous_text and next_text go on as
+ *      before, through the with-timestamps endpoint. Any other model keeps the v3.24 body.
+ *   3. Audio tags: the show writer and the punch-up may put a tag in square brackets before the words it shapes
+ *      ([laughing], [whispering], [deadpan], [sighs] ...), at most two a line and never on every line (emtShowCheck
+ *      refuses more; the word counts and the number guard ignore the tags). A tag goes to ElevenLabs and nowhere
+ *      else: the word times are built from the caption text (emtShowCaption: the tags stripped, the alignment's tag
+ *      characters skipped), so w has one time per caption word, and the app strips the tags from its captions.
+ *      show/gw6.json carries tags by hand, every word kept.
+ *   4. The fallback, once: when ElevenLabs refuses the model or a field (a 400 or 422; a credit refusal or a wrong key
+ *      is not one) the gameweek is pinned to the previous model and settings (EMT_SHOW_MODEL_GW_<gw>:
+ *      eleven_multilingual_v2 with the v3.24 body), the refusal is kept in ?health=1 show.render and show.model, and
+ *      the next render voices with the fallback. The pin is read everywhere a hash is made (render, ?show, health),
+ *      so takes never flip between stale and fresh and nothing re-renders every tick; v4 is tried again only when the
+ *      pin is deleted. The v3.25 balance read and hold are untouched; the gameweek cap allows a pinned gameweek exactly
+ *      one more script's worth (the re-voice the fallback needs; a pin can be set only once, so it stays bounded).
+ *   5. ?health=1 show.model { model, from: default | property | fallback, fallback? } and render.model; the status
+ *      page names the model of the last render.
+ *   No new setup and no new permissions. The first render after this version re-voices GW6 in full (about 3,200
+ *   characters, inside the v3.25 cap of the script plus a quarter).
  * v3.25 · 8 Oct 2026
  *   ElevenLabs credits are never burned again (Parker's request, BUGS #30: the account ran out after the GW6 show was
  *   voiced on 7 Oct, voiced again at 00:46 UTC on 8 Oct after a rewrite, and every render since was refused).
@@ -2072,7 +2100,12 @@ var EMT_SHOW_URL = 'https://parkerno2.github.io/el-matador-tire/show/gw';
 var EMT_SHOW_TTS = 'https://api.elevenlabs.io/v1/text-to-speech/';
 var EMT_SHOW_TTS_TIMED = '/with-timestamps';   /* v3.24: the same call answered as JSON, the audio plus a character alignment */
 var EMT_SHOW_VOICE_DEFAULT = 'e2v8SRwGUU8TdMFPuDlV';
-var EMT_SHOW_MODEL_DEFAULT = 'eleven_multilingual_v2';
+var EMT_SHOW_MODEL_DEFAULT = 'eleven_v4_turbo';         /* v3.26: v4 Turbo (EMT_TTS_MODEL wins; the script json's "model" is a label) */
+var EMT_SHOW_MODEL_PREV = 'eleven_multilingual_v2';     /* v3.26: the fallback when ElevenLabs refuses the default (EMT_SHOW_MODEL_GW_<gw>) */
+var EMT_SHOW_V4_STABILITY = 0;                           /* v3.26: v4 settings: 0 is ElevenLabs' "Creative", the expressive end (EMT_SHOW_STABILITY overrides) */
+var EMT_SHOW_V4_SIMILARITY = 0.75;
+var EMT_SHOW_TAG_RE = /\[[^\[\]]*\]/g;                   /* v3.26: an audio tag, [laughing]: voiced, never captioned */
+var EMT_SHOW_TAGS_PER_LINE = 2;                          /* v3.26: emtShowCheck refuses more tags on one line */
 var EMT_SHOW_CHUNK = 45000;            // characters per Data cell (cells cap at 50,000)
 var EMT_SHOW_BUDGET_MS = 270 * 1000;   // no new clip after 4.5 min; Apps Script stops every run at 6
 var EMT_SHOW_BUSY_MS = 390 * 1000;     // a render flag older than 6.5 min belongs to a run that is already dead
@@ -2146,14 +2179,39 @@ function emtShowClips(j) {
 
 /* v3.24: the voice a script is rendered with (the Script Properties win over the json), and the clips with the hash
  * each take must carry, md5(text|voice|model|speed). renderShow, ?show and ?health=1 all judge a stored take by it. */
-function emtShowVoice(j) {
-  var p = emtProps();
-  return { voice: p.getProperty('EMT_VOICE_ID') || EMT_SHOW_VOICE_DEFAULT, model: p.getProperty('EMT_TTS_MODEL') || (j && j.model) || EMT_SHOW_MODEL_DEFAULT, speed: Number(j && j.speed) || 1 };
+function emtShowVoice(j, gw) {
+  var p = emtProps(), M = emtShowModel(gw === undefined ? Number(j && j.gw) : gw);
+  return { voice: p.getProperty('EMT_VOICE_ID') || EMT_SHOW_VOICE_DEFAULT, model: M.model, from: M.from, speed: Number(j && j.speed) || 1 };
 }
-function emtShowLines(j) {
-  var v = emtShowVoice(j);
+function emtShowLines(j, gw) {
+  var v = emtShowVoice(j, gw);
   return emtShowClips(j || {}).map(function (c) { c.hash = emtMd5hex(c.text + '|' + v.voice + '|' + v.model + '|' + v.speed); return c; });
 }
+/* v3.26: the model a gameweek is voiced with: EMT_TTS_MODEL when set, else the gameweek's fallback pin
+ * (EMT_SHOW_MODEL_GW_<gw>, set once by a refusal; delete it to try the default again), else the default.
+ * { model, from: 'property' | 'fallback' | 'default', fallback: { model, from, at, code, why } | null } */
+function emtShowModel(gw) {
+  var p = emtProps(), set = String(p.getProperty('EMT_TTS_MODEL') || '').trim(), pin = emtShowPin(gw);
+  if (set) return { model: set, from: 'property', fallback: pin };
+  if (pin && pin.model) return { model: pin.model, from: 'fallback', fallback: pin };
+  return { model: EMT_SHOW_MODEL_DEFAULT, from: 'default', fallback: null };
+}
+function emtShowPin(gw) {
+  if (!(Number(gw) > 0)) return null;
+  try { var j = JSON.parse(emtProps().getProperty('EMT_SHOW_MODEL_GW_' + Number(gw)) || 'null'); return j && typeof j === 'object' && j.model ? j : null; } catch (e) { return null; }
+}
+/* v3.26: a model of the v4 family takes stability and similarity only; everything else keeps the v3.24 body */
+function emtShowIsV4(model) { return /^eleven_v4/.test(String(model || '')); }
+function emtShowSettings(model, speed) {
+  if (emtShowIsV4(model)) {
+    var st = Number(emtProps().getProperty('EMT_SHOW_STABILITY'));
+    return { stability: isFinite(st) && st >= 0 && st <= 1 && String(emtProps().getProperty('EMT_SHOW_STABILITY') || '').trim() !== '' ? st : EMT_SHOW_V4_STABILITY, similarity_boost: EMT_SHOW_V4_SIMILARITY };
+  }
+  return { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: speed };
+}
+/* v3.26: a line as the caption shows it: the audio tags out, the spaces tidied */
+function emtShowCaption(text) { return String(text == null ? '' : text).replace(EMT_SHOW_TAG_RE, ' ').replace(/\s+/g, ' ').trim(); }
+function emtShowTags(text) { return String(text == null ? '' : text).match(EMT_SHOW_TAG_RE) || []; }
 
 /* v3.24: a Words cell ("[0,0.42,0.81]") → the array, or null */
 function emtShowWordsParse(cell) {
@@ -2246,13 +2304,15 @@ function emtB64Bytes(b64) {
 function emtShowWordTimes(text, al) {
   var ch = al && al.characters, st = al && al.character_start_times_seconds;
   if (!ch || !st || !ch.length || ch.length !== st.length) return null;
-  var out = [], inWord = false, i;
+  var out = [], inWord = false, inTag = false, i;
   for (i = 0; i < ch.length; i++) {
     var c = String(ch[i] == null ? '' : ch[i]);
+    if (inTag) { if (c === ']') { inTag = false; inWord = false; } continue; }   /* v3.26: an audio tag's characters are not a word */
+    if (c === '[') { inTag = true; inWord = false; continue; }
     if (!c || /^\s+$/.test(c)) { inWord = false; continue; }
     if (!inWord) { var t = Number(st[i]); if (!isFinite(t)) return null; out.push(Math.round(Math.max(0, t) * 100) / 100); inWord = true; }
   }
-  var n = String(text == null ? '' : text).split(/\s+/).filter(function (w) { return w; }).length;
+  var n = emtShowCaption(text).split(/\s+/).filter(function (w) { return w; }).length;   /* v3.26: the caption's words */
   return n > 0 && out.length === n ? out : null;
 }
 
@@ -2262,8 +2322,7 @@ function emtShowWordTimes(text, al) {
  * clip's length from its last end time. An endpoint that is not there (404, 405) falls back to the plain call once,
  * without word times. { code, b64, bytes, secs, words, timed, body (the first 300 characters of a refusal) } */
 function emtShowTts(key, voice, model, speed, text, prev, next) {
-  var body = { text: text, model_id: model,
-    voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: speed } };
+  var body = { text: text, model_id: model, voice_settings: emtShowSettings(model, speed) };   /* v3.26: the fields the model takes */
   if (prev) body.previous_text = prev;
   if (next) body.next_text = next;
   var base = EMT_SHOW_TTS + encodeURIComponent(voice), q = '?output_format=mp3_44100_64';
@@ -2340,12 +2399,14 @@ function emtShowCount(gw, n) {
   p.setProperty('EMT_SHOW_GW_CHARS_' + gw, String((Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0) + n));
   p.setProperty(mk, String((Number(p.getProperty(mk)) || 0) + n));
 }
-/* a gameweek's cap: EMT_SHOW_GW_CAP_<gw> when set, else the script's length plus a quarter. { used, cap, chars, set } */
+/* a gameweek's cap: EMT_SHOW_GW_CAP_<gw> when set, else the script's length plus a quarter. { used, cap, chars, set }
+ * v3.26: a gameweek pinned to the fallback model (EMT_SHOW_MODEL_GW_<gw>, set once by a refusal) gets exactly one more
+ * script's worth, the re-voice the fallback needs; the pin can only be set once, so this is bounded. */
 function emtShowCap(gw, lines) {
   var p = emtProps(), chars = 0;
   (lines || []).forEach(function (c) { chars += String(c.text).length; });
-  var set = Number(p.getProperty('EMT_SHOW_GW_CAP_' + gw));
-  return { used: Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0, cap: set > 0 ? Math.floor(set) : Math.ceil(chars * EMT_SHOW_GW_CAP_RATIO), chars: chars, set: set > 0 };
+  var set = Number(p.getProperty('EMT_SHOW_GW_CAP_' + gw)), pinned = !!emtShowPin(gw);
+  return { used: Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0, cap: set > 0 ? Math.floor(set) : Math.ceil(chars * EMT_SHOW_GW_CAP_RATIO) + (pinned ? chars : 0), chars: chars, set: set > 0, pinned: pinned };
 }
 /* the characters of the lines still to voice (missing or stale), from emtShowJudge's answer */
 function emtShowNeed(J) {
@@ -2387,7 +2448,8 @@ function emtShowNote(S) {
   if (!S || S.stopped === 'busy') return;
   try {
     emtProps().setProperty('EMT_SHOW_LAST', JSON.stringify({ at: new Date().toISOString(), gw: S.gw || 0, ok: !!S.ok, stopped: S.stopped || '', error: String(S.error || '').slice(0, 200),
-      rendered: (S.rendered || []).length, kept: S.kept || 0, left: S.left || 0, source: S.source || (S.clips ? 'repo' : ''), need: S.need || 0, hold: S.hold || null }));
+      rendered: (S.rendered || []).length, kept: S.kept || 0, left: S.left || 0, source: S.source || (S.clips ? 'repo' : ''), need: S.need || 0, hold: S.hold || null,
+      model: S.model || '', fallback: S.fallback || null }));   /* v3.26 */
   } catch (e) { }
 }
 function emtShowLast() {
@@ -2417,8 +2479,8 @@ function emtShowRender(gw, startedAt) {
     if (f.source) S.source = f.source;
     if (f.error) { S.ok = false; S.stopped = 'error'; S.error = f.error; Logger.log(emtShowSummary(S)); return S; }
     emtShowRepoCache(gw, f);                         /* v3.24: ?show judges the takes against the script just rendered */
-    var j = f.json || {}, clips = emtShowLines(j), V = emtShowVoice(j), p = emtProps();
-    S.clips = clips.length;
+    var j = f.json || {}, clips = emtShowLines(j, gw), V = emtShowVoice(j, gw), p = emtProps();
+    S.clips = clips.length; S.model = V.model; S.modelFrom = V.from;   /* v3.26 */
     if (!clips.length) { S.stopped = 'empty'; Logger.log(emtShowSummary(S)); return S; }
     p.setProperty('EMT_SHOW_KEYS_' + gw, JSON.stringify(clips.map(function (c) { return c.key; })));
     var live = {};
@@ -2467,6 +2529,13 @@ function emtShowRender(gw, startedAt) {
           : code === 200 ? 'ElevenLabs sent no audio' : 'ElevenLabs refused the request';
         Logger.log('Gameweek Show: ElevenLabs HTTP ' + code + ' on ' + c.key + ', ' + S.error + '. Body: ' + body);
         if (/out of credits/.test(S.error)) { var cl = emtShowCreditsLast(); S.hold = emtShowHoldSet('credits', cl && cl.from === 'elevenlabs' ? cl.resets : null).until; }   /* v3.25 */
+        else if ((code === 400 || code === 422) && V.from === 'default') {   /* v3.26: the model or a field refused: the fallback, once, for this gameweek */
+          var pin = { model: EMT_SHOW_MODEL_PREV, from: V.model, at: new Date().toISOString(), code: code, why: String(body || '').replace(/\s+/g, ' ').slice(0, 160) };
+          p.setProperty('EMT_SHOW_MODEL_GW_' + gw, JSON.stringify(pin));
+          S.fallback = pin;
+          S.error = 'ElevenLabs refused ' + V.model + ' (HTTP ' + code + (pin.why ? ': ' + pin.why : '') + '); GW' + gw + ' falls back to ' + EMT_SHOW_MODEL_PREV + ' from the next render on (delete the Script Property EMT_SHOW_MODEL_GW_' + gw + ' to try ' + V.model + ' again)';
+          Logger.log('Gameweek Show: ' + S.error);
+        }
         continue;                                     /* no more calls this run */
       }
       var b64 = r.b64, n = Math.ceil(b64.length / EMT_SHOW_CHUNK);
@@ -2509,6 +2578,7 @@ function emtShowSummary(S) {
   if (S.stopped === 'time') s += ' Stopped at the time limit; the next run finishes it.';
   else if (S.stopped) s += ' Stopped: ' + (S.error || S.stopped) + '.';
   if (S.hold) s += ' No ElevenLabs render until ' + S.hold + ' (the balance is read again once an hour; Render now in the menu lifts the hold).';
+  if (S.model) s += ' Voice model ' + S.model + (S.modelFrom === 'fallback' ? ' (the fallback for this gameweek)' : S.modelFrom === 'property' ? ' (EMT_TTS_MODEL)' : '') + '.';   /* v3.26 */
   return s;
 }
 
@@ -2542,7 +2612,7 @@ function renderShowNow() {
  * and nothing counts as fresh). script: the json when the caller has it already. */
 function emtShowJudge(gw, script) {
   if (script === undefined) script = emtShowScriptAny(gw);
-  var lines = script && typeof script === 'object' ? emtShowLines(script) : null;
+  var lines = script && typeof script === 'object' ? emtShowLines(script, gw) : null;   /* v3.26: the gameweek's model */
   var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh ? emtShowIndex(sh, gw) : {};
   var J = { lines: lines, idx: idx, sheet: sh, script: script || null, fresh: [], stale: [], missing: [], expected: lines ? lines.map(function (c) { return c.key; }) : (emtShowExpected(gw) || []) };
   if (!lines) return J;
@@ -2658,6 +2728,7 @@ var EMT_SHOW_SYSTEM = [
   '  [4] the faceoff: the series (rec) and/or the model\'s win chance (win) or the predicted score (H.proj to A.proj).',
   '- close: "That\'s the gameweek." then the deadline and lineups, then a nudge to go on the record in the press room.',
   '- 10 to 22 words per beat.',
+  '- AUDIO TAGS (the voice is ElevenLabs v4: a tag in square brackets just before the words it shapes directs the delivery, e.g. [laughing], [whispering], [sighs], [deadpan], [annoyed], [ecstatic], [long pause]). Use them sparingly: one, at most two, on a line, and only where a tag lands the joke (a sigh before the undercut, a whisper for the aside); most lines carry none and never put one on every line. A tag is never a word of the script: no number, no name, nothing the listener needs is inside it.',
   '- The app plays the chapters in its own order, so never say first, next, then, finally, later or last, and never refer to another chapter.',
   '- star.h is the code of the home player beat [1] is about and star.a the code of the away player beat [3] is about, copied from that fixture\'s H.xi and A.xi.',
   '',
@@ -3107,6 +3178,22 @@ function emtShowAllowed(text) {
 }
 
 /* the reply, checked against the facts. { problems: [...], script: { open, chapters, close } | null } */
+/* v3.26: the audio tags of a script: each [tag] is lowercase letters and spaces, at most EMT_SHOW_TAGS_PER_LINE on a
+ * line, and fewer than half the lines carry one (sparse: only where they land the joke). The problems, as strings. */
+function emtShowTagProblems(texts) {
+  var P = [], tagged = 0, n = 0;
+  (texts || []).forEach(function (t) {
+    if (typeof t !== 'string' || !t) return;
+    n++;
+    var tags = emtShowTags(t);
+    if (!tags.length) return;
+    tagged++;
+    if (tags.length > EMT_SHOW_TAGS_PER_LINE) P.push('"' + emtShowCaption(t).slice(0, 60) + '": ' + tags.length + ' audio tags; at most ' + EMT_SHOW_TAGS_PER_LINE + ' a line.');
+    tags.forEach(function (g) { if (!/^\[[a-z][a-z ]{1,30}\]$/.test(g)) P.push('The audio tag ' + g + ' is not lowercase words in square brackets, like [laughing].'); });
+  });
+  if (n && tagged * 2 > n) P.push(tagged + ' of ' + n + ' lines carry an audio tag; tags go only where they land the joke, on fewer than half the lines.');
+  return P;
+}
 function emtShowCheck(text, facts, allowed, stop) {
   var P = [], j = null, m = String(text || '').match(/\{[\s\S]*\}/);
   if (m) { try { j = JSON.parse(m[0]); } catch (e) { j = null; } }
@@ -3128,7 +3215,7 @@ function emtShowCheck(text, facts, allowed, stop) {
     var beats = (Array.isArray(c.beats) ? c.beats : []).map(emtShowTidy);
     if (beats.length !== 5 || beats.some(function (b) { return !b; })) P.push(name + ': needs exactly 5 beats, none empty (it has ' + beats.filter(Boolean).length + ').');
     beats.forEach(function (b, k) {
-      var n = b ? b.split(/\s+/).length : 0;
+      var n = b ? emtShowCaption(b).split(/\s+/).filter(Boolean).length : 0;   /* v3.26: the audio tags are not words */
       if (b && (n < EMT_SHOW_BEAT_HARD[0] || n > EMT_SHOW_BEAT_HARD[1])) P.push(name + ', beat ' + k + ': ' + n + ' words; keep every beat to ' + EMT_SHOW_BEAT_WORDS[0] + ' to ' + EMT_SHOW_BEAT_WORDS[1] + '.');
     });
     var star = c.star && typeof c.star === 'object' ? c.star : {};
@@ -3144,8 +3231,9 @@ function emtShowCheck(text, facts, allowed, stop) {
    * "54" is not allowed just because a player code like 154561 contains it), a count up to 10, or a result's margin */
   var texts = [open, close], bad = {}, ok = emtShowAllowed(allowed);
   chapters.forEach(function (c) { texts = texts.concat(c.beats); });
+  P = P.concat(emtShowTagProblems(texts));   /* v3.26: sparse audio tags only */
   texts.forEach(function (t) {
-    emtShowNums(t).forEach(function (n) {
+    emtShowNums(emtShowCaption(t)).forEach(function (n) {
       if (!ok[n] && !ok[String(Number(n))] && !bad[n]) { bad[n] = 1; P.push('The number ' + n + ' (in "' + String(t).slice(0, 90) + '") is not in FACTS, QUOTES or NOTES.'); }
     });
   });
@@ -3374,7 +3462,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.25';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.26';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4774,6 +4862,7 @@ function emtShowHealth() {
     out.stale = J.stale.length;
     out.expected = J.expected.length;
     out.render = emtShowLast();
+    out.model = gw ? emtShowModel(gw) : null;         /* v3.26: the voice model and where it comes from */
     /* v3.25: the credit guard: the last balance read, the characters still to voice, the gameweek's cap, the hold */
     out.credits = emtShowCreditsLast();
     var need = J.lines ? emtShowNeed(J) : 0, cap = gw && J.lines ? emtShowCap(gw, J.lines) : null, H = emtShowHold();
@@ -4983,7 +5072,7 @@ var EMT_PUNCH_ART_SYSTEM = [
   ''
 ].concat(EMT_TONE_LINES).join('\n');
 var EMT_PUNCH_SHOW_SYSTEM = [
-  'You are the punch-up writer for the Gameweek Show, read aloud by Malcolm Tyre, a fictional British broadcaster with commentary-box calm. You get a finished, fact-checked script as JSON. Make it funnier for the readers below and change nothing else. Keep every fact, number (as digits), name, team name, player code, chapter, beat count and the JSON shape exactly; never add a number, a fact, a claim or a quote. Each beat stays 10 to 22 words. Never say first, next, then, finally, later or last. No em dashes or en dashes, no emoji, no hashtags, no exclamation marks. REPLY with the whole JSON object only, no prose, no code fence.',
+  'You are the punch-up writer for the Gameweek Show, read aloud by Malcolm Tyre, a fictional British broadcaster with commentary-box calm. You get a finished, fact-checked script as JSON. Make it funnier for the readers below and change nothing else. An audio tag in square brackets ([sighs], [laughing], [deadpan], [whispering]) directs the voice, never the reader: keep, move or drop the ones there, add one only where it lands the joke, at most two on a line and on fewer than half the lines. Keep every fact, number (as digits), name, team name, player code, chapter, beat count and the JSON shape exactly; never add a number, a fact, a claim or a quote. Each beat stays 10 to 22 words. Never say first, next, then, finally, later or last. No em dashes or en dashes, no emoji, no hashtags, no exclamation marks. REPLY with the whole JSON object only, no prose, no code fence.',
   ''
 ].concat(EMT_TONE_LINES).join('\n');
 
@@ -5091,7 +5180,7 @@ function emtArtPunchEnd(job, P, reason, detail, S, base) {
 /* what the punch-up must have kept, beyond emtShowCheck: the chapters in order with their stars, no beat grown past
  * 22 words, no new number. a, b: checked scripts (digits) → problems */
 function emtShowPunchSame(a, b) {
-  var P = [], W = function (t) { t = String(t || '').trim(); return t ? t.split(/\s+/).length : 0; };
+  var P = [], W = function (t) { t = emtShowCaption(t); return t ? t.split(/\s+/).length : 0; };   /* v3.26: tags are not words */
   if (b.chapters.length !== a.chapters.length) P.push('The chapters must stay ' + a.chapters.length + '.');
   a.chapters.forEach(function (c, i) {
     var d = b.chapters[i], n = c.home + ' v ' + c.away;

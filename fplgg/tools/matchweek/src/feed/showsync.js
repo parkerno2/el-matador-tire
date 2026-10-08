@@ -20,6 +20,11 @@ export function parseShow(r) {
   return { clips, complete: r.complete === true, stale: Array.isArray(r.stale) ? r.stale.slice() : [], missing: Array.isArray(r.missing) ? r.missing.slice() : [] };
 }
 
+/* an audio tag (Code.gs v3.26: [laughing], [whispering], a direction for ElevenLabs v4 in square brackets before the words
+   it shapes) is voiced, never shown: the caption text is the line without its tags, spaces tidied. */
+export const TAG_RE = /\[[^\[\]]*\]/g;
+export function stripTags(t) { return String(t == null ? '' : t).replace(TAG_RE, ' ').replace(/\s+/g, ' ').trim(); }
+
 /* the caption clock. LEAD: a word lights a touch before the voice reaches it, so the eye is never behind. */
 export const LEAD = 0.12;
 /* how many of n words are on screen at t seconds into the clip, from the word start times (null or a wrong count

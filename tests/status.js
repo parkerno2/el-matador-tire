@@ -49,6 +49,18 @@ const base = () => ({ ok: true, version: 'v3.25', self: 'current: v3.25 (checked
   HEALTH = base(); HEALTH.show.hold = null; HEALTH.show.capped = true; HEALTH.show.cap = { used: 3312, cap: 3900 }; HEALTH.show.need = 2950; HEALTH.show.render.ok = true; HEALTH.show.render = { at: iso(Date.now() - 14 * 60e3), ok: false, stopped: 'capped', error: 'GW6 has voiced 3312 of its 3900-character cap', rendered: 0, kept: 1, left: 21 };
   await ctx.run(); c = cardOf('The Gameweek Show'); t = text(c);
   check('S6 the cap in plain words, naming the Script Property; amber', t.includes('Gameweek 6 is at its voicing cap: 3,312 of 3,900 characters, and the lines still to voice need 2,950 more. The Script Property EMT_SHOW_GW_CAP_6 raises it.') && dot(c) === 'warn', t);
+  /* v3.26: the voice model */
+  HEALTH = base(); HEALTH.show.hold = null; HEALTH.show.model = { model: 'eleven_v4_turbo', from: 'default', fallback: null }; HEALTH.show.render = { at: iso(Date.now() - 5 * 60e3), gw: 6, ok: true, stopped: '', error: '', rendered: 22, kept: 0, left: 0, source: 'repo', need: 0, hold: null, model: 'eleven_v4_turbo', fallback: null };
+  await ctx.run(); c = cardOf('The Gameweek Show'); t = text(c);
+  check('S9 the voice model is named, and the last render says which model voiced it; the card is green', t.includes('Voice model: eleven_v4_turbo.') && t.includes('Last render 5 min ago: 22 lines voiced, 0 kept, with eleven_v4_turbo.') && dot(c) === 'ok', t);
+  HEALTH = base(); HEALTH.show.hold = null; HEALTH.show.model = { model: 'eleven_v4_turbo', from: 'property', fallback: null }; HEALTH.show.render = null;
+  await ctx.run(); c = cardOf('The Gameweek Show'); t = text(c);
+  check('S10 a model set by EMT_TTS_MODEL says so', t.includes('Voice model: eleven_v4_turbo (set by the Script Property EMT_TTS_MODEL).') && dot(c) === 'ok', t);
+  HEALTH = base(); HEALTH.show.hold = null; HEALTH.show.credits.left = 6900;
+  HEALTH.show.model = { model: 'eleven_multilingual_v2', from: 'fallback', fallback: { model: 'eleven_multilingual_v2', from: 'eleven_v4_turbo', at: iso(Date.now() - 40 * 60e3), code: 422, why: 'model_not_found' } };
+  HEALTH.show.render = { at: iso(Date.now() - 40 * 60e3), gw: 6, ok: false, stopped: 'http 422', error: 'ElevenLabs refused eleven_v4_turbo (HTTP 422: model_not_found); GW6 falls back to eleven_multilingual_v2 from the next render on', rendered: 0, kept: 0, left: 22, model: 'eleven_v4_turbo', fallback: HEALTH.show.model.fallback };
+  await ctx.run(); c = cardOf('The Gameweek Show'); t = text(c);
+  check('S11 the fallback is explained with the refusal and the way back, the render names the refused model; the card is amber', t.includes('Voice model: eleven_multilingual_v2 (the fallback for gameweek 6: ElevenLabs refused eleven_v4_turbo with HTTP 422 40 min ago, saying "model_not_found"; delete the Script Property EMT_SHOW_MODEL_GW_6 to try it again).') && t.includes('the model was eleven_v4_turbo.') && dot(c) === 'warn', t);
   HEALTH = base(); HEALTH.show.credits = null; HEALTH.show.hold = null; HEALTH.show.render = null; HEALTH.show.capped = false;
   await ctx.run(); c = cardOf('The Gameweek Show'); t = text(c);
   check('S7 no balance read yet (an older Code.gs, or before the first render): said, green', t.includes('ElevenLabs: the balance has not been read yet') && dot(c) === 'ok', t);

@@ -318,7 +318,7 @@ check('user message: FACTS (decimals rounded), QUOTES with line and call, NOTES,
 const srow = scriptRows(6)[0], sj = srow && JSON.parse(String(srow[4]).slice(2));
 check('ShowScripts row: GW, Written, Model, Facts received, Script marked j:; tab hidden', srow && /^'\d{4}-/.test(srow[1]) && srow[2] === 'claude-sonnet-5-5' && /^'\d{4}-/.test(srow[3]) && String(srow[4]).startsWith('j:') &&
   sheets.ShowScripts.rows[0].join('|') === 'GW|Written (UTC)|Model|Facts received (UTC)|Script' && sheets.ShowScripts.hidden);
-check('script shape matches the hand-written ones', sj.gw === 6 && sj.voice === 'Malcolm Tyre — El Matador Booth' && sj.model === 'eleven_multilingual_v2' && sj.speed === 1.1 && sj.audio === 'sheet' && sj.source === 'ai' &&
+check('script shape matches the hand-written ones', sj.gw === 6 && sj.voice === 'Malcolm Tyre — El Matador Booth' && sj.model === 'eleven_v4_turbo' && sj.speed === 1.1 && sj.audio === 'sheet' && sj.source === 'ai' &&
   /^\d{4}-\d{2}-\d{2}$/.test(sj.written) && sj.chapters.length === 4 && sj.chapters.every(c => c.beats.length === 5 && c.star.h && c.star.a) && sj.chapters[0].home === 'Kobbie Mainoo Fan' && sj.chapters[1].star.a === '222531');
 const allText = [sj.open, sj.close].concat(...sj.chapters.map(c => c.beats));
 check('converted to words: no digits left (club names with digits kept), the faceoff line reads right', allText.every(t => !/\d/.test(t.split('Devils U21s').join(''))) && allText.some(t => t.includes('Devils U21s')) && sj.chapters[1].beats[4] === 'Predicted thirty-nine to thirty-five point eight. The model has Parker at fifty-six percent.' &&

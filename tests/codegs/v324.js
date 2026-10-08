@@ -4,7 +4,7 @@ const T = require(__dirname + '/harness.js').make();
 const { ctx, check, src, sheets, props, cache, logs } = T;
 const crypto = require('crypto');
 const md5 = s => crypto.createHash('md5').update(s, 'utf8').digest('hex');
-const VOICE = 'e2v8SRwGUU8TdMFPuDlV', MODEL = 'eleven_multilingual_v2';
+const VOICE = 'e2v8SRwGUU8TdMFPuDlV', MODEL = 'eleven_v4_turbo';   // v3.26: the default model (the script's own model field is a label)
 const hashOf = (t, speed) => md5(t + '|' + VOICE + '|' + MODEL + '|' + speed);
 
 /* the ElevenLabs mock: with-timestamps answers JSON with the audio and an alignment built from the text; MODE

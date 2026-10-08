@@ -109,10 +109,17 @@ async function run() {
     else if (s.on) showLines.push('ElevenLabs: the balance has not been read yet (the next render, or the hourly check, reads it).');
     if (s.hold) { showState = 'warn'; showLines.push('<b>Not calling ElevenLabs until ' + esc(dayOf(s.hold.until)) + '</b> (' + (s.hold.why === 'credits' ? 'out of credits' : esc(s.hold.why)) + ', since ' + esc(ago(s.hold.since)) + '). The balance is read again every hour, so a top-up is noticed within the hour.'); }
     if (s.capped && s.cap) { showState = 'warn'; showLines.push('Gameweek ' + s.gw + ' is at its voicing cap: <span class="n">' + num(s.cap.used) + ' of ' + num(s.cap.cap) + '</span> characters, and the lines still to voice need ' + num(s.need) + ' more. The Script Property EMT_SHOW_GW_CAP_' + s.gw + ' raises it.'); }
+    /* v3.26: the voice model, and a fallback after ElevenLabs refused the default */
+    const vm = s.model;
+    if (vm && vm.model) {
+      const fb = vm.fallback;
+      showLines.push('Voice model: <span class="n">' + esc(vm.model) + '</span>' + (vm.from === 'property' ? ' (set by the Script Property EMT_TTS_MODEL)' : vm.from === 'fallback' && fb ? ' (the fallback for gameweek ' + s.gw + ': ElevenLabs refused ' + esc(fb.from || 'the default') + (fb.code ? ' with HTTP ' + esc(fb.code) : '') + (fb.at ? ' ' + esc(ago(fb.at)) : '') + (fb.why ? ', saying "' + esc(fb.why) + '"' : '') + '; delete the Script Property EMT_SHOW_MODEL_GW_' + s.gw + ' to try it again)' : '') + '.');
+      if (vm.from === 'fallback') showState = 'warn';
+    }
     const rd = s.render;
     if (rd && rd.ok === false && showState === 'ok') showState = 'warn';
     add(showState, 'The Gameweek Show', showLines, [s.tries ? 'Writing attempts this gameweek: ' + s.tries + ' of 3.' : '',
-      rd ? 'Last render ' + esc(ago(rd.at)) + ': ' + (rd.ok ? num(rd.rendered) + ' line' + (rd.rendered === 1 ? '' : 's') + ' voiced, ' + num(rd.kept) + ' kept.' : 'stopped, ' + esc(rd.error || rd.stopped) + '.') : '']);
+      rd ? 'Last render ' + esc(ago(rd.at)) + ': ' + (rd.ok ? num(rd.rendered) + ' line' + (rd.rendered === 1 ? '' : 's') + ' voiced, ' + num(rd.kept) + ' kept' : 'stopped, ' + esc(rd.error || rd.stopped)) + (rd.model ? (rd.ok ? ', with ' : '; the model was ') + esc(rd.model) : '') + '.' : '']);
     /* the articles */
     const a = H.articles || {}, j = a.job, last = (a.last || []);
     const artLines = ['Mode: ' + (a.mode === 'review' ? 'the commissioner reads every article before it goes out.' : 'articles publish themselves once they pass the checks.')];

@@ -8,8 +8,8 @@ const check = (label, cond, info) => { if (!cond) fails++; console.log((cond ? '
 const src = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/src/feed/showsync.js', 'utf8').replace(/^export (function|const|let)/gm, '$1');
 const ctx = { console, JSON, Math, Number, Array, Object, isFinite };
 vm.createContext(ctx);
-vm.runInContext(src + '\n;this.__x = { parseShow, wordsOn, wordsByShare, showSlot, LEAD };', ctx);
-const { parseShow, wordsOn, wordsByShare, showSlot, LEAD } = ctx.__x;
+vm.runInContext(src + '\n;this.__x = { parseShow, wordsOn, wordsByShare, showSlot, LEAD, stripTags, TAG_RE };', ctx);
+const { parseShow, wordsOn, wordsByShare, showSlot, LEAD, stripTags, TAG_RE } = ctx.__x;
 
 console.log('--- the server\'s answer');
 const r = { ok: true, gw: 6, clips: { open: { secs: 7.55, hash: 'a', b64: 'AAAA', w: [0, 0.42, 0.81] }, c1b0: { secs: 4.58, hash: 'b', b64: 'BBBB' } }, complete: false, stale: ['c1b1'], missing: ['c1b2'] };
@@ -22,6 +22,14 @@ check('bad w (a string, a negative time, an empty list) is dropped, the clip kep
 check('a server with nothing to play (no fresh clip, an error, no answer) is null', parseShow({ ok: true, clips: {}, complete: false, stale: ['open'] }) === null && parseShow({ ok: false, error: 'badgw' }) === null && parseShow(null) === null && parseShow({ ok: true }) === null);
 check('secs that are missing or not a number read as 0 (the player then uses its estimate)', parseShow({ ok: true, clips: { a: { b64: 'AA' }, b: { b64: 'AA', secs: 'x' } } }).clips.a.secs === 0 && parseShow({ ok: true, clips: { b: { b64: 'AA', secs: 'x' } } }).clips.b.secs === 0);
 check('complete is true only when the server says exactly true', parseShow({ ok: true, clips: { a: { b64: 'AA' } }, complete: 1 }).complete === false && parseShow({ ok: true, clips: { a: { b64: 'AA' } }, complete: true }).complete === true);
+
+console.log('--- audio tags (Code.gs v3.26): voiced, never captioned');
+check('a tag before the words it shapes is stripped and the spaces tidied', stripTags('Fully fit. [deadpan] Just shite.') === 'Fully fit. Just shite.' && stripTags('[whispering] Monday needs names.') === 'Monday needs names.');
+check('two tags on a line, a tag with spaces, a tag at the end', stripTags('[sighs] One. [long pause] Two. [laughing]') === 'One. Two.');
+check('a line without tags is unchanged apart from tidied spaces; empty, null and undefined are empty', stripTags('Gameweek six.  Here we go.') === 'Gameweek six. Here we go.' && stripTags('') === '' && stripTags(null) === '' && stripTags(undefined) === '');
+check('the caption word count matches the Words the server builds from the caption text (one time per caption word)', stripTags('Fully fit. [deadpan] Just shite.').split(/\s+/).length === 4);
+check('square brackets that are not a tag pair are left alone', stripTags('a [ b') === 'a [ b' && stripTags('a ] b') === 'a ] b');
+check('TAG_RE is the same shape as Code.gs EMT_SHOW_TAG_RE', String(TAG_RE) === '/\\[[^\\[\\]]*\\]/g');
 
 console.log('--- the caption clock');
 const w = [0, 0.5, 1.2, 1.9];
@@ -42,7 +50,8 @@ check('another gameweek\'s show, no show, or no data: nothing', showSlot({ gw: 5
 
 console.log('--- the player and the pages use it');
 const play = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/src/feed/showplay.js', 'utf8');
-check('showplay.js takes the server\'s answer through parseShow and keeps w per clip', /import \{ parseShow, wordsOn, wordsByShare \} from '\.\/showsync\.js'/.test(play) && /const P = parseShow\(r\);/.test(play) && /if \(c\.w\) words\[k\] = c\.w;/.test(play) && /return \{ urls, durs, words, from: 'sheet', complete: P\.complete/.test(play));
+check('showplay.js captions every line through stripTags (open, the beats, close), so a tag is never on screen', /cap: stripTags\(s\.j\.open\)/.test(play) && /cap: stripTags\(t\)/.test(play) && /cap: stripTags\(s\.j\.close\)/.test(play) && !/cap: s\.j\.open\b/.test(play) && !/cap: t \}/.test(play));
+check('showplay.js takes the server\'s answer through parseShow and keeps w per clip', /import \{ parseShow, wordsOn, wordsByShare, stripTags \} from '\.\/showsync\.js'/.test(play) && /const P = parseShow\(r\);/.test(play) && /if \(c\.w\) words\[k\] = c\.w;/.test(play) && /return \{ urls, durs, words, from: 'sheet', complete: P\.complete/.test(play));
 check('the caption clock in tick(): word times when the clip has them, the share otherwise', /const k = wt && Q\.useAudio \? wordsOn\(wt, n, Q\.A\.currentTime, spoken\) : wordsByShare\(spoken, n\);/.test(play) && !/Math\.ceil\(spoken \* n \* 1\.08\)/.test(play));
 check('a clip the server did not send plays as a timed caption (useAudio follows the url)', /Q\.useAudio = !!url;/.test(play) && /const d = \(Q\.au && Q\.au\.durs && Q\.au\.durs\[it\.clip\]\) \? Q\.au\.durs\[it\.clip\] \* 1000 : est\(it\);/.test(play));
 check('a partly re-voiced show says so in the foot', /Some lines are being re-voiced/.test(play));

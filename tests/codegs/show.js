@@ -106,7 +106,7 @@ order.forEach(([k, t]) => {
   if (n > 1) multi++;
   if (rows.length !== n) { chunkOk = false; info.push(k + ' rows ' + rows.length + '/' + n); }
   rows.forEach((r, i) => {
-    if (r[3] !== i + 1 || r[4] !== n || !String(r[6]).startsWith('b64:') || String(r[6]).length > 45004 || strip(r[2]) !== md5(t + '|e2v8SRwGUU8TdMFPuDlV|eleven_multilingual_v2|1.1')) { chunkOk = false; info.push(k + ' part ' + i); }
+    if (r[3] !== i + 1 || r[4] !== n || !String(r[6]).startsWith('b64:') || String(r[6]).length > 45004 || strip(r[2]) !== md5(t + '|e2v8SRwGUU8TdMFPuDlV|eleven_v4_turbo|1.1')) { chunkOk = false; info.push(k + ' part ' + i); }
     if (r[5] !== Math.round(bytes / 80) / 100) { secsOk = false; info.push(k + ' secs ' + r[5]); }
   });
 });
@@ -123,9 +123,9 @@ const mid = byText(SHOW[6].chapters[0].beats[2]), first = byText(SHOW[6].open), 
 check('i) middle clip c1b2 gets previous_text c1b1 and next_text c1b3', mid.body.previous_text === SHOW[6].chapters[0].beats[1] && mid.body.next_text === SHOW[6].chapters[0].beats[3]);
 check('i) open has no previous_text, close has no next_text, chapter seam joins', !('previous_text' in first.body) && first.body.next_text === SHOW[6].chapters[0].beats[0] && !('next_text' in last.body) && last.body.previous_text === SHOW[6].chapters[1].beats[4]
   && byText(SHOW[6].chapters[1].beats[0]).body.previous_text === SHOW[6].chapters[0].beats[4]);
-check('i) request shape (url: with-timestamps since v3.23, headers, model, voice_settings)', mid.url === 'https://api.elevenlabs.io/v1/text-to-speech/e2v8SRwGUU8TdMFPuDlV/with-timestamps?output_format=mp3_44100_64'
+check('i) request shape (url: with-timestamps since v3.23, headers, model eleven_v4_turbo and its two settings since v3.26)', mid.url === 'https://api.elevenlabs.io/v1/text-to-speech/e2v8SRwGUU8TdMFPuDlV/with-timestamps?output_format=mp3_44100_64'
   && mid.o.method === 'post' && mid.o.contentType === 'application/json' && mid.o.muteHttpExceptions === true && mid.o.headers['xi-api-key'] === 'el-test-key' && mid.o.headers.Accept === 'application/json'
-  && mid.body.model_id === 'eleven_multilingual_v2' && JSON.stringify(mid.body.voice_settings) === JSON.stringify({ stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: 1.1 }), JSON.stringify(mid.body.voice_settings));
+  && mid.body.model_id === 'eleven_v4_turbo' && JSON.stringify(mid.body.voice_settings) === JSON.stringify({ stability: 0, similarity_boost: 0.75 }), JSON.stringify(mid.body.voice_settings));
 
 /* c) second render */
 reset(); const rowsBefore = JSON.stringify(sh.rows);
@@ -139,12 +139,12 @@ SHOW[6].chapters[1].beats[3] = 'Word is the files are still open, and now there 
 const rd = ctx.renderShow(6);
 const newRows = rowsOf(6, 'c2b3'), wantN = Math.ceil(b64of(SHOW[6].chapters[1].beats[3]).length / 45000);
 check('d) one edited beat: exactly 1 call', calls.length === 1 && calls[0].body.text === SHOW[6].chapters[1].beats[3] && rd.rendered.join() === 'c2b3' && rd.kept === 11);
-check('d) old rows replaced (no leftovers, new hash, parts ' + oldC2b3 + ' -> ' + wantN + ')', newRows.length === wantN && newRows.every(r => strip(r[2]) === md5(SHOW[6].chapters[1].beats[3] + '|e2v8SRwGUU8TdMFPuDlV|eleven_multilingual_v2|1.1')) && JSON.stringify(rowsOf(6, 'open')) === oldOpenRow);
+check('d) old rows replaced (no leftovers, new hash, parts ' + oldC2b3 + ' -> ' + wantN + ')', newRows.length === wantN && newRows.every(r => strip(r[2]) === md5(SHOW[6].chapters[1].beats[3] + '|e2v8SRwGUU8TdMFPuDlV|eleven_v4_turbo|1.1')) && JSON.stringify(rowsOf(6, 'open')) === oldOpenRow);
 
 /* f) doGet show */
 const g = JSON.parse(ctx.doGet({ parameter: { show: '6' } }).t);
 const order2 = playOrder(SHOW[6]);
-const allMatch = order2.every(([k, t]) => g.clips[k] && g.clips[k].b64 === b64of(t) && g.clips[k].secs === Math.round(t.length * 900 / 80) / 100 && g.clips[k].hash === md5(t + '|e2v8SRwGUU8TdMFPuDlV|eleven_multilingual_v2|1.1'));
+const allMatch = order2.every(([k, t]) => g.clips[k] && g.clips[k].b64 === b64of(t) && g.clips[k].secs === Math.round(t.length * 900 / 80) / 100 && g.clips[k].hash === md5(t + '|e2v8SRwGUU8TdMFPuDlV|eleven_v4_turbo|1.1'));
 check('f) doGet ?show=6: every clip, joined b64 == base64(fake bytes), complete', g.ok === true && g.gw === 6 && Object.keys(g.clips).length === 12 && allMatch && g.complete === true, 'keys ' + Object.keys(g.clips).join(','));
 check('f) clips come back in play order', Object.keys(g.clips).join() === order2.map(o => o[0]).join());
 const gBad = JSON.parse(ctx.doGet({ parameter: { show: 'abc' } }).t), g9 = JSON.parse(ctx.doGet({ parameter: { show: '9' } }).t);

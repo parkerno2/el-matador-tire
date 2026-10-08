@@ -3,6 +3,7 @@
 Plain Node, no dependencies. Each file mocks the Apps Script services it needs (SpreadsheetApp, PropertiesService, UrlFetchApp, LockService, CacheService, Utilities) and loads `../../Code.gs` in a vm.
 
 ```bash
+node tests/codegs/v326.js   # the Gameweek Show on ElevenLabs v4 Turbo: the model and its two settings, audio tags voiced but never captioned, the fallback once with a stable hash (v3.26)
 node tests/codegs/v325.js   # the ElevenLabs credit guard: the balance read before a render, the count fallback, the gameweek cap, the hold after a refusal, health, ai.last (v3.25)
 node tests/codegs/v324.js   # the Gameweek Show: only current takes served (hash against the script), word times from ElevenLabs' with-timestamps, the last render in health (v3.24)
 node tests/codegs/v323.js   # the research budget and its log: 32,000 tokens for the batch calls, the Log says when the budget ran out (v3.23)

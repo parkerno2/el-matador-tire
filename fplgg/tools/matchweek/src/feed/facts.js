@@ -399,7 +399,7 @@ export function showsWanted() {
       const clips = ['open'].concat(...j.chapters.map((c, i) => c.beats.map((_, b) => 'c' + (i + 1) + 'b' + b)), ['close']);
       const txt = k => k === 'open' ? j.open : k === 'close' ? j.close : (j.chapters[+k.slice(1, k.indexOf('b')) - 1] || { beats: [] }).beats[+k.slice(k.indexOf('b') + 1)] || '';
       /* repo clips carry measured lengths; a script still being voiced gets an estimate from its words */
-      const dur = clips.reduce((s, k) => s + ((j.dur || {})[k] || (String(txt(k)).split(/\s+/).length / 2.7 + .9)), 0);
+      const dur = clips.reduce((s, k) => s + ((j.dur || {})[k] || (String(txt(k)).replace(/\[[^\[\]]*\]/g, ' ').trim().split(/\s+/).filter(Boolean).length / 2.7 + .9)), 0);   /* the audio tags (v3.26) are not spoken words */
       SHOWS[g] = { gw: g, j, clips, dur, base: 'show/gw' + g + '/', at: dt(j.rendered) };
     } else SHOWS[g] = null;
     if (--left === 0) { bump(); if (['feed', 'matchday'].includes(document.body.dataset.page) && window.MW && !document.getElementById('gs')) window.MW.render({ keepScroll: true }); }

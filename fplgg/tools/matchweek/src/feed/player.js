@@ -1,14 +1,15 @@
 /* feed/player.js — plays the Gameweek Show: the real narrated clips in show/gwN/, in order, with their captions. */
 import { shows, mmss } from './facts.js';
 import { esc } from './util.js';
+import { stripTags } from './showsync.js';
 
 let A = null, Q = null;
 export const state = () => Q;
 export function caption(s, k) {
-  if (k === 'open') return { ch: -1, text: s.j.open };
-  if (k === 'close') return { ch: s.j.chapters.length, text: s.j.close };
+  if (k === 'open') return { ch: -1, text: stripTags(s.j.open) };
+  if (k === 'close') return { ch: s.j.chapters.length, text: stripTags(s.j.close) };
   const m = /^c(\d+)b(\d+)$/.exec(k); if (!m) return { ch: -1, text: '' };
-  const c = s.j.chapters[+m[1] - 1]; return { ch: +m[1] - 1, text: c ? c.beats[+m[2]] || '' : '' };
+  const c = s.j.chapters[+m[1] - 1]; return { ch: +m[1] - 1, text: c ? stripTags(c.beats[+m[2]] || '') : '' };
 }
 export function toggle(gw) {
   if (Q && Q.gw === gw) { if (Q.playing) pause(); else resume(); return; }

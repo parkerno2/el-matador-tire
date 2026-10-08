@@ -10,7 +10,7 @@ import * as M from '../pages/matchday/model.js';
 import { shows } from './facts.js';
 import { quotes } from './social.js';
 import { esc, firstOf } from './util.js';
-import { parseShow, wordsOn, wordsByShare } from './showsync.js';
+import { parseShow, wordsOn, wordsByShare, stripTags } from './showsync.js';
 
 const HOLD = { open: 7200, intro: 3400, xi: 5800, face: 5400, close: 5200 };
 const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
@@ -161,12 +161,13 @@ function build(s, only) {
   let order = s.j.chapters.map((c, i) => i);
   if (only != null && only > -1) order = [only];
   else order.sort((a, b) => { const A = s.j.chapters[a], B = s.j.chapters[b]; const ma = A.home === me || A.away === me ? 0 : 1, mb = B.home === me || B.away === me ? 0 : 1; return ma - mb || a - b; });
-  if (only == null || only < 0) items.push({ kind: 'open', clip: 'open', cap: s.j.open });
+  /* a caption is the line without its audio tags (v3.26: the tags direct the voice, the clip's w counts caption words) */
+  if (only == null || only < 0) items.push({ kind: 'open', clip: 'open', cap: stripTags(s.j.open) });
   order.forEach((ci, n) => {
     const c = s.j.chapters[ci];
-    c.beats.forEach((t, j) => items.push({ kind: ['intro', 'xi', 'intro', 'xi', 'face'][j] || 'face', side: j < 2 ? 'h' : 'a', c, ci, n, j, clip: 'c' + (ci + 1) + 'b' + j, cap: t }));
+    c.beats.forEach((t, j) => items.push({ kind: ['intro', 'xi', 'intro', 'xi', 'face'][j] || 'face', side: j < 2 ? 'h' : 'a', c, ci, n, j, clip: 'c' + (ci + 1) + 'b' + j, cap: stripTags(t) }));
   });
-  if (only == null || only < 0) items.push({ kind: 'close', clip: 'close', cap: s.j.close });
+  if (only == null || only < 0) items.push({ kind: 'close', clip: 'close', cap: stripTags(s.j.close) });
   return { items, chapters: order.length };
 }
 function capHTML(t) { return String(t || '').split(/\s+/).filter(Boolean).map((w, i) => '<span style="--w:' + i + '">' + esc(w) + '</span>').join(' '); }
