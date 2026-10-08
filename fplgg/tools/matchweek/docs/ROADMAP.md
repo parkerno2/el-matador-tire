@@ -21,7 +21,7 @@ How items are worked:
 - [x] **A1 CI gate for Code.gs.** (Shipped 8 Oct 2026: `.github/workflows/codegs.yml`; `release` created from main at v3.15, Code.gs v3.16 reads from it.)
   - Run every `tests/codegs/*.js` on each push that touches Code.gs or tests.
   - The self-update reads Code.gs from a `release` branch that CI fast-forwards only when the suites pass. A broken push to main can then never reach the live script.
-- [x] **A2 Monitor (no AI).** (Shipped 8 Oct 2026: `.github/workflows/monitor.yml`, `fplgg/tools/monitor/`, Code.gs v3.17 `data` in health. The error spike check is wired and starts counting with A4.) A GitHub Action every 15 min checks:
+- [x] **A2 Monitor (no AI).** (Shipped 8 Oct 2026: `.github/workflows/monitor.yml`, `fplgg/tools/monitor/`, Code.gs v3.17 `data` in health. The error spike check is wired and starts counting with A4. GitHub's scheduler runs this repo's cron workflows hours late, so `site/worker.mjs` starts the Monitor and the Facts bot on time from matchweek.gg's Worker cron. **(Parker: the `GITHUB_TOKEN` secret on the matchweek Worker, see BUGS.md #26; until then the Monitor runs only when GitHub gets to it.)**) A GitHub Action every 15 min checks:
   - the app loads (status 200 and a build stamp);
   - the web app's `?health=1` is ok;
   - the data is fresh: add `data.updated` (the last successful refreshAll or liveTick) to health. Thresholds: 2 h normally, 20 min while matches are live;

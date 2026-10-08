@@ -1,10 +1,15 @@
-// matchweek.gg: the Cloudflare Worker "matchweek" (static assets only).
-// Cloudflare Workers Builds deploys this folder on every push to main that touches site/,
-// so nobody's computer is needed. Edit the pages in site/public/ and push.
+// matchweek.gg: the Cloudflare Worker "matchweek": the static site in public/, plus worker.mjs, whose cron triggers
+// start the GitHub workflows on time (the Monitor every 15 minutes, the Facts bot every 3 hours) because GitHub's own
+// scheduler runs this repo's cron workflows hours late. The ticks need the Worker secret GITHUB_TOKEN (a fine-grained
+// GitHub token with Actions: write on the repo); without it they do nothing and the site is unaffected.
+// Cloudflare Workers Builds deploys this folder on every push to main that touches site/, so nobody's computer is
+// needed. Edit the pages in site/public/ and push.
 {
   "name": "matchweek",
+  "main": "worker.mjs",
   "compatibility_date": "2026-08-31",
-  "assets": { "directory": "./public" },
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "triggers": { "crons": ["*/15 * * * *", "23 */3 * * *"] },
   "workers_dev": true,
   "routes": [
     { "pattern": "matchweek.gg", "custom_domain": true },

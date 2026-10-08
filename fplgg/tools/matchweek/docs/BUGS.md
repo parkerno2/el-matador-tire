@@ -11,6 +11,10 @@ How to use it:
 
 ## Open
 
+- **#26 P2 (Parker): GitHub runs this repo's scheduled workflows hours late, so the Monitor's 15-minute cadence and the Facts bot's 3-hour cadence do not hold through GitHub alone.**
+  - Seen 8 Oct 2026: the daily faces workflow (cron 09:17 UTC) ran at 14:47, 18:29, 15:58 and 16:31 UTC on 4 to 7 Oct, 5 to 9 hours late each day; the Monitor (`*/15`) and the Facts bot (`23 */3`) had no scheduled run in the 90 minutes after they landed, only the dispatched ones. GitHub documents that scheduled runs can be delayed under load; for this repo the delay is routinely hours.
+  - Fix, shipped 8 Oct 2026: `site/worker.mjs` plus cron triggers in `site/wrangler.jsonc`. Cloudflare's cron fires on time; each tick calls GitHub's workflow_dispatch API for `monitor.yml` (every 15 minutes) or `facts.yml` (minute 23 every 3 hours). Dispatched runs start within seconds (observed today).
+  - Needs Parker (one time): a fine-grained GitHub token with Actions: Read and write on parkerno2/el-matador-tire only (GitHub, Settings, Developer settings, Personal access tokens, Fine-grained tokens, Generate new token; Repository access: Only select repositories, el-matador-tire; Repository permissions: Actions: Read and write), stored as the Worker secret `GITHUB_TOKEN` (Cloudflare dashboard, Workers & Pages, matchweek, Settings, Variables and Secrets, Add, type Secret). Until then every tick is a no-op and the Monitor runs only when GitHub gets to it. Close this entry once the Monitor's runs show the `schedule`-like cadence (dispatched every 15 minutes).
 - **#8 P2: the second match of a double gameweek has no provisional bonus.** Showing it needs per-fixture BPS, which Code.gs does not write yet.
   - Latent until the first double gameweek.
 - **#3 P3: `readTab('GW Stats')` pulls the whole tab.** It loads every row, not just the gameweeks it needs, so it gets slower as the season goes on.
@@ -34,5 +38,6 @@ How to use it:
 
 ## Audit log
 
+- **2026-10-08** (backend session, check-in 13:47 UTC): no scheduled run of the Monitor or the Facts bot in 90 minutes; the daily faces workflow's history shows GitHub runs this repo's cron 5 to 9 hours late. Logged as #26; the matchweek.gg Worker cron now dispatches both workflows on time once Parker adds its token. The live Code.gs is v3.19 (installed from `release` at 13:31); the GW6 preview is being written from the Facts bot's facts.
 - **2026-10-08** (backend session, ROADMAP A0 to A5): Code.gs v3.15 to v3.18 shipped through the new CI gate (the live script moves to the `release` branch); the Facts bot wrote the GW6 preview facts at 12:07 UTC and the live script read them; the monitor's first run passed every check; the status page is live at matchweek.gg/status; phones now report script errors; the app's sheet reader validates headers (#5 closed, commit d69d3ce) and shows a banner when the data is stale. #3 measured and left open with a plan (see its entry).
 - **2026-10-08** (set-up): list started. Health endpoint `?health=1` answered from the cloud with `version v3.13` (the v3.14 self-update was still pending), `articles.last` empty, show GW6 22 of 22 clips. Confirmed #5 live: see its entry.
