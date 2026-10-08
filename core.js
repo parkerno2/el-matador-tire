@@ -99,6 +99,8 @@ const face=c=>FPL_PHOTO+c+'.png';
 const FC_FACES=new Set('17761 50175 60307 60689 78916 80201 85633 97032 98747 98980 106611 108416 109745 111234 114283 116535 141746 153682 154561 154566 169432 169528 171314 172649 172780 176297 177815 178301 184029 195546 198869 200720 200834 201658 204480 204936 205533 208706 209036 209244 212319 215059 215136 215379 215413 216051 216094 216646 219168 219847 221466 221820 222531 223094 223340 223827 224117 225796 226597 227444 231416 231747 232185 232413 243298 244723 244850 244851 247348 247632 248857 248875 424876 427623 430871 432720 432830 433969 435997 437499 437730 438234 439509 440993 441164 441264 444102 445087 445122 446008 448047 448104 449434 460842 462424 463067 463726 465247 465351 465642 466052 466075 466525 469142 470313 472769 473284 475168 477424 480455 482616 482973 484420 485055 485711 486385 487838 491279 492777 493105 494521 494595 498016 499604 500040 502500 503139 513418 513545 516895 517052 522047 533463 538207 543968 544877 551210 560262 575476 577725 606702 607464 610799 611695 638987 647850'.split(' '));
 /* the image chain for one player code: [FC cutout,] FPL photo. Empty for no code */
 const faceUrls=c=>{c=String(c==null?'':c).replace(/\.0$/,'');return c?(FC_FACES.has(c)?['faces/'+c+'.png']:[]).concat([face(c)]):[]};
+/* an FPL photo (220x280, half body, the head in the top part) is framed by the head (class fpl); an FC cutout is head and shoulders already */
+const isFplPhoto=u=>String(u==null?'':u).indexOf(FPL_PHOTO)===0;
 const flagImg=(n,px)=>n?'<img decoding="async" class="flag" style="'+(px?'height:'+px+'px;':'')+'border-radius:2px" src="https://flagcdn.com/w80/'+String(n).toLowerCase()+'.png" alt="'+esc(NAT[n]||n)+'" onerror="this.style.display=\'none\'">':'';
 let mg=(name,sm)=>{const t=TEAMS[name];return t?'<span class="mg'+(sm?' sm':'')+'" style="background:'+t.col+'">'+t.ini+'</span>':''};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -312,7 +314,7 @@ function faceImgHTML(p){
  urls.push(...faceUrls(p.Code));
  const ok=urls.filter(u=>!FACEBAD.has(u));
  if(!ok.length)return'<span class="noface">'+initials(p.Player)+'</span>';
- return '<img decoding="async" src="'+ok[0]+'" data-alt="'+ok.slice(1).join('|')+'" alt="" onerror="FACEBAD.add(this.getAttribute(\'src\'));var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
+ return '<img decoding="async"'+(isFplPhoto(ok[0])?' class="fpl"':'')+' src="'+ok[0]+'" data-alt="'+ok.slice(1).join('|')+'" alt="" onerror="FACEBAD.add(this.getAttribute(\'src\'));var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\');this.classList.toggle(\'fpl\',this.src.indexOf(\'premierleague25/photos\')>-1)}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
 function projBubble(p){ // pre-match bubble text: the prediction if one exists, otherwise a dash (never a fake 0.0)
   const e=D.hasEP?epOf(p.Code):null;return e===null?'–':fmt1(e);
