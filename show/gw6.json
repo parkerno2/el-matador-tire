@@ -1,72 +1,72 @@
 {
- "gw": 6,
- "voice": "Malcolm Tyre — El Matador Booth",
- "model": "eleven_multilingual_v2",
- "speed": 1.1,
- "written": "2026-10-07",
- "audio": "sheet",
- "open": "Gameweek six. Two derbies, a leader under investigation, and a manager still waiting for a point. Here's how it lines up.",
- "chapters": [
-  {
-   "home": "Kobbie Mainoo Fan",
-   "away": "Trophy Hunters",
-   "star": {
-    "h": "487838",
-    "a": "17761"
-   },
-   "beats": [
-    "Kobbie Mainoo Fan. Top of the table, unbeaten in four, and still under investigation.",
-    "Hall scored thirteen last week. Isak goes into the weekend carrying a knock.",
-    "Trophy Hunters. Bryant has won three straight, the best form in the league.",
-    "Semenyo, Tzolis and Brobbey all carry knocks. They scored thirty-six between them last week.",
-    "Baha leads the series five to two, and the model makes him favourite."
-   ]
-  },
-  {
-   "home": "Cold Palmers",
-   "away": "Devils U21s",
-   "star": {
-    "h": "154561",
-    "a": "222531"
-   },
-   "beats": [
-    "Cold Palmers. Parker says he's winning Manager of the Month. The model says nine percent.",
-    "Palmer, Mainoo, Rice and Jacquet all carry knocks. Raya starts behind a back three.",
-    "Devils U21s. Five games, five defeats, and PJ still leads this derby four to three.",
-    "Gibbs-White tops the eleven. Not a single flag among PJ's starters.",
-    "The model has Parker a narrow favourite. PJ has won four of their seven meetings."
-   ]
-  },
-  {
-   "home": "I Am a Baleba",
-   "away": "The Soaring Gulls",
-   "star": {
-    "h": "223094",
-    "a": "226597"
-   },
-   "beats": [
-    "I Am a Baleba. Ethan put fifty-four on PJ last week, his best of the season.",
-    "Haaland goes to Anfield as the eleven's main threat.",
-    "The Soaring Gulls. CJ has scored two hundred and forty, the most in the league.",
-    "Gabriel heads the eleven, at home to Leeds. Tavernier and Emersonn close behind.",
-    "Ethan leads the series four to three. The model still prefers CJ."
-   ]
-  },
-  {
-   "home": "In It to McGinn It",
-   "away": "Team Jacob",
-   "star": {
-    "h": "141746",
-    "a": "223340"
-   },
-   "beats": [
-    "In It to McGinn It. Nate has lost two straight, by a point and by twenty-six.",
-    "Fernandes leads the eleven, at home to Spurs. Porro and Rashford are seventy-five percent.",
-    "Team Jacob. Two straight defeats as well, by four and by one.",
-    "Saka leads the eleven, at home to Leeds. Mbeumo hosts Spurs.",
-    "First ever meeting, and the model makes Jacob a clear favourite."
-   ]
-  }
- ],
- "close": "That's the gameweek. Lineups in before Saturday's deadline, and get yourself on the record."
+  "gw": 6,
+  "voice": "Malcolm Tyre — El Matador Booth",
+  "model": "eleven_multilingual_v2",
+  "speed": 1.1,
+  "written": "2026-10-08",
+  "audio": "sheet",
+  "open": "Gameweek six. Two derbies, a league leader under investigation, and one man still looking for his first point. Here's how it lines up.",
+  "chapters": [
+    {
+      "home": "Kobbie Mainoo Fan",
+      "away": "Trophy Hunters",
+      "star": {
+        "h": "487838",
+        "a": "17761"
+      },
+      "beats": [
+        "Kobbie Mainoo Fan. Top of the table, unbeaten in four, and still under investigation. Allegedly.",
+        "Hall scored thirteen last week. Isak goes into the weekend carrying a knock, because of course he does.",
+        "Trophy Hunters. Bryant has won three on the bounce, the best form in the league. The group chat has suffered enough.",
+        "Semenyo, Tzolis and Brobbey all carry knocks. Thirty-six points between them last week. Start praying, Bryant.",
+        "Baha leads the series five to two, and the model makes him favourite. Again."
+      ]
+    },
+    {
+      "home": "Cold Palmers",
+      "away": "Devils U21s",
+      "star": {
+        "h": "154561",
+        "a": "222531"
+      },
+      "beats": [
+        "Cold Palmers. Parker says he's winning Manager of the Month. The model says nine percent. Brave.",
+        "Palmer, Mainoo, Rice and Jacquet all carry knocks. That's not a midfield, that's a physio's waiting room.",
+        "Devils U21s. Five games, five defeats, no points. And somehow PJ still leads this derby four to three.",
+        "Gibbs-White tops the eleven. Not a single flag among PJ's starters. Fully fit. Just shite.",
+        "The model has Parker a narrow favourite. PJ has won four of their seven meetings. Don't trust it."
+      ]
+    },
+    {
+      "home": "I Am a Baleba",
+      "away": "The Soaring Gulls",
+      "star": {
+        "h": "223094",
+        "a": "226597"
+      },
+      "beats": [
+        "I Am a Baleba. Ethan put fifty-four on PJ last week, his best of the season. PJ is still recovering.",
+        "Haaland goes to Anfield. Ethan's entire weekend rests on one Norwegian android.",
+        "The Soaring Gulls. CJ has scored two hundred and forty, the most in the league. Quietly terrifying.",
+        "Gabriel heads the eleven, at home to Leeds. Tavernier and Emersonn close behind. Yes, Emersonn.",
+        "Ethan leads the series four to three. The model still prefers CJ. The model has never met Ethan."
+      ]
+    },
+    {
+      "home": "In It to McGinn It",
+      "away": "Team Jacob",
+      "star": {
+        "h": "141746",
+        "a": "223340"
+      },
+      "beats": [
+        "In It to McGinn It. Nate has lost two straight, by a point and by twenty-six. One hurts. One's a crime scene.",
+        "Fernandes leads the eleven, at home to Spurs. Porro and Rashford are seventy-five percent, which on Nate's luck means zero.",
+        "Team Jacob. Two straight defeats as well, by four and by one. Somebody's losing run ends on Saturday.",
+        "Saka leads the eleven, at home to Leeds. Mbeumo hosts Spurs too, so Old Trafford decides this one.",
+        "First ever meeting, and the model makes Jacob a clear favourite. Nate, it's been a pleasure."
+      ]
+    }
+  ],
+  "close": "That's the gameweek. Lineups in before Saturday's deadline. Get yourself on the record, and try not to embarrass yourself."
 }
