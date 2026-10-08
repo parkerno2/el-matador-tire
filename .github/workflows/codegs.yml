@@ -37,7 +37,7 @@ jobs:
               echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1
             fi
           done
-          for f in tests/factsbot.js tests/monitor.js tests/parity.js tests/app-errors.js tests/app-tabs.js tests/app-bonus.js tests/app-fdr.js tests/app-faces.js tests/app-feed.js tests/app-show.js tests/worker.js; do
+          for f in tests/factsbot.js tests/monitor.js tests/parity.js tests/app-errors.js tests/app-tabs.js tests/app-data.js tests/app-bonus.js tests/app-fdr.js tests/app-faces.js tests/app-feed.js tests/app-show.js tests/worker.js; do
             echo "== $f"
             if out=$(node "$f" 2>&1); then echo "$out" | tail -1; echo "$out" | grep -q '^ALL PASS$' || { echo "::error::$f did not print ALL PASS"; fail=1; }; else echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1; fi
           done

@@ -12,7 +12,15 @@
    aggregate skips a missing row and a zero-minute row alike; no row has points without minutes). Owned players keep
    their zero-minute rows, so ownership and "did not play" history are intact. Measured 8 Oct 2026: 1,636 of 3,216 rows,
    219 KB instead of 410 KB. The query names the Owner and Mins columns by letter, so the read checks the header puts them
-   where Code.gs writes them (F and G) and otherwise reads the whole tab, as before, and says so. */
+   where Code.gs writes them (F and G) and otherwise reads the whole tab, as before, and says so.
+   The data source (ROADMAP B3, first slice): the Sheet is the default; ?data=supabase in the app's URL turns on the
+   Supabase project's public, read-only `tabs` function (the same tab names and columns, the pipeline the parity report
+   compares with the Sheet) for this phone and keeps the choice in localStorage; ?data=sheet turns it off. Supabase's
+   rows are shaped like gviz's (every value a string, TRUE and FALSE, the leading apostrophe before a date dropped,
+   canonTeam on every value, the same header guard, the same GW Stats trim). The tabs the web app writes itself
+   (Managers, Social, Posts, Specials with the web app's own URL) stay on the Sheet whatever the source, and a tab
+   Supabase lacks or fails to serve is read from the Sheet instead, said in the console; MW.data.report() lists where
+   each tab came from. The stale banner then follows Supabase's own refresh time (its Meta tab). */
 const TIMEOUT_MS = 15000, STALE_MIN = 120, STALE_LIVE_MIN = 20, MATCH_PRE_MS = 5 * 60e3, MATCH_MS = (2 * 60 + 15) * 60e3;
 /* the columns each tab must have (a name with | means any one of them). A tab not listed here is read as before. */
 export const TABS = {
@@ -42,9 +50,9 @@ export function tabProblem(name, cols) {
   const miss = need.filter(c => !c.split('|').some(alt => have.has(alt)));
   return miss.length ? 'missing ' + miss.join(', ') + ' (header: ' + (cols || []).slice(0, 6).join(', ') + ')' : '';
 }
-/* a tab read with a gviz query: { tq, at: { column letter: the label it must have } } */
+/* a tab read with a gviz query: { tq, at: { column letter: the label it must have }, keep: the same trim on rows read whole } */
 export const QUERIES = {
-  'GW Stats': { tq: 'select * where G > 0 or F is not null', at: { F: 'Owner', G: 'Mins' } },
+  'GW Stats': { tq: 'select * where G > 0 or F is not null', at: { F: 'Owner', G: 'Mins' }, keep: r => Number(r.Mins) > 0 || String(r.Owner || '') !== '' },
 };
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 /* '' when the header has the queried columns where the query expects them, else why not */
@@ -76,19 +84,82 @@ export function readRaw(name, tq) {
     document.head.appendChild(s);
   });
 }
-export function guardedReadTab(name) {
+/* a tab from the Sheet: the trimmed read where there is one, checked against the header, else the whole tab */
+function readSheet(name) {
   const q = QUERIES[name];
-  const checked = ({ cols, rows }) => {
+  if (!q) return readRaw(name);
+  return readRaw(name, q.tq).then(r => {
+    const qp = queryProblem(name, r.cols);
+    if (!qp) return r;
+    console.warn('tab "' + name + '": the trimmed read cannot be trusted (' + qp + '); reading the whole tab');
+    return readRaw(name);
+  });
+}
+
+/* ---------- the data source (ROADMAP B3): the Sheet, or Supabase behind the flag ---------- */
+export const SUPABASE = { base: 'https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1/tabs', league: 45380 };
+/* the tabs the web app (Code.gs) writes itself, which the Supabase ingest never has: logins and profiles, the social
+   log, the voices' posts, and Specials, which carries the web app's own URL (API URL). The Sheet keeps them. */
+export const SHEET_ONLY = ['Managers', 'Social', 'Posts', 'Specials'];
+const SOURCE_KEY = 'mw-data';
+let SOURCE = '';
+const REPORT = {};
+/* the source for this phone: ?data=supabase in the URL turns Supabase on and keeps it (keep: true says to), ?data=sheet
+   turns it off; with neither, what was kept, else the Sheet */
+export function pickSource(search, kept) {
+  const m = /[?&]data=(sheet|supabase)(?:[&#]|$)/.exec(search || '');
+  return { source: m ? m[1] : (kept === 'supabase' ? 'supabase' : 'sheet'), keep: !!m };
+}
+export function dataSource() {
+  if (SOURCE) return SOURCE;
+  let kept = ''; try { kept = localStorage.getItem(SOURCE_KEY) || ''; } catch (e) { }
+  const p = pickSource(typeof location === 'object' && location ? location.search : '', kept);
+  if (p.keep) try { if (p.source === 'sheet') localStorage.removeItem(SOURCE_KEY); else localStorage.setItem(SOURCE_KEY, p.source); } catch (e) { }
+  SOURCE = p.source;
+  if (SOURCE === 'supabase') console.info('Matchweek data: Supabase (' + SUPABASE.base + '); add ?data=sheet to the URL to go back to the Sheet');
+  return SOURCE;
+}
+/* { source, tabs: { name: 'sheet' | 'supabase' | 'sheet (why)' } } for the tabs read so far */
+export function dataReport() { return { source: dataSource(), tabs: Object.assign({}, REPORT) }; }
+export const sbUrl = name => SUPABASE.base + '/league/' + SUPABASE.league + '/tab/' + encodeURIComponent(name);
+/* a Supabase value as gviz hands the same cell over: a string, TRUE or FALSE, a date without the apostrophe the ingest
+   writes before it, then canonTeam */
+export const sbCell = v => canon(v === null || v === undefined ? '' : typeof v === 'boolean' ? (v ? 'TRUE' : 'FALSE') : typeof v === 'number' ? String(v) : String(v).replace(/^'/, ''));
+/* { cols, rows } from the tabs function's { header, rows }; a tab without a header (Meta) is keyed Column 1, 2... */
+export function parseSupabase(j) {
+  if (!j || !Array.isArray(j.rows)) throw new Error('not a tabs reply');
+  let cols = (j.header || []).map(c => String(c === null || c === undefined ? '' : c).trim());
+  if (!cols.length && j.rows.length && Array.isArray(j.rows[0])) cols = j.rows[0].map((_, i) => 'Column ' + (i + 1));
+  const rows = j.rows.map(r => { const o = {}; cols.forEach((c, i) => { if (c) o[c] = sbCell(Array.isArray(r) ? r[i] : ''); }); return o; });
+  return { cols: cols.filter(Boolean), rows };
+}
+/* a tab from Supabase: null when it has no such tab (404), rejects on any other failure; the GW Stats trim applied */
+export function readSupabase(name) {
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  const to = setTimeout(() => { if (ac) ac.abort(); }, TIMEOUT_MS);
+  return fetch(sbUrl(name), ac ? { signal: ac.signal } : undefined).then(r => {
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json().then(parseSupabase);
+  }).then(r => { const q = QUERIES[name]; if (r && q && q.keep) r.rows = r.rows.filter(q.keep); return r; })
+    .finally(() => clearTimeout(to));
+}
+function fromSheet(name, why, say) {
+  REPORT[name] = why ? 'sheet (' + why + ')' : 'sheet';
+  if (say) console.warn('tab "' + name + '": ' + why + '; read from the Sheet');
+  return readSheet(name);
+}
+/* { cols, rows } from the source this phone uses */
+function readFrom(name) {
+  if (dataSource() !== 'supabase') return fromSheet(name, '');
+  if (SHEET_ONLY.includes(name)) return fromSheet(name, 'the web app writes it');
+  return Promise.resolve().then(() => readSupabase(name)).then(r => { if (!r) return fromSheet(name, 'not on Supabase', true); REPORT[name] = 'supabase'; return r; }, e => fromSheet(name, String(e && e.message || e).slice(0, 80), true));
+}
+export function guardedReadTab(name) {
+  return readFrom(name).then(({ cols, rows }) => {
     const why = tabProblem(name, cols);
     if (why) { console.warn('tab "' + name + '" refused: ' + why); throw new Error(name + ' tab is missing or has the wrong columns: ' + why); }
     return rows;
-  };
-  if (!q) return readRaw(name).then(checked);
-  return readRaw(name, q.tq).then(r => {
-    const qp = queryProblem(name, r.cols);
-    if (!qp) return checked(r);
-    console.warn('tab "' + name + '": the trimmed read cannot be trusted (' + qp + '); reading the whole tab');
-    return readRaw(name).then(checked);
   });
 }
 export function installReadTab() { try { guardedReadTab.guarded = true; window.readTab = guardedReadTab; return true; } catch (e) { return false; } }
@@ -100,7 +171,12 @@ export function metaUpdated(cols, rows) {
   for (const c of cells) { const m = ISO.exec(c); if (m) { const t = Date.parse(m[0]); if (!isNaN(t)) return t; } }
   return 0;
 }
-export function readMeta() { return readRaw('Meta').then(({ cols, rows }) => metaUpdated(cols, rows)).catch(() => 0); }
+const sheetMeta = () => readRaw('Meta').then(({ cols, rows }) => metaUpdated(cols, rows)).catch(() => 0);
+/* the Sheet's Meta tab, or Supabase's when that is the source (its Updated row is the ingest's last run) */
+export function readMeta() {
+  if (dataSource() !== 'supabase') return sheetMeta();
+  return readSupabase('Meta').then(r => (r ? metaUpdated(r.cols, r.rows) : sheetMeta()), () => sheetMeta()).then(t => t || sheetMeta());
+}
 /* a Premier League match is on now (kick-off less 5 minutes to kick-off plus 2 h 15), from the Club Fixtures rows */
 export function matchOn(cf, now) {
   return (cf || []).some(f => { const k = Date.parse(String(f['Kickoff (UTC)'] || '').replace(/^'/, '')); return !isNaN(k) && now >= k - MATCH_PRE_MS && now <= k + MATCH_MS; });

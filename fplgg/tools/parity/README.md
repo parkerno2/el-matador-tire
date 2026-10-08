@@ -31,6 +31,13 @@ The report is the run's summary (the Summary tab of the run in the Actions tab) 
 be made: differences are the report, not a failure. It fails only when nothing could be compared (neither side
 reachable). Nothing here uses a secret: both sources are public and read only.
 
+## See Supabase in the app
+
+The app reads the same tabs function when `?data=supabase` is in its URL (ROADMAP B3, `src/data/tabs.js`): the choice
+sticks on that phone until `?data=sheet`. The tabs the web app writes (Managers, Social, Posts, Specials) and any tab
+Supabase answers 404 for come from the Sheet; `MW.data.report()` in the browser console lists where each tab came from.
+Everybody else keeps the Sheet until a report says every tab agrees.
+
 ## Run it by hand
 
 ```bash

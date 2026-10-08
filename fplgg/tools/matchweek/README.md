@@ -13,7 +13,7 @@ The league app at https://parkerno2.github.io/el-matador-tire/ is the Matchweek 
 | `sw.js` | VERSION `emt-v20-BUILD`. Navigations and js/css/html/json are network-first; images are cache-first; data from other origins goes straight to the network |
 | `manifest.webmanifest` | Same name as before ("FPL Companion"), base colour #0E0A13 |
 
-The data still comes from the Google Sheet through gviz. Logins and profiles still go through the Apps Script in `Code.gs` (v3.7 adds custom club colours and patterns).
+The data comes from the Google Sheet through gviz by default. `?data=supabase` in the app's URL switches this phone to the Supabase project's public `tabs` function (ROADMAP B3, `src/data/tabs.js`: the same tab names and columns, the rows shaped like gviz's, the same header guard; the tabs the web app writes (Managers, Social, Posts, Specials) and any tab Supabase lacks stay on the Sheet; `MW.data.report()` in the console says where each tab came from; `?data=sheet` goes back). Logins and profiles go through the Apps Script in `Code.gs` (v3.7 adds custom club colours and patterns).
 
 ## Source
 

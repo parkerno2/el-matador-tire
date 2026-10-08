@@ -8,7 +8,7 @@ import { SHEETS } from './sheets/index.js';
 import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } from './feed/showfacts.js';
 import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
 import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
-import { installReadTab, readMeta, staleInfo, matchOn } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5) */
+import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3) */
 installErrorReporting();
 installReadTab();
 
@@ -200,7 +200,7 @@ function boot() {
   app.innerHTML = '<div class="boot">' + UI.leagueCrest(44) + UI.mwMark(30) + '<div class="bar"><i></i></div><span>Loading El Matador Tire</span></div>';
   reload(false);
 }
-window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI, facts: { preview: computeFacts, recap: computeRecapFacts } };
+window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI, facts: { preview: computeFacts, recap: computeRecapFacts }, data: { source: dataSource, report: dataReport } };
 /* no zoom at all. iOS ignores user-scalable=no, so its pinch gestures are stopped here; the CSS keeps panning only */
 ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
 /* warm the image cache once the first page is up: every club badge, every rostered player's flag and face (FC cutout or FPL photo, yours first).

@@ -2,7 +2,7 @@
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
-- B3 Switch, first slice (the Supabase data source behind a flag): builder started 2026-10-08T21:51:05Z
+- (nothing claimed)
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
@@ -52,7 +52,7 @@ How items are worked:
 ## B. One pipeline (Supabase)
 - [ ] **B1 Inventory** the Supabase project `vcokquhzqpqvwrybndnr`: is the ingest alive, are its functions deployed, is row-level security on. **(Parker: a Supabase access token or service key as a GitHub Actions secret and a Claude Code environment variable.)**
 - [ ] **B2 Parity:** league 45380 through Supabase matches the Sheet tab for tab across one live gameweek, in a CI report. (The report shipped 8 Oct 2026: `.github/workflows/parity.yml`, `fplgg/tools/parity/`, every 3 h and on dispatch; the run's summary and the artifact `parity-report-<run>` hold it. Supabase's `tabs` function is public and read only, so no secret was needed. The first report, 19:55 UTC: 7 of 18 tabs agree, 7 differ, 4 are not on Supabase; the gaps are BUGS.md #29.) **Left (Parker: the gaps are on the ingest side, which needs B1's Supabase access):** read the reports over GW6 (10 to 12 Oct 2026) for the live columns, and tick this item only when a report says "Every tab agrees with the Sheet".
-- [ ] **B3 Switch** the app's data source behind a flag, then retire the Sheet as the live path. Code.gs keeps the social, articles and show jobs until those move too.
+- [ ] **B3 Switch** the app's data source behind a flag, then retire the Sheet as the live path. Code.gs keeps the social, articles and show jobs until those move too. (First slice shipped 8 Oct 2026, `src/data/tabs.js`: `?data=supabase` in the app's URL reads every engine tab from the Supabase project's public `tabs` function on that phone, kept in localStorage until `?data=sheet`; the rows are shaped like gviz's and pass the same header guard and the same GW Stats trim; the tabs the web app writes (Managers, Social, Posts, Specials with the API URL) stay on the Sheet, a tab Supabase lacks or fails to serve falls back to the Sheet and the console says so, `MW.data.report()` lists the source of each tab, and the stale banner follows Supabase's Meta. Checked headless on the live data: the League page is identical from both sources. Tests: `tests/app-data.js`. **Left:** the default stays the Sheet until a parity report says every tab agrees (B2, Parker); then flip the default, keep the Sheet as the fallback for a while, and only then retire it.)
 
 ## C. Beta for other leagues
 - [ ] **C1 `league.json`:** teams, aliases, derbies, seeded series, pot and MOTM periods move out of `core.gen.js` into config.
