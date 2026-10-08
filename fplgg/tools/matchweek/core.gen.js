@@ -863,13 +863,14 @@ function benchOf(team){
   return sq.filter(p=>!xi.includes(p)).sort((a,b)=>order[a.Pos]-order[b.Pos]||num(b['Proj pts'])-num(a['Proj pts']));
 }
 function lineupsLocked(){return D.ro.some(r=>r['GW XI']==='XI')}
-const STRENGTH={ARS:[4,5],AVL:[3,4],BOU:[3,3],BRE:[3,3],BHA:[2,3],CHE:[4,4],COV:[2,2],CRY:[3,3],EVE:[3,3],FUL:[2,3],HUL:[2,2],IPS:[2,2],LEE:[2,3],LIV:[4,4],MCI:[4,5],MUN:[4,4],NEW:[2,3],NFO:[3,3],TOT:[3,3],SUN:[2,3]};
+const STRENGTH={ARS:[4,5],AVL:[3,3],BOU:[3,3],BRE:[3,3],BHA:[3,4],CHE:[4,4],COV:[2,2],CRY:[2,3],EVE:[3,3],FUL:[2,3],HUL:[2,2],IPS:[2,2],LEE:[3,3],LIV:[4,4],MCI:[4,5],MUN:[4,4],NEW:[3,3],NFO:[3,3],TOT:[2,3],SUN:[3,3]};
+const strengthOf=c=>(D.str&&D.str[c])||STRENGTH[c];
 const CLUBNAME={ARS:'Arsenal',AVL:'Aston Villa',BOU:'Bournemouth',BRE:'Brentford',BHA:'Brighton',CHE:'Chelsea',COV:'Coventry City',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich Town',LEE:'Leeds',LIV:'Liverpool',MCI:'Man City',MUN:'Man Utd',NEW:'Newcastle',NFO:'Nott’m Forest',TOT:'Spurs',SUN:'Sunderland'};
 const FDRCOL={1:'#01FC7A',2:'#01FC7A',3:'#E7E7E7',4:'#FF1751',5:'#80072D'};
 const FDRTXT={1:'#0B2A18',2:'#0B2A18',3:'#2A2233',4:'#FFFFFF',5:'#FFFFFF'};
 const FDRLAB={1:'Easy',2:'Easy',3:'Medium',4:'Hard',5:'Very hard'};
 const clubName=c=>CLUBNAME[c]||c;
-function fdrOf(club,f){const opp=f.Home===club?f.Away:f.Home,s=STRENGTH[opp];if(!s)return 3;return f.Home===club?s[0]:s[1]}
+function fdrOf(club,f){const opp=f.Home===club?f.Away:f.Home,s=strengthOf(opp);if(!s)return 3;return f.Home===club?s[0]:s[1]}
 const koFmt=ko=>ko?ko.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
 function nextClubFixture(club){return (D.cf||[]).find(x=>num(x.GW)===D.gw&&!fin(x.Finished)&&(x.Home===club||x.Away===club))||(D.cf||[]).find(x=>!fin(x.Finished)&&(x.Home===club||x.Away===club))}
 let OPPMODE=false;
@@ -1002,7 +1003,7 @@ const hpP0=l=>Math.pow(1+l/HPP.nbK,-HPP.nbK);
 function hpNfx(gw,club){return hpMemo('nfx|'+gw+'|'+club,()=>(D.cf||[]).filter(x=>num(x.GW)===gw&&(x.Home===club||x.Away===club)).length)}
 function hpFixtures(gw,club){return (D.cf||[]).filter(x=>num(x.GW)===gw&&(x.Home===club||x.Away===club))}
 function hpDrank(code){const m=hpMemo('drank',()=>{const o={};(D.plr||[]).forEach(r=>{o[String(r.Code)]=num(r['Draft rank'])||999});return o});return m[String(code)]||999}
-function hpStrengthPrior(c){const s=STRENGTH[c];return s?(s[0]+s[1])/2:3}
+function hpStrengthPrior(c){const s=strengthOf(c);return s?(s[0]+s[1])/2:3}
 function hpCtx(upto){return hpMemo('ctx|'+upto,()=>{
   const txg={};Object.keys(D.gwsByGw||{}).forEach(g=>{g=num(g);if(g>=upto)return;const m=D.gwsByGw[g];
     Object.keys(m).forEach(k=>{const r=m[k];const key=g+'|'+r.Club;txg[key]=(txg[key]||0)+r.xG})});
@@ -1507,6 +1508,8 @@ function __loadBase(quiet){
     D.plr=plr||[];
     D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;D.clubs={};
     clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
+    /* Clubs: FPL's 1 to 5 difficulty per club from Str H and Str A (Code.gs v3.22); strengthOf falls back to the built-in table */
+    D.str={};clubs.forEach(c=>{const h=num(c['Str H']),a=num(c['Str A']);if(c.Short&&h>=1&&h<=5&&a>=1&&a<=5)D.str[c.Short]=[h,a]});
     const potmRow=sp.find(r=>r.Setting==='POTM player');
     D.potm=potmRow&&potmRow.Value?normN(potmRow.Value):'';
     /* EA Map tab = static paste of fpl_ea_crosswalk_2026_27.csv (keyed on fpl_code).

@@ -517,15 +517,18 @@ renderMatch=function(f,dl){
   if(duel)duel.insertAdjacentHTML('afterend','<div class="asubnote" style="margin-top:8px">Projected lineups. FPL publishes picks at the deadline'+(dl?' ('+dl.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})+')':'')+'; until then each manager’s last lineup carries forward, with new signings and flagged players covered by projection.</div>');
 };
 
-/* ---- fixture difficulty: FPL's own team strengths (bootstrap-static), keyed by the sheet's short codes.
-   [difficulty when you host them, difficulty when you visit them] — matches FPL's team_h/a_difficulty exactly. ---- */
-const STRENGTH={ARS:[4,5],AVL:[3,4],BOU:[3,3],BRE:[3,3],BHA:[2,3],CHE:[4,4],COV:[2,2],CRY:[3,3],EVE:[3,3],FUL:[2,3],HUL:[2,2],IPS:[2,2],LEE:[2,3],LIV:[4,4],MCI:[4,5],MUN:[4,4],NEW:[2,3],NFO:[3,3],TOT:[3,3],SUN:[2,3]};
+/* ---- fixture difficulty: FPL's own ratings, 1 to 5, keyed by the sheet's short codes.
+   [difficulty when you host them, difficulty when you visit them], which is FPL's team_h/a_difficulty exactly.
+   Read from the Clubs tab's Str H and Str A (Code.gs v3.22, from FPL every refresh); this copy is the fallback for a
+   sheet without them: FPL's values of 8 Oct 2026 (ROADMAP A7). ---- */
+const STRENGTH={ARS:[4,5],AVL:[3,3],BOU:[3,3],BRE:[3,3],BHA:[3,4],CHE:[4,4],COV:[2,2],CRY:[2,3],EVE:[3,3],FUL:[2,3],HUL:[2,2],IPS:[2,2],LEE:[3,3],LIV:[4,4],MCI:[4,5],MUN:[4,4],NEW:[3,3],NFO:[3,3],TOT:[2,3],SUN:[3,3]};
+const strengthOf=c=>(D.str&&D.str[c])||STRENGTH[c];
 const CLUBNAME={ARS:'Arsenal',AVL:'Aston Villa',BOU:'Bournemouth',BRE:'Brentford',BHA:'Brighton',CHE:'Chelsea',COV:'Coventry City',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich Town',LEE:'Leeds',LIV:'Liverpool',MCI:'Man City',MUN:'Man Utd',NEW:'Newcastle',NFO:'Nott’m Forest',TOT:'Spurs',SUN:'Sunderland'};
 const FDRCOL={1:'#01FC7A',2:'#01FC7A',3:'#E7E7E7',4:'#FF1751',5:'#80072D'};
 const FDRTXT={1:'#0B2A18',2:'#0B2A18',3:'#2A2233',4:'#FFFFFF',5:'#FFFFFF'};
 const FDRLAB={1:'Easy',2:'Easy',3:'Medium',4:'Hard',5:'Very hard'};
 const clubName=c=>CLUBNAME[c]||c;
-function fdrOf(club,f){const opp=f.Home===club?f.Away:f.Home,s=STRENGTH[opp];if(!s)return 3;return f.Home===club?s[0]:s[1]}
+function fdrOf(club,f){const opp=f.Home===club?f.Away:f.Home,s=strengthOf(opp);if(!s)return 3;return f.Home===club?s[0]:s[1]}
 function fdrPill(n){return '<span class="fdr" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'"><b>'+n+'</b>'+FDRLAB[n]+'</span>'}
 const koFmt=ko=>ko?ko.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
 

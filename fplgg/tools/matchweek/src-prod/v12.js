@@ -27,7 +27,7 @@ const hpP0=l=>Math.pow(1+l/HPP.nbK,-HPP.nbK); /* P(clean sheet) under a gamma-Po
 function hpNfx(gw,club){return hpMemo('nfx|'+gw+'|'+club,()=>(D.cf||[]).filter(x=>num(x.GW)===gw&&(x.Home===club||x.Away===club)).length)}
 function hpFixtures(gw,club){return (D.cf||[]).filter(x=>num(x.GW)===gw&&(x.Home===club||x.Away===club))}
 function hpDrank(code){const m=hpMemo('drank',()=>{const o={};(D.plr||[]).forEach(r=>{o[String(r.Code)]=num(r['Draft rank'])||999});return o});return m[String(code)]||999}
-function hpStrengthPrior(c){const s=STRENGTH[c];return s?(s[0]+s[1])/2:3}
+function hpStrengthPrior(c){const s=strengthOf(c);return s?(s[0]+s[1])/2:3}
 
 /* team attack / defence multipliers from every finished-or-started fixture before `upto` */
 function hpCtx(upto){return hpMemo('ctx|'+upto,()=>{

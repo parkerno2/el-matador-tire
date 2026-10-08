@@ -2,7 +2,7 @@
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
-- A7 #25 Clubs strength mirror: builder started 2026-10-08T17:50:00Z
+- (nothing claimed)
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
@@ -44,7 +44,7 @@ How items are worked:
   - [x] #3: trim the GW Stats fetch.
   - [x] A stale-data banner when `data.updated` is old.
 - [x] **A6 #8 Per-fixture BPS in Code.gs**, so double-gameweek bonus can be estimated per match. Must ship before the first double gameweek. (Shipped 8 Oct 2026: Code.gs v3.21 writes the hidden `Fixture BPS` tab every refresh, the current gameweek's BPS and bonus per match from the draft live feed's fixtures with the classic fixtures feed per match when fresher; the engine (`src-prod/base.js`, `core.gen.js`) reads it, optional, and ranks a club's second match on its own BPS; a club's only match keeps the GW Stats path. Tests: `tests/codegs/v321.js`, `tests/app-bonus.js`. The first double gameweek is the live check: the matchup page should show provisional bonus for both of a doubled club's matches.)
-- [ ] **A7 #25 Clubs strength mirror:** re-source it from FPL's new fields, or drop it.
+- [x] **A7 #25 Clubs strength mirror:** re-source it from FPL's new fields, or drop it. (Shipped 8 Oct 2026: Code.gs v3.22. FPL's classic bootstrap-static now carries 0 in every attack and defence strength and its 1 to 5 fixture difficulty in `strength_overall_home` and `_away` (a club's home figure is the difficulty of hosting it, the away figure the difficulty of visiting it: the fixture feed's `team_h_difficulty` and `team_a_difficulty`, checked on all 30 fixtures of GW6 to GW8). The Clubs tab drops the four zeroed columns and keeps `Str H` and `Str A`; the engine (`src-prod/v10.js`, `v12.js`, `base.js`, `core.gen.js`) reads them for the fixture difficulty pills and the projection's strength prior, with its built-in table as the fallback, refreshed to FPL's values of 8 Oct 2026 (it had drifted for 7 of the 20 clubs). Tests: `tests/codegs/v322.js`, `tests/app-fdr.js`.)
 
 ## B. One pipeline (Supabase)
 - [ ] **B1 Inventory** the Supabase project `vcokquhzqpqvwrybndnr`: is the ingest alive, are its functions deployed, is row-level security on. **(Parker: a Supabase access token or service key as a GitHub Actions secret and a Claude Code environment variable.)**

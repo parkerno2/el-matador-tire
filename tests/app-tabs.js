@@ -9,7 +9,7 @@ const src = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/src/data/tabs
 const LIVE = {
   Rosters: 'Team,Manager,Player,Pos,Club,FPL rank,Proj pts,Best XI,Status,News,Drafted,Season pts,GW pts,GW mins,Code,Nation,OVR,TOTW,GW XI,Slot',
   Standings: 'Team,Manager,W,D,L,Pts For,Pts Against,League Pts', 'H2H Fixtures': 'GW,Home,Home pts,Away,Away pts,Finished', Matchweeks: 'GW,Deadline (UTC),MOTM period,Finished,Notes',
-  'Club Fixtures': 'GW,Home,Away,Kickoff (UTC),Finished,Home goals,Away goals,Started,Mins', Clubs: 'Short,Name,Badge code,Badge URL,Str att H,Str att A,Str def H,Str def A,Str H,Str A', Specials: 'Setting,Value',
+  'Club Fixtures': 'GW,Home,Away,Kickoff (UTC),Finished,Home goals,Away goals,Started,Mins', Clubs: 'Short,Name,Badge code,Badge URL,Str H,Str A' /* Code.gs v3.22 */, Specials: 'Setting,Value',
   'EA Map': 'fpl_code,fpl_id_2627,fpl_web_name,fpl_full,fpl_pos,fpl_team_id,ea_player_id,ea_name,ea_club_fc26,ea_ovr_fc26,match_conf,review_flag',
   FC27: 'fpl_code,fpl_id_2627,fpl_web_name,fpl_pos,ea_player_id,ea_name,ea_ovr_fc27,ea_pos,ea_club,ea_league,skill_moves,weak_foot,ea_pac,ea_sho,ea_pas,ea_dri,ea_def,ea_phy',
   Transactions: 'GW,Team,Manager,In,Out,Type,Result,When (UTC)', Predictions: 'GW,Code,Player,Pos,Club,EP,Proj,Captured (UTC)',

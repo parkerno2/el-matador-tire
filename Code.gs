@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,18 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.22 · 8 Oct 2026
+ *   The Clubs tab mirrors what FPL publishes now (ROADMAP A7, BUGS #25). Since this season FPL's classic
+ *   bootstrap-static carries 0 in strength_attack_* and strength_defence_* for every club, and its 1 to 5 fixture
+ *   difficulty in strength_overall_home and strength_overall_away: a club's home figure is the difficulty of hosting
+ *   it and its away figure the difficulty of visiting it (the fixture feed's team_h_difficulty and team_a_difficulty,
+ *   checked on every fixture of GW6 to GW8 on 8 Oct 2026).
+ *   1. The four attack and defence columns, 0 for all 20 clubs, are dropped. Str H and Str A stay (the header: Short,
+ *      Name, Badge code, Badge URL, Str H, Str A), written only when FPL gives 1 to 5, else left blank.
+ *   2. The app reads Str H and Str A for its fixture difficulty (the pills and the projection's strength prior) in
+ *      place of its built-in table, which FPL had moved on from for 7 of the 20 clubs; the table stays as the fallback
+ *      for a sheet without the columns, refreshed to FPL's values of 8 Oct 2026.
+ *   No new setup and no new permissions.
  * v3.21 · 8 Oct 2026
  *   Per-fixture BPS, so a double gameweek's second match gets a provisional bonus (ROADMAP A6, BUGS #8). A GW Stats
  *   row sums a player's whole gameweek, so the app could rank one match's BPS only while it was the club's only match
@@ -930,17 +942,20 @@ function txResultLabel(code) {
   return 'Denied';
 }
 
-/* ---------- v3.6 · FPL team strengths for the Clubs tab ----------
- * FPL's own ratings (roughly 1000 to 1400). Source: classic bootstrap-static teams (the draft
- * bootstrap's teams may not carry them), falling back per field to the draft team object. */
-var CLUB_STR_HEAD = ['Str att H', 'Str att A', 'Str def H', 'Str def A', 'Str H', 'Str A'];
-var CLUB_STR_FIELDS = ['strength_attack_home', 'strength_attack_away', 'strength_defence_home',
-  'strength_defence_away', 'strength_overall_home', 'strength_overall_away'];
+/* ---------- v3.6 · FPL team strengths for the Clubs tab; v3.22 · the fields FPL publishes now ----------
+ * Since 2026/27 the classic bootstrap-static carries FPL's 1 to 5 fixture difficulty in strength_overall_home and
+ * strength_overall_away (a club's home figure is the difficulty of hosting it, its away figure the difficulty of
+ * visiting it: the fixture feed's team_h_difficulty and team_a_difficulty, checked on GW6 to GW8, 8 Oct 2026) and 0
+ * in the attack and defence strengths it used to publish, so those columns are dropped (ROADMAP A7, BUGS #25). The
+ * app reads Str H and Str A for its fixture difficulty. Source: the classic team, falling back per field to the draft
+ * team object; a figure outside 1 to 5 (FPL's 0 for a rating it no longer publishes) is left blank. */
+var CLUB_STR_HEAD = ['Str H', 'Str A'];
+var CLUB_STR_FIELDS = ['strength_overall_home', 'strength_overall_away'];
 function clubStrengthRow(classicTeam, draftTeam) {
   return CLUB_STR_FIELDS.map(function (k) {
     var v = (classicTeam && classicTeam[k] != null && classicTeam[k] !== '') ? classicTeam[k] : (draftTeam && draftTeam[k]);
     var n = Number(v);
-    return (v == null || v === '' || isNaN(n)) ? '' : n;
+    return (v == null || v === '' || isNaN(n) || n < 1 || n > 5) ? '' : n;
   });
 }
 
@@ -1019,7 +1034,7 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
   });
   put('Rosters', ['Team', 'Manager', 'Player', 'Pos', 'Club', 'FPL rank', 'Proj pts', 'Best XI', 'Status', 'News', 'Drafted', 'Season pts', 'GW pts', 'GW mins', 'Code', 'Nation', 'OVR', 'TOTW', 'GW XI', 'Slot'], rosterRows);
 
-  /* ----- clubs: official badge codes + (v3.6) FPL's own team strengths ----- */
+  /* ----- clubs: official badge codes + FPL's own difficulty ratings (v3.6, the fields of v3.22) ----- */
   var clubRows = boot.teams.map(function (t) {
     var code = clubCodes[t.short_name] || t.code || '';
     return [t.short_name, t.name, code,
@@ -3046,7 +3061,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.21';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.22';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];

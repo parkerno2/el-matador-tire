@@ -1869,6 +1869,8 @@ function loadAll(quiet){
     D.plr=plr||[];
     D.ro=ro;D.st=st;D.fx=fx;D.mw=mw;D.cf=cf;D.clubs={};
     clubs.forEach(c=>{if(c.Short&&c['Badge code'])D.clubs[c.Short]=c['Badge code']});
+    /* Clubs: FPL's 1 to 5 difficulty per club from Str H and Str A (Code.gs v3.22); strengthOf falls back to the built-in table */
+    D.str={};clubs.forEach(c=>{const h=num(c['Str H']),a=num(c['Str A']);if(c.Short&&h>=1&&h<=5&&a>=1&&a<=5)D.str[c.Short]=[h,a]});
     const potmRow=sp.find(r=>r.Setting==='POTM player');
     D.potm=potmRow&&potmRow.Value?normN(potmRow.Value):'';
     /* EA Map tab = static paste of fpl_ea_crosswalk_2026_27.csv (keyed on fpl_code).
