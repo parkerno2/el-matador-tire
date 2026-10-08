@@ -255,6 +255,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .boot .bar i{display:block;width:40%;height:100%;background:var(--logo);animation:bt 1s ease-in-out infinite alternate}
 @keyframes bt{from{transform:translateX(-20%)}to{transform:translateX(170%)}}
 .err{margin:16px var(--gutter);padding:16px;border-radius:var(--r-l);background:var(--loss-bg);color:#FFD0D2;font-size:14px;line-height:1.45}
+/* the stale-data banner (A5): the sheet's refresh time is old */
+.stale{margin:10px var(--gutter) 0;padding:10px 12px;border-radius:var(--r-l);background:var(--loss-bg);color:#FFD0D2;font-size:13px;line-height:1.4}
 
 /* bottom bar */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;height:calc(var(--nav-h) + var(--safe-b));padding:8px 6px var(--safe-b);display:flex;justify-content:space-around;align-items:flex-start;
