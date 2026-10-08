@@ -29,7 +29,7 @@ How items are worked:
   - the self-update state isn't `refused` or `error`.
 
   On failure it opens or updates a GitHub issue labelled `outage`, which notifies Parker; it closes the issue when the check recovers.
-- [ ] **A3 Live status page.** `site/public/status.html` reads `?health=1` in the browser and shows each pipeline in plain words.
+- [x] **A3 Live status page.** (Shipped 8 Oct 2026: https://matchweek.gg/status.html reads `?health=1`, the Facts bot's index and the open outage issues.) `site/public/status.html` reads `?health=1` in the browser and shows each pipeline in plain words.
 - [ ] **A4 In-app error reporting.**
   - `window.onerror` and `unhandledrejection` POST `clienterror` to the web app: rate-limited, no personal data, build stamp, route, message and stack, truncated.
   - Errors go to a hidden Errors tab.

@@ -1,43 +1,144 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Matchweek · Status</title>
+<meta name="description" content="Is Matchweek working right now? The league data, the app, the writers and the monitor, in plain words.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<meta name="theme-color" content="#37003C">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Chakra+Petch:wght@500;600&display=swap">
 <style>
-:root{--p1:#37003C;--blue:#2E5BFF;--gold:#FFD23F;--ink:#1B1420;--mid:#6B6076;--bg:#F4F1F6;--card:#fff;--ok:#0E8A5F;--bad:#C41E3A;--warn:#8A5A00;
+:root{--p1:#37003C;--p2:#5B1A66;--blue:#2E5BFF;--gold:#FFD23F;--ink:#1B1420;--mid:#6B6076;--bg:#F4F1F6;--card:#fff;--line:#DED7E4;--ok:#0E8A5F;--bad:#C41E3A;--warn:#8A5A00;--warnbg:#E3B341;
 --disp:'Archivo Black',sans-serif;--body:'Space Grotesk',system-ui,sans-serif;--num:'Chakra Petch',monospace}
 *{box-sizing:border-box}body{margin:0;font-family:var(--body);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55}
-.top{background:linear-gradient(150deg,#2A0030,#4A0E56 45%,#2E3FB8 108%);color:#fff;padding:14px 20px;border-bottom:3px solid var(--gold);font-family:var(--disp)}
+.top{background:linear-gradient(150deg,#2A0030,#4A0E56 45%,#2E3FB8 108%);color:#fff;padding:14px 20px;border-bottom:3px solid var(--gold);font-family:var(--disp);display:flex;align-items:center;gap:12px}
 .top b{color:var(--gold);font-weight:400}
-main{max-width:680px;margin:0 auto;padding:28px 18px 60px}
+.top a{color:#fff;text-decoration:none}
+.top .r{margin-left:auto;font-family:var(--body);font-size:.8rem;opacity:.85}
+main{max-width:720px;margin:0 auto;padding:26px 18px 60px}
 h1{font-family:var(--disp);font-weight:400;font-size:1.4rem;color:var(--p1);margin:0 0 4px}
-p.sub{color:var(--mid);margin:0 0 20px}
-.card{background:var(--card);border:1px solid #DED7E4;border-radius:8px;padding:16px 18px;margin:12px 0}
-h2{font-size:1rem;margin:0 0 10px}
-table{border-collapse:collapse;width:100%;font-size:.88rem}
-th{font-family:var(--num);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-align:left;padding:5px 8px;border-bottom:1px solid #DED7E4}
-td{padding:6px 8px;border-bottom:1px solid #EEE9F2;font-variant-numeric:tabular-nums}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:baseline}
-.ok{background:var(--ok)}.bad{background:var(--bad)}.warn{background:#E3B341}
-.age{font-family:var(--num)}
-.state{color:var(--mid)}
+p.sub{color:var(--mid);margin:0 0 18px}
+.sum{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 18px;font-weight:500}
+.sum.ok{border-left-color:var(--ok)}.sum.bad{border-left-color:var(--bad)}.sum.warn{border-left-color:var(--warnbg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:12px 0}
+.card h2{font-size:.98rem;margin:0 0 6px;display:flex;align-items:center;gap:9px}
+.card p{margin:4px 0;font-size:.93rem}
+.card p.d{color:var(--mid);font-size:.84rem}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+.ok{background:var(--ok)}.bad{background:var(--bad)}.warn{background:var(--warnbg)}.off{background:#B7AEC0}
+.n{font-family:var(--num);font-variant-numeric:tabular-nums}
+ul{margin:4px 0 0;padding-left:20px;font-size:.9rem}li{margin:2px 0}
+a{color:var(--blue)}
+.foot{color:var(--mid);font-size:.8rem;margin-top:26px}
 </style></head><body>
-<div class="top">MATCH<b>WEEK</b> · status</div>
+<div class="top"><a href="/">MATCH<b>WEEK</b></a> · status<span class="r" id="checked">checking</span></div>
 <main>
-<h1>Is the data fresh?</h1>
-<p class="sub">The refresher runs hourly (every 10 minutes while matches are live). Green means a league updated within the last 75 minutes.</p>
-<div class="card"><h2>Leagues</h2><div id="lg" class="state">Loading…</div></div>
-<div class="card"><h2>Recent refresh runs</h2><div id="runs" class="state">Loading…</div></div>
+<h1>Is Matchweek working right now?</h1>
+<p class="sub">Read live from the league's own backend, in plain words. Nothing here needs anyone's computer.</p>
+<div class="sum" id="sum"><span class="dot off"></span><span>Checking the backend</span></div>
+<div id="cards"></div>
+<p class="foot">Refreshes every minute. The monitor in GitHub Actions runs the same checks every 15 minutes and opens an issue labelled outage when something fails twice in a row. Source: <a href="https://github.com/parkerno2/el-matador-tire">parkerno2/el-matador-tire</a>.</p>
 </main>
 <script>
-const API='https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1/tabs/health';
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ago=t=>{if(!t)return '—';const m=Math.round((Date.now()-Date.parse(t))/60000);return m<1?'just now':m<60?m+' min ago':Math.round(m/6)/10+' h ago'};
-fetch(API,{cache:'no-store'}).then(r=>r.json()).then(j=>{
-  document.getElementById('lg').innerHTML='<table><tr><th></th><th>League</th><th>Standings updated</th></tr>'+
-    j.leagues.map(l=>{const mins=l.standingsUpdated?(Date.now()-Date.parse(l.standingsUpdated))/60000:1e9;
-      const cls=mins<=75?'ok':mins<=180?'warn':'bad';
-      return '<tr><td><span class="dot '+cls+'"></span></td><td>'+esc(l.name)+' <span class="age" style="color:var(--mid)">#'+l.league+'</span></td><td class="age">'+ago(l.standingsUpdated)+'</td></tr>'}).join('')+'</table>';
-  document.getElementById('runs').innerHTML='<table><tr><th></th><th>Started</th><th>Took</th><th>Note</th></tr>'+
-    j.runs.map(r=>{const secs=r.finished_at?Math.round((Date.parse(r.finished_at)-Date.parse(r.started_at))/1000)+' s':'—';
-      return '<tr><td><span class="dot '+(r.ok?'ok':'bad')+'"></span></td><td class="age">'+ago(r.started_at)+'</td><td class="age">'+secs+'</td><td>'+esc(r.error||'')+'</td></tr>'}).join('')+'</table>';
-}).catch(e=>{document.getElementById('lg').textContent='Status service unreachable: '+e.message});
+/* The backend is the league sheet's Apps Script web app; its URL is the "API URL" row of the sheet's Specials tab (read
+   over gviz as the app does, so a redeployed URL still works), with this one as the fallback. */
+const SHEET = '1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
+const API_FALLBACK = 'https://script.google.com/macros/s/AKfycbwQ71xGCzxRc7xp0Xd6nNSvob3IXV79RJxQh7JcjVLNRggFNpXGqcQxcdxZ7VXiXpGt/exec';
+const FACTS_INDEX = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/facts/facts/index.json';
+const ISSUES = 'https://api.github.com/repos/parkerno2/el-matador-tire/issues?labels=outage&state=open&per_page=10';
+const APP = 'https://parkerno2.github.io/el-matador-tire/';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const mins = t => t ? Math.round((Date.now() - Date.parse(t)) / 60000) : null;
+const ago = t => { const m = mins(t); if (m == null || isNaN(m)) return 'never'; if (m < 1) return 'just now'; if (m < 60) return m + ' min ago'; if (m < 48 * 60) return Math.floor(m / 60) + ' h ' + (m % 60) + ' min ago'; return Math.round(m / 1440) + ' days ago'; };
+const when = t => t ? String(t).replace('T', ' ').replace(/[:.]\d\d(\.\d+)?Z$/, ' UTC').replace(/Z$/, ' UTC') : 'never';
+function readTab(name) {   /* gviz JSONP, as the app reads the sheet */
+  return new Promise((resolve, reject) => {
+    const cb = '__gv' + Math.floor(Math.random() * 1e9), s = document.createElement('script');
+    const to = setTimeout(() => { cleanup(); reject(new Error(name + ' timed out')); }, 12000);
+    function cleanup() { clearTimeout(to); delete window[cb]; s.remove(); }
+    window[cb] = j => { cleanup(); try { const cols = j.table.cols.map(c => c.label || c.id); resolve(j.table.rows.map(r => { const o = {}; r.c.forEach((c, i) => { o[cols[i]] = c ? (c.f != null ? c.f : c.v) : ''; }); return o; })); } catch (e) { reject(e); } };
+    s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET + '/gviz/tq?tqx=' + encodeURIComponent('out:json;responseHandler:' + cb) + '&headers=1&sheet=' + encodeURIComponent(name);
+    s.onerror = () => { cleanup(); reject(new Error(name + ' failed to load')); };
+    document.head.appendChild(s);
+  });
+}
+const getJson = (url, opt) => fetch(url, Object.assign({ cache: 'no-store' }, opt || {})).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+const card = (state, title, lines, details) => { details = (details || []).filter(Boolean); return '<div class="card"><h2><span class="dot ' + state + '"></span>' + esc(title) + '</h2>' + lines.filter(Boolean).map(l => '<p>' + l + '</p>').join('') + (details.length ? '<ul>' + details.map(d => '<li>' + d + '</li>').join('') + '</ul>' : '') + '</div>'; };
+const worst = states => states.includes('bad') ? 'bad' : states.includes('warn') ? 'warn' : 'ok';   /* 'off' (could not be read here) does not count */
+async function run() {
+  document.getElementById('checked').textContent = 'checking';
+  let api = API_FALLBACK, sheetNote = '';
+  try { const sp = await readTab('Specials'); const r = sp.find(x => x.Setting === 'API URL'); if (r && /^https:\/\/script\.google\.com\//.test(String(r.Value))) api = String(r.Value).trim(); else sheetNote = 'the Specials tab had no API URL row (using the last known address)'; }
+  catch (e) { sheetNote = 'the league sheet did not answer (' + e.message + '); using the last known address'; }
+  const [hRes, fRes, iRes] = await Promise.allSettled([getJson(api + '?health=1'), getJson(FACTS_INDEX + '?cb=' + Date.now()), getJson(ISSUES)]);
+  const cards = [], states = [];
+  const add = (state, title, lines, details) => { states.push(state); cards.push(card(state, title, lines, details)); };
+  /* the sheet */
+  add(sheetNote ? 'warn' : 'ok', 'The league sheet', [sheetNote ? esc(sheetNote) : 'Answers, and names the backend address.'], []);
+  /* the backend */
+  const H = hRes.status === 'fulfilled' && hRes.value && hRes.value.ok ? hRes.value : null;
+  if (!H) {
+    add('bad', 'The backend (Apps Script web app)', ['Does not answer: ' + esc(hRes.status === 'rejected' ? hRes.reason.message : 'not ok') + '. Logins, the feed and the writers all go through it; the app still shows the sheet\'s data.'], []);
+  } else {
+    add('ok', 'The backend (Apps Script web app)', ['Answers. Running Code.gs <span class="n">' + esc(H.version) + '</span>.'], []);
+    /* the data */
+    const d = H.data;
+    if (!d) add('warn', 'League data from FPL', ['This Code.gs does not report when the data was last refreshed (v3.17 adds it).'], []);
+    else if (!d.updated) add(d.attempted && mins(d.attempted) <= 120 ? 'warn' : 'bad', 'League data from FPL', [d.attempted ? 'No refresh has finished since this Code.gs went live; the last one started ' + ago(d.attempted) + '.' : 'No refresh has been recorded.'], []);
+    else {
+      const age = mins(d.updated), settled = d.live && d.liveSince && mins(d.liveSince) >= 20, limit = settled ? 20 : 120;
+      add(age <= limit ? 'ok' : 'bad', 'League data from FPL', ['Last refreshed <b>' + esc(ago(d.updated)) + '</b> by ' + esc(d.source || 'the hourly run') + (age <= limit ? '.' : ', which is too long ago (the limit is ' + (limit === 20 ? '20 minutes while a match is live' : '2 hours') + ').'),
+        d.live ? 'A match is live or just finished (' + esc(d.liveWhy) + '), so the data refreshes every 10 minutes.' : 'No match is live; the data refreshes every hour.'],
+        [d.attempted && d.attempted !== d.updated ? 'A refresh started ' + esc(ago(d.attempted)) + (mins(d.attempted) < age ? ' and has not finished yet' : '') + '.' : '']);
+    }
+    /* the self-update */
+    const st = String(H.self || ''), kind = (st.split(':')[0] || '').trim();
+    const sstate = /^(current|updated)/.test(kind) ? 'ok' : /^(refused|error|off)/.test(kind) ? 'bad' : 'warn';
+    add(sstate, 'Code.gs keeps itself up to date', [sstate === 'ok' ? 'Up to date with the tested release branch.' : sstate === 'bad' ? 'Not updating: the last check was refused or failed.' : 'In between states; the next hourly check carries on.', '<span style="color:var(--mid);font-size:.84rem">' + esc(st.slice(0, 220)) + '</span>'], []);
+    /* the show */
+    const s = H.show || {};
+    const showLines = [];
+    if (!s.on) showLines.push('Voicing is off: no ElevenLabs key.');
+    if (s.paused) showLines.push('Paused by the commissioner (EMT_SHOW_PAUSED).');
+    showLines.push(s.gw ? 'Gameweek ' + s.gw + ': ' + (s.facts ? 'facts from ' + (s.factsFrom === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(s.facts)) : 'no facts yet') + '; script ' + (s.script ? 'written' : 'not written yet') + '; clips <span class="n">' + (s.clips || 0) + ' of ' + (s.expected || 0) + '</span>.' : 'No gameweek to prepare.');
+    add(!s.on || s.paused ? 'warn' : 'ok', 'The Gameweek Show', showLines, [s.tries ? 'Writing attempts this gameweek: ' + s.tries + ' of 3.' : '']);
+    /* the articles */
+    const a = H.articles || {}, j = a.job, last = (a.last || []);
+    const artLines = ['Mode: ' + (a.mode === 'review' ? 'the commissioner reads every article before it goes out.' : 'articles publish themselves once they pass the checks.')];
+    if (a.paused) artLines.push('Paused by the commissioner (EMT_ARTICLES_PAUSED).');
+    artLines.push(j ? 'Writing now: the GW' + j.gw + ' ' + j.kind + ', ' + (j.phase === 'research' ? 'researching the real football' : j.phase === 'punch' ? 'punching up the jokes' : 'writing') + ', started ' + esc(ago(j.startedAt)) + (j.tries ? ', attempt ' + (j.tries + 1) + ' of 3' : '') + '.' : 'Nothing being written at the moment.');
+    const fp = H.facts || {};
+    artLines.push('Facts in hand: ' + (fp.preview ? 'GW' + fp.preview.gw + ' preview from ' + (fp.preview.from === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(fp.preview.at)) : 'no preview facts') + '; ' + (fp.recap ? 'GW' + fp.recap.gw + ' recap from ' + (fp.recap.from === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(fp.recap.at)) : 'no recap facts') + '.');
+    const failed = last.some(x => x.status === 'failed');
+    add(a.paused ? 'warn' : failed ? 'warn' : 'ok', 'Recaps and previews', artLines, last.map(x => 'GW' + x.gw + ' ' + x.kind + ': ' + esc(x.status) + (x.written ? ', written ' + esc(ago(x.written)) : '') + (x.rewrite ? ', a rewrite ' + (x.rewrite === 'writing' ? 'under way' : 'failed, the live version stayed') : '') + '.'));
+    /* the feed writer */
+    const ai = H.ai || {};
+    add(ai.on ? 'ok' : 'warn', 'The feed writer', [ai.on ? 'On. Posts today (UTC): <span class="n">' + (ai.day === new Date().toISOString().slice(0, 10) ? ai.count : 0) + ' of 6</span>.' : 'Off: no key, or paused.'], []);
+    /* errors from phones (A4) */
+    if (H.errors && typeof H.errors.h24 === 'number') add(H.errors.h24 >= 20 ? 'bad' : H.errors.h24 ? 'warn' : 'ok', 'Errors reported by phones', ['<span class="n">' + H.errors.h24 + '</span> in the last 24 hours' + (H.errors.last ? '; the latest: ' + esc(String(H.errors.last.msg || '').slice(0, 140)) + ' (' + esc(H.errors.last.route || '') + ', build ' + esc(H.errors.last.build || '') + ')' : '') + '.'], []);
+  }
+  /* the Facts bot */
+  if (fRes.status === 'fulfilled' && fRes.value && fRes.value.files) {
+    const idx = fRes.value, files = Object.keys(idx.files).sort();
+    add(mins(idx.updated) <= 6 * 60 || files.length === 0 ? 'ok' : 'warn', 'The Facts bot', ['Last wrote facts ' + esc(ago(idx.updated)) + ', from app build <span class="n">' + esc(idx.app || '?') + '</span>. It runs every 3 hours and writes only when a window is open (preview: the last 54 hours before a deadline; recap: 5 days after a gameweek).'],
+      files.map(f => esc(f.replace('.json', '').replace('-gw', ' GW')) + ': ' + esc(ago(idx.files[f].at)) + '.'));
+  } else add('warn', 'The Facts bot', ['No facts in the repo yet (' + esc(fRes.status === 'rejected' ? fRes.reason.message : 'empty') + '). Phones still send facts when a manager opens the app.'], []);
+  /* the monitor */
+  if (iRes.status === 'fulfilled' && Array.isArray(iRes.value)) {
+    const open = iRes.value;
+    add(open.length ? 'bad' : 'ok', 'The monitor (GitHub Actions, every 15 minutes)', [open.length ? '<b>' + open.length + ' open outage issue' + (open.length > 1 ? 's' : '') + '</b>.' : 'No open outage issues.', '<a href="https://github.com/parkerno2/el-matador-tire/actions/workflows/monitor.yml">Its runs</a>'],
+      open.map(i => '<a href="' + esc(i.html_url) + '">' + esc(i.title) + '</a>, opened ' + esc(ago(i.created_at)) + '.'));
+  } else {
+    const why = iRes.status === 'rejected' ? iRes.reason.message : 'unexpected answer';
+    add('off', 'The monitor (GitHub Actions, every 15 minutes)', [(why === 'HTTP 403' ? 'GitHub\'s API limit for this address was reached, so the issue list could not be read here' : 'The issue list could not be read (' + esc(why) + ')') + '. <a href="https://github.com/parkerno2/el-matador-tire/issues?q=is%3Aissue+label%3Aoutage">Open the outage issues on GitHub</a>.'], []);
+  }
+  /* the app */
+  add('ok', 'The app', ['<a href="' + APP + '">Open the league app</a>. The monitor checks every 15 minutes that it loads with a current build.'], []);
+  document.getElementById('cards').innerHTML = cards.join('');
+  const w = worst(states), sum = document.getElementById('sum');
+  sum.className = 'sum ' + w;
+  sum.innerHTML = '<span class="dot ' + w + '"></span><span>' + (w === 'ok' ? 'Everything is working.' : w === 'warn' ? 'Working, with something worth a look below.' : 'Something is wrong. The red card below says what.') + '</span>';
+  document.getElementById('checked').textContent = 'checked ' + new Date().toISOString().slice(11, 16) + ' UTC';
+}
+run().catch(e => { document.getElementById('sum').innerHTML = '<span class="dot bad"></span><span>This page could not run its checks: ' + esc(e.message) + '</span>'; });
+setInterval(() => run().catch(() => {}), 60000);
 </script></body></html>
