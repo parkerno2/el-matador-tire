@@ -17,23 +17,35 @@ The data still comes from the Google Sheet through gviz. Logins and profiles sti
 
 ## Source
 
-`matchweek-src.tar.gz` holds the full source: `src/`, the templates, `build.sh`, `core.gen.js`, the extractor and QA tools, and `BRIEF.md` (the design constraints and contracts). Checked on 7 Oct 2026: it rebuilds the live `app.js`, `app.css` and `core.js` byte for byte, and `index.html` and `sw.js` differ only in the build stamp.
+This folder is the source of truth. Edit it here; never edit the six root files by hand (the next build overwrites them).
 
-```bash
-mkdir matchweek && tar -xzf matchweek-src.tar.gz -C matchweek && cd matchweek
-(cd tools && npm install)          # esbuild, acorn, postcss
-bash build.sh out                  # → out/{index.html,app.js,app.css,core.js,sw.js,manifest.webmanifest}
-```
-
-`build.sh` also makes a QA harness site in `out/site`. It symlinks the repo's faces/icons from `/home/claude/emt`; change that path to wherever the repo is checked out. `tools/sweep.py` opens every route and sheet before kick-off, live and after full time, at the widths you give it. It reports errors and horizontal overflow and takes screenshots. It needs Playwright.
+| Path | What it is |
+|---|---|
+| `src/` | The UI as ES modules, bundled into `app.js`. `src/css/*.css` become `app.css` |
+| `core.gen.js` | Becomes `core.js` as is |
+| `index.template.html`, `sw.template.js`, `manifest.template.webmanifest` | Become `index.html`, `sw.js`, `manifest.webmanifest`; `__BUILD__` is replaced by the build stamp |
+| `package.json`, `package-lock.json` | Pin esbuild 0.28.2 for the build |
+| `ci-build.sh` | The build. Writes the six files straight into the repo root and nothing else |
+| `build.sh` | The older local build into `out/`, plus the QA harness site (`out/site`), which symlinks faces/icons from `/home/claude/emt`; change that path to wherever the repo is checked out |
+| `tools/` | Extractor (`extract.js` → `core.gen.js`, `cardcss.js` → `plate.gen.css`) and QA tools (`sweep.py`, `mw.py`, `compare.py`; they need Playwright and the harness). Own `package.json` (acorn, postcss, esbuild) |
+| `src-prod/` | The classic app's source, input to the extractor |
+| `BRIEF.md`, `DATA-SAMPLE.json` | Design constraints and contracts, sample data |
 
 Layout of `src/`: `main.js` (router `#/page/sub/args`, bottom sheets, refresh cadence, `window.MW`), `ui.js` (shared helpers: crests, team colours, plates, title odds with `warmOdds`), `pages/{matchday,team,league,feed}.js` plus their subfolders, `sheets/` (player, manager, identity, search, menu, kit), `feed/` (the four voices), `css/`.
 
+Until 8 Oct 2026 the source lived in `matchweek-src.tar.gz` (still in git history). On unpacking, `ci-build.sh` rebuilt the live `app.js`, `app.css`, `core.js` and `manifest.webmanifest` byte for byte; `index.html` and `sw.js` differed only in the build stamp.
+
 ## Deploying
 
-1. `bash build.sh out`
-2. Upload the six files from `out/` to the repo root on GitHub (Add file → Upload files) and commit. `?v=BUILD` busts the caches, and the new SW clears old caches when it activates.
-3. A phone that had the old app open may need one pull-to-refresh.
+Push a change under `fplgg/tools/matchweek/` to `main`. The **Build Matchweek app** workflow (`.github/workflows/matchweek.yml`) runs `npm ci` and `ci-build.sh` here and commits the six root files as el-matador-build (`build: matchweek app from <sha>`). Actions tab → Build Matchweek app → Run workflow rebuilds without a source change. `?v=BUILD` busts the caches, and the new SW clears old caches when it activates. A phone that had the old app open may need one pull-to-refresh.
+
+To build by hand:
+
+```bash
+cd fplgg/tools/matchweek
+npm ci
+bash ci-build.sh                   # → ../../../{index.html,app.js,app.css,core.js,sw.js,manifest.webmanifest}
+```
 
 ## Rollback
 
@@ -43,3 +55,4 @@ Upload `classic.html` as `index.html`. The new `sw.js` works with it.
 
 - Don't run the "Build app" workflow's ship step or `port_preview_to_prod.py` and expect them to update `index.html`. The workflow now writes `classic.html` only, and the port script refuses `index.html`.
 - `core.gen.js` comes from the classic app's source (`src-prod/`). Regenerate it with `cd tools && node extract.js` only when the engine itself changes, then check the numbers against `classic.html`.
+- Don't upload or edit `index.html`, `app.js`, `app.css`, `core.js`, `sw.js` or `manifest.webmanifest` at the repo root by hand: change the source here and let the workflow build them, or the next build undoes the edit.

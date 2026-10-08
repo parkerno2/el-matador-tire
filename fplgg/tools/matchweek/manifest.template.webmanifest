@@ -1,0 +1,15 @@
+{
+  "name": "Matchweek · El Matador Tire",
+  "short_name": "Matchweek",
+  "description": "El Matador Tire draft league: live matchups, your club, the table, the money and the feed.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0E0A13",
+  "theme_color": "#0E0A13",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

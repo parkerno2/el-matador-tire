@@ -1,0 +1,56 @@
+/* ===== Matchweek tokens (round 2, dark) ===== */
+:root{
+  /* surfaces */
+  --base:#0E0A13; --card:#17121D; --raised:#221A2C; --top:#2D2339; --line:#3A2F47; --hair:#221A2C; --bar:#120D18;
+  /* text */
+  --tx:#FFFFFF; --tx2:#D3CADF; --tx3:#A398B2; --tx4:#8C809C;
+  /* brand */
+  --p900:#37003C; --p700:#5B2D8E; --p500:#7B52D3; --p300:#A88BEB; --p100:#CDBDF0;
+  --b700:#1E3DD6; --b500:#2E5BFF; --b300:#7A95FF; --cyan:#04F5FF;
+  --logo:linear-gradient(90deg,#04F5FF,#2E5BFF 50%,#8E44AD);
+  /* states */
+  --live:#19D27A; --win:#2FBF71; --loss:#F0595E; --doubt:#F5B942; --gold:#FFD23F;
+  --live-bg:#10301F; --win-bg:#14382A; --loss-bg:#3A1A1F; --doubt-bg:#2E2410; --gold-bg:#2A2310;
+  /* roles in a matchup */
+  --you:#7A95FF; --opp:#D3CADF;
+  /* type */
+  --f-ui:'Archivo',system-ui,-apple-system,sans-serif;
+  --f-num:'Barlow Condensed','Archivo',sans-serif;
+  /* shape */
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-xl:20px;
+  --sh-1:0 1px 2px rgba(0,0,0,.3);
+  --sh-2:0 10px 28px rgba(0,0,0,.38);
+  --gutter:12px;
+  --nav-h:70px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--base)}
+body{margin:0;background:var(--base);color:var(--tx);font-family:var(--f-ui);font-size:14px;line-height:1.4;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overscroll-behavior-y:none;
+  font-variant-numeric:tabular-nums}
+a{color:var(--b300);text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+img{display:block}
+:focus-visible{outline:2px solid var(--p300);outline-offset:2px} /* the outline follows each element's own radius */
+/* taps behave like an app, not a web page: no zoom (double-tap or pinch), no text selection,
+   no "save image" or link preview on a long press. Typing fields keep selection and the callout */
+*{touch-action:pan-x pan-y}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+img,svg,a{-webkit-user-drag:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.n{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:.005em}
+.wide{font-family:var(--f-ui);font-stretch:82%;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+.k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:700}
+.sub{font-size:12px;color:var(--tx3);line-height:1.3}
+.muted{color:var(--tx3)}
+.you-c{color:var(--you)} .opp-c{color:var(--opp)}
+.gold-c{color:var(--gold)} .live-c{color:var(--live)} .win-c{color:var(--win)} .loss-c{color:var(--loss)} .doubt-c{color:var(--doubt)}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* no orphaned last words in running text, balanced lines in headings. The longhand only, so nothing that is nowrap starts wrapping */
+@supports (text-wrap-style:pretty){p,.foot,.sub,.empty,.md-cap,.lg-cap,.lg-note,.sk-note,.ar-note,.tm-pnote,.fp-tx,.fpc-tx{text-wrap-style:pretty}}
+@supports (text-wrap-style:balance){h1,h2,h3,.wide{text-wrap-style:balance}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

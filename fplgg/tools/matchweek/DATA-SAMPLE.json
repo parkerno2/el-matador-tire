@@ -1,0 +1,329 @@
+{
+ "D_fields": [
+  "ro: array[120]",
+  "st: array[8]",
+  "fx: array[152]",
+  "mw: array[38]",
+  "cf: array[380]",
+  "clubs: object{20}",
+  "potm: \"joaopedro\"",
+  "gw: 6",
+  "started: true",
+  "gwsDone: 5",
+  "gl: array[600]",
+  "tx: array[38]",
+  "predByGw: object{5}",
+  "gwsByGw: object{5}",
+  "plr: array[667]",
+  "ea: object{1121}",
+  "fc27: object{570}",
+  "gwsCur: object{0}",
+  "predGw: 6",
+  "predCur: object{667}",
+  "hasXP: false",
+  "hasEP: true",
+  "dlPassed: false",
+  "provOver: false",
+  "pbonus: object{0}",
+  "liveNow: false",
+  "finalMode: true",
+  "curDl: object{0}",
+  "api: \"https://script.google.com/macros/s/AKfy",
+  "managers: array[1]"
+ ],
+ "ro": {
+  "Team": "Cold Palmers",
+  "Manager": "Parker Nolan",
+  "Player": "Palmer",
+  "Pos": "MID",
+  "Club": "CHE",
+  "FPL rank": "4",
+  "Proj pts": "194",
+  "Best XI": "XI",
+  "Status": "d",
+  "News": "Muscular injury - 75% chance of playing",
+  "Drafted": "R1.2",
+  "Season pts": "28",
+  "GW pts": "0",
+  "GW mins": "0",
+  "Code": "244851",
+  "Nation": "GB-ENG",
+  "OVR": "91",
+  "TOTW": "",
+  "GW XI": "",
+  "Slot": "0"
+ },
+ "st": {
+  "Team": "Kobbie Mainoo Fan",
+  "Manager": "Baha Kharoofa",
+  "W": "3",
+  "D": "1",
+  "L": "1",
+  "Pts For": "228",
+  "Pts Against": "196",
+  "League Pts": "10"
+ },
+ "fx": {
+  "GW": "5",
+  "Home": "Team Jacob",
+  "Home pts": "33",
+  "Away": "Cold Palmers",
+  "Away pts": "34",
+  "Finished": "TRUE"
+ },
+ "fxNext": {
+  "GW": "6",
+  "Home": "Cold Palmers",
+  "Home pts": "0",
+  "Away": "Devils U21s",
+  "Away pts": "0",
+  "Finished": "FALSE"
+ },
+ "mw": {
+  "GW": "6",
+  "Deadline (UTC)": "2026-10-10T10:00:00Z",
+  "MOTM period": "October",
+  "Finished": "FALSE",
+  "Notes": ""
+ },
+ "cf": {
+  "GW": "6",
+  "Home": "ARS",
+  "Away": "LEE",
+  "Kickoff (UTC)": "2026-10-10T11:30:00Z",
+  "Finished": "FALSE",
+  "Home goals": "",
+  "Away goals": "",
+  "Started": "FALSE",
+  "Mins": "0"
+ },
+ "tx": {
+  "GW": "5",
+  "Team": "Cold Palmers",
+  "Manager": "Parker Nolan",
+  "In": "Mainoo",
+  "Out": "Elanga",
+  "Type": "Waiver",
+  "Result": "Accepted",
+  "When (UTC)": "2026-09-17T12:01:31.994514Z"
+ },
+ "plr": {
+  "Code": "154561",
+  "Player": "Raya",
+  "Pos": "GKP",
+  "Club": "ARS",
+  "Owner": "Cold Palmers",
+  "Status": "a",
+  "News": "",
+  "Draft rank": "62",
+  "Season pts": "30",
+  "Mins": "450",
+  "Form": "6",
+  "xGI": "0.01",
+  "EP next": "6",
+  "Proj": "170",
+  "Nation": "ES",
+  "Full name": "David Raya Martín"
+ },
+ "gl": {
+  "GW": "1",
+  "Team": "Cold Palmers",
+  "Player": "Raya",
+  "Code": "154561",
+  "Pos": "GKP",
+  "Club": "ARS",
+  "GW pts": "6",
+  "GW mins": "90",
+  "Started": "XI",
+  "TOTW": "",
+  "Logged (UTC)": "2026-08-25T08:37:48.211Z"
+ },
+ "gwsRow": {
+  "Code": "17761",
+  "GW": "5",
+  "Player": "Tarkowski",
+  "Pos": "DEF",
+  "Club": "EVE",
+  "Owner": "Trophy Hunters",
+  "Mins": "90",
+  "Pts": "14",
+  "G": "0",
+  "A": "1",
+  "CS": "1",
+  "GC": "0",
+  "OG": "0",
+  "PS": "0",
+  "PM": "0",
+  "YC": "0",
+  "RC": "0",
+  "Saves": "0",
+  "Bonus": "3",
+  "BPS": "43",
+  "DefCon": "12",
+  "xG": "0.01",
+  "xA": "0.01",
+  "xGC": "1.44",
+  "Starts": "1",
+  "Final": "true"
+ },
+ "managers": [
+  {
+   "Team": "Cold Palmers",
+   "Color": "aurora",
+   "Shape": "pennant",
+   "Photo": "data:image/jpeg;base",
+   "Manager": "Parker Nolan",
+   "Updated": "2026-09-04T22:16:42.576Z",
+   "Emblem": ""
+  }
+ ],
+ "TEAMS": {
+  "mgr": "Parker Nolan",
+  "ini": "PN",
+  "col": "#2E5BFF",
+  "xi": 1185,
+  "lo": 904,
+  "hi": 1466
+ },
+ "examples": {
+  "hpWin": {
+   "h": 0.5811647546165893,
+   "d": 0.02209103033259807,
+   "a": 0.3967442150508126,
+   "muH": 39.900000000000006,
+   "muA": 35.8,
+   "sd": 17.57178705678886
+  },
+  "teamProj": 39.900000000000006,
+  "hpPlayer": {
+   "pts": 3.267038790897077,
+   "parts": {
+    "app": 1.5194692120098066,
+    "goals": 0.8744183026194172,
+    "assists": 0.3413816574704963,
+    "cs": 0.25916039271270996,
+    "gc": 0,
+    "saves": 0,
+    "defcon": 0.054224502179701525,
+    "bonus": 0.363941617220588,
+    "cards": -0.14555689331564284
+   },
+   "pStart": 0.7061591103507271,
+   "eMin": 61.03237764548347,
+   "avail": 0.75,
+   "nfx": 1,
+   "sel": true,
+   "r": {
+    "xg": 0.22915169403131733,
+    "xa": 0.14910519158134788,
+    "bon": 0.4923653056685102,
+    "yc": 0.19691939827282012,
+    "sv": 0,
+    "dc": 0.03686635944700461
+   },
+   "eSt": 86.05614714424007,
+   "q60": 0.95544625035643,
+   "pSub": 0.3,
+   "pS": 0.9415454804676361
+  },
+  "series": "PJ leads 4–3",
+  "derby": "The Nolan Derby",
+  "formOf": "WWLLW",
+  "nextFive": "function",
+  "fdr": 3,
+  "nextClubFixture": {
+   "GW": "6",
+   "Home": "CHE",
+   "Away": "BOU",
+   "Kickoff (UTC)": "2026-10-10T14:00:00Z",
+   "Finished": "FALSE",
+   "Home goals": "",
+   "Away goals": "",
+   "Started": "FALSE",
+   "Mins": "0"
+  },
+  "epOf": 3.3,
+  "projOf": 3.3,
+  "tierOf": "spec",
+  "ovr": 91,
+  "dynOvr": 88,
+  "autoSubs": {
+   "keys": [
+    "xi",
+    "subs"
+   ],
+   "xi": [
+    "Raya",
+    "Murillo",
+    "Lacroix",
+    "Jacquet",
+    "Schade",
+    "King",
+    "Mainoo",
+    "Palmer",
+    "Rice",
+    "Igor Jesus",
+    "Gyökeres"
+   ],
+   "subs": "[]"
+  },
+  "PERIODS": [
+   [
+    "Aug & Sep",
+    1,
+    5
+   ],
+   [
+    "October",
+    6,
+    9
+   ],
+   [
+    "November",
+    10,
+    12
+   ],
+   [
+    "December",
+    13,
+    18
+   ],
+   [
+    "January",
+    19,
+    23
+   ],
+   [
+    "February",
+    24,
+    27
+   ],
+   [
+    "March",
+    28,
+    30
+   ],
+   [
+    "April",
+    31,
+    33
+   ],
+   [
+    "May",
+    34,
+    38
+   ]
+  ],
+  "STRENGTH_CHE": [
+   4,
+   4
+  ],
+  "FDRCOL": {
+   "1": "#01FC7A",
+   "2": "#01FC7A",
+   "3": "#E7E7E7",
+   "4": "#FF1751",
+   "5": "#80072D"
+  }
+ }
+}

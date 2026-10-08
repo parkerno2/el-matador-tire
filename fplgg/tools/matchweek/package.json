@@ -1,0 +1,11 @@
+{
+  "name": "matchweek-build",
+  "private": true,
+  "description": "Builds the Matchweek app (index.html, app.js, app.css, core.js, sw.js, manifest.webmanifest) into the repo root. Run: bash ci-build.sh",
+  "scripts": {
+    "build": "bash ci-build.sh"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

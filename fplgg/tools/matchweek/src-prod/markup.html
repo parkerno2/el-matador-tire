@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FPL Companion · El Matador Tire</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17121D">
+<meta property="og:title" content="El Matador Tire">
+<meta property="og:description" content="Live matchups, projections, the table and the title odds for the El Matador Tire draft league.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FPL Companion">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+</head><body><div id="sbfill" aria-hidden="true"></div>
+
+<div class="top"><div class="in">
+  <span class="brand">EL MATADOR TIRE</span>
+  <span class="gwpill" id="gwpill">…</span>
+</div></div>
+
+<div class="wrap">
+  <section class="view" id="v-gw">
+    <div class="hero"><span class="kick">Head to head</span><h1>Gameweek</h1>
+    <p>Four matchups a week. Cards score live once the football kicks off.</p></div>
+    <div id="gwbody"><div class="uix-skel" role="status" aria-label="Loading the gameweek"><i class="k"></i><i class="c"></i><div class="b"><i></i><i></i><i></i></div><div class="b"><i></i><i></i><i></i></div><div class="b"><i></i><i></i><i></i></div></div></div>
+  </section>
+  <section class="view" id="v-table">
+    <div class="hero gold-rule">
+      <svg class="trophy" viewBox="0 0 72 72"><defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset="1" stop-color="#D99B12"/></linearGradient></defs>
+      <path fill="url(#tg)" d="M20 10h32v6c0 12-6 20-13 22v6h8v6H25v-6h8v-6c-7-2-13-10-13-22v-6z"/>
+      <path fill="url(#tg)" d="M14 14h6v4c0 6 2 10 4 13-6-1-10-7-10-13v-4zM58 14h-6v4c0 6-2 10-4 13 6-1 10-7 10-13v-4z" opacity=".85"/>
+      <rect x="22" y="52" width="28" height="6" rx="2" fill="#8A6A1D"/></svg>
+      <span class="kick">El Matador Tire · 2026/27</span><h1>Table</h1>
+      <p>Thirty-eight gameweeks. $600 at the top.</p>
+    </div>
+    <div class="spot" id="spot" hidden></div>
+    <div id="tablebody"><p class="state">Loading the table…</p></div>
+  </section>
+  <section class="view" id="v-xis">
+    <div class="hero"><span class="kick">The market</span><h1>Players</h1>
+    <p>Every player in the league — search anyone, browse any club, spot the free agents.</p></div>
+    <div id="xisbody"><p class="state">Loading players…</p></div>
+  </section>
+  <section class="view" id="v-ana">
+    <div class="hero"><span class="kick">The numbers</span><h1>Analysis</h1>
+    <p></p></div>
+    <div id="anabody"><p class="state">Loading analysis…</p></div>
+  </section>
+  <section class="view" id="v-team">
+    <div class="hero"><span class="kick">Your clubhouse</span><h1>My team</h1>
+    <p></p></div>
+    <div id="teambody"><p class="state">Loading your team…</p></div>
+  </section>
+  <section class="view" id="v-act">
+    <div class="hero"><span class="kick">The wire</span><h1>Trades &amp; Waivers</h1>
+    <p></p></div>
+    <div id="actbody"><p class="state">Loading activity…</p></div>
+  </section>
+  <section class="view" id="v-faq">
+    <div class="hero"><span class="kick">The manual</span><h1>How it works</h1>
+    <p>The cards, the ratings, the money — everything the league argues about, explained.</p></div>
+    <div id="faqbody"></div>
+  </section>
+  <p class="foot">El Matador Tire · 2026/27 · live from the FPL API</p>
+</div>
+
+<div id="ptr">↓ Pull to refresh</div>
+<nav id="nav"></nav>
+<div class="ov" id="ov"></div>
+<div class="sheet" id="sheet"></div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gGold" x1="0" y1="0" x2="0.32" y2="1"><stop offset="0" stop-color="#FBE9A6"/><stop offset=".3" stop-color="#EFCB68"/><stop offset=".72" stop-color="#D2A73F"/><stop offset="1" stop-color="#B8892B"/></linearGradient>
+  <linearGradient id="gSilver" x1="0" y1="0" x2="0.32" y2="1"><stop offset="0" stop-color="#FAFBFD"/><stop offset=".35" stop-color="#DCDFE6"/><stop offset=".8" stop-color="#ACB2C0"/><stop offset="1" stop-color="#979DAD"/></linearGradient>
+  <linearGradient id="gSpec" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#7E3190"/><stop offset=".42" stop-color="#37003C"/><stop offset="1" stop-color="#2E5BFF"/></linearGradient>
+  <linearGradient id="gElite" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#2A5AC2"/><stop offset=".45" stop-color="#0B3E9E"/><stop offset="1" stop-color="#0E63D6"/></linearGradient>
+  <linearGradient id="gTotw" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#3E3E4A"/><stop offset=".5" stop-color="#141419"/><stop offset="1" stop-color="#2B2416"/></linearGradient>
+  <linearGradient id="gPotm" x1="0" y1="0" x2="0.28" y2="1"><stop offset="0" stop-color="#8E2C55"/><stop offset=".5" stop-color="#6E1239"/><stop offset="1" stop-color="#B03A6A"/></linearGradient>
+</defs></svg>
+
+
+<!-- v10-delta -->
+
+
+
+
+<!-- v12 -->
+
+
+</body></html>
