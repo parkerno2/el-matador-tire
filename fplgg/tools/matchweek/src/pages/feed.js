@@ -10,6 +10,7 @@ import { me as signedIn, quotes, live as socialLive, rumours } from '../feed/soc
 import { quoteId } from '../feed/social-posts.js';
 import { VOICES, ORDER, avatar, tagChip, pic } from '../feed/voices.js';
 import { shows, mmss, selectionCall } from '../feed/facts.js';
+import { showSlot } from '../feed/showsync.js';
 import { callKey } from '../feed/build.js';
 import { cut, mediaHTML } from '../feed/render.js';
 import { esc, short, dayMonth, lsGet, firstOf, dt, relTime } from '../feed/util.js';
@@ -33,33 +34,45 @@ function stories(sub, args) {
   const fresh = v => posts.some(p => p.voice === v && news.has(p.id));
   const cur = sub === 'league' ? args[0] : sub === 'messages' && args[0] === 'jive' ? 'jive' : null;
   const item = (v, href, label, inner, cls, isNew) => '<a class="fst' + (cur === v ? ' cur' : '') + '" href="' + href + '"><span class="fring ' + cls + (isNew ? '' : ' seen') + '"><span>' + inner + '</span></span><b>' + label + '</b></a>';
-  return '<nav class="fstories" aria-label="Voices">'
+  /* the Gameweek Show first, with Malcolm's picture and a play badge: one tap opens the latest show (Parker, 8 Oct 2026) */
+  const sv = shows()[0];
+  const showItem = sv ? '<button class="fst fst-show" data-fx="show:' + sv.gw + '" aria-label="Watch the Gameweek ' + sv.gw + ' show"><span class="fring r-malcolm' + (showSlot(sv, D) ? '' : ' seen') + '"><span>' + avatarInner('malcolm') + '<i class="fst-play">' + UI.icon('play', 12, '#37003C', 2.6) + '</i></span></span><b>Show</b></button>' : '';
+  return '<nav class="fstories" aria-label="Voices">' + showItem
     + ORDER.filter(v => v !== 'jive' || you).map(v => item(v, v === 'jive' ? '#/feed/messages/jive' : '#/feed/league/' + v, VOICES[v].first, avatarInner(v), 'r-' + v, v === 'jive' ? threads().some(t => t.id === 'jive' && t.unread) : fresh(v))).join('')
     + item('all', '#/feed/league', 'Everyone', UI.leagueCrest(26), 'r-lg', posts.some(p => news.has(p.id)) && cur !== null)
     + '</nav>';
 }
 const list = (posts, opt = {}) => posts.map(p => renderPost(p, { unread: VISIT && VISIT.ids.has(p.id) && !opt.noNew })).join('');
 
+/* the Gameweek Show pinned at the top of Everyone and For you while it is this gameweek's (Parker, 8 Oct 2026) */
+function pinnedGw() { let s = null; try { s = shows().find(x => x.gw === D.gw); } catch (e) { } return showSlot(s, D) ? s.gw : 0; }
+function pinnedShow() {
+  const g = pinnedGw(); if (!g) return '';
+  const s = shows().find(x => x.gw === g);
+  return '<div class="fl-art fl-pin">' + UI.sh(D.dlPassed ? 'Replay the Gameweek Show' : 'The Gameweek Show', { aside: 'Pinned' }) + '<div class="fl-art-b">' + showCard(s) + '</div></div>';
+}
+
 /* ---------- For you ---------- */
 function forYou() {
   const you = UI.you(), posts = buildPosts();
+  const pin = pinnedShow();
   if (!you || !TEAMS[you]) {
-    return '<div class="fy-pick"><b>Pick your team</b><span>Jive’s messages, press conferences and the posts about your club live here.</span><button class="btn" data-open="menu">Choose your team</button></div>'
-      + UI.sh('Latest from the league', { more: 'Everyone', href: '#/feed/league' }) + '<div class="fl">' + list(posts.filter(p => p.audience !== 'you').slice(0, 8)) + '</div>';
+    return pin + '<div class="fy-pick"><b>Pick your team</b><span>Jive’s messages, press conferences and the posts about your club live here.</span><button class="btn" data-open="menu">Choose your team</button></div>'
+      + UI.sh('Latest from the league', { more: 'Everyone', href: '#/feed/league' }) + '<div class="fl">' + list(posts.filter(p => p.audience !== 'you' && !(pin && p.id === 'show:' + D.gw)).slice(0, 8)) + '</div>';
   }
   const th = threads();
   const inbox = th.length ? UI.sh('Messages', { more: 'All', href: '#/feed/messages' }) + '<div class="card inbox">' + th.map(threadRow).join('') + '</div>' : '';
   const call = jiveCall(you);
   const mine = oneMotm(posts.filter(p => !p.wide && (p.teams || []).includes(you) && (p.voice !== 'jive') && p.kind !== 'article'));
   const stream = (call ? [call] : []).concat(mine);
-  const art = latestArticle();
+  const art = latestArticle(!!pin);
   const N = 12, shown = stream.slice(0, N);
   const body = shown.map((p, i) => renderPost(p, { unread: VISIT && VISIT.ids.has(p.id) }) + (i === 1 && art ? artBlock(art) : '')).join('') + (shown.length < 2 && art ? artBlock(art) : '');
-  return inbox + UI.sh('For ' + you) + (stream.length ? '<div class="fl">' + body + '</div>' : UI.empty('Quiet week for ' + you, 'Nothing about your club yet. Everyone has every post in the league.') + (art ? artBlock(art) : ''))
+  return pin + inbox + UI.sh('For ' + you) + (stream.length ? '<div class="fl">' + body + '</div>' : UI.empty('Quiet week for ' + you, 'Nothing about your club yet. Everyone has every post in the league.') + (art ? artBlock(art) : ''))
     + (stream.length > N ? '<a class="fl-more" href="#/feed/league">Every post is in Everyone ›</a>' : '');
 }
-function latestArticle() {
-  const s = shows()[0];
+function latestArticle(pinned) {
+  const s = pinned ? null : shows()[0];   /* the show pinned above is not repeated down here */
   const a = allArticles()[0];
   if (s && (!a || s.gw * 2 >= a.ord)) return { show: s };
   return a ? { art: a } : null;
@@ -100,6 +113,8 @@ function curate(posts) {
 function league(args) {
   const v = args[0] && VOICES[args[0]] ? args[0] : null;
   let posts = buildPosts().filter(p => p.voice !== 'jive');
+  const pin = v ? '' : pinnedShow();
+  if (pin) posts = posts.filter(p => p.id !== 'show:' + D.gw);   /* pinned above, not again in the stream */
   if (v) posts = posts.filter(p => p.voice === v);
   const all = posts.length;
   if (!v && !EXPAND) posts = curate(posts);
@@ -107,7 +122,7 @@ function league(args) {
   const folded = all - posts.length;
   const shown = posts.slice(0, LIMIT);
   const newN = posts.filter(p => VISIT && VISIT.ids.has(p.id)).length;
-  return (v ? voiceHero(v, posts.length) : pressCta(UI.you()))
+  return pin + (v ? voiceHero(v, posts.length) : pressCta(UI.you()))
     + (posts.length ? (newN && !v ? '<div class="fl-newbar"><i></i>' + newN + (VISIT.first ? ' new this gameweek' : ' new since you last looked') + '</div>' : '') + '<div class="fl">' + list(shown) + '</div>'
       + (posts.length > shown.length ? '<button class="fl-more btn ghost" data-more>Show older posts</button>' : folded > 0 ? '<button class="fl-more btn ghost" data-all>Show the other ' + folded + ' posts</button>' : '<div class="fl-end">That’s everything' + (v ? ' from ' + esc(VOICES[v].first) : '') + ' this season.</div>')
       : UI.empty('Nothing yet', 'Posts appear as the league plays: signings, previews, full time.'));

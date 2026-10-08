@@ -3,6 +3,8 @@ import * as UI from '../../ui.js';
 import { allArticles } from '../../feed/articles.js';
 import * as M from './model.js';
 import { buildPosts, renderPost, shows, mmss } from '../../feed/index.js';
+import { pic } from '../../feed/voices.js';
+import { showSlot } from '../../feed/showsync.js';
 
 const esc = UI.esc;
 
@@ -196,24 +198,35 @@ function feedRail() {
   return UI.sh('Latest from the feed', { more: 'Feed', href: '#/feed' }) + '<div class="md-rail">' + cards.join('') + '</div>';
 }
 
-/* ---------- the Gameweek Show: Malcolm's narrated preview, full screen ---------- */
-function showBanner() {
+/* ---------- the Gameweek Show: Malcolm's narrated preview, full screen ----------
+   Parker, 8 Oct 2026: it was hard to find. The card sits at the top of Matchday from the moment the script exists until
+   the deadline; after the deadline a replay row stays until the gameweek is over (showSlot). */
+export function showCard() {
   let s = null; try { s = shows().find(x => x.gw === D.gw); } catch (e) { }
-  if (!s || D.provOver) return '';
-  return '<button class="md-show" data-fx="show:' + s.gw + '"><span class="md-show-av f-cond">MT</span><span class="md-show-t"><b>The Gameweek ' + s.gw + ' Show</b><span class="sub">Malcolm Tyre on all ' + s.j.chapters.length + ' matchups · ' + mmss(s.dur) + '</span></span><span class="md-show-p">' + UI.icon('play', 16) + '</span></button>';
+  const slot = showSlot(s, D); if (!slot) return '';
+  if (slot === 'replay') {
+    return '<button class="md-show md-show-re" data-fx="show:' + s.gw + '" aria-label="Replay the Gameweek ' + s.gw + ' show"><span class="md-show-av">' + pic('malcolm', 38) + '</span><span class="md-show-t"><b>Replay the Gameweek ' + s.gw + ' Show</b><span class="sub">Malcolm Tyre’s preview of all ' + s.j.chapters.length + ' matchups · ' + mmss(s.dur) + '</span></span><span class="md-show-p">' + UI.icon('play', 16) + '</span></button>';
+  }
+  const dl = M.deadline(), soon = dl && dl > new Date();
+  return '<button class="md-showc" data-fx="show:' + s.gw + '" aria-label="Watch the Gameweek ' + s.gw + ' show">'
+    + '<span class="md-showc-top"><span class="md-showc-av">' + pic('malcolm', 44) + '</span><span class="md-showc-k">The Gameweek Show</span><span class="md-showc-t n">' + mmss(s.dur) + '</span></span>'
+    + '<span class="md-showc-ttl f-cond">Gameweek ' + s.gw + '</span>'
+    + '<span class="md-showc-sub">Malcolm Tyre on all ' + s.j.chapters.length + ' matchups' + (soon ? ' · before the deadline ' + esc(M.tWd(dl)) : '') + '</span>'
+    + '<span class="md-showc-ch">' + s.j.chapters.map(c => '<span class="md-showc-c">' + UI.crest(c.home, 20) + '<b>' + esc(FIRSTOF(c.home)) + '</b><i>v</i><b>' + esc(FIRSTOF(c.away)) + '</b>' + UI.crest(c.away, 20) + '</span>').join('') + '</span>'
+    + '<span class="md-showc-ft"><span class="md-showc-play">' + UI.icon('play', 18) + '</span><span class="md-showc-by">Watch the show</span></span></button>';
 }
 
 /* ---------- the page body ---------- */
 export function render() {
   const fx = M.gwFx();
-  if (!fx.length) return UI.sh('Your matchup') + UI.empty('No matchups this gameweek', 'The fixtures for Gameweek ' + D.gw + ' aren’t in the sheet yet.') + feedRail();
+  if (!fx.length) return showCard() + UI.sh('Your matchup') + UI.empty('No matchups this gameweek', 'The fixtures for Gameweek ' + D.gw + ' aren’t in the sheet yet.') + feedRail();
   const yi = M.youIndex(), featured = yi < 0;
   const hi = featured ? M.featuredIndex() : yi;
   const hm = M.mx(hi);
   const others = fx.map((f, i) => i).filter(i => i !== hi).map(M.mx);
-  return UI.sh(featured ? (hm.derby ? 'Match of the week' : 'Closest matchup') : 'Your matchup')
+  return showCard()
+    + UI.sh(featured ? (hm.derby ? 'Match of the week' : 'Closest matchup') : 'Your matchup')
     + hero(hm, featured)
-    + showBanner()
     + UI.sh('Other matchups', { more: 'All', href: '#/matchday/all' })
     + '<div class="card md-mlist">' + others.map(mrow).join('') + '<div class="foot">' + footState(others) + '</div></div>'
     + feedRail();

@@ -61,9 +61,11 @@ const ctx = {
     }
     if (/api\.elevenlabs\.io/.test(url)) {
       const body = JSON.parse(o.payload); calls.push({ url, o, body });
+      const timed = /\/with-timestamps\?/.test(url);   // v3.23: the call goes to with-timestamps and is answered as JSON
       if (MODE === '401') return { getResponseCode: () => 401, getContentText: () => JSON.stringify({ detail: { status: 'invalid_api_key', message: 'Invalid API key' } }) + 'x'.repeat(500), getContent: () => [] };
       if (MODE === 'quota') return { getResponseCode: () => 401, getContentText: () => JSON.stringify({ detail: { status: 'quota_exceeded', message: 'This request exceeds your quota of 10000. You have 5 credits remaining.' } }), getContent: () => [] };
       const bytes = fakeBytes(body.text);
+      if (timed) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ audio_base64: b64of(body.text), alignment: null, normalized_alignment: null }), getContent: () => [] };
       return { getResponseCode: () => 200, getContent: () => bytes.slice(), getContentText: () => '' };
     }
     throw new Error('unexpected fetch ' + url);
@@ -109,7 +111,7 @@ order.forEach(([k, t]) => {
 check('b) first render: 12 clips, 12 calls', rb.rendered.length === 12 && calls.length === 12 && rb.ok && rb.left === 0, JSON.stringify({ rendered: rb.rendered.length, calls: calls.length }));
 check('b) rows chunked (Part 1..Parts, <=45000 + b64:, hash = md5(text|voice|model|speed))', chunkOk && multi >= 3, multi + ' clips span several chunks, ' + (sh.rows.length - 1) + ' rows ' + info.join(' '));
 check('b) secs = bytes/8000, 2 dp', secsOk, 'open ' + rowsOf(6, 'open')[0][5] + ' s');
-check('b) tab hidden, header frozen, header row', sh.hidden && sh.frozen === 1 && sh.rows[0].join('|') === 'GW|Clip|Hash|Part|Parts|Secs|Data|Rendered (UTC)');
+check('b) tab hidden, header frozen, header row (v3.23: + Words)', sh.hidden && sh.frozen === 1 && sh.rows[0].join('|') === 'GW|Clip|Hash|Part|Parts|Secs|Data|Rendered (UTC)|Words');
 check('b) keys stored in EMT_SHOW_KEYS_6', props.EMT_SHOW_KEYS_6 === JSON.stringify(order.map(o => o[0])));
 check('b) json fetched with cache buster', /show\/gw6\.json\?cb=\d+$/.test(ghCalls[0]), ghCalls[0]);
 
@@ -119,8 +121,8 @@ const mid = byText(SHOW[6].chapters[0].beats[2]), first = byText(SHOW[6].open), 
 check('i) middle clip c1b2 gets previous_text c1b1 and next_text c1b3', mid.body.previous_text === SHOW[6].chapters[0].beats[1] && mid.body.next_text === SHOW[6].chapters[0].beats[3]);
 check('i) open has no previous_text, close has no next_text, chapter seam joins', !('previous_text' in first.body) && first.body.next_text === SHOW[6].chapters[0].beats[0] && !('next_text' in last.body) && last.body.previous_text === SHOW[6].chapters[1].beats[4]
   && byText(SHOW[6].chapters[1].beats[0]).body.previous_text === SHOW[6].chapters[0].beats[4]);
-check('i) request shape (url, headers, model, voice_settings)', mid.url === 'https://api.elevenlabs.io/v1/text-to-speech/e2v8SRwGUU8TdMFPuDlV?output_format=mp3_44100_64'
-  && mid.o.method === 'post' && mid.o.contentType === 'application/json' && mid.o.muteHttpExceptions === true && mid.o.headers['xi-api-key'] === 'el-test-key' && mid.o.headers.Accept === 'audio/mpeg'
+check('i) request shape (url: with-timestamps since v3.23, headers, model, voice_settings)', mid.url === 'https://api.elevenlabs.io/v1/text-to-speech/e2v8SRwGUU8TdMFPuDlV/with-timestamps?output_format=mp3_44100_64'
+  && mid.o.method === 'post' && mid.o.contentType === 'application/json' && mid.o.muteHttpExceptions === true && mid.o.headers['xi-api-key'] === 'el-test-key' && mid.o.headers.Accept === 'application/json'
   && mid.body.model_id === 'eleven_multilingual_v2' && JSON.stringify(mid.body.voice_settings) === JSON.stringify({ stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: 1.1 }), JSON.stringify(mid.body.voice_settings));
 
 /* c) second render */
@@ -169,7 +171,7 @@ check('h) 401: log has status, key hint and first 300 chars of the body', logs.s
 check('h) 401: old audio kept', JSON.stringify(sh.rows) === rowsBefore401);
 check('h) busy flag released after the failure', !('EMT_SHOW_BUSY' in props));
 const g401 = JSON.parse(ctx.doGet({ parameter: { show: '6' } }).t);
-check('h) doGet still serves the old takes (complete, stale until re-render)', g401.complete === true);
+check('h) doGet (v3.23) serves the 5 current takes, lists the 2 old ones as stale, not complete', g401.complete === false && g401.stale.join() === 'open,close' && Object.keys(g401.clips).join() === 'c1b0,c1b1,c1b2,c1b3,c1b4' && g401.missing.length === 0, JSON.stringify({ stale: g401.stale, clips: Object.keys(g401.clips), missing: g401.missing }));
 reset(); MODE = 'quota';
 const rq = ctx.renderShow(6);
 check('h) quota_exceeded -> out of credits', calls.length === 1 && /out of credits/.test(rq.error), rq.error);

@@ -10,12 +10,15 @@ import * as M from '../pages/matchday/model.js';
 import { shows } from './facts.js';
 import { quotes } from './social.js';
 import { esc, firstOf } from './util.js';
+import { parseShow, wordsOn, wordsByShare } from './showsync.js';
 
 const HOLD = { open: 7200, intro: 3400, xi: 5800, face: 5400, close: 5200 };
 const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
 let Q = null;
 
-/* ---------- audio: where the clips live ---------- */
+/* ---------- audio: where the clips live ----------
+   From the sheet (Code.gs v3.23) only the clips rendered from the script's current lines come back; a stale or missing
+   line has no clip here and plays as a timed caption, never as an old take. A clip's w holds its word start times. */
 const AUDIO = {};
 function wavSilence() {
   const n = 2205, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
@@ -34,15 +37,17 @@ export function audioFor(s) {
   if (!D.api) return Promise.resolve(null);
   const p = fetch(D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + 'show=' + s.gw, { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null).then(r => {
-      if (!r || !r.ok || !r.clips || !Object.keys(r.clips).length) { delete AUDIO[s.gw]; return null; }
-      const urls = {}, durs = {};
-      Object.keys(r.clips).forEach(k => {
-        const c = r.clips[k]; if (!c || !c.b64) return;
+      const P = parseShow(r);
+      if (!P) { delete AUDIO[s.gw]; return null; }
+      const urls = {}, durs = {}, words = {};
+      Object.keys(P.clips).forEach(k => {
+        const c = P.clips[k];
         const bin = atob(c.b64), u8 = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-        urls[k] = URL.createObjectURL(new Blob([u8], { type: 'audio/mpeg' })); durs[k] = +c.secs || 0;
+        urls[k] = URL.createObjectURL(new Blob([u8], { type: 'audio/mpeg' })); durs[k] = c.secs;
+        if (c.w) words[k] = c.w;
       });
-      return { urls, durs, from: 'sheet', complete: !!r.complete };
+      return { urls, durs, words, from: 'sheet', complete: P.complete, stale: P.stale, missing: P.missing };
     }).catch(() => { delete AUDIO[s.gw]; return null; });
   return (AUDIO[s.gw] = p);
 }
@@ -213,7 +218,7 @@ export function open(gw, only) {
   /* show the cold open straight away; the clock starts when the audio has answered (or after 5 s without it) */
   go(0, true);
   let settled = false;
-  const start = au => { if (settled || !Q || Q.el !== el) return; settled = true; Q.au = au; Q.ready = true; if (src) src.textContent = au ? '' : 'Captions only for now'; go(Q.i < 0 ? 0 : Q.i); };
+  const start = au => { if (settled || !Q || Q.el !== el) return; settled = true; Q.au = au; Q.ready = true; if (src) src.textContent = !au ? 'Captions only for now' : au.complete === false ? 'Some lines are being re-voiced' : ''; go(Q.i < 0 ? 0 : Q.i); };
   audioFor(s).then(start);
   setTimeout(() => start(null), 5000);
 }
@@ -329,10 +334,12 @@ function tick() {
     if (remA > (Q.ends - now)) { Q.ends = now + remA + 250; arm(it); }
   } else f = Math.min(1, (now - Q.t0) / Q.span);
   const seg = el.querySelectorAll('.gs-seg i')[Q.i]; if (seg) seg.firstChild.style.width = (f * 100).toFixed(1) + '%';
-  /* captions arrive word by word with the voice */
+  /* captions arrive word by word with the voice: at each word's real start time when the clip carries them (v3.23),
+     otherwise by the share of the clip played */
   const words = el.querySelectorAll('#gs-cap span'), n = words.length;
+  const wt = Q.useAudio && Q.au && Q.au.words ? Q.au.words[it.clip] : null;
   const spoken = Q.useAudio && Q.A.duration ? Math.min(1, Q.A.currentTime / Q.A.duration) : Math.min(1, (now - Q.t0) / (Q.clipMs || Q.span));
-  const k = Math.ceil(spoken * n * 1.08);
+  const k = wt && Q.useAudio ? wordsOn(wt, n, Q.A.currentTime, spoken) : wordsByShare(spoken, n);
   words.forEach((w, i) => w.classList.toggle('on', i < k));
   Q.raf = requestAnimationFrame(tick);
 }

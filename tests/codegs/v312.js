@@ -135,6 +135,7 @@ const ctx = {
     if (/api\.elevenlabs\.io/.test(url)) {
       const body = JSON.parse(o.payload); tts.push(body.text);
       const bytes = fakeBytes(body.text);
+      if (/\/with-timestamps\?/.test(url)) return resp(200, { audio_base64: Buffer.from(bytes.map(b => (b + 256) % 256)).toString('base64'), alignment: null });   // v3.23
       return { getResponseCode: () => 200, getContent: () => bytes.slice(), getContentText: () => '' };
     }
     if (/raw\.githubusercontent\.com/.test(url)) { raw.push(url); return resp(RAW.code, RAW.text); }

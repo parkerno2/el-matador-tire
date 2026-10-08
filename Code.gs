@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,27 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.24 · 8 Oct 2026
+ *   The Gameweek Show plays only the takes of the script as it is now, and its captions follow the voice (Parker,
+ *   8 Oct 2026, after the GW6 show: old jokes in the audio, subtitles out of step). The GW6 clips in ShowAudio were
+ *   rendered at 00:46 UTC from the second of four versions of show/gw6.json; the two later rewrites (00:47, 01:02)
+ *   were never voiced, because every render since stopped at its first ElevenLabs refusal and said so only in the
+ *   Apps Script log, while ?show=6 served the 22 old takes as complete and ?health=1 counted them as 22 of 22.
+ *   1. ?show=<gw> judges every stored take against the current script: a clip is served only when its stored hash
+ *      is md5(text|voice|model|speed) of the line as it is now; older takes are listed in stale and never served,
+ *      lines without a take in missing; complete means every line has a current take. With no script at all nothing
+ *      is served. The app plays the clips it gets and falls back to the timed caption for a stale or missing line.
+ *   2. ?health=1 show: clips counts current takes only, stale the older ones, expected the script's lines, source
+ *      where the script came from (repo or sheet), render the last render's outcome (ok or the ElevenLabs refusal,
+ *      with its error text), kept in EMT_SHOW_LAST. showStatus(gw) says the same.
+ *   3. Clips are rendered through ElevenLabs' with-timestamps endpoint (the same voice, model and speed; the audio
+ *      comes back as base64 with a character alignment). Each clip's word start times go in a new Words column of
+ *      ShowAudio ("[0,0.42,...]", one number per word, on the clip's first row; the header cell is added to an
+ *      existing tab) and are served as w; the app reveals each word at its time. A take without them (an older
+ *      render, an alignment that does not line up) keeps the app's estimate. If the endpoint is not there (404 or
+ *      405) the plain call is made instead, without word times. A refusal still stops the run (no burnt credits).
+ *   No new setup and no new permissions. The next render after this version re-voices every changed line; the
+ *   health field show.render says why if ElevenLabs refuses.
  * v3.23 · 8 Oct 2026
  *   The articles' research gets the room it needs and its log says when it ran out (BUGS #28). Both GW6 preview jobs
  *   ended their research with "0 characters, 0 sources": claude-sonnet-5-5 thinks before and between its web searches,
@@ -2010,7 +2031,9 @@ function aiSeedNotes() {
  *   cut from the script loses its rows. A failed call keeps the old audio and stops the run (no burnt credits).
  *   Storage: hidden ShowAudio tab, one row per 45,000-character chunk of base64 mp3 (44.1 kHz, 64 kbps), every
  *   Data cell marked 'b64:' so it can never start a formula. Secs = bytes / 8000.
- *   Serving: GET <web app>?show=<gw> → { ok, gw, clips: { key: { secs, hash, b64 } }, complete, script }.
+ *   Serving: GET <web app>?show=<gw> → { ok, gw, clips: { key: { secs, hash, b64, w? } }, complete, stale, missing, script }.
+ *   v3.24: only takes whose hash matches the current script are served (stale lists the rest); w = word start times
+ *   from ElevenLabs' with-timestamps endpoint, kept in the Words column; EMT_SHOW_LAST holds the last render's outcome.
  *   v3.12: when the repo has no show/gw<N>.json (404), the script the show writer kept in ShowScripts is voiced
  *   instead (the repo always wins). "script" is that json (repo, else ShowScripts, else null); &meta=1 drops b64.
  *   Runs: showTick() from aiTick (every 15 minutes) for the next unfinished gameweek; renderShowNow() from the menu;
@@ -2019,15 +2042,17 @@ function aiSeedNotes() {
  *   90 min trigger allowance). A whole show (~22 clips) is ~22 ElevenLabs calls, a minute or two, once per gameweek;
  *   a run stops starting new clips after 4.5 minutes and the next run picks up the rest.
  * ===================================================================================================== */
-var EMT_SHOW_HEAD = ['GW', 'Clip', 'Hash', 'Part', 'Parts', 'Secs', 'Data', 'Rendered (UTC)'];
+var EMT_SHOW_HEAD = ['GW', 'Clip', 'Hash', 'Part', 'Parts', 'Secs', 'Data', 'Rendered (UTC)', 'Words'];   /* v3.24: + Words */
 var EMT_SHOW_URL = 'https://parkerno2.github.io/el-matador-tire/show/gw';
 var EMT_SHOW_TTS = 'https://api.elevenlabs.io/v1/text-to-speech/';
+var EMT_SHOW_TTS_TIMED = '/with-timestamps';   /* v3.24: the same call answered as JSON, the audio plus a character alignment */
 var EMT_SHOW_VOICE_DEFAULT = 'e2v8SRwGUU8TdMFPuDlV';
 var EMT_SHOW_MODEL_DEFAULT = 'eleven_multilingual_v2';
 var EMT_SHOW_CHUNK = 45000;            // characters per Data cell (cells cap at 50,000)
 var EMT_SHOW_BUDGET_MS = 270 * 1000;   // no new clip after 4.5 min; Apps Script stops every run at 6
 var EMT_SHOW_BUSY_MS = 390 * 1000;     // a render flag older than 6.5 min belongs to a run that is already dead
 var EMT_SHOW_MARK = 'b64:';
+var EMT_SHOW_WORDS_COL = 9;            // v3.24: the Words column (word start times, on a clip's first row)
 
 function emtShowKey() { return emtProps().getProperty('ELEVENLABS_API_KEY') || ''; }
 function emtShowNoKey(where) {
@@ -2049,6 +2074,7 @@ function emtShowNextGw() {
   return next ? Number(next.GW) : 0;
 }
 
+/* the ShowAudio tab; v3.24: a tab made before the Words column gets its header cell */
 function emtShowSheet() {
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName('ShowAudio');
   if (!sh) {
@@ -2056,6 +2082,8 @@ function emtShowSheet() {
     sh.getRange(1, 1, 1, EMT_SHOW_HEAD.length).setValues([EMT_SHOW_HEAD]);
     sh.setFrozenRows(1);
     try { sh.hideSheet(); } catch (e) { }
+  } else if (String(sh.getRange(1, EMT_SHOW_WORDS_COL, 1, 1).getValues()[0][0]) !== EMT_SHOW_HEAD[EMT_SHOW_WORDS_COL - 1]) {
+    sh.getRange(1, EMT_SHOW_WORDS_COL, 1, 1).setValues([[EMT_SHOW_HEAD[EMT_SHOW_WORDS_COL - 1]]]);
   }
   return sh;
 }
@@ -2085,18 +2113,42 @@ function emtShowClips(j) {
   return out;
 }
 
-/* what ShowAudio holds for one gameweek, from the six narrow columns (no Data read):
- * { key: { rows: [sheet rows], part: { n: row }, hash, parts, secs, ok } }; ok = every part there exactly once, one hash */
+/* v3.24: the voice a script is rendered with (the Script Properties win over the json), and the clips with the hash
+ * each take must carry, md5(text|voice|model|speed). renderShow, ?show and ?health=1 all judge a stored take by it. */
+function emtShowVoice(j) {
+  var p = emtProps();
+  return { voice: p.getProperty('EMT_VOICE_ID') || EMT_SHOW_VOICE_DEFAULT, model: p.getProperty('EMT_TTS_MODEL') || (j && j.model) || EMT_SHOW_MODEL_DEFAULT, speed: Number(j && j.speed) || 1 };
+}
+function emtShowLines(j) {
+  var v = emtShowVoice(j);
+  return emtShowClips(j || {}).map(function (c) { c.hash = emtMd5hex(c.text + '|' + v.voice + '|' + v.model + '|' + v.speed); return c; });
+}
+
+/* v3.24: a Words cell ("[0,0.42,0.81]") → the array, or null */
+function emtShowWordsParse(cell) {
+  var s = String(cell == null ? '' : cell).replace(/^'/, '').trim();
+  if (s.charAt(0) !== '[') return null;
+  try {
+    var a = JSON.parse(s);
+    return Array.isArray(a) && a.length && a.every(function (x) { return typeof x === 'number' && isFinite(x) && x >= 0; }) ? a : null;
+  } catch (e) { return null; }
+}
+
+/* what ShowAudio holds for one gameweek, from the narrow columns (no Data read):
+ * { key: { rows: [sheet rows], part: { n: row }, hash, parts, secs, words, ok } }; ok = every part there exactly once,
+ * one hash. v3.24: words = the clip's word start times when its first row has them. */
 function emtShowIndex(sh, gw) {
   var idx = {}, last = sh.getLastRow();
   if (last < 2) return idx;
   var v = sh.getRange(2, 1, last - 1, 6).getValues();
+  var w = sh.getLastColumn() >= EMT_SHOW_WORDS_COL ? sh.getRange(2, EMT_SHOW_WORDS_COL, last - 1, 1).getValues() : null;
   for (var i = 0; i < v.length; i++) {
     if (Number(v[i][0]) !== gw) continue;
     var k = String(v[i][1]), h = String(v[i][2]).replace(/^'/, '');
-    var c = idx[k] || (idx[k] = { rows: [], part: {}, hashes: {}, hash: '', parts: 0, secs: 0, ok: false });
+    var c = idx[k] || (idx[k] = { rows: [], part: {}, hashes: {}, hash: '', parts: 0, secs: 0, words: null, ok: false });
     c.rows.push(i + 2); c.part[Number(v[i][3])] = i + 2; c.hashes[h] = 1;
     c.hash = h; c.parts = Number(v[i][4]) || 0; c.secs = Number(v[i][5]) || 0;
+    if (w && Number(v[i][3]) === 1) c.words = emtShowWordsParse(w[i][0]);
   }
   Object.keys(idx).forEach(function (k) {
     var c = idx[k], ok = c.parts > 0 && c.rows.length === c.parts && Object.keys(c.hashes).length === 1;
@@ -2151,22 +2203,90 @@ function emtShowFetch(gw) {
   try { return { json: JSON.parse(res.getContentText()) }; } catch (e) { return { error: 'show/gw' + gw + '.json does not parse: ' + e }; }
 }
 
-/* one ElevenLabs call; prev/next are the neighbouring clips' text, for a natural join */
+/* v3.24: how many bytes a base64 string decodes to */
+function emtB64Bytes(b64) {
+  var s = String(b64 || ''), pad = /==$/.test(s) ? 2 : /=$/.test(s) ? 1 : 0;
+  return Math.max(0, Math.floor(s.length * 3 / 4) - pad);
+}
+
+/* v3.24: word start times from ElevenLabs' character alignment ({ characters, character_start_times_seconds }): one
+ * number per word of the text as the app splits it (on whitespace), seconds to 2 decimals. null when the alignment
+ * does not line up with the text, and the app then keeps its estimate. */
+function emtShowWordTimes(text, al) {
+  var ch = al && al.characters, st = al && al.character_start_times_seconds;
+  if (!ch || !st || !ch.length || ch.length !== st.length) return null;
+  var out = [], inWord = false, i;
+  for (i = 0; i < ch.length; i++) {
+    var c = String(ch[i] == null ? '' : ch[i]);
+    if (!c || /^\s+$/.test(c)) { inWord = false; continue; }
+    if (!inWord) { var t = Number(st[i]); if (!isFinite(t)) return null; out.push(Math.round(Math.max(0, t) * 100) / 100); inWord = true; }
+  }
+  var n = String(text == null ? '' : text).split(/\s+/).filter(function (w) { return w; }).length;
+  return n > 0 && out.length === n ? out : null;
+}
+
+/* one ElevenLabs call; prev/next are the neighbouring clips' text, for a natural join.
+ * v3.24: through the with-timestamps endpoint, which answers JSON: audio_base64 and alignment (characters,
+ * character_start_times_seconds, character_end_times_seconds). The word start times come from the alignment and the
+ * clip's length from its last end time. An endpoint that is not there (404, 405) falls back to the plain call once,
+ * without word times. { code, b64, bytes, secs, words, timed, body (the first 300 characters of a refusal) } */
 function emtShowTts(key, voice, model, speed, text, prev, next) {
   var body = { text: text, model_id: model,
     voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: speed } };
   if (prev) body.previous_text = prev;
   if (next) body.next_text = next;
-  return UrlFetchApp.fetch(EMT_SHOW_TTS + encodeURIComponent(voice) + '?output_format=mp3_44100_64', {
-    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    headers: { 'xi-api-key': key, 'Accept': 'audio/mpeg' },
-    payload: JSON.stringify(body)
-  });
+  var base = EMT_SHOW_TTS + encodeURIComponent(voice), q = '?output_format=mp3_44100_64';
+  var opt = function (accept) { return { method: 'post', contentType: 'application/json', muteHttpExceptions: true, headers: { 'xi-api-key': key, 'Accept': accept }, payload: JSON.stringify(body) }; };
+  var out = { code: 0, b64: '', bytes: 0, secs: 0, words: null, timed: true, body: '' };
+  var res = UrlFetchApp.fetch(base + EMT_SHOW_TTS_TIMED + q, opt('application/json'));
+  out.code = res.getResponseCode();
+  if (out.code === 200) {
+    var j = null;
+    try { j = JSON.parse(res.getContentText()); } catch (e) { j = null; }
+    if (j && typeof j.audio_base64 === 'string' && j.audio_base64) {
+      out.b64 = j.audio_base64.replace(/\s+/g, '');
+      out.bytes = emtB64Bytes(out.b64);
+      var al = j.alignment && j.alignment.characters ? j.alignment : null, ends = al && al.character_end_times_seconds;
+      out.words = al ? emtShowWordTimes(text, al) : null;
+      var end = ends && ends.length ? Number(ends[ends.length - 1]) : 0;
+      out.secs = isFinite(end) && end > 0 ? Math.round(end * 100) / 100 : Math.round(out.bytes / 80) / 100;
+      return out;
+    }
+    out.body = String(res.getContentText() || '').slice(0, 300);   /* 200 without audio: treated as a refusal */
+    return out;
+  }
+  if (out.code === 404 || out.code === 405) {
+    res = UrlFetchApp.fetch(base + q, opt('audio/mpeg'));
+    out.code = res.getResponseCode(); out.timed = false;
+    var bytes = out.code === 200 ? res.getContent() : null;
+    if (out.code === 200 && bytes && bytes.length) { out.b64 = Utilities.base64Encode(bytes); out.bytes = bytes.length; out.secs = Math.round(bytes.length / 80) / 100; return out; }
+  }
+  out.body = String(res.getContentText() || '').slice(0, 300);
+  return out;
+}
+
+/* v3.24: the last render's outcome, kept in EMT_SHOW_LAST for ?health=1 (a run that found another render busy is
+ * not recorded, so the useful record stays) */
+function emtShowNote(S) {
+  if (!S || S.stopped === 'busy') return;
+  try {
+    emtProps().setProperty('EMT_SHOW_LAST', JSON.stringify({ at: new Date().toISOString(), gw: S.gw || 0, ok: !!S.ok, stopped: S.stopped || '', error: String(S.error || '').slice(0, 200),
+      rendered: (S.rendered || []).length, kept: S.kept || 0, left: S.left || 0, source: S.source || (S.clips ? 'repo' : '') }));
+  } catch (e) { }
+}
+function emtShowLast() {
+  try { var j = JSON.parse(emtProps().getProperty('EMT_SHOW_LAST') || 'null'); return j && typeof j === 'object' ? j : null; } catch (e) { return null; }
 }
 
 /* render every clip of a gameweek's show that is missing or changed. From the editor: renderShow(7); with no
- * gameweek it takes the next unfinished one. startedAt (ms) lets aiTick count the writer's time against the budget. */
+ * gameweek it takes the next unfinished one. startedAt (ms) lets aiTick count the writer's time against the budget.
+ * v3.24: the outcome is kept for ?health=1 (emtShowNote). */
 function renderShow(gw, startedAt) {
+  var S = emtShowRender(gw, startedAt);
+  emtShowNote(S);
+  return S;
+}
+function emtShowRender(gw, startedAt) {
   var t0 = typeof startedAt === 'number' ? startedAt : Date.now();
   gw = Number(gw) > 0 ? Number(gw) : 0;
   var S = { ok: true, gw: gw, clips: 0, rendered: [], kept: 0, removed: [], left: 0, stopped: '' };
@@ -2180,15 +2300,13 @@ function renderShow(gw, startedAt) {
     if (f.none) { S.stopped = 'noscript'; Logger.log(emtShowSummary(S)); return S; }
     if (f.source) S.source = f.source;
     if (f.error) { S.ok = false; S.stopped = 'error'; S.error = f.error; Logger.log(emtShowSummary(S)); return S; }
-    var j = f.json || {}, clips = emtShowClips(j), p = emtProps();
-    var voice = p.getProperty('EMT_VOICE_ID') || EMT_SHOW_VOICE_DEFAULT;
-    var model = p.getProperty('EMT_TTS_MODEL') || j.model || EMT_SHOW_MODEL_DEFAULT;
-    var speed = Number(j.speed) || 1;
+    emtShowRepoCache(gw, f);                         /* v3.24: ?show judges the takes against the script just rendered */
+    var j = f.json || {}, clips = emtShowLines(j), V = emtShowVoice(j), p = emtProps();
     S.clips = clips.length;
     if (!clips.length) { S.stopped = 'empty'; Logger.log(emtShowSummary(S)); return S; }
     p.setProperty('EMT_SHOW_KEYS_' + gw, JSON.stringify(clips.map(function (c) { return c.key; })));
     var live = {};
-    clips.forEach(function (c) { c.hash = emtMd5hex(c.text + '|' + voice + '|' + model + '|' + speed); live[c.key] = 1; });
+    clips.forEach(function (c) { live[c.key] = 1; });
     var sh = emtShowSheet(), idx = emtShowIndex(sh, gw);
     /* lines cut from the script lose their rows */
     var gone = [];
@@ -2199,10 +2317,10 @@ function renderShow(gw, startedAt) {
       if (have && have.ok && have.hash === c.hash) { S.kept++; continue; }
       if (S.stopped) continue;                        /* halted: the rest are only counted */
       if (Date.now() - t0 > EMT_SHOW_BUDGET_MS) { S.stopped = 'time'; continue; }
-      var res = emtShowTts(key, voice, model, speed, c.text, i > 0 ? clips[i - 1].text : '', i < clips.length - 1 ? clips[i + 1].text : '');
-      var code = res.getResponseCode(), bytes = code === 200 ? res.getContent() : null;
-      if (code !== 200 || !bytes || !bytes.length) {
-        var body = String(res.getContentText() || '').slice(0, 300);
+      var r = emtShowTts(key, V.voice, V.model, V.speed, c.text, i > 0 ? clips[i - 1].text : '', i < clips.length - 1 ? clips[i + 1].text : '');
+      var code = r.code;
+      if (code !== 200 || !r.b64) {
+        var body = r.body;
         S.ok = false; S.stopped = 'http ' + code;
         S.error = code === 402 || /quota|credits/i.test(body) ? 'out of credits: top up at elevenlabs.io or wait for the monthly reset'
           : code === 401 ? 'the API key is wrong or lacks Text to Speech permission (elevenlabs.io → Developers → API keys)'
@@ -2210,13 +2328,14 @@ function renderShow(gw, startedAt) {
         Logger.log('Gameweek Show: ElevenLabs HTTP ' + code + ' on ' + c.key + ', ' + S.error + '. Body: ' + body);
         continue;                                     /* no more calls this run */
       }
-      var b64 = Utilities.base64Encode(bytes), n = Math.ceil(b64.length / EMT_SHOW_CHUNK);
-      var secs = Math.round(bytes.length / 80) / 100, at = "'" + new Date().toISOString();
+      var b64 = r.b64, n = Math.ceil(b64.length / EMT_SHOW_CHUNK);
+      var secs = r.secs, at = "'" + new Date().toISOString();
       if (have) emtShowDeleteRows(sh, have.rows);   /* the old take goes first */
       for (var q = 0; q < n; q++) {
-        sh.appendRow([gw, c.key, "'" + c.hash, q + 1, n, secs, EMT_SHOW_MARK + b64.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK), at]);
+        sh.appendRow([gw, c.key, "'" + c.hash, q + 1, n, secs, EMT_SHOW_MARK + b64.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK), at, q === 0 && r.words ? JSON.stringify(r.words) : '']);
       }
       S.rendered.push(c.key);
+      if (!r.words) S.untimed = (S.untimed || 0) + 1;
       if (have) idx = emtShowIndex(sh, gw);           /* rows moved up */
     }
     S.left = S.clips - S.kept - S.rendered.length;
@@ -2242,6 +2361,7 @@ function emtShowSummary(S) {
   var s = 'Gameweek Show GW' + S.gw + (S.source === 'sheet' ? ' (the written script)' : '') + ': ' + S.rendered.length + ' rendered' + (S.rendered.length ? ' (' + S.rendered.join(', ') + ')' : '') +
     ', ' + S.kept + ' unchanged' + (S.removed.length ? ', ' + S.removed.length + ' cut (' + S.removed.join(', ') + ')' : '') +
     ', ' + S.left + ' still to render, of ' + S.clips + ' clips.';
+  if (S.untimed) s += ' ' + S.untimed + ' without word times (the app keeps its estimate for those).';
   if (S.stopped === 'time') s += ' Stopped at the time limit; the next run finishes it.';
   else if (S.stopped) s += ' Stopped: ' + (S.error || S.stopped) + '.';
   return s;
@@ -2267,44 +2387,68 @@ function renderShowNow() {
   return S;
 }
 
+/* v3.24: the stored takes of a gameweek judged against the current script: { lines, idx, fresh: [keys], stale: [keys],
+ * missing: [keys], expected: [keys] }. lines is null when no script can be found (then every stored take is unknown
+ * and nothing counts as fresh). script: the json when the caller has it already. */
+function emtShowJudge(gw, script) {
+  if (script === undefined) script = emtShowScriptAny(gw);
+  var lines = script && typeof script === 'object' ? emtShowLines(script) : null;
+  var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh ? emtShowIndex(sh, gw) : {};
+  var J = { lines: lines, idx: idx, sheet: sh, script: script || null, fresh: [], stale: [], missing: [], expected: lines ? lines.map(function (c) { return c.key; }) : (emtShowExpected(gw) || []) };
+  if (!lines) return J;
+  lines.forEach(function (c) {
+    var x = idx[c.key];
+    if (!x || !x.ok) J.missing.push(c.key);
+    else if (x.hash !== c.hash) J.stale.push(c.key);
+    else J.fresh.push(c.key);
+  });
+  return J;
+}
+
 /* log what is rendered for a gameweek (default: the next unfinished one) */
 function showStatus(gw) {
   gw = Number(gw) > 0 ? Number(gw) : emtShowNextGw();
   if (!emtShowKey()) emtShowNoKey('showStatus');
-  var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh && gw ? emtShowIndex(sh, gw) : {};
-  var expected = emtShowExpected(gw), keys = expected || Object.keys(idx), done = 0, secs = 0, lines = [];
+  var J = emtShowJudge(gw), idx = J.idx, keys = J.expected.length ? J.expected : Object.keys(idx), done = 0, secs = 0, lines = [];
+  var stale = {}; J.stale.forEach(function (k) { stale[k] = 1; });
   keys.forEach(function (k) {
     var c = idx[k];
-    if (c && c.ok) { done++; secs += c.secs; lines.push(k + ': ' + c.secs + ' s, ' + c.parts + ' part' + (c.parts > 1 ? 's' : '') + ', hash ' + c.hash.slice(0, 8)); }
-    else lines.push(k + ': ' + (c ? 'incomplete' : 'not rendered'));
+    if (c && c.ok && !stale[k]) { done++; secs += c.secs; lines.push(k + ': ' + c.secs + ' s, ' + c.parts + ' part' + (c.parts > 1 ? 's' : '') + ', hash ' + c.hash.slice(0, 8) + (c.words ? ', ' + c.words.length + ' word times' : '')); }
+    else lines.push(k + ': ' + (c && c.ok ? 'stale (an older take; the next render replaces it)' : c ? 'incomplete' : 'not rendered'));
   });
   Object.keys(idx).forEach(function (k) { if (keys.indexOf(k) < 0) lines.push(k + ': not in the script any more (the next render removes it)'); });
   secs = Math.round(secs * 100) / 100;
-  Logger.log('Gameweek Show GW' + gw + ': ' + done + ' of ' + keys.length + ' clips rendered, ' + secs + ' s' +
-    (expected ? '' : ' (no render has run for this gameweek yet)') + '\n' + lines.join('\n'));
-  return { gw: gw, expected: keys.length, rendered: done, secs: secs };
+  var last = emtShowLast();
+  Logger.log('Gameweek Show GW' + gw + ': ' + done + ' of ' + keys.length + ' clips rendered and current, ' + secs + ' s' +
+    (J.lines ? '' : ' (no script found: the stored takes cannot be judged)') + (J.stale.length ? ', ' + J.stale.length + ' stale' : '') +
+    (last ? '\nLast render ' + last.at + ': ' + (last.ok ? 'ok' : 'stopped, ' + (last.error || last.stopped)) : '') + '\n' + lines.join('\n'));
+  return { gw: gw, expected: keys.length, rendered: done, stale: J.stale.length, secs: secs };
 }
 
-/* doGet ?show=<gw>: the clips in play order. complete = every clip of the script as of the last render is here.
- * The clips come from the stored key list (EMT_SHOW_KEYS_<gw>) and ShowAudio, two sheet reads.
- * v3.12: + script (emtShowScriptAny: the repo json, cached 5 minutes, else ShowScripts, else null).
- * meta (?show=<gw>&meta=1) leaves out every b64 and skips reading the audio: secs, hash and complete stay. */
+/* doGet ?show=<gw>: the clips in play order. v3.24: only the takes rendered from the current script's lines (the
+ * stored hash equals md5(text|voice|model|speed) of the line as it is now); an older take is listed in stale and
+ * never served, a line without one in missing. complete = every line of the current script has a fresh clip.
+ * Each clip: secs, hash, b64, and w (word start times, seconds) when it was rendered with timestamps.
+ * v3.12: + script (emtShowScriptAny: the repo json, cached 5 minutes, else ShowScripts, else null). With no script
+ * at all nothing is served (the app has nothing to caption either).
+ * meta (?show=<gw>&meta=1) leaves out every b64 and skips reading the audio: secs, hash, w and complete stay. */
 function emtShowGet(gwParam, meta) {
   var gw = parseInt(gwParam, 10);
   if (!(gw > 0)) return { ok: false, error: 'badgw' };
   meta = meta === true || /^(1|true|yes)$/i.test(String(meta == null ? '' : meta));
-  var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), expected = emtShowExpected(gw), clips = {};
-  if (sh) {
-    var idx = emtShowIndex(sh, gw);
-    var keys = (expected || Object.keys(idx)).filter(function (k) { return idx[k] && idx[k].ok; });
-    if (meta) keys.forEach(function (k) { clips[k] = { secs: idx[k].secs, hash: idx[k].hash }; });
-    else {
-      var data = emtShowData(sh, gw, idx, keys);
-      keys.forEach(function (k) { if (data[k] !== undefined) clips[k] = { secs: idx[k].secs, hash: idx[k].hash, b64: data[k] }; });
-    }
+  var script = emtShowScriptAny(gw), J = emtShowJudge(gw, script), clips = {};
+  if (J.sheet && J.lines) {
+    var idx = J.idx, keys = J.fresh, data = meta ? null : emtShowData(J.sheet, gw, idx, keys);
+    keys.forEach(function (k) {
+      if (!meta && data[k] === undefined) return;
+      var c = { secs: idx[k].secs, hash: idx[k].hash };
+      if (idx[k].words) c.w = idx[k].words;
+      if (!meta) c.b64 = data[k];
+      clips[k] = c;
+    });
   }
-  var complete = !!expected && expected.every(function (k) { return !!clips[k]; });
-  return { ok: true, gw: gw, clips: clips, complete: complete, script: emtShowScriptAny(gw) };
+  var complete = !!J.lines && J.expected.length > 0 && J.expected.every(function (k) { return !!clips[k]; });
+  return { ok: true, gw: gw, clips: clips, complete: complete, stale: J.stale, missing: J.lines ? J.expected.filter(function (k) { return !clips[k] && J.stale.indexOf(k) < 0; }) : [], script: script };
 }
 
 /* =====================================================================================================
@@ -2622,6 +2766,14 @@ function emtShowScript(gw) {
   return s ? { json: s.json, source: 'sheet' } : { none: true };
 }
 
+/* v3.24: the 5-minute cache of the repo's json, refreshed by a render with what it fetched (f from emtShowScript:
+ * { json } from the repo, or { json, source: 'sheet' } when the repo had none) */
+function emtShowRepoCache(gw, f) {
+  try {
+    var repo = f && f.json && f.source !== 'sheet' ? { json: f.json } : f && f.source === 'sheet' ? { none: true } : null;
+    if (repo) CacheService.getScriptCache().put('EMT_SHOW_REPO_' + gw, JSON.stringify(repo), 300);
+  } catch (e) { }
+}
 /* doGet's "script": the repo json (cached 5 minutes), else ShowScripts, else null. Never throws. */
 function emtShowScriptAny(gw) {
   var cache = null, ck = 'EMT_SHOW_REPO_' + gw, repo = null;
@@ -3072,7 +3224,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.23';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.24';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4464,9 +4616,14 @@ function emtShowHealth() {
     out.factsFrom = f ? f.source : null;
     out.script = !!(gw && emtShowScriptRow(gw, false));
     out.tries = gw ? Number(p.getProperty('EMT_SHOW_TRIES_' + gw) || 0) : 0;
-    var sh = SpreadsheetApp.getActive().getSheetByName('ShowAudio'), idx = sh && gw ? emtShowIndex(sh, gw) : {}, exp = gw ? emtShowExpected(gw) : null;
-    out.clips = (exp || Object.keys(idx)).filter(function (k) { return idx[k] && idx[k].ok; }).length;
-    out.expected = exp ? exp.length : 0;
+    /* v3.24: clips counts only the takes rendered from the current script's lines; stale = older takes still stored;
+     * source says where the script came from; render is the last render's outcome (its ElevenLabs error, if any) */
+    var J = gw ? emtShowJudge(gw) : { lines: null, idx: {}, fresh: [], stale: [], expected: [] };
+    out.source = J.lines ? (J.script && J.script.source === 'ai' ? 'sheet' : 'repo') : null;
+    out.clips = J.fresh.length;                        /* without a script nothing is served, so nothing counts */
+    out.stale = J.stale.length;
+    out.expected = J.expected.length;
+    out.render = emtShowLast();
     out.punch = { off: emtPunchOff(), last: emtPunchLast().show || null };        /* v3.13: the punch-up's last outcome */
   } catch (e) { out.error = String((e && e.message) || e).slice(0, 160); }
   return out;
