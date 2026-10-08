@@ -7,7 +7,7 @@ import { jivePosts, theShort } from '../feed/build.js';
 import { presser, claimChip, pct } from '../feed/claims.js';
 import { me as signedIn, quotes, live as socialLive, rumours } from '../feed/social.js';
 import { quoteId } from '../feed/social-posts.js';
-import { VOICES, ORDER, avatar, tagChip } from '../feed/voices.js';
+import { VOICES, ORDER, avatar, tagChip, pic } from '../feed/voices.js';
 import { shows, mmss, selectionCall } from '../feed/facts.js';
 import { callKey } from '../feed/build.js';
 import { cut, mediaHTML } from '../feed/render.js';
@@ -25,7 +25,7 @@ function head(sub, args) {
   const nt = unreadThreads();
   return UI.pageHead('Feed') + UI.pills(SUBS.map(s => ({ label: s.label, href: '#/feed/' + s.id, on: s.id === sub, ct: s.id === 'messages' && nt ? nt : 0 })));
 }
-function avatarInner(v) { return VOICES[v].glyph(56); }
+function avatarInner(v) { return pic(v, 56); }
 function stories(sub, args) {
   const you = UI.you(), news = VISIT ? VISIT.ids : new Set();
   const posts = buildPosts();

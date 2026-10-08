@@ -29,8 +29,10 @@ export const VOICES = {
 };
 export const ORDER = ['archizio', 'clark', 'malcolm', 'jive'];
 
+/* the voice's profile picture (voices/<id>.jpg at the repo root, 256 px, AI-generated original faces; Parker, 8 Oct 2026)
+   over its glyph: if the picture fails to load it removes itself and the glyph shows */
+export const pic = (v, px) => '<img class="fav-pic" src="voices/' + v + '.jpg" alt="" decoding="async" onerror="this.remove()">' + VOICES[v].glyph(px);
 export function avatar(v, px = 40) {
-  const V = VOICES[v];
-  return '<span class="fav fav-' + v + '" style="width:' + px + 'px;height:' + px + 'px" aria-hidden="true">' + V.glyph(px) + '</span>';
+  return '<span class="fav fav-' + v + '" style="width:' + px + 'px;height:' + px + 'px" aria-hidden="true">' + pic(v, px) + '</span>';
 }
 export const tagChip = v => '<span class="ftag ftag-' + v + '">' + VOICES[v].tag + '</span>';

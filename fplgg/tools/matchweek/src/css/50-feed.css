@@ -8,7 +8,12 @@
 .ap-ini{font-family:var(--f-ui);font-stretch:62%;font-weight:900;color:#C6FF00;letter-spacing:-.01em;line-height:1}
 
 /* ---------- avatars and tags ---------- */
-.fav{display:flex;align-items:center;justify-content:center;border-radius:50%;flex:none}
+.fav{display:flex;align-items:center;justify-content:center;border-radius:50%;flex:none;position:relative;overflow:hidden}
+/* the voices' profile pictures sit over their glyphs; the voice colour stays as a thin ring */
+.fav-pic,.fring>span>.fav-pic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;z-index:1}
+.fav:has(.fav-pic)::after{content:'';position:absolute;inset:0;border-radius:50%;z-index:2;pointer-events:none}
+.fav-archizio:has(.fav-pic)::after{box-shadow:inset 0 0 0 1.5px #C6FF00}
+.fav-jive:has(.fav-pic)::after{box-shadow:inset 0 0 0 1.5px #EAD27A}
 .fav-archizio{background:#0A0A0A;box-shadow:inset 0 0 0 1.5px #C6FF00}
 .fav-clark{background:#E8222E}
 .fav-malcolm{background:linear-gradient(135deg,#37003C,#5B2D8E)}
@@ -387,7 +392,7 @@
 .fstories::-webkit-scrollbar{display:none}
 .fst{display:flex;flex-direction:column;align-items:center;gap:6px;width:62px;flex:none;color:var(--tx2)}
 .fring{width:62px;height:62px;border-radius:50%;padding:3px;display:flex;transition:opacity .2s}
-.fring>span{flex:1;border-radius:50%;border:2px solid var(--base);display:flex;align-items:center;justify-content:center}
+.fring>span{flex:1;border-radius:50%;border:2px solid var(--base);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .r-archizio{background:#C6FF00}.r-archizio>span{background:#0A0A0A}
 .r-clark{background:linear-gradient(135deg,#FFD60A,#E8222E)}.r-clark>span{background:#E8222E}
 .r-malcolm{background:linear-gradient(135deg,#04F5FF,#2E5BFF 50%,#8E44AD)}.r-malcolm>span{background:#37003C}
