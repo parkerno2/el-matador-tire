@@ -34,7 +34,9 @@ export default {
   async fetch(request, env) {
     /* /__worker: is this script deployed, with which crons, and is the token set (yes or no, never the value) */
     if (new URL(request.url).pathname === '/__worker') {
-      return new Response(JSON.stringify({ worker: 'matchweek', crons: Object.keys(JOBS), token: !!(env && env.GITHUB_TOKEN), time: new Date().toISOString() }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+      /* bindings: the names and kinds the script sees (a secret is a string), never a value */
+      const bindings = {}; try { Object.keys(env || {}).sort().forEach(k => { const v = env[k]; bindings[k] = typeof v === 'string' ? 'secret or text (' + v.length + ' chars)' : typeof v; }); } catch (e) { bindings.error = String(e && e.message || e).slice(0, 80); }
+      return new Response(JSON.stringify({ worker: 'matchweek', crons: Object.keys(JOBS), token: !!(env && env.GITHUB_TOKEN), bindings, time: new Date().toISOString() }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
     }
     return env.ASSETS.fetch(request);
   },
