@@ -108,6 +108,8 @@
 /* the small Plate (UI.plateMini): no overall rating; the bubble stays, the face sits a little higher, the tag moves off
    the bubble's corner */
 .fc.mini .face{top:4%;height:63%}
+/* the bubble sits out on the corner (Parker: on the small Plate the full card's inset reads too far in) */
+.fc.mini .pts{top:1%;right:-1.5%}
 .fc.mini .tag{left:12%;transform:none}
 /* a double-figure haul turns the bubble gold, a banked blank goes quiet (the matchup screen's tones) */
 .fc.mini .pts.haul b{color:var(--gold)}
