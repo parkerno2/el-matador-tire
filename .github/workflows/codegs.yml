@@ -1,6 +1,7 @@
 # El Matador Tire: the CI gate for Code.gs (ROADMAP A1), no PC needed.
 #   On every push to main that touches Code.gs, the tests, the app's source, the Facts bot, the monitor, the parity tool or the Worker
-#   (and on demand), runs every test suite in tests/codegs plus tests/*.js, and `node --check` on Code.gs. When all of them pass it fast-forwards the `release` branch to
+#   (and on demand), runs every test suite in tests/codegs plus tests/*.js (by pattern, so a new suite is picked up by itself;
+#   *harness* and *fixtures* are helpers), and `node --check` on Code.gs. When all of them pass it fast-forwards the `release` branch to
 #   that commit. The live Apps Script updates itself from the release branch (EMT_SELF_SRC in Code.gs, v3.16+), so a
 #   push to main that breaks a suite never reaches the league: release simply stays where it was and this run is red.
 #   Never force-pushes: a release that is not an ancestor of main is left alone and the run fails, loudly.
@@ -28,19 +29,20 @@ jobs:
         run: |
           set -e
           fail=0
-          for f in tests/codegs/*.js; do
+          # Every suite by pattern: tests/codegs/*.js and tests/*.js, skipping the helpers (*harness*, *fixtures*).
+          # A new tests/*.js file is picked up by itself; nothing here (or in the v315 suite, which checks this) lists suites by name.
+          n=0
+          for f in tests/codegs/*.js tests/*.js; do
             case "$f" in *fixtures*|*harness*) continue ;; esac   # helpers, not suites
-            echo "== $f"
+            n=$((n + 1)); echo "== $f"
             if out=$(node "$f" 2>&1); then
               case "$f" in */test.js) echo "$out" | tail -3 ;; *) echo "$out" | tail -1; echo "$out" | grep -q '^ALL PASS$' || { echo "::error::$f did not print ALL PASS"; fail=1; } ;; esac
             else
               echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1
             fi
           done
-          for f in tests/factsbot.js tests/monitor.js tests/parity.js tests/app-errors.js tests/app-tabs.js tests/app-data.js tests/app-bonus.js tests/app-fdr.js tests/app-faces.js tests/app-feed.js tests/app-show.js tests/worker.js; do
-            echo "== $f"
-            if out=$(node "$f" 2>&1); then echo "$out" | tail -1; echo "$out" | grep -q '^ALL PASS$' || { echo "::error::$f did not print ALL PASS"; fail=1; }; else echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1; fi
-          done
+          echo "$n suites ran"
+          [ "$n" -ge 20 ] || { echo "::error::only $n suites matched the patterns; the loop is broken"; fail=1; }
           exit $fail
       - name: Fast-forward the release branch
         run: |

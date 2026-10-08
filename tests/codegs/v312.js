@@ -133,6 +133,7 @@ const ctx = {
       return resp(200, { content: [{ type: 'text', text: next.text }], stop_reason: next.stop || 'end_turn' });
     }
     if (/api\.elevenlabs\.io/.test(url)) {
+      if (/\/v1\/user\/subscription/.test(url)) return resp(200, { character_count: 120, character_limit: 1000000, next_character_count_reset_unix: Math.floor(Date.now() / 1000) + 20 * 86400, tier: 'test' });   // v3.25: the balance, read before a render
       const body = JSON.parse(o.payload); tts.push(body.text);
       const bytes = fakeBytes(body.text);
       if (/\/with-timestamps\?/.test(url)) return resp(200, { audio_base64: Buffer.from(bytes.map(b => (b + 256) % 256)).toString('base64'), alignment: null });   // v3.23
@@ -326,7 +327,7 @@ check('em dash replaced by a comma', sj.chapters[1].beats[2] === 'Devils U21s. F
 
 /* A3 · the renderer voices the written script when the repo says 404 */
 console.log('--- A3 renderer fallback');
-props.ELEVENLABS_API_KEY = 'el-test'; reset();
+props.ELEVENLABS_API_KEY = 'el-test'; props.EMT_SHOW_GW_CAP_6 = '1000000'; reset();   // v3.25: the gameweek cap is raised; its own suite is v325.js
 const rs = ctx.showTick();
 check('showTick renders the written script (repo 404): 22 clips', rs.rendered.length === 22 && tts.length === 22 && rs.source === 'sheet' && gh.length === 1 && logs.some(l => /the written script/.test(l)), ctx.emtShowSummary(rs));
 check('the voice gets words, never digits (bar the club name Devils U21s)', tts.every(t => !/\d/.test(t.split('Devils U21s').join(''))) && tts.includes(sj.chapters[1].beats[4]) && tts[0] === sj.open && tts[21] === sj.close);

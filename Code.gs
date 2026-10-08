@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,27 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.25 · 8 Oct 2026
+ *   ElevenLabs credits are never burned again (Parker's request, BUGS #30: the account ran out after the GW6 show was
+ *   voiced on 7 Oct, voiced again at 00:46 UTC on 8 Oct after a rewrite, and every render since was refused).
+ *   1. Before a render voices anything it reads the account's balance (GET /v1/user/subscription with the same key:
+ *      characters used, the limit, the next reset) and skips the render, saying so in the log and in ?health=1, when
+ *      the lines still to voice would not fit. A key without the user_read permission falls back to a count kept here
+ *      (EMT_SHOW_CHARS_<yyyy-mm>: characters sent this calendar month) against EMT_SHOW_MONTHLY_LIMIT (default 10,000).
+ *   2. A gameweek may voice at most its script's own length plus a quarter (EMT_SHOW_GW_CHARS_<gw> counts the
+ *      characters voiced; EMT_SHOW_GW_CAP_<gw>, in characters, raises the cap): the first render plus edits of up to a
+ *      quarter of the script; a whole second rewrite waits for the cap to be raised. Counting starts with this version.
+ *   3. After a credit refusal (402, or 401 quota_exceeded), or a balance that does not fit, showTick makes no
+ *      ElevenLabs render until the reported reset time (24 hours when unknown), kept in EMT_SHOW_HOLD, instead of
+ *      trying every 15 minutes. Meanwhile the balance is read once an hour (a free call), so a top-up is noticed
+ *      within the hour; the menu's Render now lifts the hold at once.
+ *   4. ?health=1 show gains credits { left, limit, resets, at, from } (from: elevenlabs, or count when the key cannot
+ *      read the balance), need (characters still to voice), cap { used, cap }, capped and hold { until, why, since };
+ *      render carries need and hold. The status page (matchweek.gg/status) says them in plain words. ai gains last
+ *      (the feed writer's last run: when, events due, posts made, any error), so a quiet day and a broken writer can
+ *      be told apart without the Apps Script log.
+ *   No new setup and no new permissions (the balance read uses the ElevenLabs key already set; without user_read on
+ *   that key the count kept here is used instead).
  * v3.24 · 8 Oct 2026
  *   The Gameweek Show plays only the takes of the script as it is now, and its captions follow the voice (Parker,
  *   8 Oct 2026, after the GW6 show: old jokes in the audio, subtitles out of step). The GW6 clips in ShowAudio were
@@ -1992,12 +2013,12 @@ function aiWriterTick() {
     var S = aiState(), day = new Date().toISOString().slice(0, 10);
     if (S.day !== day) { S.day = day; S.count = 0; }
     aiSeedNotes();
-    var evs = aiEvents(S).sort(function (a, b) { return a.at - b.at; }), made = 0, sh = emtPostsSheet();
+    var evs = aiEvents(S).sort(function (a, b) { return a.at - b.at; }), made = 0, sh = emtPostsSheet(), err = '';
     for (var i = 0; i < evs.length; i++) {
       var ev = evs[i];
       if (made + ev.n > EMT_AI_PER_RUN || S.count + ev.n > EMT_AI_PER_DAY) break;   /* the rest waits for the next run */
       var posts = [];
-      try { posts = aiWrite(ev); } catch (e) { Logger.log('AI writer: ' + e); break; }   /* try again next run */
+      try { posts = aiWrite(ev); } catch (e) { err = String((e && e.message) || e).slice(0, 200); Logger.log('AI writer: ' + e); break; }   /* try again next run */
       posts.forEach(function (p, k) {
         var media = p.thumb ? JSON.stringify({ type: 'thumb', t1: p.thumb.t1, t2: p.thumb.t2, lo: p.thumb.lo, team: p.teams[0] || '' }) : '';
         sh.appendRow(["'" + new Date().toISOString(), emtCell('ai:' + ev.key + ':' + k), p.voice, 'ai', emtCell(ev.key), emtCell(p.teams.join('|')), '', emtCell(p.text), emtCell(ev.line), emtCell(media)]);
@@ -2008,6 +2029,8 @@ function aiWriterTick() {
       if (ev.type === 'build') S.buildGw = ev.gw;
       if (ev.type === 'rumour') S.rumourAt = Math.max(S.rumourAt || 0, ev.at);
     }
+    /* v3.25: the last run, for ?health=1 ai.last: a quiet day (no event due) and a broken writer read differently */
+    S.last = { at: new Date().toISOString(), events: evs.length, kinds: evs.map(function (e) { return e.type; }).join(','), made: made, error: err };
     aiSaveState(S);
   } finally { lock.releaseLock(); }
 }
@@ -2032,6 +2055,8 @@ function aiSeedNotes() {
  *   Storage: hidden ShowAudio tab, one row per 45,000-character chunk of base64 mp3 (44.1 kHz, 64 kbps), every
  *   Data cell marked 'b64:' so it can never start a formula. Secs = bytes / 8000.
  *   Serving: GET <web app>?show=<gw> → { ok, gw, clips: { key: { secs, hash, b64, w? } }, complete, stale, missing, script }.
+ *   v3.25: the credit guard: the balance is read before a render voices anything, a gameweek has a character cap, and
+ *   after a refusal no render runs until the reset (EMT_SHOW_HOLD). See the block above emtShowCreditsRead.
  *   v3.24: only takes whose hash matches the current script are served (stale lists the rest); w = word start times
  *   from ElevenLabs' with-timestamps endpoint, kept in the Words column; EMT_SHOW_LAST holds the last render's outcome.
  *   v3.12: when the repo has no show/gw<N>.json (404), the script the show writer kept in ShowScripts is voiced
@@ -2053,6 +2078,12 @@ var EMT_SHOW_BUDGET_MS = 270 * 1000;   // no new clip after 4.5 min; Apps Script
 var EMT_SHOW_BUSY_MS = 390 * 1000;     // a render flag older than 6.5 min belongs to a run that is already dead
 var EMT_SHOW_MARK = 'b64:';
 var EMT_SHOW_WORDS_COL = 9;            // v3.24: the Words column (word start times, on a clip's first row)
+var EMT_SHOW_SUB_URL = 'https://api.elevenlabs.io/v1/user/subscription';   // v3.25: the account's balance (needs user_read on the key)
+var EMT_SHOW_MONTHLY_DEFAULT = 10000;  // v3.25: the monthly limit assumed when the key cannot read the balance (EMT_SHOW_MONTHLY_LIMIT overrides)
+var EMT_SHOW_GW_CAP_RATIO = 1.25;      // v3.25: a gameweek may voice its script's length times this (EMT_SHOW_GW_CAP_<gw> overrides)
+var EMT_SHOW_HOLD_MS = 24 * 3600e3;    // v3.25: after a refusal with no reset time known, no render for this long
+var EMT_SHOW_HOLD_CHECK_MS = 3600e3;   // v3.25: while holding, the balance is read again this often
+var EMT_SHOW_CREDITS_FRESH_MS = 6 * 3600e3;   // v3.25: showTick refreshes the balance for ?health=1 when the last read is older
 
 function emtShowKey() { return emtProps().getProperty('ELEVENLABS_API_KEY') || ''; }
 function emtShowNoKey(where) {
@@ -2265,13 +2296,98 @@ function emtShowTts(key, voice, model, speed, text, prev, next) {
   return out;
 }
 
+/* ---------- v3.25: the credit guard ----------
+ * Every render that has lines to voice first reads the account's balance (GET /v1/user/subscription with the same
+ * key) and skips the render when the lines would not fit; a key without the user_read permission (or a read that
+ * fails) falls back to the count kept here: EMT_SHOW_CHARS_<yyyy-mm>, the characters sent this calendar month, against
+ * EMT_SHOW_MONTHLY_LIMIT (default 10,000). A gameweek may voice at most its script's own length plus a quarter
+ * (EMT_SHOW_GW_CHARS_<gw> counts, EMT_SHOW_GW_CAP_<gw> in characters raises the cap). After a credit refusal or a
+ * balance that does not fit, showTick makes no render until the reported reset (24 hours when unknown): EMT_SHOW_HOLD,
+ * { until, why, since, checked }; meanwhile the balance is read once an hour so a top-up is noticed within the hour,
+ * and the menu's Render now lifts the hold. The last balance read is kept in EMT_SHOW_CREDITS for ?health=1. */
+function emtShowMonthKey(d) { d = d || new Date(); return 'EMT_SHOW_CHARS_' + d.toISOString().slice(0, 7); }
+function emtShowMonthEnd(d) { d = d || new Date(); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)).toISOString(); }
+function emtShowMonthlyLimit() { var n = Number(emtProps().getProperty('EMT_SHOW_MONTHLY_LIMIT')); return n > 0 ? Math.floor(n) : EMT_SHOW_MONTHLY_DEFAULT; }
+/* the balance: ElevenLabs' own when the key may read it, else the count kept here. Never throws; the result is kept in
+ * EMT_SHOW_CREDITS. { left, limit, resets (ISO or null), at, from: 'elevenlabs' | 'count', note (why the fallback) } */
+function emtShowCreditsRead(key) {
+  var p = emtProps(), now = new Date(), out = null, note = '';
+  try {
+    var res = UrlFetchApp.fetch(EMT_SHOW_SUB_URL, { method: 'get', muteHttpExceptions: true, headers: { 'xi-api-key': key } });
+    var code = res.getResponseCode(), j = null;
+    try { j = JSON.parse(res.getContentText()); } catch (e) { j = null; }
+    if (code === 200 && j && typeof j === 'object' && isFinite(Number(j.character_limit)) && isFinite(Number(j.character_count))) {
+      var limit = Math.max(0, Math.floor(Number(j.character_limit))), used = Math.max(0, Math.floor(Number(j.character_count))), rs = Number(j.next_character_count_reset_unix);
+      out = { left: Math.max(0, limit - used), limit: limit, resets: rs > 0 ? new Date(rs * 1000).toISOString() : null, at: now.toISOString(), from: 'elevenlabs' };
+    } else note = code === 200 ? 'the answer had no character_limit' : 'HTTP ' + code + (j && j.detail && j.detail.status ? ' ' + j.detail.status : '');
+  } catch (e) { note = String((e && e.message) || e).slice(0, 120); }
+  if (!out) {
+    var lim2 = emtShowMonthlyLimit(), used2 = Number(p.getProperty(emtShowMonthKey(now))) || 0;
+    out = { left: Math.max(0, lim2 - used2), limit: lim2, resets: emtShowMonthEnd(now), at: now.toISOString(), from: 'count', note: note };
+  }
+  try { p.setProperty('EMT_SHOW_CREDITS', JSON.stringify(out)); } catch (e) { }
+  return out;
+}
+function emtShowCreditsLast() { try { var j = JSON.parse(emtProps().getProperty('EMT_SHOW_CREDITS') || 'null'); return j && typeof j === 'object' ? j : null; } catch (e) { return null; } }
+/* for ?health=1: a read older than 6 hours is refreshed (a free call, at most 4 a day) */
+function emtShowCreditsFresh(key) {
+  var c = emtShowCreditsLast();
+  if (!c || !(Date.now() - (Date.parse(c.at) || 0) < EMT_SHOW_CREDITS_FRESH_MS)) emtShowCreditsRead(key);
+}
+/* characters sent to ElevenLabs, counted per gameweek and per calendar month */
+function emtShowCount(gw, n) {
+  var p = emtProps(), mk = emtShowMonthKey();
+  p.setProperty('EMT_SHOW_GW_CHARS_' + gw, String((Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0) + n));
+  p.setProperty(mk, String((Number(p.getProperty(mk)) || 0) + n));
+}
+/* a gameweek's cap: EMT_SHOW_GW_CAP_<gw> when set, else the script's length plus a quarter. { used, cap, chars, set } */
+function emtShowCap(gw, lines) {
+  var p = emtProps(), chars = 0;
+  (lines || []).forEach(function (c) { chars += String(c.text).length; });
+  var set = Number(p.getProperty('EMT_SHOW_GW_CAP_' + gw));
+  return { used: Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0, cap: set > 0 ? Math.floor(set) : Math.ceil(chars * EMT_SHOW_GW_CAP_RATIO), chars: chars, set: set > 0 };
+}
+/* the characters of the lines still to voice (missing or stale), from emtShowJudge's answer */
+function emtShowNeed(J) {
+  var fresh = {}, n = 0;
+  ((J && J.fresh) || []).forEach(function (k) { fresh[k] = 1; });
+  ((J && J.lines) || []).forEach(function (c) { if (!fresh[c.key]) n += String(c.text).length; });
+  return n;
+}
+function emtShowHold() { try { var j = JSON.parse(emtProps().getProperty('EMT_SHOW_HOLD') || 'null'); return j && j.until ? j : null; } catch (e) { return null; } }
+function emtShowHoldSet(why, resets) {
+  var until = resets && Date.parse(resets) > Date.now() ? new Date(Date.parse(resets)).toISOString() : new Date(Date.now() + EMT_SHOW_HOLD_MS).toISOString();
+  var h = { until: until, why: why, since: new Date().toISOString(), checked: new Date().toISOString() };
+  emtProps().setProperty('EMT_SHOW_HOLD', JSON.stringify(h));
+  return h;
+}
+function emtShowHoldClear() { emtProps().deleteProperty('EMT_SHOW_HOLD'); }
+/* showTick while holding: once an hour the balance is read again and the hold lifted when it covers the lines still
+ * to voice; otherwise nothing is called. Returns the tick's outcome, or null when the hold was lifted. */
+function emtShowHoldTick(gw, H) {
+  var out = { ok: true, stopped: 'hold', gw: gw, until: H.until, why: H.why || 'credits' };
+  if (!(Date.now() - (Date.parse(H.checked) || 0) < EMT_SHOW_HOLD_CHECK_MS)) {
+    var cr = emtShowCreditsRead(emtShowKey()), need = emtShowNeed(emtShowJudge(gw));
+    H.checked = new Date().toISOString();
+    emtProps().setProperty('EMT_SHOW_HOLD', JSON.stringify(H));
+    out.credits = cr.left; out.need = need;
+    if (need > 0 && cr.left >= need) {
+      emtShowHoldClear();
+      Logger.log('Gameweek Show GW' + gw + ': ElevenLabs has ' + cr.left + ' characters again, enough for the ' + need + ' still to voice; the hold is lifted.');
+      return null;
+    }
+  }
+  Logger.log(emtShowSummary(out));
+  return out;
+}
+
 /* v3.24: the last render's outcome, kept in EMT_SHOW_LAST for ?health=1 (a run that found another render busy is
  * not recorded, so the useful record stays) */
 function emtShowNote(S) {
   if (!S || S.stopped === 'busy') return;
   try {
     emtProps().setProperty('EMT_SHOW_LAST', JSON.stringify({ at: new Date().toISOString(), gw: S.gw || 0, ok: !!S.ok, stopped: S.stopped || '', error: String(S.error || '').slice(0, 200),
-      rendered: (S.rendered || []).length, kept: S.kept || 0, left: S.left || 0, source: S.source || (S.clips ? 'repo' : '') }));
+      rendered: (S.rendered || []).length, kept: S.kept || 0, left: S.left || 0, source: S.source || (S.clips ? 'repo' : ''), need: S.need || 0, hold: S.hold || null }));
   } catch (e) { }
 }
 function emtShowLast() {
@@ -2312,6 +2428,30 @@ function emtShowRender(gw, startedAt) {
     var gone = [];
     Object.keys(idx).forEach(function (k) { if (!live[k]) { S.removed.push(k); gone = gone.concat(idx[k].rows); } });
     if (gone.length) { emtShowDeleteRows(sh, gone); idx = emtShowIndex(sh, gw); }
+    /* v3.25: the credit guard, before any ElevenLabs call: the gameweek's cap (local), then the account's balance */
+    var need = 0, toVoice = 0;
+    clips.forEach(function (c) { var h = idx[c.key]; if (!(h && h.ok && h.hash === c.hash)) { need += c.text.length; toVoice++; } });
+    S.need = need;
+    if (need > 0) {
+      var cap = emtShowCap(gw, clips);
+      S.cap = { used: cap.used, cap: cap.cap };
+      if (cap.used + need > cap.cap) {
+        S.ok = false; S.stopped = 'capped'; S.kept = clips.length - toVoice; S.left = toVoice;
+        S.error = 'GW' + gw + ' has voiced ' + cap.used + ' of its ' + cap.cap + '-character cap and the ' + toVoice + ' line' + (toVoice > 1 ? 's' : '') + ' still to voice need ' + need +
+          ' more, so nothing was rendered. Set the Script Property EMT_SHOW_GW_CAP_' + gw + ' (characters) higher to voice them';
+        Logger.log(emtShowSummary(S)); return S;
+      }
+      var cr = emtShowCreditsRead(key);
+      S.credits = cr.left;
+      if (cr.left < need) {
+        S.ok = false; S.stopped = 'credits'; S.kept = clips.length - toVoice; S.left = toVoice;
+        var hh = emtShowHoldSet('credits', cr.from === 'elevenlabs' ? cr.resets : null);
+        S.hold = hh.until;
+        S.error = 'ElevenLabs has ' + cr.left + ' of ' + cr.limit + ' characters left this month' + (cr.from === 'count' ? ' (counted here: the key cannot read the balance)' : '') +
+          (cr.resets ? ', resets ' + cr.resets : '') + ', and the ' + toVoice + ' line' + (toVoice > 1 ? 's' : '') + ' still to voice need ' + need + ', so nothing was rendered';
+        Logger.log(emtShowSummary(S)); return S;
+      }
+    }
     for (var i = 0; i < clips.length; i++) {
       var c = clips[i], have = idx[c.key];
       if (have && have.ok && have.hash === c.hash) { S.kept++; continue; }
@@ -2326,6 +2466,7 @@ function emtShowRender(gw, startedAt) {
           : code === 401 ? 'the API key is wrong or lacks Text to Speech permission (elevenlabs.io → Developers → API keys)'
           : code === 200 ? 'ElevenLabs sent no audio' : 'ElevenLabs refused the request';
         Logger.log('Gameweek Show: ElevenLabs HTTP ' + code + ' on ' + c.key + ', ' + S.error + '. Body: ' + body);
+        if (/out of credits/.test(S.error)) { var cl = emtShowCreditsLast(); S.hold = emtShowHoldSet('credits', cl && cl.from === 'elevenlabs' ? cl.resets : null).until; }   /* v3.25 */
         continue;                                     /* no more calls this run */
       }
       var b64 = r.b64, n = Math.ceil(b64.length / EMT_SHOW_CHUNK);
@@ -2335,6 +2476,7 @@ function emtShowRender(gw, startedAt) {
         sh.appendRow([gw, c.key, "'" + c.hash, q + 1, n, secs, EMT_SHOW_MARK + b64.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK), at, q === 0 && r.words ? JSON.stringify(r.words) : '']);
       }
       S.rendered.push(c.key);
+      emtShowCount(gw, c.text.length);                 /* v3.25: the gameweek's and the month's count */
       if (!r.words) S.untimed = (S.untimed || 0) + 1;
       if (have) idx = emtShowIndex(sh, gw);           /* rows moved up */
     }
@@ -2355,6 +2497,8 @@ function emtShowSummary(S) {
   if (S.stopped === 'nogw') return 'Gameweek Show: no unfinished gameweek in Matchweeks.';
   if (S.stopped === 'busy') return 'Gameweek Show: another render is running. Try again in a few minutes.';
   if (S.stopped === 'paused') return 'Gameweek Show: paused (EMT_SHOW_PAUSED = yes).';
+  if (S.stopped === 'hold') return 'Gameweek Show GW' + S.gw + ': no ElevenLabs render until ' + S.until + ' (' + (S.why || 'credits') + ')' +
+    (S.credits !== undefined ? '; the balance read just now says ' + S.credits + ' characters left against ' + (S.need || 0) + ' still to voice' : '') + '. The balance is read again once an hour; Render now in the menu lifts the hold.';
   if (S.stopped === 'noscript') return 'Gameweek Show GW' + S.gw + ': no script yet (show/gw' + S.gw + '.json is not on the site and the show writer has not written one). Nothing to do.';
   if (S.stopped === 'empty') return 'Gameweek Show GW' + S.gw + ': the script has no lines.';
   if (S.stopped === 'error' && !S.clips) return 'Gameweek Show GW' + S.gw + ': stopped, ' + S.error;
@@ -2364,6 +2508,7 @@ function emtShowSummary(S) {
   if (S.untimed) s += ' ' + S.untimed + ' without word times (the app keeps its estimate for those).';
   if (S.stopped === 'time') s += ' Stopped at the time limit; the next run finishes it.';
   else if (S.stopped) s += ' Stopped: ' + (S.error || S.stopped) + '.';
+  if (S.hold) s += ' No ElevenLabs render until ' + S.hold + ' (the balance is read again once an hour; Render now in the menu lifts the hold).';
   return s;
 }
 
@@ -2374,12 +2519,17 @@ function showTick(startedAt) {
   if (emtProps().getProperty('EMT_SHOW_PAUSED') === 'yes') { Logger.log(emtShowSummary({ stopped: 'paused' })); return { ok: true, stopped: 'paused' }; }
   var gw = emtShowNextGw();
   if (!gw) { Logger.log(emtShowSummary({ stopped: 'nogw' })); return { ok: true, stopped: 'nogw' }; }
+  var H = emtShowHold();                                                            /* v3.25: no render while holding */
+  if (H && Date.parse(H.until) > Date.now()) { var R = emtShowHoldTick(gw, H); if (R) return R; }
+  else if (H) emtShowHoldClear();
+  try { emtShowCreditsFresh(emtShowKey()); } catch (e) { }                           /* v3.25: the balance for ?health=1 */
   return renderShow(gw, t0);
 }
 
 /* menu: Render the Gameweek Show now (the next unfinished gameweek; works while paused) */
 function renderShowNow() {
   var S;
+  if (emtShowHold()) { emtShowHoldClear(); Logger.log('Gameweek Show: the hold after the last credit refusal is lifted by the menu.'); }   /* v3.25 */
   if (emtShowKey()) S = renderShow(0);
   else { emtShowNoKey('menu'); S = { ok: false, stopped: 'nokey' }; }
   var msg = emtShowSummary(S);
@@ -3224,7 +3374,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.24';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.25';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4624,6 +4774,13 @@ function emtShowHealth() {
     out.stale = J.stale.length;
     out.expected = J.expected.length;
     out.render = emtShowLast();
+    /* v3.25: the credit guard: the last balance read, the characters still to voice, the gameweek's cap, the hold */
+    out.credits = emtShowCreditsLast();
+    var need = J.lines ? emtShowNeed(J) : 0, cap = gw && J.lines ? emtShowCap(gw, J.lines) : null, H = emtShowHold();
+    out.need = need;
+    out.cap = cap ? { used: cap.used, cap: cap.cap } : null;
+    out.capped = !!(cap && need > 0 && cap.used + need > cap.cap);
+    out.hold = H && Date.parse(H.until) > Date.now() ? { until: H.until, why: H.why || 'credits', since: H.since || null } : null;
     out.punch = { off: emtPunchOff(), last: emtPunchLast().show || null };        /* v3.13: the punch-up's last outcome */
   } catch (e) { out.error = String((e && e.message) || e).slice(0, 160); }
   return out;
@@ -4648,7 +4805,7 @@ function emtHealth() {
         if (m.status === 'live' && m.pend) o.rewrite = m.pend;
         return o;
       }) },
-    ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn() } };
+    ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn(), last: A.last && typeof A.last === 'object' ? A.last : null } };   /* v3.25: last */
 }
 /* ---------- v3.18: errors reported by phones (ROADMAP A4) ----------
  * The app's window.onerror and unhandledrejection post `clienterror`: build, route, kind, msg, stack, online. No login

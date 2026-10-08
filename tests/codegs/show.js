@@ -60,6 +60,7 @@ const ctx = {
       return { getResponseCode: () => 200, getContentText: () => JSON.stringify(SHOW[gw]) };
     }
     if (/api\.elevenlabs\.io/.test(url)) {
+      if (/\/v1\/user\/subscription/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ character_count: 120, character_limit: 1000000, next_character_count_reset_unix: Math.floor(Date.now() / 1000) + 20 * 86400, tier: 'test' }), getContent: () => [] };   // v3.25: the balance, read before a render
       const body = JSON.parse(o.payload); calls.push({ url, o, body });
       const timed = /\/with-timestamps\?/.test(url);   // v3.23: the call goes to with-timestamps and is answered as JSON
       if (MODE === '401') return { getResponseCode: () => 401, getContentText: () => JSON.stringify({ detail: { status: 'invalid_api_key', message: 'Invalid API key' } }) + 'x'.repeat(500), getContent: () => [] };
@@ -96,6 +97,7 @@ check('a) no key: no fetches, clear log', ghCalls.length === 0 && calls.length =
 
 /* b) first render */
 props.ELEVENLABS_API_KEY = 'el-test-key'; SHOW[6] = sample(); reset();
+props.EMT_SHOW_GW_CAP_6 = '1000000';   // v3.25: this suite re-voices GW6 many times over; the gameweek cap has its own suite (v325.js)
 const rb = ctx.renderShow(6);
 const sh = sheets.ShowAudio, order = playOrder(SHOW[6]);
 let chunkOk = true, secsOk = true, multi = 0, info = [];
@@ -176,6 +178,8 @@ reset(); MODE = 'quota';
 const rq = ctx.renderShow(6);
 check('h) quota_exceeded -> out of credits', calls.length === 1 && /out of credits/.test(rq.error), rq.error);
 MODE = 'ok';
+check('h) v3.25: the credit refusal puts showTick on hold until the reset', !!props.EMT_SHOW_HOLD && JSON.parse(props.EMT_SHOW_HOLD).why === 'credits' && rq.hold === JSON.parse(props.EMT_SHOW_HOLD).until, props.EMT_SHOW_HOLD);
+delete props.EMT_SHOW_HOLD;   // v3.25: lifted here, as the menu's Render now does, so j) below renders through showTick
 
 /* l) time budget: a run that started 4.6 minutes ago starts no new clip */
 reset();
@@ -216,7 +220,7 @@ UI = null; reset(); const st = ctx.showStatus(6);
 check('showStatus(6) logs what is rendered', st.rendered === 7 && st.expected === 7 && /7 of 7 clips rendered/.test(logs[0]), logs[0].split('\n')[0]);
 
 /* k) Sheets refuses to delete every non-frozen row: guard adds a blank row first */
-freshSheets(); props = { ELEVENLABS_API_KEY: 'el-test-key' }; SHOW = { 6: { gw: 6, speed: 1, open: 'Just the open.', chapters: [], close: '' } }; reset();
+freshSheets(); props = { ELEVENLABS_API_KEY: 'el-test-key', EMT_SHOW_GW_CAP_6: '1000000' }; SHOW = { 6: { gw: 6, speed: 1, open: 'Just the open.', chapters: [], close: '' } }; reset();
 ctx.renderShow(6); sheets.ShowAudio.tight = true; SHOW[6].open = 'Just the open, edited.';
 let kErr = null; try { ctx.renderShow(6); } catch (e) { kErr = e; }
 const rk = rowsOf(6, 'open');

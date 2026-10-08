@@ -21,6 +21,7 @@ ctx.UrlFetchApp.fetch = (url, o) => {
     return SHOW[gw] ? T.resp(200, SHOW[gw]) : T.resp(404, '<h1>404</h1>');
   }
   if (/api\.elevenlabs\.io/.test(url)) {
+    if (/\/v1\/user\/subscription/.test(url)) return T.resp(200, { character_count: 120, character_limit: 1000000, next_character_count_reset_unix: Math.floor(Date.now() / 1000) + 20 * 86400, tier: 'test' });   // v3.25: the balance, read before a render
     const body = JSON.parse(o.payload), timed = /\/with-timestamps\?/.test(url);
     tts.push({ url, o, body, timed });
     if (MODE === 'quota') return T.resp(401, { detail: { status: 'quota_exceeded', message: 'This request exceeds your quota of 10000. You have 12 credits remaining.' } });
@@ -61,7 +62,7 @@ check('W6 a Words cell parses back; junk, a formula-looking cell or a negative t
 check('W7 base64 byte count', ctx.emtB64Bytes(Buffer.from('abcd').toString('base64')) === 4 && ctx.emtB64Bytes(Buffer.from('abcde').toString('base64')) === 5 && ctx.emtB64Bytes(Buffer.from('abcdef').toString('base64')) === 6 && ctx.emtB64Bytes('') === 0);
 
 console.log('--- R the render with timestamps');
-props.ELEVENLABS_API_KEY = 'el-test'; SHOW[6] = script(); reset();
+props.ELEVENLABS_API_KEY = 'el-test'; props.EMT_SHOW_GW_CAP_6 = '1000000'; SHOW[6] = script(); reset();   // v3.25: this suite re-voices GW6 many times over; the cap has its own suite (v325.js)
 const r1 = ctx.renderShow(6);
 check('R1 12 clips rendered through with-timestamps, Accept json, audio stored from audio_base64', r1.ok && r1.rendered.length === 12 && tts.length === 12 && tts.every(c => c.timed && c.o.headers.Accept === 'application/json') && rowsOf('open')[0][6] === 'b64:' + b64of(SHOW[6].open), ctx.emtShowSummary(r1));
 const openRow = rowsOf('open')[0], wOpen = ctx.emtShowWordTimes(SHOW[6].open, alignOf(SHOW[6].open, 0.05));

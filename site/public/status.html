@@ -50,6 +50,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&am
 const mins = t => t ? Math.round((Date.now() - Date.parse(t)) / 60000) : null;
 const ago = t => { const m = mins(t); if (m == null || isNaN(m)) return 'never'; if (m < 1) return 'just now'; if (m < 60) return m + ' min ago'; if (m < 48 * 60) return Math.floor(m / 60) + ' h ' + (m % 60) + ' min ago'; return Math.round(m / 1440) + ' days ago'; };
 const when = t => t ? String(t).replace('T', ' ').replace(/[:.]\d\d(\.\d+)?Z$/, ' UTC').replace(/Z$/, ' UTC') : 'never';
+const num = n => Number(n || 0).toLocaleString('en-GB');
+const dayOf = t => { const d = new Date(t); return isNaN(d) ? '' : d.getUTCDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()] + (d.getUTCFullYear() !== new Date().getUTCFullYear() ? ' ' + d.getUTCFullYear() : ''); };
 function readTab(name) {   /* gviz JSONP, as the app reads the sheet */
   return new Promise((resolve, reject) => {
     const cb = '__gv' + Math.floor(Math.random() * 1e9), s = document.createElement('script');
@@ -99,8 +101,18 @@ async function run() {
     const showLines = [];
     if (!s.on) showLines.push('Voicing is off: no ElevenLabs key.');
     if (s.paused) showLines.push('Paused by the commissioner (EMT_SHOW_PAUSED).');
-    showLines.push(s.gw ? 'Gameweek ' + s.gw + ': ' + (s.facts ? 'facts from ' + (s.factsFrom === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(s.facts)) : 'no facts yet') + '; script ' + (s.script ? 'written' : 'not written yet') + '; clips <span class="n">' + (s.clips || 0) + ' of ' + (s.expected || 0) + '</span>.' : 'No gameweek to prepare.');
-    add(!s.on || s.paused ? 'warn' : 'ok', 'The Gameweek Show', showLines, [s.tries ? 'Writing attempts this gameweek: ' + s.tries + ' of 3.' : '']);
+    showLines.push(s.gw ? 'Gameweek ' + s.gw + ': ' + (s.facts ? 'facts from ' + (s.factsFrom === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(s.facts)) : 'no facts yet') + '; script ' + (s.script ? 'written' : 'not written yet') + '; clips <span class="n">' + (s.clips || 0) + ' of ' + (s.expected || 0) + '</span>' + (s.stale ? ', ' + s.stale + ' older take' + (s.stale > 1 ? 's' : '') + ' waiting to be re-voiced' : '') + '.' : 'No gameweek to prepare.');
+    /* v3.25: the ElevenLabs balance, the hold after a refusal, the gameweek's cap, the last render */
+    let showState = !s.on || s.paused ? 'warn' : 'ok';
+    const cr = s.credits;
+    if (cr) showLines.push('ElevenLabs: <span class="n">' + num(cr.left) + ' of ' + num(cr.limit) + '</span> characters left this month' + (cr.resets ? ', resets ' + esc(dayOf(cr.resets)) : '') + (cr.from === 'count' ? ' (counted by Code.gs: the key cannot read the account\'s balance)' : '') + '. Read ' + esc(ago(cr.at)) + '.');
+    else if (s.on) showLines.push('ElevenLabs: the balance has not been read yet (the next render, or the hourly check, reads it).');
+    if (s.hold) { showState = 'warn'; showLines.push('<b>Not calling ElevenLabs until ' + esc(dayOf(s.hold.until)) + '</b> (' + (s.hold.why === 'credits' ? 'out of credits' : esc(s.hold.why)) + ', since ' + esc(ago(s.hold.since)) + '). The balance is read again every hour, so a top-up is noticed within the hour.'); }
+    if (s.capped && s.cap) { showState = 'warn'; showLines.push('Gameweek ' + s.gw + ' is at its voicing cap: <span class="n">' + num(s.cap.used) + ' of ' + num(s.cap.cap) + '</span> characters, and the lines still to voice need ' + num(s.need) + ' more. The Script Property EMT_SHOW_GW_CAP_' + s.gw + ' raises it.'); }
+    const rd = s.render;
+    if (rd && rd.ok === false && showState === 'ok') showState = 'warn';
+    add(showState, 'The Gameweek Show', showLines, [s.tries ? 'Writing attempts this gameweek: ' + s.tries + ' of 3.' : '',
+      rd ? 'Last render ' + esc(ago(rd.at)) + ': ' + (rd.ok ? num(rd.rendered) + ' line' + (rd.rendered === 1 ? '' : 's') + ' voiced, ' + num(rd.kept) + ' kept.' : 'stopped, ' + esc(rd.error || rd.stopped) + '.') : '']);
     /* the articles */
     const a = H.articles || {}, j = a.job, last = (a.last || []);
     const artLines = ['Mode: ' + (a.mode === 'review' ? 'the commissioner reads every article before it goes out.' : 'articles publish themselves once they pass the checks.')];
@@ -108,11 +120,18 @@ async function run() {
     artLines.push(j ? 'Writing now: the GW' + j.gw + ' ' + j.kind + ', ' + (j.phase === 'research' ? 'researching the real football' : j.phase === 'punch' ? 'punching up the jokes' : 'writing') + ', started ' + esc(ago(j.startedAt)) + (j.tries ? ', attempt ' + (j.tries + 1) + ' of 3' : '') + '.' : 'Nothing being written at the moment.');
     const fp = H.facts || {};
     artLines.push('Facts in hand: ' + (fp.preview ? 'GW' + fp.preview.gw + ' preview from ' + (fp.preview.from === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(fp.preview.at)) : 'no preview facts') + '; ' + (fp.recap ? 'GW' + fp.recap.gw + ' recap from ' + (fp.recap.from === 'repo' ? 'the Facts bot' : 'a phone') + ' ' + esc(ago(fp.recap.at)) : 'no recap facts') + '.');
-    const failed = last.some(x => x.status === 'failed');
-    add(a.paused ? 'warn' : failed ? 'warn' : 'ok', 'Recaps and previews', artLines, last.map(x => 'GW' + x.gw + ' ' + x.kind + ': ' + esc(x.status) + (x.written ? ', written ' + esc(ago(x.written)) : '') + (x.rewrite ? ', a rewrite ' + (x.rewrite === 'writing' ? 'under way' : 'failed, the live version stayed') : '') + '.'));
+    /* v3.25: an article that is live is the current one; its older failed or dropped attempts are history, not a warning */
+    const liveOf = {}; last.forEach(x => { if (x.status === 'live') liveOf[x.gw + ' ' + x.kind] = true; });
+    const earlier = last.filter(x => (x.status === 'failed' || x.status === 'dropped') && liveOf[x.gw + ' ' + x.kind]);
+    const current = last.filter(x => earlier.indexOf(x) < 0);
+    const failed = current.some(x => x.status === 'failed');
+    add(a.paused ? 'warn' : failed ? 'warn' : 'ok', 'Recaps and previews', artLines, current.map(x => 'GW' + x.gw + ' ' + x.kind + ': ' + esc(x.status) + (x.written ? ', written ' + esc(ago(x.written)) : '') + (x.rewrite ? ', a rewrite ' + (x.rewrite === 'writing' ? 'under way' : 'failed, the live version stayed') : '') + '.')
+      .concat(earlier.length ? ['<span style="color:var(--mid);font-size:.84rem">Earlier attempts: ' + earlier.map(x => 'GW' + x.gw + ' ' + x.kind + ' ' + esc(x.status) + ' ' + esc(ago(x.since))).join('; ') + '.</span>'] : []));
     /* the feed writer */
     const ai = H.ai || {};
-    add(ai.on ? 'ok' : 'warn', 'The feed writer', [ai.on ? 'On. Posts today (UTC): <span class="n">' + (ai.day === new Date().toISOString().slice(0, 10) ? ai.count : 0) + ' of 6</span>.' : 'Off: no key, or paused.'], []);
+    const al = ai.last;   /* v3.25: the last run, so a quiet day and a broken writer read differently */
+    add(!ai.on ? 'warn' : al && al.error ? 'warn' : 'ok', 'The feed writer', [ai.on ? 'On. Posts today (UTC): <span class="n">' + (ai.day === new Date().toISOString().slice(0, 10) ? ai.count : 0) + ' of 6</span>.' : 'Off: no key, or paused.',
+      al ? 'Last run ' + esc(ago(al.at)) + ': ' + (al.events ? al.events + ' event' + (al.events > 1 ? 's' : '') + ' due (' + esc(al.kinds) + '), ' + al.made + ' post' + (al.made === 1 ? '' : 's') + ' written' : 'nothing was due (no new quote, result, build-up or rumour)') + (al.error ? '; stopped: ' + esc(al.error) : '') + '.' : ''], []);
     /* errors from phones (A4) */
     if (H.errors && typeof H.errors.h24 === 'number') add(H.errors.h24 >= 20 ? 'bad' : H.errors.h24 ? 'warn' : 'ok', 'Errors reported by phones', ['<span class="n">' + H.errors.h24 + '</span> in the last 24 hours' + (H.errors.last ? '; the latest: ' + esc(String(H.errors.last.msg || '').slice(0, 140)) + ' (' + esc(H.errors.last.route || '') + ', build ' + esc(H.errors.last.build || '') + ')' : '') + '.'], []);
   }

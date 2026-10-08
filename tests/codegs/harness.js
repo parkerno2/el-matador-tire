@@ -83,6 +83,7 @@ function make(opts) {
         const name = url.replace(/^.*\/facts\/facts\//, '').replace(/\?.*$/, ''), f = T.REPO[name];
         return f ? resp(f.code || 200, f.text) : resp(404, '404: Not Found');
       }
+      if (/^https:\/\/api\.elevenlabs\.io\/v1\/user\/subscription$/.test(url)) return resp(200, { character_count: 120, character_limit: 1000000, next_character_count_reset_unix: Math.floor(Date.now() / 1000) + 20 * 86400, tier: 'test' });   // v3.25: the balance (a suite that renders overrides fetch itself)
       T.other.push(url);
       if (/github\.io/.test(url)) return resp(404, '<h1>404</h1>');
       if (/raw\.githubusercontent\.com/.test(url)) return resp(404, '404: Not Found');
