@@ -216,17 +216,13 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .plate{display:block;flex:none}
 .plate .fc{width:100%;max-width:none;min-width:0}
 .plate .fc:hover,.plate .fc:focus-visible{transform:translateY(-2px) scale(1.02)}
-/* the small Plate (UI.plateMini): no overall rating and no bubble; the face sits higher and the number he wears is plain
-   text top right, coloured by state: his projection muted, live points green, banked points in the card's text colour */
-.fc.mini .face{top:3%;height:64%}
-.fc.mini .tag{left:7%;top:5%;transform:none}
-.fc.mini .mn{position:absolute;top:4.5%;right:8%;z-index:2;font-family:'Saira Condensed',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:20cqw;line-height:1;color:var(--tx);text-shadow:0 1px 3px rgba(0,0,0,.4),0 0 8px rgba(0,0,0,.3)}
-.fc.gold.mini .mn,.fc.silver.mini .mn{text-shadow:0 0 2px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.8)}
-.fc.mini .mn.proj{font-weight:600}
-.fc.mini .mn.bk{font-weight:800}
-.fc.mini .mn.live{color:#19D27A}
-.fc.mini .mn.live::before{content:"";display:inline-block;width:5cqw;height:5cqw;border-radius:50%;background:#19D27A;margin:0 2.5cqw 0 0;vertical-align:middle;position:relative;top:-1cqw}
-.fc.spec.mini .mn.live,.fc.elite.mini .mn.live,.fc.totw.mini .mn.live,.fc.potm.mini .mn.live{color:#5CF0A5}
+/* the small Plate (UI.plateMini): no overall rating; the bubble stays, the face sits a little higher, the tag moves off
+   the bubble's corner */
+.fc.mini .face{top:4%;height:63%}
+.fc.mini .tag{left:12%;transform:none}
+/* a double-figure haul turns the bubble gold, a banked blank goes quiet (the matchup screen's tones) */
+.fc.mini .pts.haul b{color:var(--gold)}
+.fc.mini .pts.blank{opacity:.72}
 
 /* bars */
 .wbar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}
@@ -504,19 +500,17 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-lines .ar.t{top:72px;border-top-width:0;border-radius:0 0 32px 32px/0 0 18px 18px}
 .md-lines .ar.b{bottom:72px;border-bottom-width:0;border-radius:32px 32px 0 0/18px 18px 0 0}
 .md-half{position:relative;z-index:1}
-.md-row{display:flex;justify-content:space-evenly;align-items:flex-start;height:var(--rowh);padding:8px 4px 0}
-.md-row.n1 .md-tk,.md-row.n2 .md-tk{flex-basis:120px}
-.md-tk{flex:0 1 84px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center}
-.md-ph{position:relative;width:48px;height:48px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid var(--md-rt);background:var(--md-bt);box-shadow:0 3px 10px rgba(0,0,0,.35)}
-.md-half.b .md-ph{border-color:var(--md-rb);background:var(--md-bb)}
-.md-ph .fc-i{background:transparent}
-.md-b{position:absolute;top:-6px;right:-14px;height:19px;min-width:22px;padding:0 5px;border-radius:10px;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.md-b.pj{line-height:16px}
+/* both XIs on small Plates (UI.plateMini, 64 px, five across at 390 px); a row grows with its cards */
+.md-row{display:flex;justify-content:space-evenly;align-items:flex-start;min-height:var(--rowh);padding:8px 4px 2px}
+.md-tk{flex:0 1 64px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center;cursor:pointer}
+.md-ph{position:relative;width:100%;flex:none}
+.md-ph .plate{width:100%!important}
+.md-tk .fc{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
 .pb.xp{background:var(--p700);color:#fff;border:1.5px solid var(--p300)}
 .pb.haul{background:var(--gold);color:var(--base)}
 .pb.lv.haul{box-shadow:0 0 0 2px var(--live),0 1px 4px rgba(0,0,0,.4)}
 .pb.bk.blank{background:#C9C2D6;color:#3A2F47}
-.md-ic{position:absolute;left:-7px;top:-4px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
+.md-ic{position:absolute;left:-4px;top:-4px;z-index:4;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
 .md-ic.up{background:var(--win)} .md-ic.sw{background:var(--tx4)} .md-ic.dt{background:var(--doubt)} .md-ic.out{background:var(--loss)}
 /* the name sits on the bottom rim of the face, like a card's nameplate */
 .md-nm{position:relative;z-index:2;max-width:100%;padding:2px 7px;border-radius:5px;background:rgba(10,8,16,.86);box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:11px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:-9px}
@@ -772,9 +766,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
   .md-mbig{font-size:36px}
   .md-mbig.dec{font-size:26px}
   .md-pitch{--rowh:84px}
-  .md-ph{width:42px;height:42px}
-  .md-ph .fc-i{width:38px!important;height:38px!important}
-  .md-b{right:-12px;font-size:13px;height:18px;min-width:20px;padding:0 4px}
+  .md-tk{flex-basis:56px}
   .md-h2h{grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr);padding:9px 10px}
   .md-hc .fc-i{width:26px!important;height:26px!important}
   .md-prb{grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr) 42px;padding:12px 8px 12px 10px;gap:4px}
@@ -930,7 +922,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-pwm{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);opacity:.07;pointer-events:none}
 .tm-rows{position:relative;display:flex;flex-direction:column;gap:10px}
 .tm-prow{position:relative;display:flex;justify-content:center;gap:var(--gap)}
-.tm-prow .plate{width:min(100px,calc((100% - (var(--n) - 1) * var(--gap)) / var(--n)))!important}
+.tm-prow .plate{width:min(84px,calc((100% - (var(--n) - 1) * var(--gap)) / var(--n)))!important}
 .tm-prow.gk{padding-top:16px;margin-top:4px}
 .tm-prow.gk::before{content:"";position:absolute;left:20%;right:20%;top:0;bottom:-16px;border:1.6px solid var(--mk);border-bottom:0;pointer-events:none}
 .tm-prow.gk::after{content:"";position:absolute;left:35%;right:35%;bottom:-16px;height:34px;border:1.6px solid var(--mk);border-bottom:0;pointer-events:none}
@@ -942,7 +934,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-bslots{display:flex;justify-content:space-between;gap:8px}
 .tm-bs{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0}
 .tm-bl{font-size:13px;font-weight:700;color:var(--tx3)}
-.tm-bc{position:relative;display:block;width:100%;max-width:80px}
+.tm-bc{position:relative;display:block;width:100%;max-width:72px}
 .tm-bc .plate{width:100%!important}
 .tm-bout{position:absolute;left:50%;top:44%;transform:translateX(-50%);font-size:11px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:none;z-index:4}
 .tm-subs{display:flex;flex-direction:column;gap:4px;margin:12px 4px 0;font-size:13px;color:var(--tx2);line-height:1.35}
