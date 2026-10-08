@@ -2580,6 +2580,34 @@ html.gs-on{overflow:hidden}
 .show-player .spl-c{display:flex;align-items:center;gap:8px;width:100%;text-align:left}
 .show-player .spl-c i{font-style:normal;color:var(--tx3)}
 .show-player .spl-dn{margin-left:auto;font-size:11.5px;color:var(--tx3);margin-right:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+/* ===== Easier to find (Parker, 8 Oct 2026): the card at the top of Matchday until the deadline, the replay row after
+   it, the show pinned at the top of the Feed, and the Show entry in the voice rail. Malcolm's picture (voices/malcolm.jpg)
+   sits over his glyph; the glyph shows if the picture fails. ===== */
+.md-showc{display:flex;flex-direction:column;gap:8px;width:100%;margin:4px 0 14px;padding:14px 14px 14px;border-radius:18px;color:#fff;text-align:left;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#37003C 0%,#24127a 55%,#1E3DD6 100%);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(30,61,214,.22)}
+.md-showc::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,#04F5FF,#2E5BFF,#8E44AD)}
+.md-showc-top{display:flex;align-items:center;gap:10px}
+.md-showc-av,.md-show-av{position:relative;overflow:hidden}
+.md-showc-av{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#37003C;border:2px solid #7B52D3}
+.md-showc-k{flex:1;font:800 11px/1 var(--f-ui);letter-spacing:.14em;text-transform:uppercase;color:#CDBDF0}
+.md-showc-t{background:rgba(0,0,0,.4);padding:4px 7px;border-radius:6px;font-size:12px;line-height:1}
+.md-showc-ttl{font-size:40px;line-height:.9;font-weight:800;text-transform:uppercase;letter-spacing:.005em}
+.md-showc-sub{font-size:13px;color:#D3CADF;font-weight:600}
+.md-showc-ch{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:2px}
+.md-showc-c{display:inline-flex;align-items:center;gap:5px;font:700 12.5px/1 var(--f-ui)}
+.md-showc-c i{font-style:normal;color:#A398B2;font-weight:600}
+.md-showc-ft{display:flex;align-items:center;gap:10px;margin-top:4px}
+.md-showc-play{flex:none;width:44px;height:44px;border-radius:50%;background:#fff;color:#37003C;display:grid;place-items:center}
+.md-showc-play svg{margin-left:3px}
+.md-showc-by{font:800 14px/1 var(--f-ui)}
+.md-show-re{margin:4px 0 12px}
+.fl-pin .sh{padding-top:14px}
+.fst-show{appearance:none}
+.fst-show .fring>span{position:relative;overflow:visible}
+.fst-show .fring>span>.fav-pic{border-radius:50%}
+.fst-play{position:absolute;right:-3px;bottom:-3px;z-index:3;width:22px;height:22px;border-radius:50%;background:#fff;color:#37003C;display:grid;place-items:center;border:2px solid var(--base)}
+.fst-play svg{margin-left:1px}
 /* ===== Articles: the native reader (#/feed/articles/<id>), the commissioner's queue and the waiting notes ===== */
 .arr-ttl{min-height:42px;padding-top:0}
 .arr-back{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding-right:14px;font-size:15px;font-weight:700;color:var(--b300)}
