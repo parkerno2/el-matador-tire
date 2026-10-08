@@ -12,7 +12,7 @@ import { shows, mmss, selectionCall } from '../feed/facts.js';
 import { callKey } from '../feed/build.js';
 import { cut, mediaHTML } from '../feed/render.js';
 import { esc, short, dayMonth, lsGet, firstOf, dt, relTime } from '../feed/util.js';
-import { articlesWanted, allArticles, waiting as artWaiting, drafts as artDrafts, commishFirst, isCommish, KIND, artHref, maxRedos } from '../feed/articles.js';
+import { articlesWanted, allArticles, waiting as artWaiting, drafts as artDrafts, commishFirst, isCommish, KIND, artHref, maxRedos, review as artReview } from '../feed/articles.js';
 import { reader, readerHead, restoreNote, REV } from '../feed/article.js';
 
 const hasSeen = () => { try { return !!localStorage.getItem('emt-feed-seen'); } catch (e) { return false; } };
@@ -136,11 +136,12 @@ function draftCard(d) {
   return '<div class="far ar-dr wip' + (failed ? ' bad' : '') + '">' + k + '<span class="far-t"><span class="ar-st' + (failed ? ' bad' : ' run') + '"><i></i>' + (failed ? 'Couldn’t be written' : d.status === 'research' ? 'Researching the week' : 'Being written') + '</span><b>The GW' + g + ' ' + kind.toLowerCase() + '</b><span>' + (failed ? why + (left ? (left === 1 ? 'One retry left.' : left + ' retries left.') : 'No retries left; the sheet’s Articles: write now starts a fresh one.') : (d.note ? 'Rewriting with your note. ' : '') + 'It lands here for your read when it’s done.') + '</span>' + retry + '</span></div>';
 }
 const ago = d => { const r = relTime(d); return /^\d+[mh]$/.test(r) ? r + ' ago' : r; };
-/* what a missing article is doing: "GW6 preview: written, waiting for Parker’s read" */
+/* what a missing article is doing: "GW6 preview: being written". Code.gs v3.14 publishes once it passes the checks, so
+   only review mode (EMT_ART_REVIEW = yes) says "written, waiting for Parker’s read" */
 function waitLine(gw, kind) {
   const w = artWaiting().find(x => +x.gw === gw && KIND(x.kind) === kind);
   if (!w) return null;
-  return 'GW' + gw + ' ' + kind.toLowerCase() + ': ' + (w.status === 'draft' ? 'written, waiting for ' + commishFirst() + '’s read' : 'being written');
+  return 'GW' + gw + ' ' + kind.toLowerCase() + ': ' + (w.status !== 'draft' ? 'being written' : artReview() ? 'written, waiting for ' + commishFirst() + '’s read' : 'written, not published yet');
 }
 function articles(args) {
   const S = shows();
@@ -153,7 +154,11 @@ function articles(args) {
   });
   /* anything else in the queue (a rewrite of an older week, say) */
   artWaiting().forEach(w => { const g = +w.gw, kind = KIND(w.kind); if ((g === D.gwsDone && kind === 'Recap') || (g === D.gw && kind === 'Preview') || has(g, kind)) return; const l = waitLine(g, kind); if (l && !lines.includes(l)) lines.push(l); });
-  const Q = isCommish() ? artDrafts().filter(d => ['draft', 'research', 'writing', 'failed'].includes(d.status)).sort((a, b) => (b.status === 'draft') - (a.status === 'draft') || b.gw - a.gw) : [];
+  /* the commissioner's queue shows only when something needs him: a draft to read (review mode) or an article that
+     failed (Try again). In review mode it also lists the ones being written; otherwise those get a line like everyone's */
+  const all = isCommish() ? artDrafts().filter(d => ['draft', 'research', 'writing', 'failed'].includes(d.status)) : [];
+  const needs = all.some(d => d.status === 'draft' || d.status === 'failed');
+  const Q = !needs ? [] : all.filter(d => artReview() || d.status === 'draft' || d.status === 'failed').sort((a, b) => (b.status === 'draft') - (a.status === 'draft') || b.gw - a.gw);
   /* the commissioner has those in his queue above; everyone else gets one line each */
   const notes = lines.filter(l => !Q.some(d => l.indexOf('GW' + d.gw + ' ' + KIND(d.kind).toLowerCase() + ':') === 0));
   return (Q.length ? UI.sh('Waiting for your read', { aside: Q.filter(d => d.status === 'draft' && d.a).length ? Q.filter(d => d.status === 'draft' && d.a).length + ' to read' : '' }) + '<div class="ar-list ar-q">' + Q.map(draftCard).join('') + '</div>' : '')

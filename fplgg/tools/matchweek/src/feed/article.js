@@ -1,13 +1,15 @@
 /* feed/article.js — the native article reader, #/feed/articles/<id>.
-   The words come from the article (written with AI in the cloud, read by the commissioner before anyone else); every
-   number in the score headers, star strips and chips is drawn from this app's own data at view time: the real H2H result
-   and the XI's points for a recap, the projection engine's predicted score for a preview, xP, bonus, flags and the series.
-   The commissioner sees drafts here too, with approve / ask for a rewrite / drop. */
+   The words come from the article (written with AI in the cloud and checked before it goes out); every number in the
+   score headers, star strips and chips is drawn from this app's own data at view time: the real H2H result and the XI's
+   points for a recap, the projection engine's predicted score for a preview, xP, bonus, flags and the series.
+   Code.gs v3.14 publishes an article as soon as it passes the checks. The commissioner gets a small panel at the end of
+   a live article: ask for a rewrite (the live version stays up until the new one passes) or take it down. In review mode
+   (EMT_ART_REVIEW = yes) he sees drafts here too, with approve / ask for a rewrite / drop. */
 import * as UI from '../ui.js';
 import { esc, dt, relTime, short } from './util.js';
 import { memo } from './facts.js';
 import { sideAt, seriesThrough, predictedAt, projAt, flaggedIn } from './showfacts.js';
-import { body, mod, retry, KIND, commishFirst, isCommish, maxRedos } from './articles.js';
+import { body, mod, retry, KIND, commishFirst, isCommish, maxRedos, review, liveInfo } from './articles.js';
 
 const f1 = v => (Math.round(v * 10) / 10).toFixed(1);
 const DASH = '<i class="arm-d">–</i>';
@@ -111,11 +113,8 @@ function reviewPanel(b) {
   const R = REV.id === b.id ? REV : { step: '', note: '', busy: false, err: '' };
   const meta = [b.written ? 'Written ' + (r => /^\d+[mh]$/.test(r) ? r + ' ago' : r)(relTime(dt(b.written))) : '', b.model ? esc(b.model) : '', b.redos ? b.redos + (b.redos === 1 ? ' rewrite' : ' rewrites') + ' so far' : ''].filter(Boolean).join(' · ');
   let inner;
-  if (R.step === 'redo') {
-    inner = '<label class="ar-rl" for="ar-note">What should change?</label><div class="ar-nw"><textarea id="ar-note" data-am-note maxlength="400" rows="4" placeholder="For example: shorter on the derby, lead with the red card">' + esc(R.note) + '</textarea><span class="ar-nn n">' + (400 - R.note.length) + '</span></div>'
-      + '<div class="ar-acts two"><button class="btn" data-am="redo-send"' + (R.busy ? ' disabled' : '') + '>' + (R.busy ? 'Sending…' : 'Send') + '</button><button class="btn ghost" data-am="cancel"' + (R.busy ? ' disabled' : '') + '>Cancel</button></div>'
-      + '<p class="ar-rn">Only the writing is redone, from the same research. ' + (left === 1 ? 'This is the last rewrite.' : left + ' rewrites left.') + '</p>';
-  } else if (R.step === 'drop') {
+  if (R.step === 'redo') inner = noteBox(R, left, false);
+  else if (R.step === 'drop') {
     inner = '<p class="ar-rq"><b>Drop the GW' + g + ' ' + kind + '?</b> Nobody sees it, and it isn’t written again automatically.</p>'
       + '<div class="ar-acts two"><button class="btn danger" data-am="drop-yes"' + (R.busy ? ' disabled' : '') + '>' + (R.busy ? 'Dropping…' : 'Yes, drop it') + '</button><button class="btn ghost" data-am="cancel"' + (R.busy ? ' disabled' : '') + '>Keep it</button></div>';
   } else {
@@ -125,6 +124,37 @@ function reviewPanel(b) {
   }
   return '<div class="card ar-rev" id="ar-rev"><div class="ar-revh"><b>Your read</b>' + (meta ? '<span class="sub">' + meta + '</span>' : '') + '</div>'
     + (b.note ? '<p class="ar-rn">Your last note: “' + esc(b.note) + '”</p>' : '') + inner + (R.err ? '<p class="pq-err">' + esc(R.err) + '</p>' : '') + '</div>';
+}
+
+/* the rewrite note box, for a draft and (v3.14) for a live article */
+function noteBox(R, left, live) {
+  return '<label class="ar-rl" for="ar-note">What should change?</label><div class="ar-nw"><textarea id="ar-note" data-am-note maxlength="400" rows="4" placeholder="For example: shorter on the derby, lead with the red card">' + esc(R.note) + '</textarea><span class="ar-nn n">' + (400 - R.note.length) + '</span></div>'
+    + '<div class="ar-acts two"><button class="btn" data-am="redo-send"' + (R.busy ? ' disabled' : '') + '>' + (R.busy ? 'Sending…' : 'Send') + '</button><button class="btn ghost" data-am="cancel"' + (R.busy ? ' disabled' : '') + '>Cancel</button></div>'
+    + '<p class="ar-rn">Only the writing is redone, from the same research.' + (live ? ' This version stays up until the new one passes the checks.' : '') + ' ' + (left === 1 ? 'This is the last rewrite.' : left + ' rewrites left.') + '</p>';
+}
+/* the commissioner's panel at the end of a live article (v3.14): ask for a rewrite (same note box as a draft) or take
+   it down (in-app confirm). While a rewrite runs this version stays up and the panel says so. In review mode, or with a
+   server that has no live rewrites, only take down. */
+function commishPanel(b) {
+  const g = +b.gw, kind = KIND(b.kind).toLowerCase(), info = liveInfo(b.id), rv = review();
+  const R = REV.id === b.id ? REV : { step: '', note: '', busy: false, err: '' };
+  const can = !rv && !!info, left = info ? Math.max(0, maxRedos - (+info.redos || 0)) : 0, running = !!info && info.rewrite === 'writing';
+  const meta = ['Only you see this'].concat(can ? [left === 1 ? '1 rewrite left' : left + ' rewrites left'] : []).join(' · ');
+  let inner;
+  if (R.step === 'redo' && can && left && !running) inner = noteBox(R, left, true);
+  else if (R.step === 'drop') {
+    inner = '<p class="ar-rq"><b>Take down the GW' + g + ' ' + kind + '?</b> It comes off everyone’s Feed straight away and isn’t written again automatically.</p>'
+      + '<div class="ar-acts two"><button class="btn danger" data-am="drop-yes"' + (R.busy ? ' disabled' : '') + '>' + (R.busy ? 'Taking down…' : 'Yes, take it down') + '</button><button class="btn ghost" data-am="cancel"' + (R.busy ? ' disabled' : '') + '>Keep it up</button></div>';
+  } else {
+    const status = running ? '<p class="ar-rip"><i></i><span><b>Rewrite in progress.</b> This version stays up until the new one passes the checks.</span></p>'
+      : info && info.rewrite === 'failed' ? '<p class="ar-rn">The last rewrite didn’t pass the checks, so this version stayed up.</p>' : '';
+    const btns = can && !running
+      ? '<div class="ar-acts two"><button class="btn ghost" data-am="redo-open"' + (left ? '' : ' disabled') + '>Ask for a rewrite</button><button class="btn line" data-am="drop-ask">Take down</button></div>' + (left ? '' : '<p class="ar-rn">No rewrites left on this one.</p>')
+      : '<div class="ar-acts"><button class="btn line block" data-am="drop-ask">Take down</button></div>';
+    inner = status + btns;
+  }
+  return '<div class="card ar-rev ar-com" id="ar-rev"><div class="ar-revh"><b>Commissioner</b><span class="sub">' + meta + '</span></div>'
+    + (info && info.note && R.step !== 'drop' ? '<p class="ar-rn">Your last note: “' + esc(info.note) + '”</p>' : '') + inner + (R.err ? '<p class="pq-err">' + esc(R.err) + '</p>' : '') + '</div>';
 }
 
 /* ---------- the page ---------- */
@@ -144,7 +174,7 @@ export function reader(id) {
   if (!A) {
     const back = '<div class="arr-mt"><a class="btn ghost" href="#/feed/articles">' + (failed ? 'Back to Articles to try again' : 'All articles') + '</a></div>';
     return '<div class="arr"><div class="ar-hero"><div class="ar-kick"><span class="ar-gw n">GW' + g + '</span><span class="ar-kd">' + kind + '</span></div><h1 class="ar-h1">The GW' + g + ' ' + kind.toLowerCase() + (failed ? ' couldn’t be written' : ' is being written') + '</h1>'
-      + '<p class="ar-sub">' + (failed ? (b.error ? esc(String(b.error).slice(0, 300)) : 'It stopped after three tries.') : (b.note ? 'Rewriting with your note. ' : '') + 'It comes back here for your read when it’s done, usually within the hour.') + '</p></div>' + back + '</div>';
+      + '<p class="ar-sub">' + (failed ? (b.error ? esc(String(b.error).slice(0, 300)) : 'It stopped after three tries.') : (b.note ? 'Rewriting with your note. ' : '') + (review() ? 'It comes back here for your read when it’s done, usually within the hour.' : 'It’s published here as soon as it passes the checks, usually within the hour.')) + '</p></div>' + back + '</div>';
   }
   const writing = draft && !failed && b.status !== 'draft';
   const when = b.approved ? dt(b.approved) : b.written ? dt(b.written) : null;
@@ -153,12 +183,18 @@ export function reader(id) {
   const banner = !draft ? '' : failed
     ? '<div class="ar-draft bad"><span class="ar-dot"></span><span><b>The rewrite failed.</b> This is the previous version, and nobody else can see it. Articles has the reason and a retry.</span></div>'
     : '<div class="ar-draft' + (writing ? ' wip' : '') + '"><span class="ar-dot"></span><span><b>' + (writing ? 'Rewriting.' : 'Draft.') + '</b> ' + (writing ? 'This is the previous version. The new one replaces it here when it’s done.' : 'Only you can see this until you approve it.') + '</span>' + (writing ? '' : '<button class="ar-jump" data-am="jump">Review</button>') + '</div>';
-  const credit = '<p class="ar-credit">' + UI.icon('info', 14, 'var(--tx4)') + '<span>Written with AI from league data and match reports. ' + (draft ? 'Not approved yet.' : 'Approved by ' + esc(commishFirst()) + '.') + '</span></p>';
-  return '<div class="arr' + (draft ? ' is-draft' : '') + '" data-art="' + esc(id) + '">' + banner + hero
+  /* v3.14: published automatically (the server says auto; an older cached copy goes by the mode) or approved by hand */
+  const auto = !draft && (b.auto === true || (b.auto == null && !review()));
+  const credit = '<p class="ar-credit">' + UI.icon('info', 14, 'var(--tx4)') + '<span>Written with AI from league data and match reports. ' + (draft ? 'Not approved yet.' : auto ? 'Checked automatically before it went out.' : 'Approved by ' + esc(commishFirst()) + '.') + '</span></p>';
+  /* the commissioner only: a quiet line while a rewrite of this live article runs */
+  const info = !draft && isCommish() ? liveInfo(id) : null;
+  const rip = info && info.rewrite === 'writing' ? '<p class="ar-rip top"><i></i><span>Rewrite in progress</span></p>' : '';
+  return '<div class="arr' + (draft ? ' is-draft' : '') + '" data-art="' + esc(id) + '">' + banner + rip + hero
     + '<div class="arms">' + (A.matchups || []).map(m => matchup(m, g, rec)).join('') + '</div>'
     + around(A.around) + sources(A.sources)
     + (A.foot ? '<p class="ar-foot">' + esc(A.foot) + '</p>' : '') + credit
     + (draft && !writing && !failed && isCommish() ? reviewPanel(b) : '')
+    + (!draft && isCommish() ? commishPanel(b) : '')
     + '<div class="arr-end"><a class="btn ghost" href="#/feed/articles">' + UI.icon('back', 16, 'var(--tx)', 2.2) + 'All articles</a></div>'
     + '</div>';
 }
@@ -169,12 +205,14 @@ function act(id, op) {
   const R = REV; if (R.busy) return;
   if (op === 'redo' && R.note.replace(/\s+/g, ' ').trim().length < 4) { R.err = 'Say what should change first.'; rerender(); return; }
   R.busy = true; R.err = ''; rerender();
-  const b = body(id), label = 'GW' + (b.gw || '') + ' ' + KIND(b.kind).toLowerCase();
+  const b = body(id), label = 'GW' + (b.gw || '') + ' ' + KIND(b.kind).toLowerCase(), live = b.ok && !b.draft;
   mod(id, op, R.note).then(r => {
     R.busy = false;
-    if (!r || !r.ok) { R.err = r && r.error ? errText(r.error) : 'That didn’t go through. Try again.'; rerender(); return; }
+    if (!r || !r.ok) { R.err = live && op === 'redo' && r && r.error === 'live' ? 'Rewrites of a published article are off in review mode.' : r && r.error ? errText(r.error) : 'That didn’t go through. Try again.'; rerender(); return; }
     REV.step = ''; REV.note = ''; REV.id = null;
     if (op === 'approve') { UI.toast('Published. Everyone can read the ' + label + ' now.'); rerender(); scrollTo(0, 0); }
+    else if (live && op === 'redo') { UI.toast('Sent. This version stays up until the new one passes the checks.'); rerender(); }
+    else if (live) { UI.toast('Taken down. The ' + label + ' is off the Feed.'); location.hash = '#/feed/articles'; }
     else { UI.toast(op === 'redo' ? 'Sent. The rewrite comes back here for your read.' : 'Dropped. The ' + label + ' won’t be published.'); location.hash = '#/feed/articles'; }
   });
 }
@@ -221,6 +259,7 @@ if (typeof document !== 'undefined' && !window.__artTaps) {
     const t = e.target; if (!t || !t.matches || !t.matches('textarea[data-am-note]')) return;
     REV.note = t.value.slice(0, 400); REV.err = ''; REV.caret = t.selectionStart;
     const n = t.parentElement && t.parentElement.querySelector('.ar-nn'); if (n) n.textContent = String(400 - t.value.length);
+    const er = t.closest('#ar-rev') && t.closest('#ar-rev').querySelector('.pq-err'); if (er) er.remove();   /* typing answers "say what should change first" */
   });
 }
 export { short };

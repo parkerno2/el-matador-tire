@@ -3,6 +3,7 @@
 Plain Node, no dependencies. Each file mocks the Apps Script services it needs (SpreadsheetApp, PropertiesService, UrlFetchApp, LockService, CacheService, Utilities) and loads `../../Code.gs` in a vm.
 
 ```bash
+node tests/codegs/v314.js   # auto-publish, review mode, rewrite of a live article, take down (v3.14)
 node tests/codegs/v313.js   # articles, punch-up, model chains, health (v3.13)
 node tests/codegs/v312.js   # show writer, self-update (v3.12)
 node tests/codegs/show.js   # Gameweek Show voicing (v3.11)

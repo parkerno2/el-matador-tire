@@ -5,6 +5,8 @@
 // Batches API (create, poll, results JSONL, cancel) and the Messages API mocked.
 // Tone pass: the recap (C2), the preview (C4) and the rewrite (C5) go through the punch phase; C6 to C16 are about other
 // things and run with EMT_PUNCH_OFF = yes; C17 tests the tone prompts and the punch-up (articles and the show).
+// v3.14: articles publish themselves by default, so the flows end live. The commissioner's approval (C3), his drafts
+// (C5, C6) and sealed drafts (C16 R1) run in review mode (EMT_ART_REVIEW = yes). v314.js tests the new parts.
 const fs = require('fs'), crypto = require('crypto'), vm = require('vm');
 const CODE = __dirname + '/../../Code.gs';
 const src = fs.readFileSync(CODE, 'utf8');
@@ -232,20 +234,31 @@ check('?articles=1 and POST articles while the punch-up runs: status writing, no
 reset(); S = tick();
 R = row(id);
 const stored = artOf(R);
-check('tick 5: the punch-up passes the checks -> the draft is the punched-up version; Model "writer + punch model"; sealed; Log "punched up by"', S.stopped === 'draft' && col(R, 'Status') === 'draft' && /^'\d{4}-/.test(col(R, 'Written (UTC)')) &&
-  col(R, 'Model') === 'claude-sonnet-5-5 + claude-haiku-5-5' && String(col(R, 'Article')).startsWith('s:') && !R.join('|').includes(recapA.title) && stored.title === recapA.title && stored.matchups[3].story === recapP.matchups[3].story &&
-  stored.matchups[3].bullets[0] === recapP.matchups[3].bullets[0] && stored.matchups.length === 4 && stored.sources.length === 3 && /written by claude-sonnet-5-5, punched up by claude-haiku-5-5, \d+ words/.test(col(R, 'Log')) &&
-  polls.length === 1 && creates.length === 0 && logs.some(l => /punched up by claude-haiku-5-5/.test(l)), JSON.stringify(S));
+check('tick 5: the punch-up passes the checks -> v3.14: the punched-up version is published at once (live, plain j: json, Approved set, Log "Published automatically"); Model "writer + punch model"', S.stopped === 'live' && col(R, 'Status') === 'live' && /^'\d{4}-/.test(col(R, 'Written (UTC)')) &&
+  /^'\d{4}-/.test(col(R, 'Approved (UTC)')) && col(R, 'Model') === 'claude-sonnet-5-5 + claude-haiku-5-5' && String(col(R, 'Article')).startsWith('j:') && JSON.parse(String(col(R, 'Article')).slice(2)).title === recapA.title && stored.title === recapA.title && stored.matchups[3].story === recapP.matchups[3].story &&
+  stored.matchups[3].bullets[0] === recapP.matchups[3].bullets[0] && stored.matchups.length === 4 && stored.sources.length === 3 && /written by claude-sonnet-5-5, punched up by claude-haiku-5-5, \d+ words\. Published automatically; every manager can read it now\./.test(col(R, 'Log')) &&
+  polls.length === 1 && creates.length === 0 && logs.some(l => /published automatically, written by claude-sonnet-5-5, punched up by claude-haiku-5-5/.test(l)), JSON.stringify(S));
 check('the job is over: EMT_ART_JOB cleared, ArticleWork emptied, busy flag released', !props.EMT_ART_JOB && workRows() === 0 && !props.EMT_ART_BUSY);
 reset(); S = tick();
 check('the next tick: nothing to start (the recap row exists; the preview facts are 13 hours old)', S.stopped === 'idle' && creates.length === 0 && S.why.some(w => /recap of GW5 is already/.test(w)) && S.why.some(w => /preview of GW6 waits for fresher facts/.test(w)), S.why.join(' | '));
-const recapId = id;
+const recapAuto = id;
+const LA = get({ articles: '1' }), GA = get({ article: recapAuto });
+check('v3.14: the published recap is served at once: ?articles=1 lists it (review false, its written time), ?article=<id> returns it with auto true, nothing waiting', LA.review === false && LA.live.length === 1 && LA.live[0].id === recapAuto &&
+  LA.live[0].title === recapA.title && LA.live[0].written === unq(col(row(recapAuto), 'Written (UTC)')) && LA.waiting.length === 0 && GA.ok && GA.auto === true && GA.a.matchups[3].story === recapP.matchups[3].story, JSON.stringify(LA).slice(0, 300));
 
 /* ===================== C3 · serving: only live, never draft content ===================== */
-console.log('--- C3 serving and the commissioner');
+console.log('--- C3 serving and the commissioner (review mode: EMT_ART_REVIEW = yes)');
+props.EMT_ART_REVIEW = 'yes';                                         // C3 is about the approval step: v3.13's flow, brought back by the property
+clearArticles();
+PLAN = [{ result: ok(F.recapResearch()).result }, { result: ok(asReply(recapA)).result }, { result: ok(asReply(recapP)).result }];
+reset(); tick(); id = job().id; tick(); tick(); S = tick(); R = row(id);
+check('review mode: the same recap ends as a sealed draft that waits for the commissioner (status draft, s:, no Approved, Log "Waiting for the commissioner.")', S.stopped === 'draft' && col(R, 'Status') === 'draft' &&
+  String(col(R, 'Article')).startsWith('s:') && !R.join('|').includes(recapA.title) && unq(col(R, 'Approved (UTC)')) === '' && /Waiting for the commissioner\.$/.test(col(R, 'Log')) && artOf(R).matchups[3].story === recapP.matchups[3].story &&
+  logs.some(l => /It waits for Cold Palmers to read it in the app/.test(l)), JSON.stringify(S));
+const recapId = id;
 let L1 = get({ articles: '1' });
-check('?articles=1 while it is a draft: no live, waiting has metadata only (no title, no text)', L1.ok && L1.live.length === 0 && L1.waiting.length === 1 && L1.waiting[0].gw === 5 && L1.waiting[0].kind === 'recap' && L1.waiting[0].status === 'draft' &&
-  /^\d{4}-/.test(L1.waiting[0].since) && Object.keys(L1.waiting[0]).sort().join() === 'gw,kind,since,status' && !JSON.stringify(L1).includes('Brobbey') && L1.commish === 'Cold Palmers', JSON.stringify(L1));
+check('?articles=1 while it is a draft: no live, waiting has metadata only (no title, no text); review true', L1.ok && L1.live.length === 0 && L1.waiting.length === 1 && L1.waiting[0].gw === 5 && L1.waiting[0].kind === 'recap' && L1.waiting[0].status === 'draft' &&
+  /^\d{4}-/.test(L1.waiting[0].since) && Object.keys(L1.waiting[0]).sort().join() === 'gw,kind,since,status' && !JSON.stringify(L1).includes('Brobbey') && L1.commish === 'Cold Palmers' && L1.review === true, JSON.stringify(L1));
 check('?article=<draft id> -> notfound; unknown id -> notfound', JSON.stringify(get({ article: recapId })) === '{"ok":false,"error":"notfound"}' && get({ article: 'recap-gw5-zzzzzz' }).error === 'notfound');
 const nd = Hd({ action: 'articles', team: 'Devils U21s', token: tokDU });
 check('POST articles, not the commissioner -> commish false, no drafts', nd.ok === true && nd.commish === false && nd.drafts.length === 0 && JSON.stringify(nd) === '{"ok":true,"commish":false,"drafts":[]}');
@@ -263,16 +276,17 @@ const ap = Hd({ action: 'articlemod', team: 'Cold Palmers', token: tokCP, id: re
 R = row(recapId);
 check('approve -> live, Approved (UTC) set, logged', ap.ok && ap.status === 'live' && col(R, 'Status') === 'live' && /^'\d{4}-/.test(col(R, 'Approved (UTC)')) && /approved by Cold Palmers/.test(col(R, 'Log')), JSON.stringify(ap));
 L1 = get({ articles: '1' });
-check('?articles=1 after approval (the cache was cleared): live has id, gw, kind, title, sub, approved; waiting empty', L1.live.length === 1 && L1.live[0].id === recapId && L1.live[0].title === recapA.title && L1.live[0].sub === recapA.sub &&
-  /^\d{4}-/.test(L1.live[0].approved) && Object.keys(L1.live[0]).sort().join() === 'approved,gw,id,kind,sub,title' && L1.waiting.length === 0, JSON.stringify(L1).slice(0, 200));
+check('?articles=1 after approval (the cache was cleared): live has id, gw, kind, title, sub, approved (v3.14: and written); waiting empty', L1.live.length === 1 && L1.live[0].id === recapId && L1.live[0].title === recapA.title && L1.live[0].sub === recapA.sub &&
+  /^\d{4}-/.test(L1.live[0].approved) && Object.keys(L1.live[0]).sort().join() === 'approved,gw,id,kind,sub,title,written' && L1.waiting.length === 0, JSON.stringify(L1).slice(0, 200));
 const g1 = get({ article: recapId });
-check('?article=<live id> -> the article', g1.ok && g1.id === recapId && g1.gw === 5 && g1.kind === 'recap' && g1.a.matchups.length === 4 && /^\d{4}-/.test(g1.approved) && /^\d{4}-/.test(g1.written) && g1.a.foot === recapA.foot);
+check('?article=<live id> -> the article (v3.14: auto false, approved by hand)', g1.ok && g1.id === recapId && g1.gw === 5 && g1.kind === 'recap' && g1.a.matchups.length === 4 && /^\d{4}-/.test(g1.approved) && /^\d{4}-/.test(g1.written) && g1.a.foot === recapA.foot && g1.auto === false);
 check('approve again -> live (not a draft)', Hd({ action: 'articlemod', team: 'Cold Palmers', token: tokCP, id: recapId, op: 'approve' }).error === 'live');
-check('redo a live article -> live (refused)', Hd({ action: 'articlemod', team: 'Cold Palmers', token: tokCP, id: recapId, op: 'redo', note: 'x' }).error === 'live');
+check('redo a live article in review mode -> live (refused, as in v3.13)', Hd({ action: 'articlemod', team: 'Cold Palmers', token: tokCP, id: recapId, op: 'redo', note: 'x' }).error === 'live');
 check('drafts no longer list it once live', Hd({ action: 'articles', team: 'Cold Palmers', token: tokCP }).drafts.length === 0);
 
 /* ===================== C4 · a preview from ShowFacts ===================== */
 console.log('--- C4 preview job from ShowFacts');
+delete props.EMT_ART_REVIEW;                                          // back to the default: published once it passes the checks
 const oldApp = JSON.parse(JSON.stringify(F.SHOWF));                 // the facts an older app sends: no kind, no collisions
 delete cache['EMT_SF_Team Jacob']; sp('Team Jacob', tokTJ, oldApp);
 reset(); S = tick();
@@ -292,10 +306,19 @@ check('40 hours out with fresh kind-preview facts -> the preview of GW6 starts; 
 reset(); tick(); tick(); const pcr = creates.find(c => c.req.custom_id === id + '-p'); reset(); S = tick();
 R = row(id);
 const pv = artOf(R);
-check('research, then writing, then the punch-up, then a preview draft (the punched-up one; labels Player to watch / The limbo, the preview foot)', S.stopped === 'draft' && col(R, 'Status') === 'draft' && pv.kind === 'preview' && pv.matchups.some(m => m.star.label === 'The limbo') &&
+check('research, then writing, then the punch-up, then published (v3.14; the punched-up one; labels Player to watch / The limbo, the preview foot)', S.stopped === 'live' && col(R, 'Status') === 'live' && String(col(R, 'Article')).startsWith('j:') && pv.kind === 'preview' && pv.matchups.some(m => m.star.label === 'The limbo') &&
   pv.foot === prevA.foot && pv.sources.length === 2 && pv.matchups[3].story === prevP.matchups[3].story && col(R, 'Model') === 'claude-sonnet-5-5 + claude-haiku-5-5' && pcr && pcr.req.params.model === 'claude-haiku-5-5', JSON.stringify(S));
 const L2 = get({ articles: '1' });
-check('?articles=1: the recap live, the preview waiting (metadata only)', L2.live.length === 1 && L2.waiting.length === 1 && L2.waiting[0].kind === 'preview' && L2.waiting[0].gw === 6 && !JSON.stringify(L2).includes(prevA.title));
+check('?articles=1: the recap and the preview live, nothing waiting', L2.live.length === 2 && L2.waiting.length === 0 && L2.live.some(l => l.id === id && l.kind === 'preview' && l.title === prevA.title) && L2.live[0].id === id && L2.live[1].kind === 'recap');   // newest gameweek first
+
+/* the commissioner's drafts (C5, C6) need review mode: the preview again, as a draft */
+props.EMT_ART_REVIEW = 'yes';
+sheets.Articles.rows = sheets.Articles.rows.filter(r => r[0] !== id); delete cache.EMT_ART_LIST;
+PLAN = [{ result: ok(F.previewResearch()).result }, { result: ok(asReply(prevA)).result }, { result: ok(asReply(prevP)).result }];
+reset(); tick(); id = job().id; tick(); tick(); S = tick(); R = row(id);
+const pvd = artOf(R);
+check('review mode: the preview again, as a sealed draft; ?articles=1: the recap live, the preview waiting (metadata only)', S.stopped === 'draft' && col(R, 'Status') === 'draft' && String(col(R, 'Article')).startsWith('s:') && pvd.matchups[3].story === prevP.matchups[3].story &&
+  get({ articles: '1' }).live.length === 1 && get({ articles: '1' }).waiting.length === 1 && get({ articles: '1' }).waiting[0].kind === 'preview' && !JSON.stringify(get({ articles: '1' })).includes(prevA.title));
 const previewId = id;
 
 /* ===================== C5 · redo with a note ===================== */
@@ -318,7 +341,7 @@ reset(); S = tick();
 const rwq = creates[0] && creates[0].req;
 check('the rewrite skips the research: one writing batch, from the stored research, with the note and the last draft', creates.length === 1 && rwq.custom_id === previewId + '-w' && !rwq.params.tools &&
   rwq.params.messages[0].content.includes('A REWRITE') && rwq.params.messages[0].content.includes('His note: "' + note.text + '"') && rwq.params.messages[0].content.includes('THE LAST DRAFT:') &&
-  rwq.params.messages[0].content.includes(JSON.stringify(pv.title)) && rwq.params.messages[0].content.includes('Arteta said Saka trained fully'), S.stopped);
+  rwq.params.messages[0].content.includes(JSON.stringify(pvd.title)) && rwq.params.messages[0].content.includes('Arteta said Saka trained fully'), S.stopped);
 reset(); S = tick();
 const rpq = creates[0] && creates[0].req, rpu = rpq ? rpq.params.messages[0].content : '';
 check('the rewrite passes the checks and goes to the punch-up too, with the commissioner\'s note', S.stopped === 'submitted' && rpq && rpq.custom_id === previewId + '-p' && rpu.startsWith('THE ARTICLE:\n') &&
@@ -360,6 +383,7 @@ check('... and lands as a draft again', S.stopped === 'draft' && col(row(preview
 
 /* ===================== C7 · pause_turn ===================== */
 console.log('--- C7 pause_turn continuation');
+delete props.EMT_ART_REVIEW;                                          // from here on the default again (C16 R1 turns review mode on for itself)
 sheets.ShowFacts.rows.slice(1).forEach(r => { r[1] = "'" + iso(Date.now() - 13 * H); });   // from here on only recaps are due
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tokTJ);
 const part1 = [{ type: 'text', text: 'Brentford v Chelsea\n- Schade set up both of Thiago\'s goals in a 3-0 win (BBC Sport)\n' }].concat([{ type: 'server_tool_use', id: 'srvtoolu_p1', name: 'web_search', input: { query: 'Man City Sunderland' } }]);
@@ -380,7 +404,7 @@ const res7 = unq(col(R, 'Research'));
 check('then it ends: the research joins all three parts (text blocks from every turn), and the writing goes out', col(R, 'Status') === 'writing' && res7.includes('Schade set up both of Thiago') && res7.includes('Brobbey scored in the 12th') && res7.includes('Isak scored the only goal') &&
   creates.length === 1 && creates[0].req.custom_id === id + '-w' && !sheets.ArticleWork.rows.slice(1).some(r => r[1] === 'cont'));
 reset(); S = tick();
-check('... and the draft', S.stopped === 'draft');
+check('... and it is published', S.stopped === 'live' && col(row(id), 'Status') === 'live');
 // a third pause is not continued: what it has is kept
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tokTJ);
 PLAN = [{ result: ok(part1, 'pause_turn').result }, { result: ok(part2, 'pause_turn').result }, { result: ok(F.recapResearch(), 'pause_turn').result }, { result: ok(asReply(recapA)).result }];
@@ -402,7 +426,7 @@ const nsw = creates[0] && creates[0].req.params.messages[0].content;
 check('errored with web search not enabled -> research unavailable (logged), empty research, the writing goes out at once', col(R, 'Status') === 'writing' && /research unavailable: Web search is not enabled/.test(col(R, 'Log')) && unq(col(R, 'Research')) === 't:' &&
   creates.length === 1 && nsw.includes('(none: the research came back empty') && logs.some(l => /research unavailable/.test(l)) && (job().tries || 0) === 0);
 reset(); S = tick();
-check('written from the league data alone, sources empty -> draft', S.stopped === 'draft' && artOf(row(id)).sources.length === 0);
+check('written from the league data alone, sources empty -> published', S.stopped === 'live' && artOf(row(id)).sources.length === 0);
 // the same at creation time (a 400 about web search when the batch is made)
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tokTJ);
 PLAN = [{ create: { code: 400, body: { type: 'error', error: { type: 'invalid_request_error', message: 'web_search tool is not available for your organization' } } } }, { result: ok(asReply(noSrc)).result }];
@@ -477,7 +501,7 @@ check('the writing goes to the same model (claude-opus-5-5)', creates.length ===
 reset(); S = tick();
 check('a batch result errored with not_found_error -> the next model (claude-sonnet-4-5), not a try', creates.length === 1 && creates[0].req.params.model === 'claude-sonnet-4-5' && job().model === 'claude-sonnet-4-5' && (job().tries || 0) === 0);
 reset(); S = tick();
-check('... and the draft records the model that wrote it', S.stopped === 'draft' && col(row(id), 'Model') === 'claude-sonnet-4-5', S.stopped + ' ' + col(row(id), 'Model'));
+check('... and the published article records the model that wrote it', S.stopped === 'live' && col(row(id), 'Model') === 'claude-sonnet-4-5', S.stopped + ' ' + col(row(id), 'Model'));
 check('the next job skips the gone models (3 days)', JSON.stringify(ctx.emtModelsLive(ctx.emtModelChain('EMT_ARTICLE_MODEL', ctx.EMT_ART_MODELS))) === '["claude-sonnet-4-5"]');
 check('every model gone -> the whole chain is tried again', (props.EMT_MODEL_GONE = JSON.stringify({ 'claude-sonnet-5-5': Date.now(), 'claude-opus-5-5': Date.now(), 'claude-sonnet-4-5': Date.now() }), ctx.emtModelsLive(ctx.emtModelChain('EMT_ARTICLE_MODEL', ctx.EMT_ART_MODELS)).length === 3));
 check('a 400 that mentions the model counts as gone; one about web search or something else does not', ctx.emtModelMissing(400, 'invalid_request_error', 'model: claude-x is deprecated') && !ctx.emtModelMissing(400, 'invalid_request_error', 'web_search is not supported for this model') &&
@@ -563,7 +587,7 @@ props.EMT_AI_STATE = JSON.stringify({ day: '2026-10-08', count: 3, socialAt: 1 }
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tokTJ);
 PLAN = [{ result: ok(F.recapResearch()).result, after: 9 }]; reset(); tick();
 const hz = get({ health: '1' }), hzs = JSON.stringify(hz);
-check('?health=1: ok, version, self, show, articles {job, last}, ai {day, count}', hz.ok === true && hz.version === ctx.emtSelfVersion(src) && hz.version === 'v3.13' && hz.self === 'current: v3.13 (checked x)' &&
+check('?health=1: ok, version, self, show, articles {job, last}, ai {day, count}', hz.ok === true && hz.version === ctx.emtSelfVersion(src) && hz.version === 'v3.14' && hz.self === 'current: v3.13 (checked x)' &&
   hz.show && hz.show.gw === 6 && 'facts' in hz.show && 'clips' in hz.show && hz.articles.job && hz.articles.job.kind === 'recap' && hz.articles.job.phase === 'research' && hz.articles.last.length === 1 &&
   hz.articles.last[0].status === 'research' && hz.ai.day === '2026-10-08' && hz.ai.count === 3 && Object.keys(hz).sort().join() === 'ai,articles,ok,self,show,version', hzs.slice(0, 300));
 check('?health=1 carries no secrets (keys, PIN hashes, tokens, the batch id, article text)', !/sk-test|el-secret-key|pin-secret|msgbatch|EMT_PIN|Brobbey/.test(hzs) && !Object.values(props).filter(v => /^[0-9a-f]{64}$/.test(v)).some(v => hzs.includes(v)));
@@ -627,6 +651,7 @@ const odd = 'Ødegaard’s “late” winner, 3–2, \u{1F410}';
 const seal1 = ctx.emtArtSeal(odd, ctx.emtArtSecret(true));
 check('R1 seal/open: non-ASCII round trip, a new nonce each time, a key made on first use, garbage -> null', ctx.emtArtOpen(seal1) === odd && seal1 !== ctx.emtArtSeal(odd, ctx.emtArtSecret(true)) &&
   /^s:[0-9a-f]{16}:[A-Za-z0-9+/=]+$/.test(seal1) && /^[0-9a-f]{64}$/.test(props.EMT_ART_SEAL) && ctx.emtArtOpen('s:zz:abc') === null && ctx.emtArtOpen('j:{}') === null && ctx.emtArtOpen('') === null);
+props.EMT_ART_REVIEW = 'yes';                                         // R1 is about sealed drafts: review mode
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tj16);
 const leakA = F.recapArticle(); leakA.matchups[0].story += ' Jacob said: "This sentence is a secret draft line that must never leak."';
 const goodA = F.recapArticle();
@@ -653,6 +678,7 @@ check('R1 a rewrite note: sealed in the Note cell, not in the Log; the commissio
   /rewrite 1 of 3 asked by Cold Palmers, with a note/.test(col(R, 'Log')) && Hd({ action: 'articles', team: 'Cold Palmers', token: cp16 }).drafts.find(d => d.id === id).note === secretNote && job().note === secretNote);
 check('R1 ?health=1 never carries the sealing key', !JSON.stringify(get({ health: '1' })).includes(props.EMT_ART_SEAL));
 Hd({ action: 'articlemod', team: 'Cold Palmers', token: cp16, id, op: 'drop' });
+delete props.EMT_ART_REVIEW;
 
 // R2 · web search off can come back as a 403 permission_error when the batch is made
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tj16);
@@ -780,8 +806,8 @@ const dashP = F.recapPunched(); dashP.matchups[3].story = dashP.matchups[3].stor
 toPunch({ result: ok(asReply(dashP)).result });
 check('P1 setup: the punch-up batch is out, the job in its punch phase', pS.stopped === 'submitted' && job().phase === 'punch' && creates.some(c => c.req.custom_id === id + '-p') && dashP.matchups[3].story.includes('—'));
 reset(); pS = tick();
-check('P1 a punch-up with an em dash fails the check -> the draft is the checked base; Model the writer only; Log "punch-up not used" with the problem; not a try', pS.stopped === 'draft' && col(row(id), 'Status') === 'draft' &&
-  drafted().matchups[3].story === baseStory && col(row(id), 'Model') === 'claude-sonnet-5-5' && /written by claude-sonnet-5-5, \d+ words; punch-up not used: the check found 1 problem: An em dash or en dash in Devils U21s v I Am a Baleba, the story: use a comma, a colon or a full stop\. Waiting for the commissioner\.$/.test(lastLog()) &&
+check('P1 a punch-up with an em dash fails the check -> the checked base is published; Model the writer only; Log "punch-up not used" with the problem; not a try', pS.stopped === 'live' && col(row(id), 'Status') === 'live' &&
+  drafted().matchups[3].story === baseStory && col(row(id), 'Model') === 'claude-sonnet-5-5' && /written by claude-sonnet-5-5, \d+ words; punch-up not used: the check found 1 problem: An em dash or en dash in Devils U21s v I Am a Baleba, the story: use a comma, a colon or a full stop\. Published automatically; every manager can read it now\.$/.test(lastLog()) &&
   !/try 1/.test(logOf()) && !props.EMT_ART_JOB && workRows() === 0 && pS.punch === 'punch-up not used' && P17().article.used === false && P17().article.why === 'the check found 1 problem' &&
   logs.some(l => /punch-up not used: the check found 1 problem: An em dash/.test(l)) && /the punch-up was not used/.test(ctx.emtArtSummary(pS)), lastLog());
 // P2 · a new number: one from the facts (the check lets it through, the punch-up guard does not), and an invented one
@@ -790,40 +816,40 @@ const okF17 = ctx.emtArtAllowed(ctx.emtArtSent(RECAP), RECAP), FN = Array.from({
 const numP = F.recapPunched(); numP.lede += ' Somewhere, ' + FN + ' was a number that mattered.';
 check('P2 setup: ' + FN + ' is in the facts but not in the checked article, so emtArticleCheck alone passes it', FN > 11 && ctx.emtArticleCheck(JSON.stringify(numP), RECAP, RS17, 'recap', 5).problems.length === 0);
 toPunch({ result: ok(asReply(numP)).result }); reset(); pS = tick();
-check('P2 a punch-up that adds a number (' + FN + ', from the facts) -> the punch-up guard refuses it, the checked base is the draft', pS.stopped === 'draft' && drafted().lede === baseA.lede &&
+check('P2 a punch-up that adds a number (' + FN + ', from the facts) -> the punch-up guard refuses it, the checked base is the draft', pS.stopped === 'live' && drafted().lede === baseA.lede &&
   new RegExp('punch-up not used: the check found 1 problem: The punch-up added the number ' + FN + ', which the checked version does not have').test(lastLog()) && col(row(id), 'Model') === 'claude-sonnet-5-5', lastLog());
 const invP = F.recapPunched(); invP.matchups[0].bullets[0] = 'Mitchell led Team Jacob with 7 points, and ' + INV + ' minutes of nothing.';
 toPunch({ result: ok(asReply(invP)).result }); reset(); pS = tick();
-check('P2 a punch-up that invents a number (' + INV + ') -> emtArticleCheck refuses it, the checked base (the quoted text redacted in the Log)', pS.stopped === 'draft' && drafted().matchups[0].bullets[0] === baseA.matchups[0].bullets[0] &&
+check('P2 a punch-up that invents a number (' + INV + ') -> emtArticleCheck refuses it, the checked base (the quoted text redacted in the Log)', pS.stopped === 'live' && drafted().matchups[0].bullets[0] === baseA.matchups[0].bullets[0] &&
   new RegExp('punch-up not used: the check found 1 problem: The number ' + INV + ' \\(Team Jacob v Cold Palmers, bullet 1: "\\.\\.\\."\\) is not in FACTS or RESEARCH').test(lastLog()), lastLog());
 // P3 · a star swapped for another valid one
 const fx17 = RECAP.fixtures.find(x => x.home === 'Team Jacob'), otherStar = fx17.H.xi.concat(fx17.A.xi).map(p => String(p.code)).find(c => c !== '513418');
 const starP = F.recapPunched(); starP.matchups[0].star.code = otherStar;
 toPunch({ result: ok(asReply(starP)).result }); reset(); pS = tick();
-check('P3 a punch-up that swaps the star for another player of that eleven -> refused (the star must stay), the checked base', pS.stopped === 'draft' && drafted().matchups[0].star.code === '513418' &&
+check('P3 a punch-up that swaps the star for another player of that eleven -> refused (the star must stay), the checked base', pS.stopped === 'live' && drafted().matchups[0].star.code === '513418' &&
   /the check found 1 problem: Team Jacob v Cold Palmers: the star must stay 513418, Star of the match\./.test(lastLog()), lastLog());
 // P4 · errored, expired, lost
 toPunch(errd('api_error', 'Internal server error')); reset(); pS = tick();
-check('P4 a punch-up batch that errored -> the checked base at once, not a try, nothing resubmitted', pS.stopped === 'draft' && drafted().matchups[3].story === baseStory && creates.length === 0 &&
+check('P4 a punch-up batch that errored -> the checked base at once, not a try, nothing resubmitted', pS.stopped === 'live' && drafted().matchups[3].story === baseStory && creates.length === 0 &&
   /punch-up not used: the punch-up request errored: api_error: Internal server error/.test(lastLog()) && !/try 1/.test(logOf()), lastLog());
 toPunch({ result: { type: 'expired' } }); reset(); pS = tick();
-check('P4 ... expired -> the checked base', pS.stopped === 'draft' && drafted().matchups[3].story === baseStory && /punch-up not used: the punch-up request expired/.test(lastLog()));
+check('P4 ... expired -> the checked base', pS.stopped === 'live' && drafted().matchups[3].story === baseStory && /punch-up not used: the punch-up request expired/.test(lastLog()));
 toPunch({ result: ok(asReply(F.recapPunched())).result }); delete BATCHES[job().batch]; reset(); pS = tick();
-check('P4 ... a punch-up batch that is gone (404) -> the checked base', pS.stopped === 'draft' && drafted().matchups[3].story === baseStory && /punch-up not used: the punch-up batch was lost: the batch msgbatch_\d+ is gone/.test(lastLog()), lastLog());
+check('P4 ... a punch-up batch that is gone (404) -> the checked base', pS.stopped === 'live' && drafted().matchups[3].story === baseStory && /punch-up not used: the punch-up batch was lost: the batch msgbatch_\d+ is gone/.test(lastLog()), lastLog());
 // P5 · the punch model chain
 const punch404 = m => ({ create: { code: 404, body: { type: 'error', error: { type: 'not_found_error', message: 'model: ' + m } } } });
 toPunch(punch404('claude-haiku-5-5'), { result: ok(asReply(F.recapPunched())).result });
 check('P5 the punch model answers 404 -> claude-haiku-4-5 at once (noted gone), not a try; the writer\'s chain is untouched', pS.stopped === 'submitted' && creates.filter(c => /-p$/.test(c.req.custom_id)).map(c => c.req.params.model).join() === 'claude-haiku-5-5,claude-haiku-4-5' &&
   job().model === 'claude-haiku-4-5' && job().writer === 'claude-sonnet-5-5' && JSON.parse(props.EMT_MODEL_GONE)['claude-haiku-5-5'] > 0 && (job().tries || 0) === 0 && JSON.stringify(ctx.emtModelsLive(ctx.emtModelChain('EMT_ARTICLE_MODEL', ctx.EMT_ART_MODELS))) === '["claude-sonnet-5-5","claude-opus-5-5","claude-sonnet-4-5"]');
 reset(); pS = tick();
-check('P5 ... the draft is the punched-up one and records both models: claude-sonnet-5-5 + claude-haiku-4-5', pS.stopped === 'draft' && col(row(id), 'Model') === 'claude-sonnet-5-5 + claude-haiku-4-5' && drafted().matchups[3].story === punchStory && /punched up by claude-haiku-4-5/.test(lastLog()));
+check('P5 ... the draft is the punched-up one and records both models: claude-sonnet-5-5 + claude-haiku-4-5', pS.stopped === 'live' && col(row(id), 'Model') === 'claude-sonnet-5-5 + claude-haiku-4-5' && drafted().matchups[3].story === punchStory && /punched up by claude-haiku-4-5/.test(lastLog()));
 toPunch(punch404('claude-haiku-5-5'), punch404('claude-haiku-4-5'));
-check('P5 every punch model answers 404 -> the checked base in the same run (all gone)', pS.stopped === 'draft' && drafted().matchups[3].story === baseStory && col(row(id), 'Model') === 'claude-sonnet-5-5' && /punch-up not used: no punch-up model is available: tried \(claude-haiku-5-5, claude-haiku-4-5\)\. Waiting/.test(lastLog()), lastLog());
+check('P5 every punch model answers 404 -> the checked base in the same run (all gone)', pS.stopped === 'live' && drafted().matchups[3].story === baseStory && col(row(id), 'Model') === 'claude-sonnet-5-5' && /punch-up not used: no punch-up model is available: tried \(claude-haiku-5-5, claude-haiku-4-5\)\. Published automatically/.test(lastLog()), lastLog());
 toPunch(errd('not_found_error', 'model: claude-haiku-5-5'), errd('not_found_error', 'model: claude-haiku-4-5'));
 reset(); pS = tick();
 check('P5 a punch-up result errored with not_found_error -> the next punch model, same run', pS.stopped === 'submitted' && creates.length === 1 && creates[0].req.custom_id === id + '-p' && creates[0].req.params.model === 'claude-haiku-4-5');
 reset(); pS = tick();
-check('P5 ... the last one too -> the checked base, never failed', pS.stopped === 'draft' && col(row(id), 'Status') === 'draft' && drafted().matchups[3].story === baseStory &&
+check('P5 ... the last one too -> the checked base, never failed', pS.stopped === 'live' && col(row(id), 'Status') === 'live' && drafted().matchups[3].story === baseStory &&
   /punch-up not used: no punch-up model is available: the last, claude-haiku-4-5, answered: model: claude-haiku-4-5/.test(lastLog()), lastLog());
 // P6 · 2 hours
 toPunch({ result: ok(asReply(F.recapPunched())).result, after: 99 });
@@ -834,24 +860,24 @@ check('P6 a punch-up still running after 1.9 hours -> still waiting (?health sho
   hzP.articles.job.phase === 'punch' && hzP.articles.job.writer === 'claude-sonnet-5-5' && hzP.articles.job.model === 'claude-haiku-5-5' && /punching up what claude-sonnet-5-5 wrote, batch sent 114 minutes ago to claude-haiku-5-5/.test(ctx.articlesStatus()));
 const j18 = job(); j18.punchAt = Date.now() - 2.1 * H; props.EMT_ART_JOB = JSON.stringify(j18);
 reset(); pS = tick();
-check('P6 ... still running 2 hours after the punch-up started -> cancelled, the checked base is the draft (not a try, not failed)', pS.stopped === 'draft' && cancels.length === 1 && drafted().matchups[3].story === baseStory &&
+check('P6 ... still running 2 hours after the punch-up started -> cancelled, the checked base is the draft (not a try, not failed)', pS.stopped === 'live' && cancels.length === 1 && drafted().matchups[3].story === baseStory &&
   /punch-up not used: the punch-up was still unfinished after 2 hours/.test(lastLog()) && !props.EMT_ART_JOB && workRows() === 0, lastLog());
 // P7 · the job's 36 hours run out during the punch-up
 toPunch({ result: ok(asReply(F.recapPunched())).result, after: 99 });
 const j36p = job(); j36p.startedAt = Date.now() - 37 * H; props.EMT_ART_JOB = JSON.stringify(j36p);
 reset(); pS = tick();
-check('P7 the job\'s 36 hours run out during the punch-up -> the checked base is the draft, not failed', pS.stopped === 'draft' && col(row(id), 'Status') === 'draft' && cancels.length === 1 && /punch-up not used: the job reached its 36-hour limit/.test(lastLog()));
+check('P7 the job\'s 36 hours run out during the punch-up -> the checked base is published, not failed', pS.stopped === 'live' && col(row(id), 'Status') === 'live' && cancels.length === 1 && /punch-up not used: the job reached its 36-hour limit/.test(lastLog()));
 // P8 · EMT_PUNCH_OFF
 props.EMT_PUNCH_OFF = 'yes';
 clearArticles(); delete cache['EMT_RF_Team Jacob']; rpost('Team Jacob', tj16);
 PLAN = [{ result: ok(F.recapResearch()).result }, { result: ok(asReply(F.recapArticle())).result }];
 reset(); tick(); id = job().id; tick(); reset(); pS = tick();
-check('P8 EMT_PUNCH_OFF = yes -> the checked article is the draft at once: no punch-up batch, no base kept, Model the writer only', pS.stopped === 'draft' && creates.length === 0 && polls.length === 1 && col(row(id), 'Model') === 'claude-sonnet-5-5' &&
+check('P8 EMT_PUNCH_OFF = yes -> the checked article is the draft at once: no punch-up batch, no base kept, Model the writer only', pS.stopped === 'live' && creates.length === 0 && polls.length === 1 && col(row(id), 'Model') === 'claude-sonnet-5-5' &&
   /punch-up off \(EMT_PUNCH_OFF = yes\)/.test(lastLog()) && drafted().matchups[3].story === baseStory && workRows() === 0, lastLog());
 delete props.EMT_PUNCH_OFF;
 toPunch({ result: ok(asReply(F.recapPunched())).result, after: 99 });
 props.EMT_PUNCH_OFF = 'yes'; reset(); pS = tick(); delete props.EMT_PUNCH_OFF;
-check('P8 ... turned off while a punch-up runs -> its batch cancelled, the checked base', pS.stopped === 'draft' && cancels.length === 1 && drafted().matchups[3].story === baseStory && /punch-up not used: turned off \(EMT_PUNCH_OFF = yes\)/.test(lastLog()));
+check('P8 ... turned off while a punch-up runs -> its batch cancelled, the checked base', pS.stopped === 'live' && cancels.length === 1 && drafted().matchups[3].story === baseStory && /punch-up not used: turned off \(EMT_PUNCH_OFF = yes\)/.test(lastLog()));
 // P9 · the base lost from ArticleWork
 toPunch({ result: ok(asReply(F.recapPunched())).result });
 sheets.ArticleWork.rows = sheets.ArticleWork.rows.filter((r, i) => !i || r[1] !== 'base');
@@ -860,7 +886,7 @@ reset(); pS = tick();
 check('P9 the checked base lost from ArticleWork -> written again with the writer (not a try); nothing unchecked becomes a draft', pS.stopped === 'submitted' && job().phase === 'write' && (job().tries || 0) === 0 && creates.length === 1 &&
   creates[0].req.custom_id === id + '-w' && creates[0].req.params.model === 'claude-sonnet-5-5' && col(row(id), 'Status') === 'writing' && /could not be read back for the punch-up/.test(logOf()), JSON.stringify(pS));
 reset(); tick(); reset(); pS = tick();
-check('P9 ... then through the punch-up to the draft as usual', pS.stopped === 'draft' && col(row(id), 'Model') === 'claude-sonnet-5-5 + claude-haiku-5-5' && drafted().matchups[3].story === punchStory);
+check('P9 ... then through the punch-up to the draft as usual', pS.stopped === 'live' && col(row(id), 'Model') === 'claude-sonnet-5-5 + claude-haiku-5-5' && drafted().matchups[3].story === punchStory);
 const st17 = ctx.articlesStatus();
 check('P10 articlesStatus has a punch-up line with the last outcome', /Punch-up: on, models claude-haiku-5-5, claude-haiku-4-5\. Last article: recap-gw5-[0-9a-f]{6}, punched up by claude-haiku-5-5, \d{4}-/.test(st17), st17.split('\n').find(l => /Punch-up/.test(l)));
 

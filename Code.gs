@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,25 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.14 · 8 Oct 2026
+ *   Recaps and previews publish themselves. The commissioner's call: no approval step from now on.
+ *   1. An article that passes every check (after the punch-up, where the draft used to be made) goes live at once:
+ *      every manager can read it in the app. It is stored as plain text exactly as an approved one is, Approved (UTC)
+ *      is that moment and the Log says 'Published automatically'. Nothing waits for the commissioner any more. A draft
+ *      still waiting from before (v3.13, or written while EMT_ART_REVIEW was yes) is published by the next run.
+ *   2. The commissioner can still fix a live article from his phone. Ask for a rewrite with a note (the same as for a
+ *      draft: 400 characters, 3 rewrites an article, queued while another article is being written): the live
+ *      version stays up and readable the whole time, and the new one replaces it only once it passes the checks. If
+ *      the rewrite fails, the live version stays and the Log says so. Take it down (drop) works as before. The
+ *      rewrite in progress is noted in the Note cell, so if its job is lost the next run picks it up again.
+ *   3. Script Property EMT_ART_REVIEW = yes brings back the v3.13 flow unchanged: every article waits, sealed, for the
+ *      commissioner to approve it, and a live article can be taken down but not rewritten.
+ *   4. GET ?articles=1 adds review (true in review mode) and each live article's written time (it changes when a
+ *      rewrite replaces the text, so phones fetch the new one); ?article=<id> adds auto (published without a manual
+ *      approval). POST articles also gives the commissioner review and his live articles (rewrites used, his last
+ *      note, a rewrite in progress or failed). ?health=1 and articlesStatus() show the mode (auto or review) and any
+ *      rewrite in progress.
+ *   No new setup and no new permissions. Optional Script Property: EMT_ART_REVIEW = yes.
  * v3.13 · 8 Oct 2026
  *   Articles write themselves: the gameweek recap and the deadline preview, with nobody's computer on.
  *   1. The app sends the facts. Recap facts go to the new `artfacts` action: signed-in managers only, one accepted
@@ -2682,6 +2701,10 @@ function emtApiErr(body) {
 
 /* =====================================================================================================
  * v3.13 · ARTICLES WRITE THEMSELVES — the gameweek recap and the deadline preview, researched and written here.
+ * v3.14 · ... AND PUBLISH THEMSELVES: an article that passes the checks goes live at once (no approval step; the
+ *   commissioner's call, 8 Oct 2026). Script Property EMT_ART_REVIEW = yes brings back the v3.13 draft-and-approve flow.
+ *   The commissioner can still ask for a rewrite of a live article (the live version stays up until the new one passes
+ *   the checks) or take it down.
  *   1. Facts. Preview: the ShowFacts the app already posts (showfacts; kind 'preview', with collisions, slate,
  *      rosters and moves). Recap: POST { action: 'artfacts', team, token, gw, kind: 'recap', facts: '<json string>' }:
  *      signed-in managers only, one accepted post per manager per 20 minutes ('slow', its own counter, so a phone can
@@ -2703,31 +2726,44 @@ function emtApiErr(body) {
  *      check goes back once with the problems (the same try). 3 tries a job: an errored, expired or lost batch, one
  *      still unfinished after 6 hours, or two failed checks is a try; a call that never reached Claude is not. Then
  *      status failed, the reasons in Log. A job still open 36 hours after it started is given up.
- *      v3.13: a checked article then goes to the punch-up (a third batch, <id>-p, see THE PUNCH-UP below) and the
- *      punched-up version, or the checked one when the punch-up is not used, becomes the draft.
+ *      v3.13: a checked article then goes to the punch-up (a third batch, <id>-p, see THE PUNCH-UP below).
+ *      v3.14: the punched-up version, or the checked one when the punch-up is not used, is then done (emtArtDone):
+ *      published at once (status live, the article as plain 'j:' json, Approved (UTC) now, 'Published automatically' in
+ *      the Log), or with EMT_ART_REVIEW = yes kept sealed as a draft for the commissioner.
  *   5. The Articles tab (hidden): Id · GW · Kind · Status (research, writing, draft, live, dropped, failed) · Written
- *      (UTC) · Model (v3.13: '<writer> + <punch model>' when the punch-up was used) · Facts received (UTC) · Research ('t:' + notes) · Article ('j:' + json once live; sealed 's:'
- *      before that, and again when a live one is dropped) · Note ('j:' + { s: <sealed note>, redos, at }) · Approved
- *      (UTC) · Log (one line per event, newest last; quoted draft text redacted). ArticleWork (hidden) keeps a job's
- *      working files (the facts it was given, a paused research turn, a rejected reply, sealed, and v3.13 the checked
- *      article waiting for its punch-up, sealed) until the job ends.
+ *      (UTC) · Model (v3.13: '<writer> + <punch model>' when the punch-up was used) · Facts received (UTC) · Research
+ *      ('t:' + notes) · Article ('j:' + json once live; sealed 's:' before that, and again when a live one is dropped)
+ *      · Note ('j:' + { s: <sealed note>, redos, at, pend }) · Approved (UTC: the first publish) · Log (one line per
+ *      event, newest last; quoted draft text redacted). ArticleWork (hidden) keeps a job's working files (the facts it
+ *      was given, a paused research turn, a rejected reply, sealed, and v3.13 the checked article waiting for its
+ *      punch-up, sealed) until the job ends.
  *      Hidden is not private (the sheet is link-viewable), hence the sealing: see emtArtSeal.
  *      Each job carries a run token: a run left over from before a drop and a rewrite stops instead of overwriting.
- *   6. Serving: GET ?articles=1 → { ok, live: [{ id, gw, kind, title, sub, approved }] newest first, waiting: [{ gw,
- *      kind, status, since }], commish } (cached 5 minutes, cleared on every change). GET ?article=<id> → { ok, id, gw,
- *      kind, approved, written, a } for a live article, else { ok: false, error: 'notfound' }.
- *      POST { action: 'articles', team, token } → { ok, commish, drafts: [{ id, gw, kind, status, written, model,
- *      note, redos, a, error? }] }: drafts (research, writing, draft, and failed in the last 7 days) go to the
- *      commissioner only. POST { action: 'articlemod', team, token, id, op, note } (commissioner only): approve (a
- *      draft goes live), redo (draft, failed or dropped: rewritten with the note, 400 characters at most, from the
- *      stored research; 3 per article) or drop. → { ok, status } | { ok: false, error }.
- *      GET ?health=1 → { ok, version, self, show, articles: { job, last }, ai: { day, count } }, no secrets.
+ *      v3.14 · A REWRITE OF A LIVE ARTICLE. The row stays status live and its Article cell keeps the live version, so
+ *      ?articles and ?article go on serving it; the Note's pend reads 'writing' (emtArtLiveRw) and the job (job.live)
+ *      writes the new version in ArticleWork like any rewrite (sealed while it waits for its punch-up). When it passes
+ *      the checks, emtArtDone swaps it into the Article cell (Written and Model updated, Approved kept, pend cleared).
+ *      When it fails (3 tries, 36 hours, no facts, no model), emtArtFail leaves the live version as it is and sets
+ *      pend to 'failed'. A drop meanwhile takes the article down and cancels the rewrite. A lost job is found again
+ *      through pend (emtArtNext), like an article left in research or writing.
+ *   6. Serving: GET ?articles=1 → { ok, live: [{ id, gw, kind, title, sub, approved, written }] newest first, waiting:
+ *      [{ gw, kind, status, since }], commish, review } (cached 5 minutes, cleared on every change; review is read
+ *      fresh). GET ?article=<id> → { ok, id, gw, kind, approved, written, auto, a } for a live article, else { ok:
+ *      false, error: 'notfound' }.
+ *      POST { action: 'articles', team, token } → { ok, commish, review, drafts: [{ id, gw, kind, status, written,
+ *      model, note, redos, a, error? }], live: [{ id, gw, kind, redos, note, rewrite: '' | 'writing' | 'failed', error?
+ *      }] }: drafts (research, writing, draft, and failed in the last 7 days) and live go to the commissioner only.
+ *      POST { action: 'articlemod', team, token, id, op, note } (commissioner only): approve (a draft goes live), redo
+ *      (draft, failed or dropped: rewritten with the note, 400 characters at most, from the stored research; v3.14 also
+ *      a live article, except in review mode; 3 per article) or drop (a live one is taken down). → { ok, status } |
+ *      { ok: false, error }.
+ *      GET ?health=1 → { ok, version, self, show, articles: { mode, job, last }, ai: { day, count } }, no secrets.
  *   Commissioner: Script Property EMT_COMMISH, else Cold Palmers. EMT_ARTICLES_PAUSED = yes pauses articleTick.
  *   Model: EMT_ARTICLE_MODEL, then claude-sonnet-5-5, claude-opus-5-5, claude-sonnet-4-5.
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.13';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.14';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -2762,7 +2798,7 @@ var EMT_EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2300}-
 
 /* the house style (Parker's feedback on GW1 to GW4) */
 var EMT_ART_SYSTEM = [
-  'You write the weekly articles for Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Each gameweek every club plays one head to head fixture: 3 points for a win, 1 for a draw. There are two kinds of article: the RECAP after a gameweek and the PREVIEW before a deadline. The commissioner reads every draft before the league sees it.',
+  'You write the weekly articles for Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Each gameweek every club plays one head to head fixture: 3 points for a win, 1 for a draw. There are two kinds of article: the RECAP after a gameweek and the PREVIEW before a deadline. Every article is checked automatically before the league sees it.',
   '',
   'THE VOICE. An objective third-person narrator who reports straight and is funny on top: never first person (no I, we, our or us). Managers by first name (mgr), clubs by team name, spelt exactly as in FACTS. British spelling, plain sentences. Every matchup gets at least one real joke, built the way THE READERS describes. No pet phrase used twice, and no coinage that needs explaining.',
   '',
@@ -2786,6 +2822,9 @@ var EMT_ART_SYSTEM = [
 ]).join('\n');
 
 function emtCommish() { return String(emtProps().getProperty('EMT_COMMISH') || '').trim() || EMT_COMMISH_DEFAULT; }
+/* v3.14: review mode (Script Property EMT_ART_REVIEW = yes): every article waits as a sealed draft for the
+ * commissioner, as in v3.13. Otherwise (the default) an article is published as soon as it passes the checks. */
+function emtArtReview() { return String(emtProps().getProperty('EMT_ART_REVIEW') || '').trim().toLowerCase() === 'yes'; }
 function emtTrue(v) { return v === true || String(v).toUpperCase() === 'TRUE'; }
 function emtUnq(v) { return v instanceof Date ? v.toISOString() : String(v == null ? '' : v).replace(/^'/, ''); }
 function emtIso(ms) { return ms ? new Date(ms).toISOString() : ''; }
@@ -2909,7 +2948,9 @@ function emtArtFacts(team, req) {
 }
 
 /* ---------- the Articles tab ---------- */
-/* the Note cell: 'j:' + { s: <the note, sealed>, redos, at } (or { text } as written by hand) */
+/* the Note cell: 'j:' + { s: <the note, sealed>, redos, at, pend } (or { text } as written by hand). v3.14: pend is
+ * 'writing' while a rewrite of the live article is under way (the live version stays up meanwhile) and 'failed' when
+ * that rewrite failed (the live version stayed); '' otherwise */
 function emtArtNote(v) {
   var s = emtUnq(v);
   if (s.indexOf(EMT_JSON_MARK) === 0) {
@@ -2918,11 +2959,38 @@ function emtArtNote(v) {
       if (j && typeof j === 'object') {
         var t = String(j.text || '');
         if (j.s) { var o = emtArtOpen(j.s); try { t = o === null ? '' : String(JSON.parse(o)); } catch (e) { t = ''; } }
-        return { text: t, redos: Number(j.redos) || 0, at: String(j.at || '') };
+        return { text: t, redos: Number(j.redos) || 0, at: String(j.at || ''), pend: String(j.pend || '') };
       }
     } catch (e) { }
   }
-  return { text: s, redos: 0, at: '' };
+  return { text: s, redos: 0, at: '', pend: '' };
+}
+/* v3.14: the Note cell with some of its keys changed (a value of '' removes the key); the sealed note, redos and at
+ * are kept as they are. A note written by hand becomes { text }. → the new cell value */
+function emtArtNoteSet(v, patch) {
+  var s = emtUnq(v), j = null;
+  if (s.indexOf(EMT_JSON_MARK) === 0) { try { j = JSON.parse(s.slice(EMT_JSON_MARK.length)); } catch (e) { j = null; } }
+  if (!j || typeof j !== 'object' || Array.isArray(j)) j = s ? { text: s } : {};
+  Object.keys(patch || {}).forEach(function (k) { if (patch[k] === '' || patch[k] == null) delete j[k]; else j[k] = patch[k]; });
+  return EMT_JSON_MARK + JSON.stringify(j);
+}
+/* v3.14: a live article with a rewrite under way (m: an emtArtMeta row) */
+function emtArtLiveRw(m) { return !!(m && m.status === 'live' && m.pend === 'writing'); }
+/* an article a job may work on: researching, writing, or (v3.14) live with a rewrite under way */
+function emtArtActive(m) { return !!(m && (EMT_ART_ACTIVE.indexOf(m.status) > -1 || emtArtLiveRw(m))); }
+/* v3.14: the cells that make an article live, shared by the commissioner's approve, the automatic publish and the swap
+ * after a rewrite of a live article: status live and the article as plain 'j:' json (?articles and ?article read it
+ * without the key). approvedAt (ISO) sets Approved (UTC), the first publish (the swap keeps it); more: other cells */
+function emtArtLiveFields(art, approvedAt, more) {
+  var f = { status: 'live', article: EMT_JSON_MARK + JSON.stringify(art) };
+  if (approvedAt) f.approved = "'" + approvedAt;
+  Object.keys(more || {}).forEach(function (k) { f[k] = more[k]; });
+  return f;
+}
+/* v3.14: was the version now live published without a manual approval? (the newest publish line in the Log) */
+function emtArtAuto(log) {
+  var l = String(log || '').split('\n').filter(function (x) { return / approved by |Published automatically|replaced the live one/.test(x); }).pop() || '';
+  return !!l && !/ approved by /.test(l);
 }
 /* the time of the newest Log line (ms) and its text without the time */
 function emtArtLogAt(log) { var l = String(log || '').split('\n').filter(Boolean), m = l.length ? /^(\S+)/.exec(l[l.length - 1]) : null; return m ? aiTs(m[1]) : 0; }
@@ -2938,7 +3006,7 @@ function emtArtMeta() {
     if (!id) return;
     var note = emtArtNote(b[i][0]), log = emtUnq(b[i][2]);
     out.push({ row: i + 2, id: id, gw: Number(r[1]) || 0, kind: emtUnq(r[2]), status: emtUnq(r[3]), written: emtUnq(r[4]), model: emtUnq(r[5]),
-      factsAt: emtUnq(r[6]), note: note.text, redos: note.redos, approved: emtUnq(b[i][1]), log: log, since: emtArtLogAt(log) });
+      factsAt: emtUnq(r[6]), note: note.text, redos: note.redos, pend: note.pend, approved: emtUnq(b[i][1]), log: log, since: emtArtLogAt(log) });
   });
   return out;
 }
@@ -3007,7 +3075,7 @@ function emtArtJobPut(job) {
   try {
     var m = emtArtFind(job.id), p = emtProps(), stale = emtArtStale(job);
     mine = !stale;
-    if (m && EMT_ART_ACTIVE.indexOf(m.status) > -1 && !stale) { p.setProperty('EMT_ART_JOB', JSON.stringify(job)); ok = true; }
+    if (emtArtActive(m) && !stale) { p.setProperty('EMT_ART_JOB', JSON.stringify(job)); ok = true; }
     else if (!stale && emtArtJob()) p.deleteProperty('EMT_ART_JOB');
   } finally { lock.releaseLock(); }
   if (!ok && mine) emtWorkClear(job.id);   /* a newer run of the same article keeps its files */
@@ -3321,8 +3389,9 @@ function emtArtWriteUser(job, facts, sent, research, prev) {
     emtArtContract(job.kind, facts)
   ];
   if (job.redos) {
-    u.push('', 'A REWRITE. The commissioner read the last draft and asks for a rewrite.' + (job.note ? ' His note: "' + job.note + '"' : ' He left no note.'));
-    if (prev) u.push('THE LAST DRAFT:', JSON.stringify(prev));
+    /* v3.14: a rewrite of a live article starts from the published version */
+    u.push('', 'A REWRITE. The commissioner read the ' + (job.live ? 'published article' : 'last draft') + ' and asks for a rewrite.' + (job.note ? ' His note: "' + job.note + '"' : ' He left no note.'));
+    if (prev) u.push(job.live ? 'THE PUBLISHED VERSION:' : 'THE LAST DRAFT:', JSON.stringify(prev));
     u.push('Write the whole article again: apply the note and keep everything that was right.');
   }
   u.push('', 'WRITE the ' + job.kind + ' of gameweek ' + job.gw + '. JSON only.');
@@ -3609,14 +3678,19 @@ function emtArtNext(force) {
     var q = emtArtQueue(), n0 = q.length, meta = n0 ? emtArtMeta() : [];
     while (q.length && !job) {
       var m = emtArtFind(q.shift(), meta);
-      if (m && m.status === 'writing') job = emtArtNewJob(m.id, m.gw, m.kind, 'write', m.redos, m.note);
+      if (m && (m.status === 'writing' || emtArtLiveRw(m))) {
+        job = emtArtNewJob(m.id, m.gw, m.kind, 'write', m.redos, m.note);
+        if (m.status === 'live') job.live = true;             /* v3.14: a new version of a live article */
+      }
     }
     if (n0 !== q.length) emtArtSetQueue(q);
     if (job) { emtProps().setProperty('EMT_ART_JOB', JSON.stringify(job)); return { job: job, how: 'rewrite' }; }
-    /* an article still marked research or writing with no job behind it (its job state was lost): carry on with it */
-    var lost = emtArtMeta().filter(function (m) { return EMT_ART_ACTIVE.indexOf(m.status) > -1; })[0];
+    /* an article still marked research or writing, or (v3.14) live with a rewrite under way, with no job behind it (its
+     * job state was lost): carry on with it */
+    var lost = emtArtMeta().filter(function (m) { return emtArtActive(m); })[0];
     if (lost) {
-      job = emtArtNewJob(lost.id, lost.gw, lost.kind, lost.status === 'writing' ? 'write' : 'research', lost.redos, lost.note);
+      job = emtArtNewJob(lost.id, lost.gw, lost.kind, lost.status === 'research' ? 'research' : 'write', lost.redos, lost.note);
+      if (lost.status === 'live') job.live = true;
       emtProps().setProperty('EMT_ART_JOB', JSON.stringify(job));
       return { job: job, how: 'resumed' };
     }
@@ -3637,11 +3711,23 @@ function emtArtTry(job, why, S) {
   if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
   return true;
 }
+/* the job gives up. v3.14: a rewrite of a live article that fails leaves the live version up as it is (its pend
+ * becomes 'failed', the Log says so); any other article is marked failed */
 function emtArtFail(job, why, S) {
-  emtArtUpdate(job.id, { status: 'failed' }, why, EMT_ART_ACTIVE, job.run || '');
+  var lock = LockService.getScriptLock(), kept = false;
+  lock.waitLock(10000);
+  try {
+    var m = emtArtFind(job.id);
+    if (emtArtLiveRw(m)) {
+      kept = true;
+      emtArtUpdateLocked(job.id, { note: emtArtNoteSet(emtArtCell(m.row, EMT_ART_COL.note), { pend: 'failed' }) },
+        'the rewrite failed, so the live version stays up as it was: ' + why, ['live'], job.run || '');
+    } else emtArtUpdateLocked(job.id, { status: 'failed' }, why, EMT_ART_ACTIVE, job.run || '');
+  } finally { lock.releaseLock(); }
   emtArtJobEnd(job.id, job.run || '');
-  S.ok = false; S.stopped = 'failed'; S.error = why;
-  emtArtSay(job, 'failed. ' + String(why).slice(0, 400) + ' Nothing goes out; the commissioner can ask for a rewrite or drop it.');
+  S.ok = false; S.stopped = kept ? 'kept' : 'failed'; S.error = why;
+  if (kept) emtArtSay(job, 'the rewrite failed. ' + String(why).slice(0, 400) + ' The live version stays up as it was; the commissioner can ask again or take it down.');
+  else emtArtSay(job, 'failed. ' + String(why).slice(0, 400) + ' Nothing goes out; the commissioner can ask for a rewrite or drop it.');
 }
 /* research finished (or unavailable): keep it and move to the writing → false when the job is over */
 function emtArtResearchDone(job, text, logMsg, S) {
@@ -3654,34 +3740,58 @@ function emtArtResearchDone(job, text, logMsg, S) {
   if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
   return true;
 }
-/* the checked article becomes the draft. punch (v3.13): { model } when it is the punched-up version (the Model cell
- * then reads 'writer + punch model'), { why } when the punch-up was not used (the checked base went out), { off } */
-function emtArtDraft(job, C, S, punch) {
+/* the checked article is done (v3.14; v3.13 made it the draft): the punched-up version, or the checked base when the
+ * punch-up was not used.
+ *   - a rewrite of a live article (emtArtLiveRw): the new version replaces the live one (emtArtLiveFields, shared with
+ *     approve): Written and Model updated, Approved (the first publish) kept, pend cleared;
+ *   - by default: published at once, exactly as the commissioner's approve would (emtArtLiveFields, Approved now);
+ *   - review mode (EMT_ART_REVIEW = yes): kept sealed as a draft that waits for the commissioner (v3.13).
+ * punch (v3.13): { model } when it is the punched-up version (the Model cell then reads 'writer + punch model'), { why }
+ * when the punch-up was not used (the checked base went out), { off } */
+function emtArtDone(job, C, S, punch) {
   punch = punch || {};
   var writer = job.writer || job.model, model = writer + (punch.model ? ' + ' + punch.model : '');
-  var at = new Date().toISOString(), sealed = emtArtSeal(JSON.stringify(C.article), emtArtSecret(true));   /* sealed until approved */
+  var at = new Date().toISOString(), review = emtArtReview();
+  var sealed = review ? emtArtSeal(JSON.stringify(C.article), emtArtSecret(true)) : '';   /* a draft is sealed until approved; the key is made outside the lock */
   var how = punch.model ? ', punched up by ' + punch.model : '';
   var why = String(punch.why || '').replace(/[.\s]+$/, ''), tail = why ? '; punch-up not used: ' + why : punch.off ? '; punch-up off (EMT_PUNCH_OFF = yes)' : '';
-  var u = emtArtUpdate(job.id, { status: 'draft', written: "'" + at, model: emtCell(model), article: sealed },
-    'written by ' + writer + how + ', ' + C.words + ' words' + (job.redos ? ', rewrite ' + job.redos + ' of ' + EMT_ART_REDOS : '') +
-    (job.tries ? ', after ' + job.tries + ' failed tr' + (job.tries > 1 ? 'ies' : 'y') : '') + tail + '. Waiting for the commissioner.', ['writing'], job.run || '');
+  var what = 'written by ' + writer + how + ', ' + C.words + ' words' + (job.redos ? ', rewrite ' + job.redos + ' of ' + EMT_ART_REDOS : '') +
+    (job.tries ? ', after ' + job.tries + ' failed tr' + (job.tries > 1 ? 'ies' : 'y') : '') + tail;
+  var cells = { written: "'" + at, model: emtCell(model) }, mode = '', u = null, lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var m = emtArtFind(job.id);
+    if (emtArtLiveRw(m)) {
+      mode = 'rewritten';
+      cells.note = emtArtNoteSet(emtArtCell(m.row, EMT_ART_COL.note), { pend: '' });
+      u = emtArtUpdateLocked(job.id, emtArtLiveFields(C.article, '', cells), what + '. The new version replaced the live one; every manager reads it now.', ['live'], job.run || '');
+    } else if (review) {
+      mode = 'draft'; cells.status = 'draft'; cells.article = sealed;
+      u = emtArtUpdateLocked(job.id, cells, what + '. Waiting for the commissioner.', ['writing'], job.run || '');
+    } else {
+      mode = 'live';
+      u = emtArtUpdateLocked(job.id, emtArtLiveFields(C.article, at, cells), what + '. Published automatically; every manager can read it now.', ['writing'], job.run || '');
+    }
+  } finally { lock.releaseLock(); }
   emtArtJobEnd(job.id, job.run || '');
   if (!u || u.missing || u.skipped) { S.stopped = 'gone'; emtArtSay(job, 'written, but its article was ' + (u && u.skipped ? u.skipped : 'removed') + ' meanwhile; nothing kept.'); return; }
-  S.stopped = 'draft'; S.written = true; S.words = C.words; S.model = model;
+  S.stopped = mode; S.written = true; S.words = C.words; S.model = model;
   if (punch.model || punch.why) S.punch = punch.model ? 'punched up by ' + punch.model : 'punch-up not used';
-  emtArtSay(job, 'draft written by ' + writer + how + ' (' + C.words + ' words)' + (why ? '; punch-up not used: ' + emtArtRedact(why).slice(0, 700) : '') +
-    '. It waits for ' + emtCommish() + ' to read it in the app.');
+  emtArtSay(job, (mode === 'rewritten' ? 'the rewrite of the live article, written by ' : mode === 'live' ? 'published automatically, written by ' : 'draft written by ') + writer + how + ' (' + C.words + ' words)' +
+    (why ? '; punch-up not used: ' + emtArtRedact(why).slice(0, 700) : '') +
+    (mode === 'rewritten' ? '. It replaced the live version.' : mode === 'live' ? '. Every manager can read it now.' : '. It waits for ' + emtCommish() + ' to read it in the app.'));
 }
 
 /* one run's work on the job: at most one batch sent (the run then ends) and at most one collected.
  * v3.13: three phases, research → write → punch. An article that passes the checks is kept sealed as the base and goes
  * to the punch-up (emtArtPunchStart); whatever happens there (emtArtPunchEnd), the punched-up version or the checked
- * base becomes the draft. The punch phase never counts a try and never fails the job. */
+ * base is done (emtArtDone, v3.14: published, or a draft in review mode, or swapped in for a live one). The punch phase
+ * never counts a try and never fails the job. */
 function emtArtRun(job, S, t0, force) {
   var facts = null;
   for (var step = 0; step < 10; step++) {
     var meta = emtArtFind(job.id);
-    if (!meta || EMT_ART_ACTIVE.indexOf(meta.status) < 0) {
+    if (!emtArtActive(meta)) {
       emtArtJobEnd(job.id, job.run || ''); S.stopped = 'gone';
       emtArtSay(job, 'its article is ' + (meta ? meta.status : 'not in the Articles tab') + '; the job stops.');
       return;
@@ -3805,7 +3915,7 @@ function emtArtRun(job, S, t0, force) {
       }
       if (!C.article && msg.stop_reason === 'max_tokens') C.problems.unshift('The reply was cut off before the JSON ended: keep the article near 1,100 words.');
       if (C.article) {
-        if (emtPunchOff()) { emtArtDraft(job, C, S, { off: true }); return; }
+        if (emtPunchOff()) { emtArtDone(job, C, S, { off: true }); return; }
         if (!emtArtPunchStart(job, C, S)) return;
         continue;
       }
@@ -3849,6 +3959,22 @@ function emtArtRun(job, S, t0, force) {
 
 /* aiTick runs this every 15 minutes, after the show and before the self-update. force (the menu's 'Articles: write
  * now') ignores EMT_ARTICLES_PAUSED, the late-run guard and the windows. → a summary { ok, stopped, id, ... } */
+/* v3.14: in auto mode, publish every draft still waiting (written in review mode or by v3.13 before approvals were
+ * switched off). Same cells as an approval; the Log line counts as an automatic publish. */
+function emtArtPublishWaiting(S) {
+  var drafts = emtArtMeta().filter(function (m) { return m.status === 'draft'; }), done = 0;
+  drafts.forEach(function (m) {
+    var art = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
+    if (!art) return;
+    var u = emtArtUpdate(m.id, emtArtLiveFields(art, new Date().toISOString()),
+      'Published automatically: it was waiting as a draft when approvals were switched off; every manager can read it now.', ['draft']);
+    if (!u || u.missing || u.skipped) return;
+    done++; S.did.push('published the waiting draft ' + m.id);
+    emtArtSay({ kind: m.kind, gw: m.gw, id: m.id }, 'it was waiting as a draft; published automatically (approvals are off).');
+  });
+  if (done) emtArtTouch();
+  return done;
+}
 function articleTick(startedAt, force) {
   var t0 = typeof startedAt === 'number' ? startedAt : Date.now(), p = emtProps();
   var S = { ok: true, stopped: '', did: [], why: [] };
@@ -3857,14 +3983,16 @@ function articleTick(startedAt, force) {
   if (!force && Date.now() - t0 > EMT_ART_LATE_MS) { S.stopped = 'time'; return S; }
   if (!emtFlagClaim('EMT_ART_BUSY', EMT_ART_BUSY_MS)) { S.stopped = 'busy'; return S; }
   try {
+    /* v3.14: approvals are off, so a draft left waiting from review mode (or from v3.13) goes out now */
+    if (!emtArtReview()) { try { emtArtPublishWaiting(S); } catch (e) { Logger.log('Articles: publishing a waiting draft failed: ' + ((e && e.message) || e)); } }
     var job = emtArtJob();
     if (!job) {
       emtWorkClear('');                         /* files left by a job that ended elsewhere (a drop) */
       var nx = emtArtNext(!!force);
       if (!nx.job) { S.stopped = 'idle'; S.why = nx.why || []; return S; }
       job = nx.job;
-      if (nx.how !== 'running') emtArtSay(job, nx.how === 'rewrite' ? 'rewrite ' + job.redos + ' of ' + EMT_ART_REDOS + ' starts' + (job.note ? ', with the note "' + job.note + '"' : '') + '.'
-        : nx.how === 'resumed' ? 'resumed: its article was still ' + (job.phase === 'write' ? 'writing' : 'researching') + ' with no job behind it.'
+      if (nx.how !== 'running') emtArtSay(job, nx.how === 'rewrite' ? 'rewrite ' + job.redos + ' of ' + EMT_ART_REDOS + ' starts' + (job.note ? ', with the note "' + job.note + '"' : '') + (job.live ? ' (the live version stays up meanwhile)' : '') + '.'
+        : nx.how === 'resumed' ? 'resumed: ' + (job.live ? 'a rewrite of its live version was still under way' : 'its article was still ' + (job.phase === 'write' ? 'writing' : 'researching')) + ' with no job behind it.'
         : (force ? 'started from the menu.' : 'started: the facts are in and the window is open.'));
     }
     S.id = job.id; S.gw = job.gw; S.kind = job.kind;
@@ -3875,38 +4003,41 @@ function articleTick(startedAt, force) {
 }
 
 /* ---------- 5. serving and the commissioner ---------- */
-/* GET ?articles=1 */
+/* GET ?articles=1. v3.14: review (the mode, read fresh, never from the cache) and each live article's written time,
+ * which changes when a rewrite replaces its text (phones then fetch the new version) */
 function emtArtList() {
-  var cache = null;
-  try { cache = CacheService.getScriptCache(); var hit = cache.get('EMT_ART_LIST'); if (hit) return JSON.parse(hit); } catch (e) { }
+  var cache = null, review = emtArtReview();
+  try { cache = CacheService.getScriptCache(); var hit = cache.get('EMT_ART_LIST'); if (hit) { var o = JSON.parse(hit); o.review = review; return o; } } catch (e) { }
   var meta = emtArtMeta(), live = [], waiting = [], rows = meta.filter(function (m) { return m.status === 'live'; });
   if (rows.length) {
     var sh = SpreadsheetApp.getActive().getSheetByName('Articles'), nums = rows.map(function (m) { return m.row; });
     var lo = Math.min.apply(null, nums), hi = Math.max.apply(null, nums), col = sh.getRange(lo, EMT_ART_COL.article, hi - lo + 1, 1).getValues();
     rows.forEach(function (m) {
       var a = emtArtArticle(col[m.row - lo][0]);
-      if (a) live.push({ id: m.id, gw: m.gw, kind: m.kind, title: String(a.title || ''), sub: String(a.sub || ''), approved: m.approved });
+      if (a) live.push({ id: m.id, gw: m.gw, kind: m.kind, title: String(a.title || ''), sub: String(a.sub || ''), approved: m.approved, written: m.written });
     });
   }
   live.sort(function (x, y) { return y.gw - x.gw || (x.kind === y.kind ? 0 : x.kind === 'recap' ? -1 : 1) || aiTs(y.approved) - aiTs(x.approved); });
   meta.forEach(function (m) { if (EMT_ART_WAITING.indexOf(m.status) > -1) waiting.push({ gw: m.gw, kind: m.kind, status: m.status, since: emtIso(m.since) }); });
-  var out = { ok: true, live: live, waiting: waiting, commish: emtCommish() };
+  var out = { ok: true, live: live, waiting: waiting, commish: emtCommish(), review: review };
   try { if (cache) cache.put('EMT_ART_LIST', JSON.stringify(out), 300); } catch (e) { }
   return out;
 }
-/* GET ?article=<id>: live articles only */
+/* GET ?article=<id>: live articles only. v3.14: auto, published without a manual approval (the app's credit line) */
 function emtArtGet(idParam) {
   var id = String(idParam == null ? '' : idParam).trim(), m = id ? emtArtFind(id) : null;
   if (!m || m.status !== 'live') return { ok: false, error: 'notfound' };
   var a = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
   if (!a) return { ok: false, error: 'notfound' };
-  return { ok: true, id: m.id, gw: m.gw, kind: m.kind, approved: m.approved, written: m.written, a: a };
+  return { ok: true, id: m.id, gw: m.gw, kind: m.kind, approved: m.approved, written: m.written, auto: emtArtAuto(m.log), a: a };
 }
-/* POST articles: the drafts, for the commissioner only */
+/* POST articles: the drafts, for the commissioner only. v3.14: also review (the mode) and live, the live articles he
+ * can still fix from his phone: rewrites used, his last note, rewrite 'writing' (under way, the live version stays up)
+ * or 'failed' (in the last 7 days, the live version stayed; error: the Log's last line) */
 function emtArtDrafts(team) {
   if (team !== emtCommish()) return { ok: true, commish: false, drafts: [] };
-  var now = Date.now();
-  var drafts = emtArtMeta().filter(function (m) {
+  var now = Date.now(), meta = emtArtMeta();
+  var drafts = meta.filter(function (m) {
     return EMT_ART_WAITING.indexOf(m.status) > -1 || (m.status === 'failed' && now - m.since < EMT_ART_FAILED_SHOWN_MS);
   }).map(function (m) {
     var d = { id: m.id, gw: m.gw, kind: m.kind, status: m.status, written: m.written, model: m.model, note: m.note, redos: m.redos,
@@ -3914,9 +4045,18 @@ function emtArtDrafts(team) {
     if (m.status === 'failed') d.error = emtArtLogLast(m.log).slice(0, 400);
     return d;
   }).reverse();
-  return { ok: true, commish: true, drafts: drafts };
+  var live = meta.filter(function (m) { return m.status === 'live'; }).map(function (m) {
+    var rw = m.pend === 'writing' ? 'writing' : m.pend === 'failed' && now - m.since < EMT_ART_FAILED_SHOWN_MS ? 'failed' : '';
+    var o = { id: m.id, gw: m.gw, kind: m.kind, redos: m.redos, note: m.note, rewrite: rw };
+    if (rw === 'failed') o.error = emtArtLogLast(m.log).slice(0, 400);
+    return o;
+  }).reverse();
+  return { ok: true, commish: true, review: emtArtReview(), drafts: drafts, live: live };
 }
-/* POST articlemod: approve | redo | drop, commissioner only */
+/* POST articlemod: approve | redo | drop, commissioner only. v3.14: approve shares emtArtLiveFields with the automatic
+ * publish; redo also takes a live article (not in review mode): it stays live and readable, its Note gets pend
+ * 'writing' and a write-phase job (job.live) makes the new version, which replaces it once it passes the checks
+ * (emtArtDone); drop of a live article takes it down and stops a rewrite under way */
 function emtArtMod(team, req) {
   if (team !== emtCommish()) return { ok: false, error: 'commish' };
   var id = String(req.id == null ? '' : req.id).trim(), op = String(req.op || '');
@@ -3933,30 +4073,36 @@ function emtArtMod(team, req) {
       var art = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
       if (!art) return { ok: false, error: 'noarticle', status: m.status };
       /* published: the article is kept as plain json from now on (?articles and ?article read it without the key) */
-      emtArtUpdateLocked(id, { status: 'live', approved: "'" + now, article: EMT_JSON_MARK + JSON.stringify(art) }, 'approved by ' + team + '; every manager can read it now.', ['draft']);
+      emtArtUpdateLocked(id, emtArtLiveFields(art, now), 'approved by ' + team + '; every manager can read it now.', ['draft']);
       out = { ok: true, status: 'live' };
     } else if (op === 'drop') {
       var dropF = { status: 'dropped' };
       if (m.status === 'live') {                   /* taken down: its text is sealed again, like a draft */
         var liveA = emtArtArticle(emtArtCell(m.row, EMT_ART_COL.article));
         if (liveA && key) dropF.article = emtArtSeal(JSON.stringify(liveA), key);
+        if (m.pend) dropF.note = emtArtNoteSet(emtArtCell(m.row, EMT_ART_COL.note), { pend: '' });   /* v3.14: no rewrite under way any more */
       }
-      if (m.status !== 'dropped') emtArtUpdateLocked(id, dropF, 'dropped by ' + team + ' (was ' + m.status + '); it is not rewritten automatically.', null);
+      if (m.status !== 'dropped') emtArtUpdateLocked(id, dropF, 'dropped by ' + team + ' (was ' + m.status + (emtArtLiveRw(m) ? ', with a rewrite under way, now stopped' : '') + '); it is not rewritten automatically.', null);
       var cur = emtArtJob();
       if (cur && cur.id === id) { cancel = cur.batch || ''; p.deleteProperty('EMT_ART_JOB'); }
       var q = emtArtQueue(), q2 = q.filter(function (x) { return x !== id; });
       if (q2.length !== q.length) emtArtSetQueue(q2);
       out = { ok: true, status: 'dropped' };
     } else {
-      if (EMT_ART_ACTIVE.indexOf(m.status) > -1) return { ok: false, error: 'busy', status: m.status };
-      if (m.status === 'live') return { ok: false, error: 'live', status: m.status };
+      if (emtArtActive(m)) return { ok: false, error: 'busy', status: m.status };
+      var liveRw = m.status === 'live';
+      if (liveRw && emtArtReview()) return { ok: false, error: 'live', status: m.status };   /* review mode: v3.13, a live article is only taken down */
       if (m.redos >= EMT_ART_REDOS) return { ok: false, error: 'redos', status: m.status };
       var note = emtClean(req.note, EMT_ART_NOTE_MAX), n = m.redos + 1;
-      emtArtUpdateLocked(id, { status: 'writing', note: EMT_JSON_MARK + JSON.stringify({ s: note && key ? emtArtSeal(JSON.stringify(note), key) : '', redos: n, at: now }) },
-        'rewrite ' + n + ' of ' + EMT_ART_REDOS + ' asked by ' + team + (note ? ', with a note' : ' (no note)') + '.', null);
-      if (!emtArtJob()) p.setProperty('EMT_ART_JOB', JSON.stringify(emtArtNewJob(id, m.gw, m.kind, 'write', n, note)));
+      var nObj = { s: note && key ? emtArtSeal(JSON.stringify(note), key) : '', redos: n, at: now };
+      if (liveRw) nObj.pend = 'writing';           /* v3.14: the status stays live and the live version stays up */
+      emtArtUpdateLocked(id, liveRw ? { note: EMT_JSON_MARK + JSON.stringify(nObj) } : { status: 'writing', note: EMT_JSON_MARK + JSON.stringify(nObj) },
+        'rewrite ' + n + ' of ' + EMT_ART_REDOS + ' asked by ' + team + (note ? ', with a note' : ' (no note)') + (liveRw ? '; the live version stays up until the new one passes the checks' : '') + '.', null);
+      var nj = emtArtNewJob(id, m.gw, m.kind, 'write', n, note);
+      if (liveRw) nj.live = true;
+      if (!emtArtJob()) p.setProperty('EMT_ART_JOB', JSON.stringify(nj));
       else { var q3 = emtArtQueue(); if (q3.indexOf(id) < 0) q3.push(id); emtArtSetQueue(q3); }
-      out = { ok: true, status: 'writing' };
+      out = liveRw ? { ok: true, status: 'live', rewrite: 'writing' } : { ok: true, status: 'writing' };
     }
   } finally { lock.releaseLock(); }
   if (cancel) emtArtCancel(cancel);
@@ -3979,16 +4125,23 @@ function emtShowHealth() {
   } catch (e) { out.error = String((e && e.message) || e).slice(0, 160); }
   return out;
 }
-/* GET ?health=1: no keys, tokens, PIN hashes or article text */
+/* GET ?health=1: no keys, tokens, PIN hashes or article text. v3.14: articles.mode ('auto': published as soon as an
+ * article passes the checks; 'review': EMT_ART_REVIEW = yes), job.live (a rewrite of a live article) and, in last, the
+ * rewrite of a live article ('writing' or 'failed') */
 function emtHealth() {
   var p = emtProps(), A = aiState(), job = emtArtJob(), meta = [];
   try { meta = emtArtMeta(); } catch (e) { meta = []; }
   return { ok: true, version: EMT_VERSION, self: p.getProperty('EMT_SELF_STATE') || 'no check yet', show: emtShowHealth(),
-    articles: { job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
-        writer: job.writer || '', startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
+    articles: { mode: emtArtReview() ? 'review' : 'auto',
+      job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
+        writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
       queue: emtArtQueue().length, paused: p.getProperty('EMT_ARTICLES_PAUSED') === 'yes',
       punch: { off: emtPunchOff(), last: emtPunchLast().article || null },        /* v3.13: the punch-up's last outcome */
-      last: meta.slice(-3).reverse().map(function (m) { return { id: m.id, gw: m.gw, kind: m.kind, status: m.status, written: m.written, model: m.model, approved: m.approved, since: emtIso(m.since) }; }) },
+      last: meta.slice(-3).reverse().map(function (m) {
+        var o = { id: m.id, gw: m.gw, kind: m.kind, status: m.status, written: m.written, model: m.model, approved: m.approved, since: emtIso(m.since) };
+        if (m.status === 'live' && m.pend) o.rewrite = m.pend;
+        return o;
+      }) },
     ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn() } };
 }
 function emtArtSummary(S) {
@@ -4006,6 +4159,11 @@ function emtArtSummary(S) {
     wait: 'not this run: ' + (S.error || '') + '. The next run tries again.',
     draft: 'the draft is written (' + (S.words || 0) + ' words, ' + (S.model || '') + (S.punch === 'punch-up not used' ? '; the punch-up was not used, the checked version stands' : '') +
       ') and waits for ' + emtCommish() + ' in the app.',
+    live: 'published automatically (' + (S.words || 0) + ' words, ' + (S.model || '') + (S.punch === 'punch-up not used' ? '; the punch-up was not used, the checked version stands' : '') +
+      '): every manager can read it in the app now.',
+    rewritten: 'the rewrite is done (' + (S.words || 0) + ' words, ' + (S.model || '') + (S.punch === 'punch-up not used' ? '; the punch-up was not used, the checked version stands' : '') +
+      ') and replaced the live version.',
+    kept: 'the rewrite failed: ' + (S.error || '') + '. The live version stays up as it was.',
     failed: 'failed: ' + (S.error || '') + '.',
     gone: 'its article was dropped or removed; the job stopped.',
     steps: 'worked through several steps' + did + '; the next run carries on.'
@@ -4017,7 +4175,10 @@ function articlesStatus() {
   var p = emtProps(), job = emtArtJob(), q = emtArtQueue(), meta = emtArtMeta(), L = [];
   L.push('Articles' + (p.getProperty('EMT_ARTICLES_PAUSED') === 'yes' ? ' (paused: EMT_ARTICLES_PAUSED = yes)' : '') + (emtAiOn() ? '' : ' (off: no ANTHROPIC_API_KEY, or EMT_AI_PAUSED = yes)') +
     '. Commissioner: ' + emtCommish() + '. Models: ' + emtModelsLive(emtModelChain('EMT_ARTICLE_MODEL', EMT_ART_MODELS)).join(', ') + '.');
-  if (job) L.push('Job: the ' + job.kind + ' of GW' + job.gw + ' (' + job.id + '), ' + (job.phase === 'research' ? 'researching' : job.phase === 'punch' ? 'punching up what ' + (job.writer || 'the writer') + ' wrote' : 'writing') +
+  /* v3.14: the mode */
+  L.push(emtArtReview() ? 'Mode: review (EMT_ART_REVIEW = yes): every article waits as a draft until ' + emtCommish() + ' approves it in the app.'
+    : 'Mode: auto: an article is published as soon as it passes the checks (EMT_ART_REVIEW = yes makes the commissioner approve each one first).');
+  if (job) L.push('Job: the ' + job.kind + ' of GW' + job.gw + ' (' + job.id + '), ' + (job.live ? 'a new version of the live article (the live one stays up), ' : '') + (job.phase === 'research' ? 'researching' : job.phase === 'punch' ? 'punching up what ' + (job.writer || 'the writer') + ' wrote' : 'writing') +
     (job.batch ? ', batch sent ' + Math.round((Date.now() - Number(job.batchAt || 0)) / 60000) + ' minutes ago to ' + job.model : ', its next step is at the next run') +
     ', try ' + ((job.tries || 0) + 1) + ' of ' + EMT_ART_TRIES + (job.redos ? ', rewrite ' + job.redos + ' of ' + EMT_ART_REDOS : '') + '.');
   else {
@@ -4033,7 +4194,8 @@ function articlesStatus() {
     '. Last show: ' + (ps ? 'GW' + ps.gw + ', ' + (ps.used ? 'punched up by ' + ps.model : 'not used (' + ps.why + ')') + ', ' + String(ps.at || '').slice(0, 16) : 'none yet') + '.');
   meta.slice(-6).reverse().forEach(function (m) {
     L.push(m.id + ': ' + m.status + (m.written ? ', written ' + m.written.slice(0, 16) : '') + (m.model ? ' by ' + m.model : '') + (m.approved ? ', approved ' + m.approved.slice(0, 16) : '') +
-      (m.redos ? ', ' + m.redos + ' rewrite' + (m.redos > 1 ? 's' : '') : '') + '. Last: ' + emtArtLogLast(m.log).slice(0, 200));
+      (m.redos ? ', ' + m.redos + ' rewrite' + (m.redos > 1 ? 's' : '') : '') + (m.status === 'live' && m.pend === 'writing' ? ', a rewrite under way (the live version stays up)' : m.status === 'live' && m.pend === 'failed' ? ', its last rewrite failed (the live version stayed)' : '') +
+      '. Last: ' + emtArtLogLast(m.log).slice(0, 200));
   });
   if (!meta.length) L.push('The Articles tab is empty.');
   var msg = L.join('\n');
@@ -4064,7 +4226,7 @@ function articlesWriteNow() {
  *   Articles: a third batch, custom_id <id>-p, after the writing (status stays 'writing'; the checked base waits in
  *   ArticleWork, sealed). Used when it passes: the Model cell reads '<writer> + <punch model>', Log 'punched up by
  *   ...'. Otherwise (a failed check, an errored, expired or lost batch, no punch model left, still unfinished 2 hours
- *   after the punch-up started, the job's 36 hours) the checked base is the draft, Log 'punch-up not used: <why>'
+ *   after the punch-up started, the job's 36 hours) the checked base goes out instead, Log 'punch-up not used: <why>'
  *   with the first 5 problems (redacted). Never a try, never a failure. On a rewrite the commissioner's note goes
  *   along. Show: one synchronous call after a checked script (emtShowPunch), skipped once the run is past
  *   EMT_SHOW_WRITE_LATE_MS; the ShowScripts Model cell reads the same way.
@@ -4168,7 +4330,7 @@ function emtArtPunchLost(job, S) {
   if (!emtArtJobPut(job)) { S.stopped = 'gone'; return false; }
   return true;
 }
-/* the punch-up is over and the article becomes the draft. P: the punched-up version, checked ({ article, words });
+/* the punch-up is over and the article is done (emtArtDone: v3.14 publishes it, or a draft in review mode). P: the punched-up version, checked ({ article, words });
  * null: the checked base goes out instead. reason: short, no draft text (?health keeps it); detail: the problems, for
  * the Log (redacted there) and the execution log. base: when the caller already read it. */
 function emtArtPunchEnd(job, P, reason, detail, S, base) {
@@ -4177,9 +4339,9 @@ function emtArtPunchEnd(job, P, reason, detail, S, base) {
     if (!base) { emtArtPunchLost(job, S); return; }
   }
   S.did.push(P ? 'punched up by ' + job.model : 'punch-up not used: ' + reason);
-  if (P) emtArtDraft(job, P, S, { model: job.model });
-  else emtArtDraft(job, base, S, { why: reason + (detail ? ': ' + detail : '') });
-  if (S.stopped === 'draft') emtPunchNote('article', { id: job.id, used: !!P, model: P ? job.model : '', why: P ? '' : reason });
+  if (P) emtArtDone(job, P, S, { model: job.model });
+  else emtArtDone(job, base, S, { why: reason + (detail ? ': ' + detail : '') });
+  if (S.written) emtPunchNote('article', { id: job.id, used: !!P, model: P ? job.model : '', why: P ? '' : reason });
 }
 
 /* ---------- the show: one call, from showWriterTick ---------- */

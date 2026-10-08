@@ -9,7 +9,19 @@ The new pipeline works like the Gameweek Show pipeline that already runs in the 
 3. The draft waits for the **commissioner** (Parker). He reads it in the app and can approve it, ask for a rewrite with a note, or drop it.
 4. Once approved, every manager can read it in the app. The reader is native and the numbers on screen come from the app's own data.
 
-Parker's rule stands: **he reads every draft before anyone else sees it.**
+~~Parker's rule stands: he reads every draft before anyone else sees it.~~ Changed in v3.14 (below): Parker, 8 Oct 2026, "i don't want to approve it just go for it i think for those from now on".
+
+## v3.14: articles publish themselves (Code.gs v3.14 and the app)
+- **Auto-publish is the default.** When an article passes the checks (after the punch-up, where v3.13 made the draft), `emtArtDone` publishes it: status `live`, the article as plain `'j:'` json, Approved (UTC) now, Log `Published automatically`. Approve, the automatic publish and the live swap share `emtArtLiveFields`. The list cache is cleared on every change, so `?articles=1` shows it at once.
+- **Review mode.** Script Property `EMT_ART_REVIEW = yes` (case and spaces ignored) brings back the v3.13 flow unchanged: a sealed draft, approved in the app. In review mode a live article can be taken down but not rewritten (`articlemod redo` answers `live`).
+- **Rewrite of a live article** (commissioner only, `articlemod` op `redo`, note up to 400 characters, 3 rewrites an article, queued in `EMT_ART_QUEUE` while another job runs):
+  - The row keeps status `live` and its Article cell keeps the live version, so `?articles=1` and `?article=` go on serving it. The Note cell gets `pend: 'writing'` (`emtArtLiveRw`); the job carries `live: true` and goes straight to the write phase from the stored research, with the published version and the note in the prompt.
+  - The new version is written in ArticleWork like any rewrite (sealed while it waits for its punch-up). When it passes, `emtArtDone` swaps it into the Article cell: Written and Model updated, Approved kept (the first publish), `pend` cleared, Log `The new version replaced the live one`.
+  - When it fails (3 tries, 36 hours, no facts, no model), `emtArtFail` leaves the live version exactly as it was and sets `pend: 'failed'`; the Log says `the rewrite failed, so the live version stays up as it was`. A failed rewrite is never restarted by itself; he can ask again while rewrites are left.
+  - A lost job is found again through `pend` (`emtArtNext`). A drop during the rewrite takes the article down, seals it, clears `pend` and cancels the batch.
+- **Contract additions.** `?articles=1`: `review` (read fresh, never from the cache) and each live article's `written` (changes when a rewrite replaces the text, so phones refetch). `?article=<id>`: `auto` (published without a manual approval). `POST articles` (commissioner): `review` and `live: [{id, gw, kind, redos, note, rewrite: '' | 'writing' | 'failed', error?}]`; everyone else still gets `{ok, commish:false, drafts:[]}`. `?health=1`: `articles.mode` (`auto` | `review`), `job.live`, `last[].rewrite`. `articlesStatus()`: a `Mode:` line and any rewrite in progress.
+- **App.** A live sheet article ends with a **Commissioner** panel for him only: Ask for a rewrite (the same note box as drafts) and Take down (in-app confirm, never `window.confirm`). While a rewrite runs the reader keeps the live version, with a quiet "Rewrite in progress" line only he sees. "Waiting for your read" shows only when there is a draft (review mode) or a failed article (Try again). The waiting line says "GW6 preview: being written" and never mentions his read in auto mode. The credit line says "Checked automatically before it went out." for an auto-published article. A server without `review` (v3.13) counts as review mode.
+- **Tests:** `tests/codegs/v314.js` (51 checks); `v313.js` now ends its flows live and runs its approval and draft sections with `EMT_ART_REVIEW = yes`.
 
 ## Ground rules for every agent
 - Never run `git reset`, `git checkout -- .` or `git clean` in /home/claude/emt. An uncommitted Code.gs was once lost that way.
