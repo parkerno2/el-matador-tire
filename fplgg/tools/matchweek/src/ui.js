@@ -110,9 +110,14 @@ export function player(code) {
 /* Player images (Parker, 8 Oct 2026): the FC cutout already in faces/ when there is one, otherwise FPL's own photo,
    otherwise initials. The chain itself is core's faceUrls (FC_FACES, FPL_PHOTO), shared with the cards. */
 export const faceSrcs = code => (typeof faceUrls === 'function' ? faceUrls(code) : []);
-/* an <img> that walks its chain on error, then runs `last` (a JS statement, single quotes only) */
+/* an FPL photo (Parker, 8 Oct 2026): 220x280, half body with the head in the top part, so it is framed by the head (class fpl,
+   object-position at the top and a slight scale); an FC cutout is head and shoulders already. core's isFplPhoto, shared with the cards */
+export const fplPhoto = u => (typeof isFplPhoto === 'function' ? isFplPhoto(u) : /premierleague25\/photos\/players/.test(String(u || '')));
+/* an <img> that walks its chain on error, then runs `last` (a JS statement, single quotes only); an FPL photo in the
+   chain carries class fpl, from the first src and whenever the chain falls through to one */
 export function chainImg(urls, attrs, last) {
-  return '<img ' + attrs + ' src="' + urls[0] + '" data-alt="' + urls.slice(1).join('|') + '" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\')}else{this.onerror=null;' + last + '}">';
+  if (fplPhoto(urls[0])) attrs = /\bclass="/.test(attrs) ? attrs.replace(/\bclass="/, 'class="fpl ') : 'class="fpl" ' + attrs;
+  return '<img ' + attrs + ' src="' + urls[0] + '" data-alt="' + urls.slice(1).join('|') + '" onerror="var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\');this.classList.toggle(\'fpl\',this.src.indexOf(\'premierleague25/photos\')>-1)}else{this.onerror=null;' + last + '}">';
 }
 /* a face in a circle: the FC cutout or FPL photo, then initials */
 export function face(p, px = 32, opt = {}) {
@@ -137,6 +142,35 @@ let CARDI = 9000;
 export function plate(p, w = 100, opt = {}) {
   if (!p) return '';
   return '<span class="plate" style="width:' + w + 'px" data-open="player:' + esc(p.Code) + '">' + card(p, ++CARDI) + '</span>';
+}
+/* the number a player wears right now, as the Plate's bubble shows it: his banked points once his match is over (bk),
+   his live points while it is on (live), else his projection (proj; a dash when there is none, never a fake 0.0) */
+export function plateNum(p) {
+  if (!p) return { st: 'proj', txt: '–' };
+  if (typeof fxStarted === 'function' && fxStarted(p.Club)) return { st: fxFinished(p.Club) ? 'bk' : 'live', txt: String(Math.round(num(p['GW pts']))) };
+  const e = D.hasEP ? epOf(p.Code) : null;
+  return { st: 'proj', txt: e === null ? '–' : f1(e) };
+}
+/* the small Plate (Parker, 8 Oct 2026): the same card without the overall rating or the bubble; the face, the name,
+   club and nation, and the number he wears top right as plain text, coloured by state (plateNum). The auto-sub tag and
+   the INJ mark are kept, as on the full card (SUBMARK is set by the caller, see team/bits.js plateMarked). For the
+   Lineup pitch and the Gameweek Show's XI. opt.noOpen leaves the player sheet closed (the show) */
+export function plateMini(p, w = 70, opt = {}) {
+  if (!p) return '';
+  if (!p.Nation && typeof NAT_FIX !== 'undefined' && NAT_FIX[String(p.Code)]) p.Nation = NAT_FIX[String(p.Code)];
+  const t = tierOf(p), sm = (typeof SUBMARK !== 'undefined' && SUBMARK[p.Code]) || '';
+  const tag = sm === 'in' ? 'SUB' : sm === 'inl' ? 'LIKELY' : sm.startsWith('out') ? 'OUT' : '';
+  const smc = sm ? ' sub' + (sm.startsWith('in') ? 'in' : 'out') + (sm.endsWith('l') ? ' likely' : '') : '';
+  const n = plateNum(p);
+  return '<span class="plate mini" style="width:' + w + 'px"' + (opt.noOpen ? '' : ' data-open="player:' + esc(p.Code) + '"') + '>'
+    + '<button class="fc mini ' + t + smc + '" aria-label="' + esc(p.Player) + '">' + cardBg(t)
+    + (tag ? '<span class="tag">' + tag + '</span>' : '')
+    + ('isud'.indexOf(p.Status) > -1 ? '<span class="inj">INJ</span>' : '')
+    + '<span class="mn ' + n.st + '">' + n.txt + '</span>'
+    + '<span class="face">' + faceImgHTML(p) + '</span>'
+    + '<span class="nm">' + esc(p.Player) + '</span>'
+    + '<span class="meta">' + badgeImg(p.Club, 0) + '<span class="sep"></span>' + flagImg(p.Nation, 0) + '</span>'
+    + '</button></span>';
 }
 export const club = c => clubName ? clubName(c) : c;
 export const badge = (c, px = 18) => badgeImg ? badgeImg(c, px) : '';

@@ -21,6 +21,7 @@
 .fc .pts.live i{color:#5CF0A5}
 .fc .face{position:absolute;top:6%;left:8%;right:8%;height:61%;z-index:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
 .fc .face img{width:96%;height:96%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.38))}
+.fc .face img.fpl{flex:none;width:134%;height:134%;max-width:none;align-self:flex-start;margin-top:-4%;object-fit:cover;object-position:50% 0}
 .fc .face:has(.noface){align-items:center;overflow:visible}
 .fc .noface{width:52%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13cqw;background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);color:var(--tx)}
 .fc .nm{position:absolute;left:10%;right:10%;top:67%;z-index:2;font-weight:700;text-align:center;font-size:10.6cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2.8% 2px 2%;border-top:1px solid var(--ln1);color:var(--tx)}

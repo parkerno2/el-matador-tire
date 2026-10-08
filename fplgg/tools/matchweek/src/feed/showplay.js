@@ -101,9 +101,11 @@ function sceneXI(c, side, s) {
     const delay = (3 - ri) * .32;
     return '<div class="gs-row n' + g.length + '">' + g.map(x => {
       const isStar = x.code === starCode;
+      /* every player on a small Plate (Parker, 8 Oct 2026): face, name, club and nation, and the number he wears top right
+         (his projection, or his live or banked points once his match starts); a doubt keeps its chance chip over the card */
       return '<span class="gs-tk' + (isStar ? ' star' : '') + (x.doubt || x.out ? ' flag' : '') + '" style="--d:' + (delay + (k++ % 5) * .05).toFixed(2) + 's">'
-        + '<span class="gs-ph">' + UI.face(x.p, isStar ? 64 : 50) + (x.proj != null ? '<b class="gs-pj n">' + M.f1(x.proj) + '</b>' : '') + (x.doubt || x.out ? '<i class="gs-fl">' + (x.chance || 0) + '%</i>' : '') + '</span>'
-        + '<span class="gs-nm">' + esc(x.p.Player) + '</span>' + (isStar ? '<span class="gs-st">Star man</span>' : '') + '</span>';
+        + UI.plateMini(x.p, isStar ? 78 : 64, { noOpen: true }) + (x.doubt || x.out ? '<i class="gs-fl">' + (x.chance || 0) + '%</i>' : '')
+        + (isStar ? '<span class="gs-st">Star man</span>' : '') + '</span>';
     }).join('') + '</div>';
   }).join('');
   return '<div class="gs-xi ' + side + '"><div class="gs-xih">' + UI.crest(t, 34) + '<span><b>' + esc(t) + '</b><em>' + esc(T.form) + (M.hasProj() ? ' · projected ' + M.f1(T.proj) : '') + '</em></span></div>'

@@ -155,9 +155,10 @@ export function plateDefs() {
   return g && !g.closest('#app') ? '' : DEFS;
 }
 /* a Plate card with the predicted auto-sub treatment (SUB / LIKELY / OUT tags come from the engine's SUBMARK) */
-export function plateMarked(p, w, marks) {
+/* a Plate with the auto-sub marks set for the render; mini is the small Plate (UI.plateMini: no overall, the number as text) */
+export function plateMarked(p, w, marks, mini) {
   const keep = SUBMARK;
-  try { SUBMARK = marks || {}; return UI.plate(p, w); } finally { SUBMARK = keep; }
+  try { SUBMARK = marks || {}; return mini ? UI.plateMini(p, w) : UI.plate(p, w); } finally { SUBMARK = keep; }
 }
 export function subMarks(as) {
   const m = {};

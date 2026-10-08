@@ -56,6 +56,7 @@
 .dd{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;aspect-ratio:358/420;background:#0A0A0A;container-type:inline-size;overflow:hidden;color:#fff}
 .dd-slab{position:absolute;left:42cqw;top:14cqw;width:72cqw;height:83cqw;background:#C6FF00;transform:skewX(-12deg)}
 .dd-face{position:absolute;right:-7cqw;top:10cqw;width:86cqw;height:86cqw;object-fit:contain;object-position:50% 100%}
+.dd-face.fpl{object-fit:cover;object-position:50% 0}
 .dd-tag,.aq-tag{position:absolute;left:4.5cqw;top:4.5cqw;font-size:4.4cqw;padding:1.5cqw 2.5cqw 1.2cqw;background:#C6FF00;color:#0A0A0A;line-height:1;letter-spacing:.02em}
 .dd-ct{position:absolute;right:4cqw;top:5cqw;font-size:3.1cqw;color:#fff;background:rgba(10,10,10,.72);padding:.9cqw 2.2cqw;border-radius:99px}
 .dd-txt{position:absolute;left:4.5cqw;right:4.5cqw;bottom:17cqw;display:flex;flex-direction:column;align-items:flex-start;gap:1.6cqw}
@@ -182,6 +183,7 @@
 .fct-r{position:absolute;right:0;top:0;width:50%;height:100%;background:#E8222E;clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}
 .fct-stk{position:absolute;right:1cqw;bottom:-3cqw;height:98%;aspect-ratio:1;filter:drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 8px 16px rgba(0,0,0,.3))}
 .fct-stk img{width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+.fct-stk img.fpl{object-fit:cover;object-position:50% 0}
 .fct-crest{position:absolute;right:7cqw;top:50%;transform:translateY(-50%) rotate(7deg);filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
 .fct-crest .cr svg{width:30cqw;height:auto}
 .fct-lbl{position:absolute;left:3.4cqw;top:3.4cqw;z-index:3;font:800 2.8cqw/1 var(--f-ui);letter-spacing:.08em;padding:1cqw 2cqw;background:#0A0A0A;color:#fff}
@@ -316,6 +318,7 @@
 .jc-p{display:flex;flex-direction:column;align-items:center;gap:6px;color:#EEF3EA;min-width:0}
 .jc-f{width:92px;height:92px;border-radius:50%;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.14);flex:none}
 .jc-f img{width:100%;height:100%;object-fit:cover;object-position:50% 100%}
+.jc-f img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}
 .jc-f.dash{border:2px dashed rgba(238,243,234,.55)}
 .jc-f.gold{border:2px solid #EAD27A}
 .jc-f.sm{width:62px;height:62px}

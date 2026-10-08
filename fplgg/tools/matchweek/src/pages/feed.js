@@ -1,5 +1,6 @@
 /* pages/feed.js — the Feed: Everyone (id league) · For you · Articles · Messages (+ #/feed/messages/<jive|archizio>, #/feed/league/<voice>). */
 import * as UI from '../ui.js';
+import { isMotm, oneMotm, demote } from '../feed/curate.js';
 import {
   unread, buildPosts, renderPost, unreadIds, markSeen, threads, markThread, unreadThreads, jiveTodo, jiveCall, warm, restoreCarousels, postById, PRESS, RUM,
 } from '../feed/index.js';
@@ -49,7 +50,7 @@ function forYou() {
   const th = threads();
   const inbox = th.length ? UI.sh('Messages', { more: 'All', href: '#/feed/messages' }) + '<div class="card inbox">' + th.map(threadRow).join('') + '</div>' : '';
   const call = jiveCall(you);
-  const mine = posts.filter(p => !p.wide && (p.teams || []).includes(you) && (p.voice !== 'jive') && p.kind !== 'article');
+  const mine = oneMotm(posts.filter(p => !p.wide && (p.teams || []).includes(you) && (p.voice !== 'jive') && p.kind !== 'article'));
   const stream = (call ? [call] : []).concat(mine);
   const art = latestArticle();
   const N = 12, shown = stream.slice(0, N);
@@ -71,9 +72,12 @@ function artBlock(x) {
 /* ---------- League (every post, or one voice) ---------- */
 /* quality over quantity: Everyone shows what the league said and did (quotes, receipts, rumours, AI posts, stories)
    plus each gameweek's ten best template posts; everything else is one tap away */
-const ALWAYS = new Set(['presser', 'bold', 'receipt', 'called', 'pile', 'remember', 'rumour', 'breaking', 'ai', 'show', 'article', 'motm']);
-/* what earns a place, best first; Clark's thumbnails rank high because they're the ones people screenshot */
-const RANK = ['ft', 'thumb', 'table', 'record', 'poll', 'preview', 'odds', 'derbies', 'take', 'swing', 'voicenote', 'excl', 'market', 'deal', 'coin', 'board', 'streak', 'steal', 'race', 'sweat', 'model', 'form', 'treat', 'r1', 'fa', 'results', 'sheets'];
+const ALWAYS = new Set(['presser', 'bold', 'receipt', 'called', 'pile', 'remember', 'rumour', 'breaking', 'ai', 'show', 'article']);
+/* what earns a place, best first; Clark's thumbnails rank high because they're the ones people screenshot. Manager of the
+   Month comes last (Parker, 8 Oct 2026: tone it down; most people have not opened the app yet) */
+const RANK = ['ft', 'thumb', 'table', 'record', 'poll', 'preview', 'odds', 'derbies', 'take', 'swing', 'voicenote', 'excl', 'market', 'deal', 'coin', 'board', 'streak', 'steal', 'race', 'sweat', 'model', 'form', 'treat', 'r1', 'fa', 'results', 'sheets', 'motm'];
+/* the first screenful of Everyone for someone who has never opened the Feed carries nothing about Manager of the Month */
+const FIRST_SCREEN = 8;
 const CAP = { ft: 4, preview: 2, thumb: 2, deal: 2 };
 const PER_GW = 9;
 let EXPAND = false;
@@ -91,7 +95,7 @@ function curate(posts) {
       n[p.kind] = (n[p.kind] || 0) + 1; left--; keep.add(p.id);
     });
   });
-  return posts.filter(p => keep.has(p.id));
+  return oneMotm(posts.filter(p => keep.has(p.id)));
 }
 function league(args) {
   const v = args[0] && VOICES[args[0]] ? args[0] : null;
@@ -99,6 +103,7 @@ function league(args) {
   if (v) posts = posts.filter(p => p.voice === v);
   const all = posts.length;
   if (!v && !EXPAND) posts = curate(posts);
+  if (!v && VISIT && VISIT.first) posts = demote(posts, isMotm, FIRST_SCREEN);
   const folded = all - posts.length;
   const shown = posts.slice(0, LIMIT);
   const newN = posts.filter(p => VISIT && VISIT.ids.has(p.id)).length;

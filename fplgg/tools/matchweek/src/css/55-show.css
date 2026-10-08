@@ -98,15 +98,12 @@ html.gs-on{overflow:hidden}
   background:radial-gradient(circle at 50% 0,transparent 52px,rgba(255,255,255,.13) 53px,transparent 55px),linear-gradient(rgba(255,255,255,.13),rgba(255,255,255,.13)) 50% 0/100% 1px no-repeat,
   linear-gradient(rgba(255,255,255,.13),rgba(255,255,255,.13)) 20% 100%/1px 64px no-repeat,linear-gradient(rgba(255,255,255,.13),rgba(255,255,255,.13)) 80% 100%/1px 64px no-repeat,linear-gradient(rgba(255,255,255,.13),rgba(255,255,255,.13)) 50% calc(100% - 64px)/60% 1px no-repeat}
 .gs-row{position:relative;display:flex;justify-content:space-evenly;align-items:flex-start}
-.gs-tk{display:flex;flex-direction:column;align-items:center;width:70px;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both}
+.gs-tk{position:relative;display:flex;flex-direction:column;align-items:center;width:64px;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both}
+.gs-tk .plate{width:100%!important}
 @keyframes gsDeal{from{opacity:0;transform:translateY(28px) scale(.55)}to{opacity:1;transform:none}}
-.gs-ph{position:relative;display:block;border-radius:50%;line-height:0}
-.gs-pj{position:absolute;right:-9px;bottom:-5px;background:#0B0710;border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:3px 6px;font-size:12px;line-height:1}
-.gs-fl{position:absolute;left:-7px;top:-5px;font-style:normal;background:#F5B942;color:#1a1200;border-radius:999px;padding:3px 5px;font:800 10px/1 var(--f-ui)}
-.gs-nm{margin-top:7px;font:700 11.5px/1.15 var(--f-ui);text-align:center;max-width:84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:6px}
-.gs-tk.star{width:96px;z-index:1;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both,gsStar .9s 2.1s ease-out both}
-.gs-tk.star .gs-nm{max-width:104px}
-.gs-tk.star .gs-ph{box-shadow:0 0 0 3px #FFD23F,0 0 32px rgba(255,210,63,.5)}
+.gs-fl{position:absolute;left:-4px;top:-5px;z-index:3;font-style:normal;background:#F5B942;color:#1a1200;border-radius:999px;padding:3px 5px;font:800 10px/1 var(--f-ui);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.gs-tk.star{width:78px;z-index:1;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both,gsStar .9s 2.1s ease-out both}
+.gs-tk.star .fc{filter:drop-shadow(0 0 2px #FFD23F) drop-shadow(0 0 12px rgba(255,210,63,.55))}
 .gs-st{margin-top:5px;font:800 9.5px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:#1a1200;background:#FFD23F;padding:3px 6px;border-radius:4px;animation:gsUp .4s 2.3s both}
 @keyframes gsStar{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1.08)}}
 
@@ -133,7 +130,7 @@ html.gs-on{overflow:hidden}
 
 @media (max-height:700px){
   .gs-ttl{font-size:44px}.gs-tn{font-size:36px}.gs-pred b{font-size:46px}
-  .gs-pitch{gap:9px;padding:12px 4px}.gs-tk{width:64px}.gs-cap{min-height:88px}.gs-cap p{font-size:19px}
+  .gs-pitch{gap:9px;padding:12px 4px}.gs-tk{width:56px}.gs-tk.star{width:68px}.gs-cap{min-height:88px}.gs-cap p{font-size:19px}
   .gs-cr svg{max-height:22vh;width:auto}
 }
 @media (prefers-reduced-motion:reduce){.gs *,.gs{animation-duration:.01s!important;animation-delay:0s!important}}

@@ -1,5 +1,6 @@
 /* feed/build.js — data in, posts out. Each builder states facts from D and the engine, and carries them on the post. */
 import * as UI from '../ui.js';
+import { pickMotm } from './curate.js';
 import {
   esc, words, Words, WORDS, list, poss, possT, plural, ROUND_WORD, f1, oddsTxt, lsGet, dayMonth, relTime, logTime, gwDoneTime, buildUpTime,
   short, firstOf, mgrOf, byName, ptsOver, finishedGws, fxOf, fxFor, oppOf, newsLabel, newsWhen, chanceOf, statusWord, kickoffs, dt, hash,
@@ -341,7 +342,10 @@ function archizio(out, you) {
     });
   }
 
-  /* MANAGER OF THE MONTH: winners of finished periods, and the race in the current one (phrasing rotates by period) */
+  /* MANAGER OF THE MONTH: winners of finished periods, and the race in the current one (phrasing rotates by period).
+     One post at a time (Parker, 8 Oct 2026: tone it down): a period's winner until the next gameweek finishes, then the
+     current race; pickMotm in curate.js. Every candidate is built so the pick is the same wherever the Feed is read */
+  const motmCands = [];
   PERIODS.forEach((per, pi) => {
     if (per[1] > D.gw) return;
     const T2 = motmTotals(per); if (!T2.any) return;
@@ -356,13 +360,13 @@ function archizio(out, you) {
           : strong(PU + ' IS SHARED.') + ' ' + tE + ' tie for Manager of the Month on ' + pts + ' points over ' + span + '. $30.',
         () => strong(PU + ' DONE.') + ' ' + tE + (one ? ' take' : ' share') + ' Manager of the Month with ' + pts + ' points over ' + span + '. ' + usd,
       ]);
-      out.push({
-        id: 'motm:' + per[0], voice: 'archizio', kind: 'motm', ts: T(at, 15), time: 'GW' + per[2] + ' · full time', gw: per[2], teams: tie, players: [],
+      motmCands.push({ win: true, per, post: {
+        id: 'motm:' + per[0], voice: 'archizio', kind: 'motm', topic: 'motm', ts: T(at, 15), time: 'GW' + per[2] + ' · full time', gw: per[2], teams: tie, players: [],
         text,
         media: { type: 'stat', big: String(pts), label: 'Manager of the Month · ' + pname(per), sub: 'GW' + per[1] + '–' + per[2] + ' · $30', team: lead, rows: T2.rows.slice(0, 3) },
         facts: 'H2H Fixtures · points for, GW' + per[1] + '–' + per[2],
         detail: T2.rows.map(r => ({ k: esc(r[0]), v: pt(r[1]) + '' })), links: [{ label: 'Money', href: '#/league/money' }], share: lead + ' are Manager of the Month for ' + pname(per) + ' with ' + pts + ' points.',
-      });
+      } });
     } else {
       const live = UI.week().mode === 'live' || D.provOver, upTo = live ? D.gw : D.gwsDone;
       const at = D.provOver ? T(kickoffs(D.gw).slice(-1)[0], 110) : live ? liveTime() : gwDoneTime(D.gwsDone);
@@ -374,15 +378,16 @@ function archizio(out, you) {
         () => S(strong('MANAGER OF THE MONTH WATCH.'), P + ': ' + tE + ' top on ' + pts + '.', back ? 'Next: ' + back.t + ', ' + back.d + ' back.' : '', liveS),
         () => S(strong(tU + ' SET THE PACE.'), pts + ' in ' + P + ' so far, the Manager of the Month lead.', back ? back.t + ' are ' + back.d + ' behind.' : '', liveS),
       ]);
-      out.push({
-        id: 'motmrace:' + per[0] + ':' + upTo + (live ? ':' + lead : ''), voice: 'archizio', kind: 'motm', ts: T(at, live ? 0 : 14), time: D.provOver ? 'GW' + D.gw + ' · provisional' : live ? liveLabel() : 'After GW' + D.gwsDone, gw: upTo, teams: tie, players: [],
+      motmCands.push({ win: false, per, post: {
+        id: 'motmrace:' + per[0] + ':' + upTo + (live ? ':' + lead : ''), voice: 'archizio', kind: 'motm', topic: 'motm', ts: T(at, live ? 0 : 14), time: D.provOver ? 'GW' + D.gw + ' · provisional' : live ? liveLabel() : 'After GW' + D.gwsDone, gw: upTo, teams: tie, players: [],
         text,
         media: { type: 'stat', big: String(pts), label: 'Manager of the Month · ' + pname(per), sub: (per[1] === Math.min(per[2], upTo) ? 'GW' + per[1] : 'GW' + per[1] + '–' + Math.min(per[2], upTo)) + ' so far · $30', team: lead, rows: T2.rows.slice(0, 3) },
         facts: 'H2H Fixtures · points for, ' + (per[1] === upTo ? 'GW' + per[1] : 'GW' + per[1] + '–' + upTo) + (D.provOver ? ' (provisional)' : live ? ' (live)' : ''),
         detail: T2.rows.map(r => ({ k: esc(r[0]), v: pt(r[1]) + '' })), links: [{ label: 'Money', href: '#/league/money' }], share: lead + ' lead the ' + pname(per) + ' Manager of the Month race on ' + pts + '.',
-      });
+      } });
     }
   });
+  const motmOne = pickMotm(motmCands, D.gwsDone); if (motmOne) out.push(motmOne);
 
   /* TITLE ODDS and the BAHA MARKET (after the simulation has run for this data) */
   let S0 = sim(), saved = false;

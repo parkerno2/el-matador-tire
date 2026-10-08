@@ -1,4 +1,4 @@
-/* My team · Lineup: Plate cards on a pitch in your colours (or a list), the bench in auto-sub order, Jive's selection call. */
+/* My team · Lineup: small Plate cards on a pitch in your colours (or a list with the numbers alone), the bench in auto-sub order, Jive's selection call. */
 import * as UI from '../../ui.js';
 import { jiveCall } from '../../feed/index.js';
 import { mediaHTML } from '../../feed/render.js';
@@ -56,7 +56,7 @@ function toolbar(team, L) {
 
 function pitch(team, L) {
   const F = frame(team), ls = lines(L.xi), n = Math.max(3, ...ls.map(l => l.ps.length));
-  const rows = ls.map(l => '<div class="tm-prow' + (l.pos === 'GKP' ? ' gk' : '') + '">' + (l.pos === 'GKP' ? '<i class="tm-mk-a" aria-hidden="true"></i>' : '') + l.ps.map(p => plateMarked(p, 100, L.marks)).join('') + '</div>').join('');
+  const rows = ls.map(l => '<div class="tm-prow' + (l.pos === 'GKP' ? ' gk' : '') + '">' + (l.pos === 'GKP' ? '<i class="tm-mk-a" aria-hidden="true"></i>' : '') + l.ps.map(p => plateMarked(p, 100, L.marks, true)).join('') + '</div>').join('');
   return '<div class="tm-pitch" style="--s1:' + F.s1 + ';--s2:' + F.s2 + ';--mk:' + F.mark + ';--edge:' + F.edge + ';--n:' + n + ';--gap:' + (n > 3 ? 8 : 12) + 'px">'
     + '<i class="tm-mk-c" aria-hidden="true"></i><i class="tm-mk-o" aria-hidden="true"></i>'
     + '<span class="tm-pwm" aria-hidden="true">' + UI.crest(team, 200) + '</span>'
@@ -103,12 +103,13 @@ function benchBlock(L, asList) {
     : '<div class="card tm-bench"><p class="sub">In auto-sub order. The keeper only replaces a keeper.</p><div class="tm-bslots">'
       + slots.map(s => {
         const p = s.p, out = flaggedOut(p) && !s.swapped;
-        return '<div class="tm-bs"><span class="tm-bl n">' + (s.swapped ? (L.marks[s.p.Code] === 'outl' ? 'Likely off' : 'Off') : s.lab) + '</span><span class="tm-bc">' + plateMarked(p, 80, L.marks) + (out ? '<span class="chip out tm-bout">' + outLabel(p) + '</span>' : '') + '</span></div>';
+        return '<div class="tm-bs"><span class="tm-bl n">' + (s.swapped ? (L.marks[s.p.Code] === 'outl' ? 'Likely off' : 'Off') : s.lab) + '</span><span class="tm-bc">' + plateMarked(p, 80, L.marks, true) + (out ? '<span class="chip out tm-bout">' + outLabel(p) + '</span>' : '') + '</span></div>';
       }).join('') + '</div>' + subLine + coverNote(L) + '</div>';
   return UI.sh('Bench') + (asList ? subLine.replace('tm-subs', 'tm-subs pad') : '') + body + (asList ? coverNote(L).replace(/tm-cover/g, 'tm-cover solo') : '');
 }
 
-/* list view row: face, name, position, club, this week's opponent (difficulty) or score, points, status */
+/* list view row: face, name, position, club, this week's opponent (difficulty) or score, the number alone (no pill:
+   projection muted, live points green, banked points bold; UI.plateNum, the same number the small Plate wears), status */
 function listRow(p, L, lab, off) {
   const g = gwFix(p);
   let opp = '<span class="tm-fd blank">BLANK</span>', pts;
@@ -116,8 +117,8 @@ function listRow(p, L, lab, off) {
     if (g.started) opp = '<span class="tm-lsc' + (g.done ? '' : ' on') + '"><b>' + esc(g.opp) + '</b> ' + (g.home ? 'H' : 'A') + ' <span class="n">' + g.sc + '</span>' + (g.done ? '' : ' <span class="live-c n">' + g.min + '′</span>') + '</span>';
     else opp = oppChip(p.Club, g.f) + (g.dbl ? '<span class="tm-dgw">DGW</span>' : '');
   }
-  if (fxStarted(p.Club)) pts = '<span class="pb ' + (fxFinished(p.Club) ? 'bk' : 'lv') + '" title="' + (fxFinished(p.Club) ? 'Points' : 'Live points') + '">' + Math.round(num(p['GW pts'])) + '</span>';
-  else { const e = D.hasEP ? epOf(p.Code) : null; pts = '<span class="pb pj" title="Projected points">' + (e === null ? '–' : fmt1(e)) + '</span>'; }
+  const pn = UI.plateNum(p);
+  pts = '<span class="tm-lpts n ' + pn.st + '" title="' + (pn.st === 'bk' ? 'Points' : pn.st === 'live' ? 'Live points' : 'Projected points') + '">' + pn.txt + '</span>';
   const mk = L.marks[p.Code] || '';
   const tag = mk.startsWith('in') ? '<span class="chip ' + (mk.endsWith('l') ? 'doubt' : 'sub') + '">' + (mk.endsWith('l') ? 'LIKELY' : 'SUB') + '</span>' : mk.startsWith('out') ? '<span class="chip mute">OFF</span>' : '';
   return '<div class="row tap tm-lr' + (off ? ' off' : '') + '" data-open="player:' + esc(p.Code) + '" role="button" tabindex="0">'
@@ -134,7 +135,7 @@ export function lineupPage(team) {
   const live = L.st && (L.st.st === 'live' || L.st.st === 'prov' || L.st.st === 'ft');
   let note;
   if (asList) note = '';
-  else note = live ? 'Bubbles show live points, banked points once a match ends, and the projection for players still to play.' : 'Bubbles show projected points. Tap a card for the player sheet.';
+  else note = live ? 'The number on each card: live points in green, banked points once a match ends, and the projection for players still to play.' : 'The number on each card is his projected points. Tap a card for the player sheet.';
   const likely = !lineupsLocked() && !D.dlPassed ? '<p class="sub tm-pnote">Likely lineup until the deadline' + (UI.week().dl ? ' (' + esc(UI.dayHm(UI.week().dl)) + ')' : '') + ': FPL publishes picks then, and last week’s lineup carries forward until it does.</p>' : '';
   const body = asList
     ? '<div class="card tm-list">' + L.xi.map(p => listRow(p, L)).join('') + '</div>'

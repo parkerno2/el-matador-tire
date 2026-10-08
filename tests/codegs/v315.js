@@ -269,7 +269,7 @@ check('G1 EMT_SELF_SRC is the release branch\'s Code.gs, the CHANGELOG says so a
   /\* v3\.16 · 8 Oct 2026\n \*   The self-update reads Code\.gs from the repo's `release` branch/.test(src) && ctx.emtSelfCmp(ctx.EMT_VERSION, 'v3.16') >= 0);
 const ci = fs.readFileSync(__dirname + '/../../.github/workflows/codegs.yml', 'utf8');
 check('G2 the CI gate runs on pushes to main touching Code.gs or the tests, runs every suite, node --check, and fast-forwards release without ever forcing', /branches: \[main\]/.test(ci) && /paths: \['Code\.gs', 'tests\/\*\*'/.test(ci) &&
-  /for f in tests\/codegs\/\*\.js/.test(ci) && /node --check/.test(ci) && /tests\/factsbot\.js tests\/monitor\.js tests\/parity\.js tests\/app-errors\.js tests\/app-tabs\.js tests\/app-bonus\.js tests\/app-fdr\.js tests\/worker\.js/.test(ci) && /merge-base --is-ancestor origin\/release HEAD/.test(ci) && /git push origin HEAD:refs\/heads\/release/.test(ci) && !/push[^\n]*(--force|-f |force-with-lease)/.test(ci));
+  /for f in tests\/codegs\/\*\.js/.test(ci) && /node --check/.test(ci) && /tests\/factsbot\.js tests\/monitor\.js tests\/parity\.js tests\/app-errors\.js tests\/app-tabs\.js tests\/app-bonus\.js tests\/app-fdr\.js tests\/app-faces\.js tests\/app-feed\.js tests\/worker\.js/.test(ci) && /merge-base --is-ancestor origin\/release HEAD/.test(ci) && /git push origin HEAD:refs\/heads\/release/.test(ci) && !/push[^\n]*(--force|-f |force-with-lease)/.test(ci));
 check('G3 the fetched copy still has to pass the v3.12 sanity checks (size, markers, version, loads)', ctx.emtSelfSane(src) === '' && ctx.emtSelfSane(src.slice(0, 1000)) !== '');
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASS');

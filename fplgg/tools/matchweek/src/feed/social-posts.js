@@ -9,6 +9,8 @@ const T = (d, min) => new Date((d ? +d : 0) + (min || 0) * 60e3);
 const who = t => mgrOf(t) || t;
 const oppOfQ = q => q.re || (q.claim && q.claim.opp) || null;
 const nmFor = q => { const o = oppOfQ(q); return o ? derbyName(q.team, o) : null; };
+/* a post built on a Manager of the Month claim says so (topic), so the Feed can hold the subject down (curate.js) */
+const topicOf = q => (q && q.claim && q.claim.type === 'motm' ? 'motm' : undefined);
 const HOT_H = 48;                                       /* a viral post rides the top of Everyone for two days */
 
 export const quoteId = q => (q.re ? 'reply:' : 'quote:') + q.target + ':' + q.team;
@@ -20,7 +22,7 @@ function quotePost(q, s, slot) {
   else text = pick('quote', q.gw, [strong('ON THE RECORD.') + ' ' + esc(m) + ', ' + esc(q.team) + ', before ' + (nm ? esc(nm) : 'GW' + q.gw) + '.', strong('PRESS CONFERENCE.') + ' ' + esc(m) + ' on ' + (nm ? esc(nm) : 'facing ' + esc(short(opp || ''))) + '.', strong('QUOTE.') + ' ' + esc(m) + ' had something to say before GW' + q.gw + '.'], slot);
   const orig = q.re ? quotes().find(x => x.team === q.re && x.target === 'q:' + q.gw) : null;
   return {
-    id, voice: 'archizio', kind: 'presser', ts: T(q.at), time: relTime(new Date(q.at)), gw: q.gw, teams: [q.team].concat(opp ? [opp] : []), players: q.claim && q.claim.code ? [q.claim.code] : [],
+    id, voice: 'archizio', kind: 'presser', topic: topicOf(q), ts: T(q.at), time: relTime(new Date(q.at)), gw: q.gw, teams: [q.team].concat(opp ? [opp] : []), players: q.claim && q.claim.code ? [q.claim.code] : [],
     text, media: { type: 'quote', line: q.line, team: q.team, who: m, nm, chip: claimChip(q.claim), p: q.p, verdict: s.state, re: orig ? { team: orig.team, who: who(orig.team), line: orig.line } : null },
     facts: 'Press conference · ' + (q.src === 'own' ? 'in their own words' : 'picked from Archizio’s lines') + (q.claim ? ' · calling: ' + claimLabel(q.claim) + (q.p != null ? ', the model said ' + pct(q.p) : '') : ''),
     detail: [{ k: 'Said', v: '“' + esc(q.line) + '”' }].concat(q.claim ? [{ k: 'Calling', v: esc(claimLabel(q.claim)) }] : []).concat(q.p != null ? [{ k: 'The model at the time', v: pct(q.p) }] : [])
@@ -31,7 +33,7 @@ function quotePost(q, s, slot) {
 function boldPost(q, slot) {
   const m = who(q.team), lab = claimLabel(q.claim), cl = claimClause(q.claim);
   return {
-    id: 'bold:' + q.target + ':' + q.team, voice: 'clark', kind: 'bold', ts: T(q.at, 7), time: relTime(T(q.at, 7)), gw: q.gw, teams: [q.team], players: [],
+    id: 'bold:' + q.target + ':' + q.team, voice: 'clark', kind: 'bold', topic: topicOf(q), ts: T(q.at, 7), time: relTime(T(q.at, 7)), gw: q.gw, teams: [q.team], players: [],
     text: pick('bold', q.gw, [strong('BOLD.') + ' ' + esc(m) + ' says ' + esc(cl) + '. The model gives it ' + pct(q.p) + '.', 'Screenshotting this. ' + esc(firstOf(q.team)) + ' says ' + esc(cl) + '. The model: ' + pct(q.p) + '.', strong(pct(q.p) + '.') + ' That’s what the model gives ' + esc(possQ(q.team)) + ' call: ' + esc(cl) + '. Saved for later.'], slot),
     media: { type: 'qt', ref: quoteId(q) }, facts: 'The model’s chance when the quote went out', detail: [{ k: 'The call', v: esc(cl) }, { k: 'The model', v: pct(q.p) }], links: [], share: m + ' says ' + cl + '. The model gives it ' + pct(q.p) + '.',
   };
@@ -45,7 +47,7 @@ function receiptPost(q, s, slot, hot) {
     ? pick('called', q.gw, [strong('CALLED IT.') + ' ' + esc(m) + ' said ' + said + '. ' + s.line + '.', strong('HE SAID IT.') + ' ' + said + ' ' + esc(m) + ', before GW' + q.gw + '. ' + s.line + '.', strong('ON THE RECORD, AND RIGHT.') + ' ' + s.line + '. ' + esc(firstOf(q.team)) + ' called it.'], slot)
     : pick('receipt', q.gw, [strong('RECEIPTS.') + ' ' + esc(m) + ' before GW' + q.gw + ': ' + said + ' ' + s.line + '.', 'Remember this, ' + esc(firstOf(q.team)) + '? ' + said + ' ' + s.line + '.', strong('AGED LIKE MILK.') + ' ' + said + ' ' + esc(m) + ', GW' + q.gw + '. ' + s.line + '.'], slot);
   return {
-    id, voice: won ? 'archizio' : 'clark', kind: won ? 'called' : 'receipt', ts: at, time: relTime(at), gw: q.claim.gw || q.gw, teams: [q.team].concat(oppOfQ(q) ? [oppOfQ(q)] : []), players: [], viral: hot, hot: hot && Date.now() - +at < HOT_H * 3600e3,
+    id, voice: won ? 'archizio' : 'clark', kind: won ? 'called' : 'receipt', topic: topicOf(q), ts: at, time: relTime(at), gw: q.claim.gw || q.gw, teams: [q.team].concat(oppOfQ(q) ? [oppOfQ(q)] : []), players: [], viral: hot, hot: hot && Date.now() - +at < HOT_H * 3600e3,
     text, media: { type: 'receipt', verdict: won ? 'won' : 'lost', line: q.line, team: q.team, who: m, chip: claimChip(q.claim), p: q.p, result: s.plain || '', gw: q.gw },
     facts: 'The quote · the result' + (q.p != null ? ' · the model gave it ' + pct(q.p) : ''), detail: [{ k: 'Said', v: said }, { k: 'Calling', v: esc(claimLabel(q.claim)) }, { k: won ? 'Came true' : 'What happened', v: s.line }].concat(q.p != null ? [{ k: 'The model at the time', v: pct(q.p) }] : []),
     links: [{ label: short(q.team), open: 'manager:' + q.team }], share: (won ? 'Called it. ' : 'Receipts. ') + '“' + q.line + '” ' + m + '. ' + (s.plain || '') + '.', social: q,
@@ -55,14 +57,14 @@ function pileOn(q, s, rec, slot) {
   const m = who(q.team), won = s.state === 'won', out = [];
   const at = T(rec.ts, 18);
   out.push({
-    id: 'pile:a:' + rec.id, voice: 'archizio', kind: 'pile', ts: at, time: relTime(at), gw: rec.gw, teams: [q.team], players: [],
+    id: 'pile:a:' + rec.id, voice: 'archizio', kind: 'pile', topic: topicOf(q), ts: at, time: relTime(at), gw: rec.gw, teams: [q.team], players: [],
     text: won ? pick('pileaw', q.gw, [strong('UNDERSTAND.') + ' ' + esc(possQ(q.team)) + ' GW' + q.gw + ' call is all over the league.', strong('EXCLUSIVE.') + ' The ' + esc(short(q.team)) + ' dressing room has the quote framed.'], slot)
       : pick('pileal', q.gw, [strong('UNDERSTAND.') + ' ' + esc(possQ(q.team)) + ' GW' + q.gw + ' quote is doing numbers. Not the good kind.', strong('EXCLUSIVE.') + ' ' + esc(m) + ' is not taking questions today.', strong('HERE WE GO.') + ' The quote, the result, the replies.'], slot),
     media: { type: 'qt', ref: rec.id }, facts: 'The receipt above', detail: [], links: [], share: '',
   });
   const at2 = T(rec.ts, 31);
   out.push({
-    id: 'pile:m:' + rec.id, voice: 'malcolm', kind: 'pile', ts: at2, time: relTime(at2), gw: rec.gw, teams: [q.team], players: [],
+    id: 'pile:m:' + rec.id, voice: 'malcolm', kind: 'pile', topic: topicOf(q), ts: at2, time: relTime(at2), gw: rec.gw, teams: [q.team], players: [],
     text: won ? pick('pilemw', q.gw, ['From the booth: say it, then do it. ' + esc(m) + ' did both.', 'Give the man his flowers. ' + s.plain + '.'], slot)
       : pick('pileml', q.gw, ['From the booth: some quotes age better than others. ' + s.plain + '.', 'They’ll be playing that one back for a while. ' + s.plain + '.'], slot),
     media: null, facts: 'The receipt', detail: [], links: [{ label: short(q.team), open: 'manager:' + q.team }], share: '',
@@ -72,7 +74,7 @@ function pileOn(q, s, rec, slot) {
 function runningPost(q, s, slot) {
   const m = who(q.team), id = 'remember:' + q.target + ':' + q.team + ':' + s.upTo, ts = T(gwDoneTime(s.upTo), 52);
   return {
-    id, voice: 'clark', kind: 'remember', ts, time: 'After GW' + s.upTo, gw: s.upTo, teams: [q.team], players: [],
+    id, voice: 'clark', kind: 'remember', topic: topicOf(q), ts, time: 'After GW' + s.upTo, gw: s.upTo, teams: [q.team], players: [],
     text: pick('remember', s.upTo, ['Remember this? “' + esc(q.line) + '” ' + esc(m) + ', GW' + q.gw + '. ' + s.line + '.', strong('HOW’S THAT GOING?') + ' “' + esc(q.line) + '” ' + s.line + '.'], slot),
     media: { type: 'receipt', verdict: 'running', line: q.line, team: q.team, who: m, chip: claimChip(q.claim), p: q.p, result: s.line.replace(/<[^>]+>/g, ''), gw: q.gw },
     facts: 'Manager of the Month race · points for', detail: [{ k: 'Said', v: '“' + esc(q.line) + '”' }, { k: 'So far', v: s.line }], links: [{ label: 'Money', href: '#/league/money' }], share: '', social: q,
