@@ -11,16 +11,12 @@ try { const v = localStorage.getItem('emt-tm-lview'); if (v === 'list' || v === 
 const ORDER = { GKP: 0, DEF: 1, MID: 2, FWD: 3 };
 const outLabel = p => { const s = p.Status; return s === 's' ? 'BANNED' : s === 'd' ? chanceTxt(p).toUpperCase() : 'OUT'; };
 
-/* lines from the back: GK, DEF, MID, FWD; a five-man line splits 3 + 2 (two holders behind three, or three centre-backs behind two wing-backs) */
+/* lines from the back: GK, DEF, MID, FWD, one row per line; a five-man line stays on one row (Parker, 8 Oct 2026), the cards shrink to fit */
 function lines(xi) {
   const out = [];
   ['FWD', 'MID', 'DEF', 'GKP'].forEach(pos => {
     const g = xi.filter(p => p.Pos === pos);
-    if (!g.length) return;
-    if (g.length >= 5) {
-      if (pos === 'MID') { out.push({ pos, ps: g.slice(0, 3) }); out.push({ pos, ps: g.slice(3) }); }
-      else { out.push({ pos, ps: g.slice(3) }); out.push({ pos, ps: g.slice(0, 3) }); }
-    } else out.push({ pos, ps: g });
+    if (g.length) out.push({ pos, ps: g });
   });
   return out;
 }
@@ -57,7 +53,7 @@ function toolbar(team, L) {
 function pitch(team, L) {
   const F = frame(team), ls = lines(L.xi), n = Math.max(3, ...ls.map(l => l.ps.length));
   const rows = ls.map(l => '<div class="tm-prow' + (l.pos === 'GKP' ? ' gk' : '') + '">' + (l.pos === 'GKP' ? '<i class="tm-mk-a" aria-hidden="true"></i>' : '') + l.ps.map(p => plateMarked(p, 100, L.marks, true)).join('') + '</div>').join('');
-  return '<div class="tm-pitch" style="--s1:' + F.s1 + ';--s2:' + F.s2 + ';--mk:' + F.mark + ';--edge:' + F.edge + ';--n:' + n + ';--gap:' + (n > 3 ? 8 : 12) + 'px">'
+  return '<div class="tm-pitch" style="--s1:' + F.s1 + ';--s2:' + F.s2 + ';--mk:' + F.mark + ';--edge:' + F.edge + ';--n:' + n + ';--gap:' + (n > 4 ? 6 : n > 3 ? 8 : 12) + 'px">'
     + '<i class="tm-mk-c" aria-hidden="true"></i><i class="tm-mk-o" aria-hidden="true"></i>'
     + '<span class="tm-pwm" aria-hidden="true">' + UI.crest(team, 200) + '</span>'
     + '<div class="tm-rows">' + rows + '</div></div>';
@@ -135,7 +131,7 @@ export function lineupPage(team) {
   const live = L.st && (L.st.st === 'live' || L.st.st === 'prov' || L.st.st === 'ft');
   let note;
   if (asList) note = '';
-  else note = live ? 'The number on each card: live points in green, banked points once a match ends, and the projection for players still to play.' : 'The number on each card is his projected points. Tap a card for the player sheet.';
+  else note = live ? 'Bubbles show live points, banked points once a match ends, and the projection for players still to play.' : 'Bubbles show projected points. Tap a card for the player sheet.';
   const likely = !lineupsLocked() && !D.dlPassed ? '<p class="sub tm-pnote">Likely lineup until the deadline' + (UI.week().dl ? ' (' + esc(UI.dayHm(UI.week().dl)) + ')' : '') + ': FPL publishes picks then, and last week’s lineup carries forward until it does.</p>' : '';
   const body = asList
     ? '<div class="card tm-list">' + L.xi.map(p => listRow(p, L)).join('') + '</div>'

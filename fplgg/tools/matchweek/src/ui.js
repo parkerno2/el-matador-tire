@@ -151,22 +151,31 @@ export function plateNum(p) {
   const e = D.hasEP ? epOf(p.Code) : null;
   return { st: 'proj', txt: e === null ? '–' : f1(e) };
 }
-/* the small Plate (Parker, 8 Oct 2026): the same card without the overall rating or the bubble; the face, the name,
-   club and nation, and the number he wears top right as plain text, coloured by state (plateNum). The auto-sub tag and
-   the INJ mark are kept, as on the full card (SUBMARK is set by the caller, see team/bits.js plateMarked). For the
-   Lineup pitch and the Gameweek Show's XI. opt.noOpen leaves the player sheet closed (the show) */
+/* the bubble a Plate wears, as the full card draws it: PROJ (dashed) before his match, LIVE (green ring) while it is on,
+   PTS once it is over; XP in the xP view. b: { st: 'proj'|'live'|'bk'|'xp', txt, cls? } (plateNum, or the matchup page's own) */
+export function plateBubble(b) {
+  const st = b.st === 'pj' ? 'proj' : b.st === 'lv' ? 'live' : b.st;
+  const extra = b.cls ? ' ' + b.cls : '';
+  if (st === 'proj') return '<span class="pts proj' + extra + '"><b>' + esc(b.txt) + '</b><i>PROJ</i></span>';
+  if (st === 'xp') return '<span class="pts' + (b.live ? ' live' : '') + extra + '"><b>' + esc(b.txt) + '</b><i>XP</i></span>';
+  return '<span class="pts' + (st === 'live' ? ' live' : '') + extra + '"><b>' + esc(b.txt) + '</b><i>' + (st === 'live' ? 'LIVE' : 'PTS') + '</i></span>';
+}
+/* the small Plate (Parker, 8 Oct 2026): the same card without the overall rating; the face, the name, club and nation, and
+   the bubble top right as always (plateNum, or opt.bubble from the caller). The auto-sub tag and the INJ mark are kept,
+   as on the full card: SUBMARK is set by the caller (team/bits.js plateMarked), or opt.mark ('in' | 'inl' | 'out' | 'outl')
+   names it. For the Lineup pitch and bench, the matchup screen and the Gameweek Show's XI. opt.noOpen leaves the player
+   sheet closed (the show) */
 export function plateMini(p, w = 70, opt = {}) {
   if (!p) return '';
   if (!p.Nation && typeof NAT_FIX !== 'undefined' && NAT_FIX[String(p.Code)]) p.Nation = NAT_FIX[String(p.Code)];
-  const t = tierOf(p), sm = (typeof SUBMARK !== 'undefined' && SUBMARK[p.Code]) || '';
+  const t = tierOf(p), sm = opt.mark || (typeof SUBMARK !== 'undefined' && SUBMARK[p.Code]) || '';
   const tag = sm === 'in' ? 'SUB' : sm === 'inl' ? 'LIKELY' : sm.startsWith('out') ? 'OUT' : '';
   const smc = sm ? ' sub' + (sm.startsWith('in') ? 'in' : 'out') + (sm.endsWith('l') ? ' likely' : '') : '';
-  const n = plateNum(p);
   return '<span class="plate mini" style="width:' + w + 'px"' + (opt.noOpen ? '' : ' data-open="player:' + esc(p.Code) + '"') + '>'
     + '<button class="fc mini ' + t + smc + '" aria-label="' + esc(p.Player) + '">' + cardBg(t)
     + (tag ? '<span class="tag">' + tag + '</span>' : '')
     + ('isud'.indexOf(p.Status) > -1 ? '<span class="inj">INJ</span>' : '')
-    + '<span class="mn ' + n.st + '">' + n.txt + '</span>'
+    + plateBubble(opt.bubble || plateNum(p))
     + '<span class="face">' + faceImgHTML(p) + '</span>'
     + '<span class="nm">' + esc(p.Player) + '</span>'
     + '<span class="meta">' + badgeImg(p.Club, 0) + '<span class="sep"></span>' + flagImg(p.Nation, 0) + '</span>'

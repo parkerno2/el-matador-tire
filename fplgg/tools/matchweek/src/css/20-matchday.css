@@ -184,19 +184,17 @@
 .md-lines .ar.t{top:72px;border-top-width:0;border-radius:0 0 32px 32px/0 0 18px 18px}
 .md-lines .ar.b{bottom:72px;border-bottom-width:0;border-radius:32px 32px 0 0/18px 18px 0 0}
 .md-half{position:relative;z-index:1}
-.md-row{display:flex;justify-content:space-evenly;align-items:flex-start;height:var(--rowh);padding:8px 4px 0}
-.md-row.n1 .md-tk,.md-row.n2 .md-tk{flex-basis:120px}
-.md-tk{flex:0 1 84px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center}
-.md-ph{position:relative;width:48px;height:48px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid var(--md-rt);background:var(--md-bt);box-shadow:0 3px 10px rgba(0,0,0,.35)}
-.md-half.b .md-ph{border-color:var(--md-rb);background:var(--md-bb)}
-.md-ph .fc-i{background:transparent}
-.md-b{position:absolute;top:-6px;right:-14px;height:19px;min-width:22px;padding:0 5px;border-radius:10px;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.md-b.pj{line-height:16px}
+/* both XIs on small Plates (UI.plateMini, 64 px, five across at 390 px); a row grows with its cards */
+.md-row{display:flex;justify-content:space-evenly;align-items:flex-start;min-height:var(--rowh);padding:8px 4px 2px}
+.md-tk{flex:0 1 64px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center;cursor:pointer}
+.md-ph{position:relative;width:100%;flex:none}
+.md-ph .plate{width:100%!important}
+.md-tk .fc{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
 .pb.xp{background:var(--p700);color:#fff;border:1.5px solid var(--p300)}
 .pb.haul{background:var(--gold);color:var(--base)}
 .pb.lv.haul{box-shadow:0 0 0 2px var(--live),0 1px 4px rgba(0,0,0,.4)}
 .pb.bk.blank{background:#C9C2D6;color:#3A2F47}
-.md-ic{position:absolute;left:-7px;top:-4px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
+.md-ic{position:absolute;left:-4px;top:-4px;z-index:4;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
 .md-ic.up{background:var(--win)} .md-ic.sw{background:var(--tx4)} .md-ic.dt{background:var(--doubt)} .md-ic.out{background:var(--loss)}
 /* the name sits on the bottom rim of the face, like a card's nameplate */
 .md-nm{position:relative;z-index:2;max-width:100%;padding:2px 7px;border-radius:5px;background:rgba(10,8,16,.86);box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:11px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:-9px}
@@ -452,9 +450,7 @@
   .md-mbig{font-size:36px}
   .md-mbig.dec{font-size:26px}
   .md-pitch{--rowh:84px}
-  .md-ph{width:42px;height:42px}
-  .md-ph .fc-i{width:38px!important;height:38px!important}
-  .md-b{right:-12px;font-size:13px;height:18px;min-width:20px;padding:0 4px}
+  .md-tk{flex-basis:56px}
   .md-h2h{grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr);padding:9px 10px}
   .md-hc .fc-i{width:26px!important;height:26px!important}
   .md-prb{grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr) 42px;padding:12px 8px 12px 10px;gap:4px}

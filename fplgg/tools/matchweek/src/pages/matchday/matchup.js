@@ -56,9 +56,13 @@ function token(x, T, mode) {
   const line = sub && sub.kind === 'likely' && !x.started ? 'likely sub' : st.t;
   const label = x.p.Player + ', ' + (b.cls === 'pj' ? 'projected ' + b.txt : b.cls === 'xp' ? 'xP ' + b.txt : b.txt + ' points') + (line ? ', ' + line : '');
   /* a double-figure haul turns the bubble gold, a banked blank goes quiet */
-  const pv = parseFloat(b.txt), tone = (b.cls === 'bk' || b.cls === 'lv') && pv >= 10 ? ' haul' : b.cls === 'bk' && pv <= 1 ? ' blank' : '';
-  return '<button class="md-tk" data-open="player:' + esc(x.code) + '" aria-label="' + esc(label) + '"><span class="md-ph">' + UI.face(x.p, 44) + '<span class="pb ' + b.cls + tone + ' md-b">' + b.txt + '</span>' + ic + '</span>'
-    + '<span class="md-nm">' + esc(x.p.Player) + '</span><span class="md-sl' + (st.live && !(sub && sub.kind === 'likely' && !x.started) ? ' lv' : '') + '">' + esc(line) + '</span></button>';
+  const pv = parseFloat(b.txt), tone = (b.cls === 'bk' || b.cls === 'lv') && pv >= 10 ? 'haul' : b.cls === 'bk' && pv <= 1 ? 'blank' : '';
+  /* every player on a small Plate (Parker, 8 Oct 2026): the card carries the name, the bubble and the auto-sub tag; the
+     doubt and out marks ride the card's corner as before, the kick-off, minute or FT line sits under it */
+  const mark = sub ? (sub.kind === 'locked' ? 'in' : 'inl') : '';
+  return '<span class="md-tk" data-open="player:' + esc(x.code) + '" role="button" tabindex="0" aria-label="' + esc(label) + '"><span class="md-ph">'
+    + UI.plateMini(x.p, 64, { noOpen: true, mark, bubble: { st: b.cls, txt: b.txt, cls: tone, live: x.live } }) + ic + '</span>'
+    + '<span class="md-sl' + (st.live && !(sub && sub.kind === 'likely' && !x.started) ? ' lv' : '') + '">' + esc(line) + '</span></span>';
 }
 function half(T, top, mode) {
   const order = top ? ['GKP', 'DEF', 'MID', 'FWD'] : ['FWD', 'MID', 'DEF', 'GKP'];

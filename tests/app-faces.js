@@ -1,7 +1,7 @@
 // Player image framing and the small Plate (Parker, 8 Oct 2026). FPL's photos (220x280, half body, the head in the
 // top part) carry class fpl from the shared chain (core.gen.js and src-prod/base.js faceImgHTML, src/ui.js chainImg,
 // face, src/feed/render.js cut) and the CSS frames them by the head; UI.plateMini is the Plate without the overall
-// rating or the bubble, the number he wears as text (UI.plateNum). Plain Node, the modules run in a vm.
+// rating, its bubble kept (UI.plateNum, UI.plateBubble). Plain Node, the modules run in a vm.
 //   node tests/app-faces.js
 const fs = require('fs'), vm = require('vm');
 let fails = 0;
@@ -64,7 +64,7 @@ function uiCtx(extra) {
   }, extra || {});
   ctx.window = ctx; vm.createContext(ctx);
   const src = UIJS.replace(/^export (function|const|let|async function)/gm, '$1').replace(/^export \{[^}]*\};?\s*$/gm, '');
-  vm.runInContext(src + '\n;this.__x = { fplPhoto, chainImg, face, faceSrcs, plateNum, plateMini, plate };', ctx);
+  vm.runInContext(src + '\n;this.__x = { fplPhoto, chainImg, face, faceSrcs, plateNum, plateBubble, plateMini, plate };', ctx);
   return ctx;
 }
 {
@@ -89,11 +89,13 @@ function uiCtx(extra) {
   const p = { Code: '226182', Player: 'Bogle', Club: 'LEE', Nation: 'GB-ENG', Status: 'a', Pos: 'DEF', 'GW pts': 0 };
   const m = U.plateMini(p, 64);
   check('plateMini: a 64 px Plate wrapper that opens the player sheet', /^<span class="plate mini" style="width:64px" data-open="player:226182"><button class="fc mini gold" aria-label="Bogle">/.test(m), m.slice(0, 140));
-  check('plateMini: no overall rating and no bubble; the number as text, the face, the name, the club and the nation', !/class="rt"/.test(m) && !/class="pts/.test(m) && /<span class="mn proj">4\.9<\/span>/.test(m) && /<span class="face"><img class="fpl"/.test(m) && /<span class="nm">Bogle<\/span>/.test(m) && /<span class="meta"><img class="crest" alt="LEE"><span class="sep"><\/span><img class="flag" alt="GB-ENG"><\/span>/.test(m));
+  check('plateMini: no overall rating; the bubble as the full card draws it (PROJ, dashed), the face, the name, the club and the nation', !/class="rt"/.test(m) && !/class="mn/.test(m) && /<span class="pts proj"><b>4\.9<\/b><i>PROJ<\/i><\/span>/.test(m) && /<span class="face"><img class="fpl"/.test(m) && /<span class="nm">Bogle<\/span>/.test(m) && /<span class="meta"><img class="crest" alt="LEE"><span class="sep"><\/span><img class="flag" alt="GB-ENG"><\/span>/.test(m));
+  check('plateBubble: PROJ, LIVE with the green ring, PTS, XP, and the caller\'s tone class', U.plateBubble({ st: 'proj', txt: '4.9' }) === '<span class="pts proj"><b>4.9</b><i>PROJ</i></span>' && U.plateBubble({ st: 'live', txt: '7' }) === '<span class="pts live"><b>7</b><i>LIVE</i></span>' && U.plateBubble({ st: 'bk', txt: '12', cls: 'haul' }) === '<span class="pts haul"><b>12</b><i>PTS</i></span>' && U.plateBubble({ st: 'xp', txt: '5.1', live: true }) === '<span class="pts live"><b>5.1</b><i>XP</i></span>' && U.plateBubble({ st: 'pj', txt: '–' }) === '<span class="pts proj"><b>–</b><i>PROJ</i></span>' && U.plateBubble({ st: 'lv', txt: '3' }) === '<span class="pts live"><b>3</b><i>LIVE</i></span>');
+  check('plateMini: the caller\'s bubble wins (the matchup screen hands in its own), and opt.mark sets the auto-sub tag without SUBMARK', /<span class="pts live haul"><b>11<\/b><i>LIVE<\/i><\/span>/.test(U.plateMini(p, 64, { bubble: { st: 'lv', txt: '11', cls: 'haul' } })) && /class="fc mini gold subin"[^>]*>[^]*<span class="tag">SUB<\/span>/.test(U.plateMini(p, 64, { mark: 'in' })));
   check('plateMini: no INJ mark for a fit player; INJ for a doubt, as on the full card', !/class="inj"/.test(m) && /<span class="inj">INJ<\/span>/.test(U.plateMini(Object.assign({}, p, { Status: 'd' }), 64)));
   check('plateMini: the auto-sub marks (SUBMARK) become the tag and the state classes', /class="fc mini gold subin likely"[^>]*>[^]*<span class="tag">LIKELY<\/span>/.test(uiCtx({ SUBMARK: { 226182: 'inl' } }).__x.plateMini(p, 64)) && /class="fc mini gold subout"[^>]*>[^]*<span class="tag">OUT<\/span>/.test(uiCtx({ SUBMARK: { 226182: 'out' } }).__x.plateMini(p, 64)));
   check('plateMini: noOpen leaves the sheet closed (the show); nothing for no player', !/data-open/.test(U.plateMini(p, 64, { noOpen: true })) && U.plateMini(null) === '');
-  check('plateMini: live and banked numbers carry their state', /<span class="mn live">7<\/span>/.test(uiCtx({ fxStarted: () => true }).__x.plateMini(Object.assign({}, p, { 'GW pts': 7 }), 64)) && /<span class="mn bk">12<\/span>/.test(uiCtx({ fxStarted: () => true, fxFinished: () => true }).__x.plateMini(Object.assign({}, p, { 'GW pts': 12 }), 64)));
+  check('plateMini: LIVE while his match is on, PTS once it is over', /<span class="pts live"><b>7<\/b><i>LIVE<\/i><\/span>/.test(uiCtx({ fxStarted: () => true }).__x.plateMini(Object.assign({}, p, { 'GW pts': 7 }), 64)) && /<span class="pts"><b>12<\/b><i>PTS<\/i><\/span>/.test(uiCtx({ fxStarted: () => true, fxFinished: () => true }).__x.plateMini(Object.assign({}, p, { 'GW pts': 12 }), 64)));
   check('plateMini: a missing nation is filled from NAT_FIX, as card() does', /alt="NO"/.test(uiCtx({ NAT_FIX: { 226182: 'NO' } }).__x.plateMini(Object.assign({}, p, { Nation: '' }), 64)));
 }
 /* render.js cut() hands its class to chainImg, which adds fpl */
@@ -111,7 +113,7 @@ check('src/css/00-plate.gen.css is plate.gen.css with its one extra token line',
 const comp = rd('src/css/02-components.css'), feedCss = rd('src/css/50-feed.css');
 check('the face circle frames an FPL photo by the head (cover, top, a slight scale)', comp.indexOf('.fc-i img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}') > -1 && comp.indexOf('.fc-i img{width:100%;height:100%;object-fit:cover;object-position:50% 100%}') > -1);
 check('the Feed\'s cut-outs do too (the selection call circle, the deal slab, the fact sticker)', feedCss.indexOf('.jc-f img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}') > -1 && feedCss.indexOf('.dd-face.fpl{object-fit:cover;object-position:50% 0}') > -1 && feedCss.indexOf('.fct-stk img.fpl{object-fit:cover;object-position:50% 0}') > -1);
-check('the small Plate\'s number: top right, by state', /\.fc\.mini \.mn\{position:absolute;top:[^}]*right:[^}]*\}/.test(comp) && /\.fc\.mini \.mn\.proj\{/.test(comp) && /\.fc\.mini \.mn\.live\{color:#19D27A\}/.test(comp) && /\.fc\.mini \.mn\.bk\{/.test(comp) && /\.fc\.mini \.face\{top:3%;height:64%\}/.test(comp));
+check('the small Plate keeps the full card\'s bubble rules (no .mn text number), its face sits a little higher, the tag clears the bubble, the matchup tones exist', !/\.fc\.mini \.mn/.test(comp) && /\.fc\.mini \.face\{top:4%;height:63%\}/.test(comp) && /\.fc\.mini \.tag\{left:12%;transform:none\}/.test(comp) && /\.fc\.mini \.pts\.haul b\{color:var\(--gold\)\}/.test(comp) && /\.fc\.mini \.pts\.blank\{/.test(comp));
 check('no generated root file is edited by hand here (the rules live in the source)', !fs.existsSync(__dirname + '/../app.css') || true);
 
 /* ---------- where the small Plate is used ---------- */
@@ -119,7 +121,9 @@ const lineup = rd('src/pages/team/lineup.js'), bits = rd('src/pages/team/bits.js
 check('bits.plateMarked takes the mini flag and uses UI.plateMini for it', /export function plateMarked\(p, w, marks, mini\)/.test(bits) && /mini \? UI\.plateMini\(p, w\) : UI\.plate\(p, w\)/.test(bits));
 check('Lineup: the pitch and the bench use the small Plate', /plateMarked\(p, 100, L\.marks, true\)/.test(lineup) && /plateMarked\(p, 80, L\.marks, true\)/.test(lineup));
 check('Lineup list view: the number alone through UI.plateNum, styled by state; no pill', /UI\.plateNum\(p\)/.test(lineup) && /class="tm-lpts n ' \+ pn\.st \+ '"/.test(lineup) && !/class="pb /.test(lineup) && /\.tm-lpts\.proj\{/.test(team) && /\.tm-lpts\.live\{color:var\(--live\)\}/.test(team));
-check('Lineup: the note no longer talks about bubbles', !/Bubbles show/.test(lineup));
+check('Lineup: a five-man line stays on one row, the cards capped at 84 px and sized by the longest line', !/g\.slice\(0, 3\)/.test(lineup) && /if \(g\.length\) out\.push\(\{ pos, ps: g \}\);/.test(lineup) && /n > 4 \? 6 : n > 3 \? 8 : 12/.test(lineup) && /\.tm-prow \.plate\{width:min\(84px,calc\(\(100% - \(var\(--n\) - 1\) \* var\(--gap\)\) \/ var\(--n\)\)\)!important\}/.test(team) && /\.tm-bc\{[^}]*max-width:72px\}/.test(team));
+const matchup = rd('src/pages/matchday/matchup.js'), mdCss = rd('src/css/20-matchday.css');
+check('the matchup screen: both XIs on small Plates with the page\'s own bubble and tone, the auto-sub mark, the status line kept, no face circle or pill', /UI\.plateMini\(x\.p, 64, \{ noOpen: true, mark, bubble: \{ st: b\.cls, txt: b\.txt, cls: tone, live: x\.live \} \}\)/.test(matchup) && /const mark = sub \? \(sub\.kind === 'locked' \? 'in' : 'inl'\) : '';/.test(matchup) && !/UI\.face\(x\.p, 44\)/.test(matchup) && !/md-nm/.test(matchup) && /class="md-sl/.test(matchup) && /\.md-ph \.plate\{width:100%!important\}/.test(mdCss) && /\.md-row\{[^}]*min-height:var\(--rowh\)/.test(mdCss) && !/\.md-b\{/.test(mdCss));
 const xi = lift(show, 'sceneXI');
 check('the show\'s XI scene pictures every player on a small Plate (noOpen), the doubt chip and star label kept; no face circle or bubble', /UI\.plateMini\(x\.p, isStar \? 78 : 64, \{ noOpen: true \}\)/.test(xi) && /gs-fl/.test(xi) && /gs-st">Star man/.test(xi) && !/UI\.face\(/.test(xi) && !/gs-ph|gs-pj|gs-nm/.test(xi));
 check('the show CSS sizes the token to its Plate and glows the star card', /\.gs-tk \.plate\{width:100%!important\}/.test(showCss) && /\.gs-tk\.star \.fc\{filter:drop-shadow/.test(showCss) && !/\.gs-ph\{/.test(showCss));

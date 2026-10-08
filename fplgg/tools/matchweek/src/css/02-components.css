@@ -105,17 +105,13 @@
 .plate{display:block;flex:none}
 .plate .fc{width:100%;max-width:none;min-width:0}
 .plate .fc:hover,.plate .fc:focus-visible{transform:translateY(-2px) scale(1.02)}
-/* the small Plate (UI.plateMini): no overall rating and no bubble; the face sits higher and the number he wears is plain
-   text top right, coloured by state: his projection muted, live points green, banked points in the card's text colour */
-.fc.mini .face{top:3%;height:64%}
-.fc.mini .tag{left:7%;top:5%;transform:none}
-.fc.mini .mn{position:absolute;top:4.5%;right:8%;z-index:2;font-family:'Saira Condensed',sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:20cqw;line-height:1;color:var(--tx);text-shadow:0 1px 3px rgba(0,0,0,.4),0 0 8px rgba(0,0,0,.3)}
-.fc.gold.mini .mn,.fc.silver.mini .mn{text-shadow:0 0 2px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.8)}
-.fc.mini .mn.proj{font-weight:600}
-.fc.mini .mn.bk{font-weight:800}
-.fc.mini .mn.live{color:#19D27A}
-.fc.mini .mn.live::before{content:"";display:inline-block;width:5cqw;height:5cqw;border-radius:50%;background:#19D27A;margin:0 2.5cqw 0 0;vertical-align:middle;position:relative;top:-1cqw}
-.fc.spec.mini .mn.live,.fc.elite.mini .mn.live,.fc.totw.mini .mn.live,.fc.potm.mini .mn.live{color:#5CF0A5}
+/* the small Plate (UI.plateMini): no overall rating; the bubble stays, the face sits a little higher, the tag moves off
+   the bubble's corner */
+.fc.mini .face{top:4%;height:63%}
+.fc.mini .tag{left:12%;transform:none}
+/* a double-figure haul turns the bubble gold, a banked blank goes quiet (the matchup screen's tones) */
+.fc.mini .pts.haul b{color:var(--gold)}
+.fc.mini .pts.blank{opacity:.72}
 
 /* bars */
 .wbar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}
