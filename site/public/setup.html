@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Matchweek · Create your league</title>
+<meta name="description" content="Turn an FPL Draft league into a Matchweek clubhouse: paste the league id, name the rivalries, set the pot, download the config.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Chakra+Petch:wght@500;600;700&display=swap">
+<!--
+  fplgg/web/wizard/index.html — BUILD-PLAN Week 5: the create-league flow as ONE static page.
+  paste league id → validate → customise (teams, rivalries, money, periods, extras) → emit league.json
+  that follows config/league-config.md and drops straight into demo.html's LEAGUE_CONFIG.
+
+  Validation sources, tried in this order (all produce the same {league, teams} shape):
+    1. LOOKUP_BASE + '/league-lookup?id=N'   — the Supabase edge function (ingest/supabase/functions/league-lookup)
+    2. pasted /api/league/{id}/details JSON   — open the URL in a tab, copy, paste (no server needed)
+    3. the built-in demo league               — the 8-team synthetic league the harness uses (ids 900008 / 400000+)
+  No build step, no framework. Tested headless by tools/test_wizard.js.
+-->
+<style>
+:root{
+  --p1:#37003C;--p2:#5B1A66;--blue:#2E5BFF;--cyan:#04F5FF;--violet:#8E44AD;--gold:#FFD23F;--goldd:#B8860B;
+  --ink:#1B1420;--mid:#6B6076;--faint:#A69DB0;--line:#DED7E4;--bg:#F4F1F6;--card:#FFFFFF;--tint:#EEF2FF;
+  --err:#C41E3A;--errbg:#FCE9EC;--warn:#8A5A00;--warnbg:#FFF3C4;--ok:#0E8A5F;--okbg:#E3F5EC;
+  --disp:'Archivo Black','Space Grotesk',system-ui,sans-serif;--body:'Space Grotesk',system-ui,sans-serif;--num:'Chakra Petch','Space Grotesk',monospace;
+  --rail:220px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{font-family:var(--body);color:var(--ink);background:var(--bg);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--blue)}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{background:linear-gradient(150deg,#2A0030 0%,#4A0E56 45%,#2E3FB8 108%,#1897E0 155%);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--gold)}
+.top .mark{font-family:var(--disp);font-size:1.05rem;letter-spacing:.02em}
+.top .mark b{color:var(--gold);font-weight:400}
+.top .kick{font-family:var(--num);font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan);margin-left:auto}
+.shell{display:grid;grid-template-columns:var(--rail) 1fr;max-width:1080px;margin:0 auto;min-height:calc(100vh - 56px)}
+.rail{padding:28px 18px;border-right:1px solid var(--line)}
+.rail ol{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rail li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;font-size:.9rem;color:var(--mid);cursor:pointer}
+.rail li .n{font-family:var(--num);font-weight:700;font-size:.72rem;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);display:grid;place-items:center;flex:none}
+.rail li.on{background:var(--card);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.rail li.on .n{background:var(--p1);border-color:var(--p1);color:var(--gold)}
+.rail li.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.rail li.locked{opacity:.45;cursor:default}
+main{padding:28px 28px 120px;max-width:760px;min-width:0}
+h1{font-family:var(--disp);font-weight:400;font-size:clamp(1.4rem,3vw,1.9rem);line-height:1.2;margin:0 0 6px;text-wrap:balance;color:var(--p1)}
+.sub{color:var(--mid);margin:0 0 22px;max-width:60ch}
+h2{font-family:var(--body);font-weight:700;font-size:1rem;margin:26px 0 8px}
+label.f{display:grid;gap:5px;font-size:.85rem;font-weight:500;color:var(--mid)}
+input[type=text],input[type=number],input[type=url],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font-size:.95rem}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+textarea{min-height:110px;font-family:var(--num);font-size:.82rem;line-height:1.4}
+input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--card);cursor:pointer}
+.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.row>*{flex:1 1 160px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:12px 20px;border-radius:24px;border:none;cursor:pointer;background:var(--p1);color:#fff;white-space:nowrap}
+.btn.gold{background:var(--gold);color:var(--p1)}
+.btn.ghost{background:transparent;color:var(--p1);border:1.5px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:.7rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:12px 0}
+.msg{border-radius:6px;padding:10px 14px;font-size:.9rem;margin:10px 0}
+.msg.err{background:var(--errbg);color:var(--err)}.msg.warn{background:var(--warnbg);color:var(--warn)}.msg.ok{background:var(--okbg);color:var(--ok)}
+.msg ul{margin:6px 0 0 18px;padding:0}
+.tabs{display:flex;gap:6px;margin:6px 0 12px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--mid)}
+.tabs button.on{background:var(--p1);border-color:var(--p1);color:#fff}
+.pane{display:none}.pane.on{display:block}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th{font-family:var(--num);font-weight:600;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td input[type=text]{padding:7px 9px;font-size:.88rem}
+td.mono input{font-family:var(--num);font-weight:700;text-transform:uppercase;width:64px;text-align:center}
+.tabwrap{overflow-x:auto}
+.chip{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-family:var(--num);font-weight:700;font-size:.8rem;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);flex:none}
+.pairs{display:grid;gap:8px}
+.pair{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.pair .vs{display:flex;align-items:center;gap:6px;font-family:var(--num);font-size:.72rem;font-weight:600;color:var(--mid);width:110px}
+.pair .vs .chip{width:26px;height:26px;font-size:.68rem;border-radius:6px}
+.list{display:grid;gap:8px}
+.list .item{display:grid;grid-template-columns:1fr 130px auto;gap:8px;align-items:center}
+.list .item.per{grid-template-columns:1fr 90px 90px auto}
+.x{background:none;border:none;color:var(--faint);font-size:1.1rem;cursor:pointer;padding:4px 8px}
+.x:hover{color:var(--err)}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:500;cursor:pointer}
+.toggle input{width:18px;height:18px}
+.stat{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:600}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sum div{background:var(--tint);border-radius:6px;padding:10px 12px;font-size:.82rem;color:var(--mid)}
+.sum b{display:block;font-family:var(--num);font-size:1.25rem;color:var(--p1)}
+pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.74rem;line-height:1.45;overflow:auto;max-height:420px;font-family:var(--num)}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 20px;display:flex;gap:10px;align-items:center;justify-content:flex-end;z-index:5}
+.foot .prog{margin-right:auto;font-family:var(--num);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mid)}
+.hint{font-size:.82rem;color:var(--mid)}
+.preview{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 0}
+.tt{border-radius:8px;padding:8px 10px;color:#fff;min-width:120px;font-size:.78rem;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.tt b{display:block;font-family:var(--num);font-size:.95rem}
+.small{font-size:.8rem}
+@media (max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .rail{padding:12px 10px;border-right:none;border-bottom:1px solid var(--line);overflow-x:auto}
+  .rail ol{grid-auto-flow:column;gap:4px}
+  .rail li span.t{display:none}
+  main{padding:20px 16px 130px}
+  .list .item,.list .item.per{grid-template-columns:1fr 1fr auto}
+}
+@media (prefers-reduced-motion:no-preference){.rail li{transition:background .12s}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="mark">MATCH<b>WEEK</b></div>
+  <div class="kick">Create a league · beta</div>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Steps">
+    <ol id="rail">
+      <li data-step="0" class="on"><span class="n">1</span><span class="t">Connect league</span></li>
+      <li data-step="1" class="locked"><span class="n">2</span><span class="t">Teams &amp; colors</span></li>
+      <li data-step="2" class="locked"><span class="n">3</span><span class="t">Rivalries</span></li>
+      <li data-step="3" class="locked"><span class="n">4</span><span class="t">The money</span></li>
+      <li data-step="4" class="locked"><span class="n">5</span><span class="t">Season periods</span></li>
+      <li data-step="5" class="locked"><span class="n">6</span><span class="t">Extras</span></li>
+      <li data-step="6" class="locked"><span class="n">7</span><span class="t">Review &amp; download</span></li>
+    </ol>
+  </nav>
+
+  <main>
+    <!-- ============ STEP 0: connect ============ -->
+    <section class="step" data-step="0">
+      <h1>Connect your FPL Draft league</h1>
+      <p class="sub">Matchweek reads the league straight from FPL — team names, managers and rosters come from there. You only decide how it looks and what it plays for.</p>
+      <div class="tabs" role="tablist">
+        <button class="on" data-pane="lookup">League id</button>
+        <button data-pane="paste">Paste JSON</button>
+        <button data-pane="demo">Try the demo league</button>
+      </div>
+      <div class="pane on" id="pane-lookup">
+        <label class="f">League id or URL
+          <input type="text" id="lid" placeholder="e.g. 45380 — or paste draft.premierleague.com/league/45380/…" inputmode="numeric" autocomplete="off">
+        </label>
+        <p class="hint">Find it in the address bar on draft.premierleague.com while viewing your league. The draft must be complete.</p>
+        <div class="row"><button class="btn gold" id="lookupBtn">Look up league</button>
+          <label class="f small">Lookup service <input type="url" id="lookupBase" placeholder="default: vcokquhzqpqvwrybndnr.supabase.co (live)" ></label></div>
+        <p class="hint">No lookup service yet? Use <b>Paste JSON</b>: open <code>https://draft.premierleague.com/api/league/&lt;id&gt;/details</code> in a new tab, select all, copy, paste.</p>
+      </div>
+      <div class="pane" id="pane-paste">
+        <label class="f">Contents of /api/league/{id}/details
+          <textarea id="pasteJson" placeholder='{"league": {...}, "league_entries": [...], ...}'></textarea>
+        </label>
+        <div class="row"><button class="btn gold" id="pasteBtn">Use this league</button></div>
+      </div>
+      <div class="pane" id="pane-demo">
+        <p>An 8-team synthetic league — the same one Matchweek's own test harness uses. Real player universe, made-up numbers.</p>
+        <div class="row"><button class="btn gold" id="demoBtn">Load the demo league</button></div>
+      </div>
+      <div id="connectMsg"></div>
+      <div id="connectCard"></div>
+    </section>
+
+    <!-- ============ STEP 1: teams ============ -->
+    <section class="step" data-step="1" hidden>
+      <h1>Teams &amp; colors</h1>
+      <p class="sub">Names and managers come from FPL. Pick a monogram and a color for each team — Matchweek auto-assigns distinct ones you can keep or change. Mark who runs the league.</p>
+      <div class="tabwrap"><table id="teamsTable">
+        <thead><tr><th></th><th>Team</th><th>Manager</th><th>First name</th><th>Monogram</th><th>Color</th><th>Commissioner</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div id="teamsMsg"></div>
+      <h2>How the cards will read</h2>
+      <div class="preview" id="teamPreview"></div>
+    </section>
+
+    <!-- ============ STEP 2: rivalries ============ -->
+    <section class="step" data-step="2" hidden>
+      <h1>Rivalries</h1>
+      <p class="sub">Give any matchup a derby name and it shows on the scoreboard every time those two meet. Optional — unnamed fixtures just show the team names.</p>
+      <div class="row"><label class="f">Filter pairs <input type="text" id="pairFilter" placeholder="type a monogram or team"></label><div class="hint stat" id="pairCount"></div></div>
+      <div class="pairs" id="pairs"></div>
+    </section>
+
+    <!-- ============ STEP 3: money ============ -->
+    <section class="step" data-step="3" hidden>
+      <h1>The money</h1>
+      <p class="sub">Everything the Table page shows about the pot. Leave the total at 0 for a league that plays for pride.</p>
+      <div class="row">
+        <label class="f">Currency <select id="currency"><option>USD</option><option>GBP</option><option>EUR</option><option>AUD</option><option>CAD</option></select></label>
+        <label class="f">Total pot <input type="number" id="potTotal" min="0" step="1"></label>
+        <label class="f">Buy-in per team (computed) <input type="text" id="buyIn" readonly></label>
+      </div>
+      <h2>Payouts</h2>
+      <div class="list" id="payouts"></div>
+      <div class="row"><button class="btn ghost sm" id="addPayout">+ Add a payout</button></div>
+      <h2>Manager of the Month</h2>
+      <div class="row">
+        <label class="f">Prize per period <input type="number" id="motmAmt" min="0" step="1"></label>
+        <label class="f">Periods (set on the next step) <input type="text" id="motmCount" readonly></label>
+      </div>
+      <h2>Head-to-head points</h2>
+      <div class="row">
+        <label class="f">Win <input type="number" id="h2hW" min="0" step="1" value="3"></label>
+        <label class="f">Draw <input type="number" id="h2hD" min="0" step="1" value="1"></label>
+        <label class="f">Loss <input type="number" id="h2hL" min="0" step="1" value="0"></label>
+        <label class="f">Tiebreak <select id="tiebreak"><option value="PF">Points for</option><option value="H2H">Head-to-head record</option></select></label>
+      </div>
+      <div id="moneyMsg"></div>
+    </section>
+
+    <!-- ============ STEP 4: periods ============ -->
+    <section class="step" data-step="4" hidden>
+      <h1>Season periods</h1>
+      <p class="sub">Manager of the Month is decided per period. Periods must run in order and cover gameweeks 1–38 with no gaps or overlaps.</p>
+      <div class="tabs"><button data-preset="monthly" class="on">Monthly (9)</button><button data-preset="quarters">Quarters (4)</button><button data-preset="halves">Halves (2)</button><button data-preset="none">No MOTM</button></div>
+      <div class="list" id="periods"></div>
+      <div class="row"><button class="btn ghost sm" id="addPeriod">+ Add a period</button></div>
+      <div id="periodMsg"></div>
+    </section>
+
+    <!-- ============ STEP 5: extras ============ -->
+    <section class="step" data-step="5" hidden>
+      <h1>Extras</h1>
+      <p class="sub">Branding and the league-personality widgets. All optional.</p>
+      <div class="row">
+        <label class="f">League name <input type="text" id="leagueName"></label>
+        <label class="f">Top-bar text <input type="text" id="brandLine" maxlength="28"></label>
+      </div>
+      <div class="row">
+        <label class="f">Season <input type="text" id="season" value="2026/27"></label>
+        <label class="f">Timezone <select id="tz"></select></label>
+      </div>
+      <h2>Special market</h2>
+      <label class="toggle"><input type="checkbox" id="smOn"> Show a "will X finish last?" odds dial on the Table page</label>
+      <div class="row" id="smRow" hidden>
+        <label class="f">Team <select id="smTeam"></select></label>
+        <label class="f">Title <input type="text" id="smTitle" placeholder="Will Charlie finish 8th?"></label>
+      </div>
+      <h2>Rating overrides</h2>
+      <p class="hint">Commissioner's privilege: pin a player's OVR. Keyed by FPL web-name slug (e.g. <code>bfernandes</code>, <code>haaland</code>). Cap is 95.</p>
+      <div class="list" id="overrides"></div>
+      <div class="row"><button class="btn ghost sm" id="addOverride">+ Add an override</button></div>
+      <h2>All-time head-to-head records</h2>
+      <p class="hint">If the league predates Matchweek, paste the series records so the scoreboard shows the running tally. One per line: <code>MW DR 5 2 0</code> = MW leads DR 5 wins, 2 losses, 0 draws (from MW's side). Skip for a new league.</p>
+      <textarea id="seedText" placeholder="MW DR 5 2 0&#10;TF CB 2 6 0"></textarea>
+      <div id="seedMsg"></div>
+    </section>
+
+    <!-- ============ STEP 6: review ============ -->
+    <section class="step" data-step="6" hidden>
+      <h1>Review &amp; download</h1>
+      <p class="sub">This is the whole league in one file. With an invite code, Create puts it live at its own Matchweek link right now; the JSON download is your backup copy.</p>
+      <div class="sum" id="summary"></div>
+      <div id="reviewMsg"></div>
+      <div class="card" id="createCard">
+        <h2 style="margin-top:0">Create it on Matchweek</h2>
+        <p class="hint">Beta is invite-only. Enter your invite code and your clubhouse goes live — the first data sync takes about two minutes.</p>
+        <div class="row">
+          <label class="f">Invite code <input type="text" id="inviteCode" autocomplete="off" placeholder="from Matchweek"></label>
+          <button class="btn gold" id="createBtn">Create league</button>
+        </div>
+        <div id="createMsg"></div>
+      </div>
+      <div class="row" style="margin:14px 0">
+        <button class="btn ghost" id="dlBtn">Download league.json</button>
+        <button class="btn ghost" id="copyBtn">Copy JSON</button>
+      </div>
+      <pre id="jsonOut"></pre>
+    </section>
+  </main>
+</div>
+
+<footer class="foot">
+  <span class="prog" id="prog">Step 1 of 7</span>
+  <button class="btn ghost" id="backBtn">Back</button>
+  <button class="btn" id="nextBtn">Next</button>
+</footer>
+
+<script>
+'use strict';
+/* ===================== state ===================== */
+const S = {
+  step: 0,
+  src: null,             // {league:{id,name,size,scoring,draftStatus}, teams:[{fplEntryId,name,manager,firstName}], warnings:[]}
+  teams: [],             // working copies: + monogram, color, isCommissioner
+  derbies: {},           // "A|B" (sorted monograms) → name
+  pot: { currency: 'USD', total: 0, payouts: [], motmAmt: 0, h2h: { win: 3, draw: 1, loss: 0 }, tiebreak: 'PF' },
+  periods: [],           // {label, fromGw, toGw}
+  extras: { leagueName: '', brandLine: '', season: '2026/27', tz: 'Europe/London', sm: { enabled: false, team: '', title: '' }, overrides: [], seeded: {} },
+};
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pairKey = (a, b) => [a, b].sort().join('|');
+
+/* 16 distinct team colors, in a fixed order (the El Matador eight first — they are known to read apart on cards). */
+const PALETTE = ['#2E5BFF', '#8E44AD', '#00A88F', '#D6001C', '#F0B323', '#E8710A', '#795548', '#B5179E', '#0B7285', '#5C940D', '#E64980', '#364FC7', '#862E9C', '#087F5B', '#C92A2A', '#3B5BDB'];
+
+/* ---------- color distance (CIE Lab ΔE76 — plenty for "can I tell these apart on a card") ---------- */
+function lab(hex) {
+  const n = parseInt(hex.slice(1), 16); let r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const lin = c => c <= .04045 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); r = lin(r); g = lin(g); b = lin(b);
+  const X = (r * .4124 + g * .3576 + b * .1805) / .95047, Y = r * .2126 + g * .7152 + b * .0722, Z = (r * .0193 + g * .1192 + b * .9505) / 1.08883;
+  const f = t => t > .008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
+}
+const dE = (a, b) => { const p = lab(a), q = lab(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+const CLASH = 22; // below this two team colors read as the same on a 60px card (Team Jacob #1B7F79 vs CT #00A88F was ≈17)
+
+/* ---------- monograms ---------- */
+function autoMonogram(team, taken) {
+  const words = team.manager.split(/\s+/).filter(Boolean);
+  let m = (words.length >= 2 ? words[0][0] + words[words.length - 1][0] : (team.manager || team.name).slice(0, 2)).toUpperCase().replace(/[^A-Z]/g, '');
+  if (m.length < 2) m = (team.name.replace(/[^A-Za-z]/g, '').slice(0, 2) || 'XX').toUpperCase();
+  let cand = m, i = 0;
+  const alt = [m, (words[0] || m)[0].toUpperCase() + (team.name.replace(/[^A-Za-z]/g, '')[0] || 'X').toUpperCase(), m[0] + m[0]];
+  while (taken.has(cand)) { i++; cand = i < alt.length ? alt[i] : m[0] + String.fromCharCode(65 + (i % 26)); }
+  taken.add(cand); return cand;
+}
+
+/* ===================== step 0: connect ===================== */
+const DEMO_DETAILS = { league: { id: 900008, name: 'Demo League 8', draft_status: 'post', scoring: 'h', transaction_mode: 'waivers' }, league_entries: [
+  { entry_id: 400000, entry_name: 'Saka Potatoes', player_first_name: 'Marcus', player_last_name: 'Webb' },
+  { entry_id: 400001, entry_name: 'Wirtz Case Scenario', player_first_name: 'Dec', player_last_name: 'Rowley' },
+  { entry_id: 400002, entry_name: 'Isak Newton', player_first_name: 'Tom', player_last_name: 'Fletcher' },
+  { entry_id: 400003, entry_name: 'Palmer Violets', player_first_name: 'Jamie', player_last_name: 'Doyle' },
+  { entry_id: 400004, entry_name: 'Route One Republic', player_first_name: 'Sam', player_last_name: 'Okafor' },
+  { entry_id: 400005, entry_name: 'The Wooden Spoons', player_first_name: 'Charlie', player_last_name: 'Betts' },
+  { entry_id: 400006, entry_name: 'Bench Mob FC', player_first_name: 'Ravi', player_last_name: 'Patel' },
+  { entry_id: 400007, entry_name: 'xG and Chill', player_first_name: 'Danny', player_last_name: 'Kerr' }] };
+
+/* /api/league/{id}/details → the wizard's source shape (same rules as functions/league-lookup) */
+function fromDetails(d) {
+  if (!d || !d.league || !Array.isArray(d.league_entries)) throw new Error('That does not look like /api/league/{id}/details JSON (needs "league" and "league_entries").');
+  const n = d.league_entries.length, warnings = [];
+  // NOTE 31 Aug 2026: FPL regressed draft_status — it reads 'pre' for every drafted league (it read
+  // 'post' on 25 Aug). Drafted = status post OR league closed OR any H2H match already started.
+  const drafted = d.league.draft_status === 'post' || d.league.closed === true || (d.matches || []).some(x => x.started);
+  if (!drafted) throw new Error('This league has not drafted yet — come back once the draft is complete.');
+  if (n < 4 || n > 16) throw new Error('Matchweek supports 4–16 teams; this league has ' + n + '.');
+  if (n % 2) warnings.push(n + ' teams is an odd number — one team sits out each gameweek (FPL handles the bye; Matchweek shows it).');
+  if (d.league.scoring !== 'h') warnings.push('This league uses points scoring, not head-to-head; matchup features will be hidden.');
+  return { league: { id: d.league.id, name: d.league.name, size: n, scoring: d.league.scoring, draftStatus: d.league.draft_status },
+    teams: d.league_entries.map(e => ({ fplEntryId: e.entry_id, name: e.entry_name, manager: ((e.player_first_name || '') + ' ' + (e.player_last_name || '')).trim(), firstName: e.player_first_name || '' })), warnings };
+}
+function setSource(src) {
+  S.src = src;
+  const taken = new Set();
+  S.teams = src.teams.map((t, i) => ({ ...t, monogram: autoMonogram(t, taken), color: PALETTE[i % PALETTE.length], isCommissioner: i === 0 }));
+  S.derbies = {}; S.extras.leagueName = src.league.name; S.extras.brandLine = src.league.name.toUpperCase().slice(0, 28);
+  S.pot.total = 150 * src.league.size; S.pot.motmAmt = Math.round(30 * src.league.size / 8);
+  S.pot.payouts = [{ label: '1st place', amount: Math.round(S.pot.total * .5) }, { label: '2nd place', amount: Math.round(S.pot.total * .15) }, { label: '3rd place', amount: Math.round(S.pot.total * .05) }, { label: 'Leader after GW19', amount: Math.round(S.pot.total * .075) }];
+  if (!S.periods.length) S.periods = PRESETS.monthly.map(p => ({ ...p }));
+  S.extras.sm = { enabled: false, team: src.teams[src.teams.length - 1].name, title: 'Will ' + (src.teams[src.teams.length - 1].firstName || src.teams[src.teams.length - 1].name) + ' finish ' + src.league.size + ordSuffix(src.league.size) + '?' };
+  msg('#connectMsg', src.warnings.length ? 'warn' : 'ok', src.warnings.length ? 'Connected, with notes:' : 'Connected.', src.warnings);
+  $('#connectCard').innerHTML = '<div class="card"><div class="sum"><div>League<b>' + esc(src.league.name) + '</b></div><div>FPL id<b>' + esc(src.league.id) + '</b></div><div>Teams<b>' + src.league.size + '</b></div><div>Scoring<b>' + (src.league.scoring === 'h' ? 'H2H' : 'Points') + '</b></div></div>'
+    + '<table style="margin-top:10px"><thead><tr><th>Team</th><th>Manager</th><th>Entry id</th></tr></thead><tbody>' + src.teams.map(t => '<tr><td>' + esc(t.name) + '</td><td>' + esc(t.manager) + '</td><td class="stat">' + esc(t.fplEntryId) + '</td></tr>').join('') + '</tbody></table></div>';
+  buildTeams(); buildPairs(); buildMoney(); buildPeriods(); buildExtras();
+  go(0);   // refresh nav state: unlock the rail, enable Next
+}
+const ordSuffix = n => (n % 10 === 1 && n !== 11) ? 'st' : (n % 10 === 2 && n !== 12) ? 'nd' : (n % 10 === 3 && n !== 13) ? 'rd' : 'th';
+function msg(sel, kind, text, items) {
+  $(sel).innerHTML = text ? '<div class="msg ' + kind + '">' + esc(text) + (items && items.length ? '<ul>' + items.map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>' : '') + '</div>' : '';
+}
+$$('#pane-lookup, #pane-paste, #pane-demo'); // (panes exist)
+$$('.tabs[role=tablist] button').forEach(b => b.onclick = () => { $$('.tabs[role=tablist] button').forEach(x => x.classList.toggle('on', x === b)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + b.dataset.pane)); });
+$('#lookupBtn').onclick = async () => {
+  const raw = $('#lid').value.trim(); const m = raw.match(/league\/(\d+)/) || raw.match(/^(\d+)$/);
+  if (!m) return msg('#connectMsg', 'err', 'Enter the league id (a number) or the league URL.');
+  const base = ($('#lookupBase').value.trim() || window.LOOKUP_BASE || 'https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1').replace(/\/$/, '');
+  if (!base) return msg('#connectMsg', 'warn', 'No lookup service configured for this build — use "Paste JSON" (open the /details URL in a tab and paste it here) or try the demo league.');
+  msg('#connectMsg', 'ok', 'Looking up league ' + m[1] + '…');
+  try {
+    const r = await fetch(base + '/league-lookup?id=' + m[1]); const j = await r.json();
+    if (!j.ok) throw new Error(j.error || ('Lookup failed (' + r.status + ')'));
+    setSource({ league: { id: j.league.id, name: j.league.name, size: j.league.size, scoring: j.league.scoring, draftStatus: j.league.draftStatus }, teams: j.teams, warnings: j.warnings || [] });
+  } catch (e) { msg('#connectMsg', 'err', e.message); }
+};
+$('#pasteBtn').onclick = () => { try { setSource(fromDetails(JSON.parse($('#pasteJson').value))); } catch (e) { msg('#connectMsg', 'err', e instanceof SyntaxError ? 'That is not valid JSON — copy the whole page from the /details URL.' : e.message); } };
+$('#demoBtn').onclick = () => setSource(fromDetails(DEMO_DETAILS));
+
+/* ===================== step 1: teams ===================== */
+function buildTeams() {
+  const tb = $('#teamsTable tbody');
+  tb.innerHTML = S.teams.map((t, i) => '<tr data-i="' + i + '"><td><span class="chip" style="background:' + t.color + '">' + esc(t.monogram) + '</span></td><td>' + esc(t.name) + '</td><td>' + esc(t.manager) + '</td>'
+    + '<td><input type="text" data-k="firstName" value="' + esc(t.firstName) + '" style="width:110px"></td>'
+    + '<td class="mono"><input type="text" data-k="monogram" maxlength="3" value="' + esc(t.monogram) + '"></td>'
+    + '<td><input type="color" data-k="color" value="' + t.color + '"></td>'
+    + '<td><input type="radio" name="comm" ' + (t.isCommissioner ? 'checked' : '') + '></td></tr>').join('');
+  tb.oninput = e => { const tr = e.target.closest('tr'), i = +tr.dataset.i, k = e.target.dataset.k; if (!k) return;
+    S.teams[i][k] = k === 'monogram' ? e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') : e.target.value;
+    if (k === 'monogram') e.target.value = S.teams[i][k];
+    const chip = tr.querySelector('.chip'); chip.style.background = S.teams[i].color; chip.textContent = S.teams[i].monogram; validateTeams(); renderPreview(); };
+  tb.onchange = e => { if (e.target.name === 'comm') { const i = +e.target.closest('tr').dataset.i; S.teams.forEach((t, j) => t.isCommissioner = j === i); } };
+  validateTeams(); renderPreview();
+}
+function validateTeams() {
+  const errs = [], warns = [], seen = {};
+  S.teams.forEach(t => { if (t.monogram.length < 2) errs.push(t.name + ': monogram needs 2–3 letters.'); (seen[t.monogram] = seen[t.monogram] || []).push(t.name); if (!t.firstName.trim()) warns.push(t.name + ': no first name — the app uses it in matchup copy.'); });
+  Object.entries(seen).forEach(([m, names]) => { if (names.length > 1) errs.push('Monogram ' + m + ' is used by ' + names.join(' and ') + '.'); });
+  for (let i = 0; i < S.teams.length; i++) for (let j = i + 1; j < S.teams.length; j++) { const d = dE(S.teams[i].color, S.teams[j].color); if (d < CLASH) warns.push(S.teams[i].name + ' and ' + S.teams[j].name + ' colors are hard to tell apart (ΔE ' + d.toFixed(0) + ') — pick a different shade for one.'); }
+  msg('#teamsMsg', errs.length ? 'err' : warns.length ? 'warn' : 'ok', errs.length ? 'Fix before continuing:' : warns.length ? 'Worth a look:' : 'All ' + S.teams.length + ' teams have unique monograms and distinct colors.', errs.concat(warns));
+  return !errs.length;
+}
+function renderPreview() { $('#teamPreview').innerHTML = S.teams.map(t => '<div class="tt" style="background:linear-gradient(135deg,' + t.color + ',' + t.color + 'CC)"><b>' + esc(t.monogram) + '</b>' + esc(t.name) + '</div>').join(''); }
+
+/* ===================== step 2: rivalries ===================== */
+function buildPairs() {
+  const box = $('#pairs'), pairs = [];
+  for (let i = 0; i < S.teams.length; i++) for (let j = i + 1; j < S.teams.length; j++) pairs.push([S.teams[i], S.teams[j]]);
+  const render = q => { q = (q || '').toLowerCase();
+    box.innerHTML = pairs.filter(([a, b]) => !q || (a.monogram + a.name + b.monogram + b.name).toLowerCase().includes(q)).map(([a, b]) => { const k = pairKey(a.monogram, b.monogram);
+      return '<div class="pair"><div class="vs"><span class="chip" style="background:' + a.color + '">' + esc(a.monogram) + '</span>v<span class="chip" style="background:' + b.color + '">' + esc(b.monogram) + '</span></div><input type="text" data-k="' + esc(k) + '" placeholder="' + esc(a.name + ' v ' + b.name) + '" value="' + esc(S.derbies[k] || '') + '"></div>'; }).join('');
+    $('#pairCount').textContent = Object.values(S.derbies).filter(Boolean).length + ' of ' + pairs.length + ' named'; };
+  box.oninput = e => { const k = e.target.dataset.k; if (!k) return; if (e.target.value.trim()) S.derbies[k] = e.target.value.trim(); else delete S.derbies[k]; $('#pairCount').textContent = Object.values(S.derbies).filter(Boolean).length + ' of ' + pairs.length + ' named'; };
+  $('#pairFilter').oninput = e => render(e.target.value); render('');
+}
+
+/* ===================== step 3: money ===================== */
+function buildMoney() {
+  $('#currency').value = S.pot.currency; $('#potTotal').value = S.pot.total; $('#motmAmt').value = S.pot.motmAmt;
+  $('#h2hW').value = S.pot.h2h.win; $('#h2hD').value = S.pot.h2h.draw; $('#h2hL').value = S.pot.h2h.loss; $('#tiebreak').value = S.pot.tiebreak;
+  renderPayouts(); syncMoney();
+  ['currency', 'potTotal', 'motmAmt', 'h2hW', 'h2hD', 'h2hL', 'tiebreak'].forEach(id => $('#' + id).oninput = syncMoney);
+  $('#addPayout').onclick = () => { S.pot.payouts.push({ label: '', amount: 0 }); renderPayouts(); };
+}
+function renderPayouts() {
+  $('#payouts').innerHTML = S.pot.payouts.map((p, i) => '<div class="item"><input type="text" data-i="' + i + '" data-k="label" placeholder="e.g. 1st place" value="' + esc(p.label) + '"><input type="number" data-i="' + i + '" data-k="amount" min="0" step="1" value="' + p.amount + '"><button class="x" data-i="' + i + '" title="Remove">×</button></div>').join('');
+  $('#payouts').oninput = e => { const i = +e.target.dataset.i, k = e.target.dataset.k; if (k === 'label') S.pot.payouts[i].label = e.target.value; if (k === 'amount') S.pot.payouts[i].amount = +e.target.value || 0; syncMoney(); };
+  $('#payouts').onclick = e => { if (e.target.classList.contains('x')) { S.pot.payouts.splice(+e.target.dataset.i, 1); renderPayouts(); syncMoney(); } };
+}
+function syncMoney() {
+  S.pot.currency = $('#currency').value; S.pot.total = +$('#potTotal').value || 0; S.pot.motmAmt = +$('#motmAmt').value || 0;
+  S.pot.h2h = { win: +$('#h2hW').value || 0, draw: +$('#h2hD').value || 0, loss: +$('#h2hL').value || 0 }; S.pot.tiebreak = $('#tiebreak').value;
+  $('#buyIn').value = S.teams.length ? (S.pot.total / S.teams.length).toFixed(2).replace(/\.00$/, '') + ' ' + S.pot.currency : '';
+  $('#motmCount').value = S.periods.length + ' × ' + S.pot.motmAmt + ' ' + S.pot.currency;
+  const sum = S.pot.payouts.reduce((a, p) => a + (p.amount || 0), 0) + S.pot.motmAmt * S.periods.length;
+  const items = []; if (S.pot.total && sum > S.pot.total) items.push('Payouts + MOTM (' + sum + ') exceed the pot (' + S.pot.total + ').');
+  if (S.pot.total && sum < S.pot.total) items.push((S.pot.total - sum) + ' ' + S.pot.currency + ' of the pot is not allocated to any payout.');
+  if (S.pot.payouts.some(p => !p.label.trim())) items.push('Every payout needs a label.');
+  msg('#moneyMsg', items.length ? 'warn' : 'ok', items.length ? 'Check the maths:' : 'Pot adds up: ' + sum + ' ' + S.pot.currency + ' allocated.', items);
+}
+
+/* ===================== step 4: periods ===================== */
+const PRESETS = {
+  monthly: [{ label: 'Aug & Sep', fromGw: 1, toGw: 5 }, { label: 'October', fromGw: 6, toGw: 9 }, { label: 'November', fromGw: 10, toGw: 12 }, { label: 'December', fromGw: 13, toGw: 18 }, { label: 'January', fromGw: 19, toGw: 23 }, { label: 'February', fromGw: 24, toGw: 27 }, { label: 'March', fromGw: 28, toGw: 30 }, { label: 'April', fromGw: 31, toGw: 33 }, { label: 'May', fromGw: 34, toGw: 38 }],
+  quarters: [{ label: 'Q1', fromGw: 1, toGw: 10 }, { label: 'Q2', fromGw: 11, toGw: 19 }, { label: 'Q3', fromGw: 20, toGw: 29 }, { label: 'Q4', fromGw: 30, toGw: 38 }],
+  halves: [{ label: 'First half', fromGw: 1, toGw: 19 }, { label: 'Second half', fromGw: 20, toGw: 38 }],
+  none: [],
+};
+function buildPeriods() {
+  $$('[data-preset]').forEach(b => b.onclick = () => { S.periods = PRESETS[b.dataset.preset].map(p => ({ ...p })); $$('[data-preset]').forEach(x => x.classList.toggle('on', x === b)); renderPeriods(); });
+  $('#addPeriod').onclick = () => { const last = S.periods[S.periods.length - 1]; S.periods.push({ label: '', fromGw: last ? last.toGw + 1 : 1, toGw: 38 }); renderPeriods(); };
+  renderPeriods();
+}
+function renderPeriods() {
+  $('#periods').innerHTML = S.periods.map((p, i) => '<div class="item per"><input type="text" data-i="' + i + '" data-k="label" placeholder="Label" value="' + esc(p.label) + '"><input type="number" data-i="' + i + '" data-k="fromGw" min="1" max="38" value="' + p.fromGw + '" title="From GW"><input type="number" data-i="' + i + '" data-k="toGw" min="1" max="38" value="' + p.toGw + '" title="To GW"><button class="x" data-i="' + i + '" title="Remove">×</button></div>').join('') || '<p class="hint">No Manager of the Month periods — the race card is hidden.</p>';
+  $('#periods').oninput = e => { const i = +e.target.dataset.i, k = e.target.dataset.k; if (!k) return; S.periods[i][k] = k === 'label' ? e.target.value : +e.target.value || 0; validatePeriods(); syncMoney(); };
+  $('#periods').onclick = e => { if (e.target.classList.contains('x')) { S.periods.splice(+e.target.dataset.i, 1); renderPeriods(); } };
+  validatePeriods(); syncMoney();
+}
+function validatePeriods() {
+  const errs = []; let expect = 1;
+  S.periods.forEach((p, i) => { if (!p.label.trim()) errs.push('Period ' + (i + 1) + ' needs a label.'); if (p.fromGw !== expect) errs.push((p.label || 'Period ' + (i + 1)) + ' starts at GW' + p.fromGw + ' but the previous one ends at GW' + (expect - 1) + '.'); if (p.toGw < p.fromGw) errs.push((p.label || 'Period ' + (i + 1)) + ' ends before it starts.'); expect = p.toGw + 1; });
+  if (S.periods.length && expect !== 39) errs.push('Periods cover GW1–' + (expect - 1) + '; they must end at GW38.');
+  msg('#periodMsg', errs.length ? 'err' : 'ok', errs.length ? 'Fix before continuing:' : (S.periods.length ? S.periods.length + ' periods cover GW1–38 with no gaps.' : ''), errs);
+  return !errs.length;
+}
+
+/* ===================== step 5: extras ===================== */
+const TZS = ['Europe/London', 'Europe/Dublin', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Rome', 'Europe/Amsterdam', 'Europe/Stockholm', 'Europe/Oslo', 'Europe/Copenhagen', 'Europe/Athens', 'Europe/Istanbul', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Tokyo', 'Australia/Sydney', 'Australia/Melbourne', 'Australia/Perth', 'Pacific/Auckland', 'Africa/Lagos', 'Africa/Johannesburg', 'Africa/Nairobi', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'America/Vancouver', 'America/Mexico_City', 'America/Sao_Paulo', 'America/Argentina/Buenos_Aires'];
+function buildExtras() {
+  $('#tz').innerHTML = TZS.map(z => '<option>' + z + '</option>').join('');
+  try { const z = Intl.DateTimeFormat().resolvedOptions().timeZone; if (TZS.includes(z)) S.extras.tz = z; } catch (e) { /* keep default */ }
+  $('#tz').value = S.extras.tz; $('#leagueName').value = S.extras.leagueName; $('#brandLine').value = S.extras.brandLine; $('#season').value = S.extras.season;
+  $('#smTeam').innerHTML = S.teams.map(t => '<option>' + esc(t.name) + '</option>').join(''); $('#smTeam').value = S.extras.sm.team; $('#smTitle').value = S.extras.sm.title; $('#smOn').checked = S.extras.sm.enabled; $('#smRow').hidden = !S.extras.sm.enabled;
+  $('#smOn').onchange = e => { S.extras.sm.enabled = e.target.checked; $('#smRow').hidden = !e.target.checked; };
+  $('#smTeam').onchange = e => { S.extras.sm.team = e.target.value; const t = S.teams.find(x => x.name === e.target.value); $('#smTitle').value = S.extras.sm.title = 'Will ' + (t && t.firstName || e.target.value) + ' finish ' + S.teams.length + ordSuffix(S.teams.length) + '?'; };
+  $('#smTitle').oninput = e => S.extras.sm.title = e.target.value;
+  ['leagueName', 'brandLine', 'season'].forEach(id => $('#' + id).oninput = e => S.extras[id] = e.target.value); $('#tz').onchange = e => S.extras.tz = e.target.value;
+  $('#addOverride').onclick = () => { S.extras.overrides.push({ slug: '', ovr: 90 }); renderOverrides(); }; renderOverrides();
+  $('#seedText').oninput = parseSeeds; parseSeeds();
+}
+function renderOverrides() {
+  $('#overrides').innerHTML = S.extras.overrides.map((o, i) => '<div class="item"><input type="text" data-i="' + i + '" data-k="slug" placeholder="web-name slug, e.g. bfernandes" value="' + esc(o.slug) + '"><input type="number" data-i="' + i + '" data-k="ovr" min="40" max="95" value="' + o.ovr + '"><button class="x" data-i="' + i + '">×</button></div>').join('') || '<p class="hint">None.</p>';
+  $('#overrides').oninput = e => { const i = +e.target.dataset.i, k = e.target.dataset.k; if (!k) return; S.extras.overrides[i][k] = k === 'ovr' ? Math.min(95, +e.target.value || 0) : e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''); };
+  $('#overrides').onclick = e => { if (e.target.classList.contains('x')) { S.extras.overrides.splice(+e.target.dataset.i, 1); renderOverrides(); } };
+}
+function parseSeeds() {
+  const monos = new Set(S.teams.map(t => t.monogram)); const out = {}, bad = [];
+  $('#seedText').value.split(/\n/).map(l => l.trim()).filter(Boolean).forEach(l => { const m = l.toUpperCase().match(/^([A-Z0-9]{2,3})[\s|,]+([A-Z0-9]{2,3})[\s,]+(\d+)[\s,]+(\d+)[\s,]+(\d+)$/);
+    if (!m || !monos.has(m[1]) || !monos.has(m[2]) || m[1] === m[2]) return bad.push(l);
+    const k = pairKey(m[1], m[2]); const [w, l2, d] = [+m[3], +m[4], +m[5]];
+    out[k] = k.startsWith(m[1] + '|') ? [w, l2, d] : [l2, w, d]; });   // stored from the alphabetically-first team's side
+  S.extras.seeded = out;
+  msg('#seedMsg', bad.length ? 'warn' : (Object.keys(out).length ? 'ok' : ''), bad.length ? 'Could not read ' + bad.length + ' line(s) — use "MW DR 5 2 0" with monograms from step 2:' : Object.keys(out).length ? Object.keys(out).length + ' series imported.' : '', bad);
+}
+
+/* ===================== step 6: review ===================== */
+function buildConfig() {
+  const L = S.src.league;
+  const cfg = { $schema: '../config/league-config.md', configVersion: 1,
+    league: { name: S.extras.leagueName.trim() || L.name, brandLine: (S.extras.brandLine.trim() || S.extras.leagueName || L.name).toUpperCase(), season: S.extras.season.trim() || '2026/27', fplDraftLeagueId: L.id, timezone: S.extras.tz, size: L.size, scoring: L.scoring },
+    teams: S.teams.map(t => ({ name: t.name, manager: t.manager, firstName: t.firstName.trim() || t.manager.split(' ')[0], monogram: t.monogram, color: t.color.toUpperCase(), fplEntryId: t.fplEntryId, isCommissioner: !!t.isCommissioner, projection: { xi: 1100, lo: 850, hi: 1400 } })),
+    derbies: Object.fromEntries(Object.entries(S.derbies).filter(([, v]) => v).sort()),
+    seededSeries: S.extras.seeded,
+    pot: { currency: S.pot.currency, total: S.pot.total, payouts: S.pot.payouts.filter(p => p.label.trim()).map(p => ({ label: p.label.trim(), amount: p.amount })), motm: { amountPerPeriod: S.pot.motmAmt, periodCount: S.periods.length }, h2hPoints: S.pot.h2h, tiebreak: S.pot.tiebreak },
+    motmPeriods: S.periods.map(p => ({ label: p.label.trim(), fromGw: p.fromGw, toGw: p.toGw })),
+    ratings: { version: 'house-v0', ovrOverrides: Object.fromEntries(S.extras.overrides.filter(o => o.slug).map(o => [o.slug, o.ovr])), ovrCap: 95 },
+    extras: { specialMarket: S.extras.sm.enabled ? { enabled: true, team: S.extras.sm.team, title: S.extras.sm.title.trim() } : { enabled: false } },
+    createdWith: 'wizard v0.1' };
+  return cfg;
+}
+/* the contract checks, independent of the step-level UI checks — run again here so a stale step can't slip through */
+function validateConfig(c) {
+  const errs = [], warns = [];
+  if (!c.league.fplDraftLeagueId) errs.push('No FPL league id.');
+  if (c.teams.length !== c.league.size) errs.push('teams[] length ≠ league.size.');
+  const monos = c.teams.map(t => t.monogram); if (new Set(monos).size !== monos.length) errs.push('Monograms are not unique.');
+  if (monos.some(m => m.length < 2)) errs.push('A monogram is shorter than 2 characters.');
+  if (c.teams.filter(t => t.isCommissioner).length !== 1) errs.push('Exactly one commissioner is required.');
+  if (c.teams.some(t => !/^#[0-9A-F]{6}$/.test(t.color))) errs.push('A team color is not a 6-digit hex.');
+  if (c.pot.motm.periodCount !== c.motmPeriods.length) errs.push('pot.motm.periodCount ≠ motmPeriods.length.');
+  let e = 1; c.motmPeriods.forEach(p => { if (p.fromGw !== e || p.toGw < p.fromGw) errs.push('MOTM periods have a gap/overlap at GW' + p.fromGw + '.'); e = p.toGw + 1; }); if (c.motmPeriods.length && e !== 39) errs.push('MOTM periods must end at GW38.');
+  Object.keys(c.derbies).forEach(k => { const [a, b] = k.split('|'); if (!monos.includes(a) || !monos.includes(b)) errs.push('Derby key ' + k + ' does not match two team monograms.'); });
+  Object.keys(c.seededSeries).forEach(k => { const [a, b] = k.split('|'); if (!monos.includes(a) || !monos.includes(b)) errs.push('Series key ' + k + ' does not match two team monograms.'); });
+  Object.values(c.ratings.ovrOverrides).forEach(v => { if (v > c.ratings.ovrCap) errs.push('An OVR override exceeds the cap.'); });
+  if (c.extras.specialMarket.enabled && !c.teams.some(t => t.name === c.extras.specialMarket.team)) errs.push('Special-market team is not in the league.');
+  if (c.league.scoring !== 'h') warns.push('Points-scoring league: matchup features hidden.');
+  if (c.league.size % 2) warns.push('Odd team count: one bye per gameweek.');
+  for (let i = 0; i < c.teams.length; i++) for (let j = i + 1; j < c.teams.length; j++) if (dE(c.teams[i].color, c.teams[j].color) < CLASH) warns.push(c.teams[i].monogram + ' and ' + c.teams[j].monogram + ' colors are close.');
+  return { errs, warns };
+}
+let lastJson = '';
+function buildReview() {
+  const c = buildConfig(), v = validateConfig(c); lastJson = JSON.stringify(c, null, 2);
+  $('#summary').innerHTML = '<div>League<b>' + esc(c.league.name) + '</b></div><div>Teams<b>' + c.teams.length + '</b></div><div>Rivalries named<b>' + Object.keys(c.derbies).length + '</b></div><div>Pot<b>' + c.pot.total + ' ' + c.pot.currency + '</b></div><div>MOTM periods<b>' + c.motmPeriods.length + '</b></div><div>Overrides<b>' + Object.keys(c.ratings.ovrOverrides).length + '</b></div>';
+  msg('#reviewMsg', v.errs.length ? 'err' : v.warns.length ? 'warn' : 'ok', v.errs.length ? 'The config has problems — go back and fix them:' : v.warns.length ? 'Ready, with notes:' : 'Ready. This config passes every contract check.', v.errs.concat(v.warns));
+  $('#dlBtn').disabled = !!v.errs.length; $('#copyBtn').disabled = !!v.errs.length; $('#jsonOut').textContent = lastJson;
+  window.__WIZARD_CONFIG = c; window.__WIZARD_VALID = v;  // for the headless test
+}
+const REG_BASE = window.REG_BASE || 'https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1';
+const APP_HOME = window.APP_HOME || 'https://www.matchweek.gg/app.html';
+$('#createBtn').onclick = async () => {
+  const codeInp = $('#inviteCode').value.trim();
+  if (!codeInp) return msg('#createMsg', 'err', 'Enter your invite code.');
+  const c = buildConfig(), v = validateConfig(c);
+  if (v.errs.length) return msg('#createMsg', 'err', 'Fix the config problems above first.');
+  $('#createBtn').disabled = true; msg('#createMsg', 'ok', 'Creating your league…');
+  try {
+    const r = await fetch(REG_BASE + '/register-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: codeInp, config: c }) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    const url = j.appUrl || (APP_HOME + '?league=' + c.league.fplDraftLeagueId);
+    $('#createMsg').innerHTML = '<div class="msg ok"><b>' + esc(c.league.name) + ' is live.</b> ' + esc(j.note || '') +
+      '<br><a href="' + esc(url) + '">' + esc(url) + '</a><br>Send that link to your league — bookmark it, Add to Home Screen, done.</div>';
+  } catch (e) { msg('#createMsg', 'err', e.message); $('#createBtn').disabled = false; }
+};
+$('#dlBtn').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lastJson], { type: 'application/json' })); a.download = (S.src.league.name || 'league').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.league.json'; document.body.appendChild(a); a.click(); a.remove(); };
+$('#copyBtn').onclick = async () => { try { await navigator.clipboard.writeText(lastJson); $('#copyBtn').textContent = 'Copied'; setTimeout(() => $('#copyBtn').textContent = 'Copy JSON', 1500); } catch (e) { $('#jsonOut').focus(); } };
+
+/* ===================== navigation ===================== */
+const STEPS = 7;
+function canLeave(step) { if (step === 0) return !!S.src; if (step === 1) return validateTeams(); if (step === 4) return validatePeriods(); return true; }
+function go(step) {
+  if (step < 0 || step >= STEPS) return; if (step > 0 && !S.src) return;
+  if (step > S.step) for (let s = S.step; s < step; s++) if (!canLeave(s)) { step = s; break; }   // stop at the first step that fails its check
+  S.step = step;
+  if (S.step === 6) buildReview(); if (S.step === 3) syncMoney();
+  $$('.step').forEach(el => el.hidden = +el.dataset.step !== S.step);
+  $$('#rail li').forEach(li => { const n = +li.dataset.step; li.classList.toggle('on', n === S.step); li.classList.toggle('done', n < S.step); li.classList.toggle('locked', n > 0 && !S.src); });
+  $('#prog').textContent = 'Step ' + (S.step + 1) + ' of ' + STEPS; $('#backBtn').disabled = S.step === 0; $('#nextBtn').hidden = S.step === STEPS - 1;
+  $('#nextBtn').disabled = S.step === 0 && !S.src; window.scrollTo({ top: 0 });
+}
+$('#nextBtn').onclick = () => go(S.step + 1); $('#backBtn').onclick = () => go(S.step - 1);
+$('#rail').onclick = e => { const li = e.target.closest('li'); if (li && !li.classList.contains('locked')) go(+li.dataset.step); };
+go(0);
+</script>
+</body>
+</html>
