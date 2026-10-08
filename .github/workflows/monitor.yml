@@ -1,0 +1,33 @@
+# El Matador Tire: the cloud monitor (ROADMAP A2), no AI and no PC.
+#   Every 15 minutes, or Actions tab → Monitor → Run workflow. fplgg/tools/monitor/monitor.js checks that the app loads,
+#   the league sheet and the web app answer, the data is fresh (2 hours; 20 minutes while a match is live), the FPL API
+#   answers, the Code.gs self-update is not refused or in error, and (A4) phones are not reporting a spike of errors.
+#   A failing check is probed again 4 minutes later and counts only when it fails both times. Each confirmed problem
+#   gets one GitHub issue labelled `outage`, assigned to the repository owner (which notifies him); the monitor refreshes
+#   it while the problem lasts and closes it when the check passes again. The run itself stays green while the monitor
+#   can do its job, so nobody gets a failed-run email every 15 minutes during an outage.
+name: Monitor
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency: { group: monitor, cancel-in-progress: false }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Test the monitor
+        run: node tests/monitor.js
+      - name: Check everything
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MW_ASSIGNEE: ${{ github.repository_owner }}
+        run: node fplgg/tools/monitor/monitor.js

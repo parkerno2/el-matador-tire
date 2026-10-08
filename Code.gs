@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,15 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.17 · 8 Oct 2026
+ *   ?health=1 adds data, for the cloud monitor (.github/workflows/monitor.yml, every 15 minutes, no AI): updated (when
+ *   the last refresh from FPL finished, whichever trigger or app tap ran it; EMT_DATA_UPDATED, set only when refreshCore
+ *   completes), source, ageMin, attempted (the last refresh that started, finished or not), and live (a Premier League
+ *   match is live or just finished, the same rule liveTick refreshes on) with liveWhy and liveSince (when that window
+ *   opened, so a monitor does not expect 10-minute data in the first minutes of a match). The monitor opens a GitHub
+ *   issue labelled outage when the data is older than 2 hours (20 minutes while a match is live), the app or this web
+ *   app does not answer, the FPL API is down or the self-update reports refused or error, and closes it on recovery.
+ *   No new setup and no new permissions.
  * v3.16 · 8 Oct 2026
  *   The self-update reads Code.gs from the repo's `release` branch instead of main. A GitHub Action
  *   (.github/workflows/codegs.yml) runs every test suite in tests/codegs on each push to main that touches Code.gs or
@@ -1022,6 +1031,7 @@ function emtGuardedRefresh(source, waitMs) {
     if (now - last >= 0 && now - last < EMT_REFRESH_MIN_MS) return { ok: true, ran: false, ageSec: Math.round((now - last) / 1000) };
     p.setProperty('EMT_LAST_REFRESH', String(now));
     refreshCore();
+    p.setProperty('EMT_DATA_UPDATED', JSON.stringify({ at: Date.now(), source: String(source || ''), ms: Date.now() - now }));   /* v3.17: ?health=1 data.updated */
     Logger.log('Refresh (' + source + ') took ' + (Date.now() - now) + ' ms');
     return { ok: true, ran: true, ms: Date.now() - now };
   } catch (e) {
@@ -1062,14 +1072,17 @@ function liveTick() {
 }
 
 /* '' when no PL match is live or just finished at nowMs, else a short reason for the log */
-function liveWindowReason(nowMs) {
+function liveWindowReason(nowMs) { return liveWindow(nowMs).why; }
+/* v3.17: the same, with when that window opened: { why: '', since: 0 } | { why, since (ms) } */
+function liveWindow(nowMs) {
+  var none = { why: '', since: 0 };
   var ss = SpreadsheetApp.getActive();
   var sh = ss.getSheetByName('Club Fixtures');
-  if (!sh || sh.getLastRow() < 2) return '';
+  if (!sh || sh.getLastRow() < 2) return none;
   var vals = sh.getDataRange().getValues();
   var head = vals[0].map(String);
   var gi = head.indexOf('GW'), ki = head.indexOf('Kickoff (UTC)'), hi = head.indexOf('Home'), ai = head.indexOf('Away');
-  if (ki < 0) return '';
+  if (ki < 0) return none;
   var cur = liveCurrentGw(ss);
   var byDay = {}; // UTC date → [{ko, label}]
   for (var i = 1; i < vals.length; i++) {
@@ -1087,11 +1100,11 @@ function liveWindowReason(nowMs) {
     for (var j = 0; j < fx.length; j++) {
       var end = fx[j].ko === lastKo ? fx[j].ko + LIVE_TAIL_MS : fx[j].ko + LIVE_MATCH_MS;
       if (nowMs >= fx[j].ko - LIVE_PRE_MS && nowMs <= end) {
-        return fx[j].label + ' ' + new Date(fx[j].ko).toISOString().slice(11, 16) + 'Z' + (fx[j].ko === lastKo ? ' (last of day)' : '');
+        return { why: fx[j].label + ' ' + new Date(fx[j].ko).toISOString().slice(11, 16) + 'Z' + (fx[j].ko === lastKo ? ' (last of day)' : ''), since: fx[j].ko - LIVE_PRE_MS };
       }
     }
   }
-  return '';
+  return none;
 }
 
 /* Kickoff (UTC) holds text like '2026-09-19T14:00:00Z (written with a leading apostrophe; tolerate it, a Date, or blank) */
@@ -2889,7 +2902,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.16';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.17';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4271,6 +4284,7 @@ function emtHealth() {
   try { meta = emtArtMeta(); } catch (e) { meta = []; }
   return { ok: true, version: EMT_VERSION, self: p.getProperty('EMT_SELF_STATE') || 'no check yet', show: emtShowHealth(),
     facts: emtFactsHealth(),                                                        /* v3.15 */
+    data: emtDataHealth(),                                                          /* v3.17 */
     articles: { mode: emtArtReview() ? 'review' : 'auto',
       job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
         writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
@@ -4282,6 +4296,21 @@ function emtHealth() {
         return o;
       }) },
     ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn() } };
+}
+/* v3.17 ?health=1 data: when the sheet's data was last refreshed from FPL (the last refreshCore that finished, from any
+ * trigger or the app's Refresh), the last attempt, and whether a match is live now (liveWindow: what liveTick refreshes
+ * on) and since when. Never throws. */
+function emtDataHealth() {
+  var out = { updated: null, source: '', ageMin: null, attempted: null, live: false, liveWhy: '', liveSince: null };
+  var p = emtProps();
+  try {
+    var d = JSON.parse(p.getProperty('EMT_DATA_UPDATED') || 'null');
+    if (d && Number(d.at) > 0) { out.updated = emtIso(Number(d.at)); out.source = String(d.source || ''); out.ageMin = Math.max(0, Math.round((Date.now() - Number(d.at)) / 60000)); }
+  } catch (e) { }
+  try { var a = Number(p.getProperty('EMT_LAST_REFRESH') || 0); if (a > 0) out.attempted = emtIso(a); } catch (e) { }
+  try { var w = liveWindow(Date.now()); out.live = !!w.why; out.liveWhy = w.why || ''; out.liveSince = w.since ? emtIso(w.since) : null; }
+  catch (e) { out.liveError = String((e && e.message) || e).slice(0, 120); }
+  return out;
 }
 function emtArtSummary(S) {
   S = S || {};

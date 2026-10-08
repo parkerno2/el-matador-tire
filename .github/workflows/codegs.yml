@@ -29,7 +29,7 @@ jobs:
           set -e
           fail=0
           for f in tests/codegs/*.js; do
-            case "$f" in */v313-fixtures.js) continue ;; esac
+            case "$f" in *fixtures*|*harness*) continue ;; esac   # helpers, not suites
             echo "== $f"
             if out=$(node "$f" 2>&1); then
               case "$f" in */test.js) echo "$out" | tail -3 ;; *) echo "$out" | tail -1; echo "$out" | grep -q '^ALL PASS$' || { echo "::error::$f did not print ALL PASS"; fail=1; } ;; esac
