@@ -305,8 +305,8 @@ clearScripts(); reset(); setDeadline(20); CLAUDE = [{ text: asText(goodReply()) 
 w = ctx.showWriterTick();
 const req = claude[0], user = req && req.body.messages[0].content;
 check('<=22h with fresh facts -> exactly one Claude call, written', claude.length === 1 && w.written === true && w.calls === 1 && props.EMT_SHOW_TRIES_6 === '1', JSON.stringify({ stopped: w.stopped, problems: w.problems }));
-check('request: same style as aiWrite (url, headers, model default, max_tokens 2000, muteHttpExceptions)', req.url === 'https://api.anthropic.com/v1/messages' && req.o.method === 'post' && req.o.muteHttpExceptions === true &&
-  req.o.headers['x-api-key'] === 'sk-test' && req.o.headers['anthropic-version'] === '2023-06-01' && req.body.model === 'claude-sonnet-5-5' && req.body.max_tokens === 2000);
+check('request: same style as aiWrite (url, headers, model default, max_tokens as EMT_SHOW_MAX_TOKENS since v3.20, muteHttpExceptions)', req.url === 'https://api.anthropic.com/v1/messages' && req.o.method === 'post' && req.o.muteHttpExceptions === true &&
+  req.o.headers['x-api-key'] === 'sk-test' && req.o.headers['anthropic-version'] === '2023-06-01' && req.body.model === 'claude-sonnet-5-5' && req.body.max_tokens === ctx.EMT_SHOW_MAX_TOKENS);
 check('system prompt: the voice bible with its style beats (v3.13: the three new ones, the old Manager of the Month one gone) and THE READERS', /Malcolm Tyre/.test(req.body.system) && !req.body.system.includes("Parker says he's winning Manager of the Month") &&
   req.body.system.includes("Gibbs-White tops the eleven. Not a single flag among PJ's starters. Fully fit. Just shite.") && req.body.system.includes('Bad week to have named your club after one of them.') &&
   req.body.system.includes("Ethan's backup plan is also Haaland.") && req.body.system.includes('THE READERS.') && /five beats/.test(req.body.system) && !/[—–]/.test(req.body.system));

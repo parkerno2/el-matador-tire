@@ -198,8 +198,8 @@ let J = job(), id = J && J.id, R = id && row(id);
 check('tick 1: the recap of GW5 starts (row: research, facts time, log) and one research batch goes out', S.stopped === 'submitted' && /^recap-gw5-[0-9a-f]{6}$/.test(id) && R && col(R, 'Status') === 'research' && col(R, 'GW') === 5 && col(R, 'Kind') === 'recap' &&
   /^'\d{4}-/.test(col(R, 'Facts received (UTC)')) && /research: started/.test(col(R, 'Log')) && creates.length === 1 && sheets.Articles.hidden && sheets.Articles.rows[0].join('|') === ctx.EMT_ART_HEAD.join('|'), JSON.stringify(S));
 const rq = creates[0].req, ro = creates[0].o;
-check('research request: custom_id <id>-r, web_search_20250305 with max_uses 10, max_tokens 3000, model claude-sonnet-5-5, headers and json', rq.custom_id === id + '-r' && rq.params.tools.length === 1 && rq.params.tools[0].type === 'web_search_20250305' &&
-  rq.params.tools[0].name === 'web_search' && rq.params.tools[0].max_uses === 10 && rq.params.max_tokens === 3000 && rq.params.model === 'claude-sonnet-5-5' && ro.headers['x-api-key'] === 'sk-test' &&
+check('research request: custom_id <id>-r, web_search_20250305 with max_uses 10, max_tokens as EMT_ART_RESEARCH_MAX_TOKENS (v3.20), model claude-sonnet-5-5, headers and json', rq.custom_id === id + '-r' && rq.params.tools.length === 1 && rq.params.tools[0].type === 'web_search_20250305' &&
+  rq.params.tools[0].name === 'web_search' && rq.params.tools[0].max_uses === 10 && rq.params.max_tokens === ctx.EMT_ART_RESEARCH_MAX_TOKENS && rq.params.model === 'claude-sonnet-5-5' && ro.headers['x-api-key'] === 'sk-test' &&
   ro.headers['anthropic-version'] === '2023-06-01' && ro.contentType === 'application/json' && ro.muteHttpExceptions === true && J.phase === 'research' && J.batch === 'msgbatch_0001');
 const ru = rq.params.messages[0].content;
 check('research prompt: every PL result, key players, players to check, dates; the trimmed facts, not the whole json', ru.includes('Brentford 3-0 Chelsea') && ru.includes('Man City 5-3 Sunderland') && ru.includes('Brobbey (SUN): 17 points, 3 goals') &&
@@ -215,7 +215,7 @@ check('tick 3: research collected (t: marker, notes plus SOURCES), status writin
   /SOURCES:\nBBC Sport \| https:\/\/www\.bbc\.co\.uk/.test(research) && creates.length === 1 && job().phase === 'write' && /research done: \d+ characters, 3 sources/.test(col(R, 'Log')), S.stopped);
 check('a url that web search never returned (made-up.example.com) is dropped from SOURCES', !research.includes('made-up.example.com') && research.includes('theguardian.com'));
 const wq = creates[0].req;
-check('writing request: custom_id <id>-w, no tools, max_tokens 6000, the house style as system', wq.custom_id === id + '-w' && !wq.params.tools && wq.params.max_tokens === 6000 && wq.params.system === ctx.EMT_ART_SYSTEM &&
+check('writing request: custom_id <id>-w, no tools, max_tokens as EMT_ART_WRITE_MAX_TOKENS (v3.20), the house style as system', wq.custom_id === id + '-w' && !wq.params.tools && wq.params.max_tokens === ctx.EMT_ART_WRITE_MAX_TOKENS && wq.params.system === ctx.EMT_ART_SYSTEM &&
   /objective third-person narrator/.test(wq.params.system) && /who has who/.test(wq.params.system) && !/[—–]/.test(wq.params.system) && wq.params.messages.length === 1);
 const wu = wq.params.messages[0].content;
 check('writing prompt: the full facts json, the research notes, the contract, the foot', wu.includes(ctx.emtArtSent(RECAP)) && wu.includes('Brobbey scored in the 12th') && wu.includes('THE CONTRACT') && wu.includes('"Star of the match"') &&
@@ -227,8 +227,8 @@ const sheetText0 = Object.keys(sheets).map(k => JSON.stringify(sheets[k].rows)).
 check('tick 4: the article passes the checks -> not a draft yet: the base kept sealed in ArticleWork, status still writing, the punch-up batch goes out (not a try)', S.stopped === 'submitted' && col(R, 'Status') === 'writing' &&
   job().phase === 'punch' && job().writer === 'claude-sonnet-5-5' && job().model === 'claude-haiku-5-5' && (job().tries || 0) === 0 && sheets.ArticleWork.rows.slice(1).some(r => r[1] === 'base' && String(r[4]).startsWith('j:s:')) &&
   !sheetText0.includes(recapA.lede.slice(0, 40)) && /passed the checks; the punch-up is next/.test(col(R, 'Log')) && creates.length === 1, JSON.stringify(S));
-check('punch-up request: custom_id <id>-p, claude-haiku-5-5, no tools, max_tokens 6000, EMT_PUNCH_ART_SYSTEM, "THE ARTICLE:" then the checked json, no note', pq0 && pq0.custom_id === id + '-p' && pq0.params.model === 'claude-haiku-5-5' && !pq0.params.tools &&
-  pq0.params.max_tokens === 6000 && pq0.params.system === ctx.EMT_PUNCH_ART_SYSTEM && pq0.params.messages.length === 1 && pu0.startsWith('THE ARTICLE:\n') && JSON.parse(pu0.slice(13)).title === recapA.title &&
+check('punch-up request: custom_id <id>-p, claude-haiku-5-5, no tools, max_tokens as EMT_ART_PUNCH_MAX_TOKENS (v3.20), EMT_PUNCH_ART_SYSTEM, "THE ARTICLE:" then the checked json, no note', pq0 && pq0.custom_id === id + '-p' && pq0.params.model === 'claude-haiku-5-5' && !pq0.params.tools &&
+  pq0.params.max_tokens === ctx.EMT_ART_PUNCH_MAX_TOKENS && pq0.params.system === ctx.EMT_PUNCH_ART_SYSTEM && pq0.params.messages.length === 1 && pu0.startsWith('THE ARTICLE:\n') && JSON.parse(pu0.slice(13)).title === recapA.title &&
   JSON.parse(pu0.slice(13)).matchups[3].story === recapA.matchups[3].story && !pu0.includes('NOTE'));
 check('?articles=1 and POST articles while the punch-up runs: status writing, no text', get({ articles: '1' }).waiting[0].status === 'writing' && Hd({ action: 'articles', team: 'Cold Palmers', token: tokCP }).drafts[0].a === null);
 reset(); S = tick();
@@ -902,7 +902,7 @@ showReset(); MSG = [{ text: JSON.stringify(sw0) }, { text: 'Here it is:\n' + JSO
 let sw = ctx.showWriterTick(Date.now());
 const pu17 = msgs[1] ? msgs[1].messages[0].content : '';
 check('S1 show: one punch-up call (claude-haiku-5-5, EMT_PUNCH_SHOW_SYSTEM, "THE SCRIPT:" + the checked json); it passes -> stored, Model "writer + punch model", voiced as words', sw.written === true && msgs.length === 2 &&
-  msgs[0].model === 'claude-sonnet-5-5' && msgs[0].system === ctx.EMT_SHOW_SYSTEM && msgs[1].model === 'claude-haiku-5-5' && msgs[1].system === ctx.EMT_PUNCH_SHOW_SYSTEM && msgs[1].max_tokens === 2000 &&
+  msgs[0].model === 'claude-sonnet-5-5' && msgs[0].system === ctx.EMT_SHOW_SYSTEM && msgs[1].model === 'claude-haiku-5-5' && msgs[1].system === ctx.EMT_PUNCH_SHOW_SYSTEM && msgs[1].max_tokens === ctx.EMT_SHOW_MAX_TOKENS &&
   pu17.startsWith('THE SCRIPT:\n') && JSON.parse(pu17.slice(12)).chapters[0].beats[1] === sw0.chapters[0].beats[1] && showRows().length === 1 && showRows()[0][2] === 'claude-sonnet-5-5 + claude-haiku-5-5' &&
   /nobody fancies them/.test(stored17().chapters[0].beats[1]) && /gameweek six/.test(stored17().chapters[0].beats[1]) && sw.punch.used === true && sw.calls === 2 && props.EMT_SHOW_TRIES_6 === '1' &&
   logs.some(l => /^Show writer GW6: written by claude-sonnet-5-5, punched up by claude-haiku-5-5 \(1 call, 4 chapters\)/.test(l)) && !props.EMT_SHOW_WRITING, JSON.stringify(sw.punch || sw.problems));

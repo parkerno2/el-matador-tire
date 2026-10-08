@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,23 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.20 · 8 Oct 2026
+ *   The writers work again on the Claude 5.5 models. Since v3.13 the feed writer, the show writer and the articles
+ *   ask claude-haiku-5-5 and claude-sonnet-5-5, which think before they answer unless told otherwise, and the
+ *   thinking counts against max_tokens: with 900, 2,000 and 6,000 tokens every reply was cut off before its JSON
+ *   ended. The GW6 preview failed all 3 tries that way (8 Oct, 12:01 to 15:46) and no feed post went out all day.
+ *   1. emtModelParams(model, mode): the quick, synchronous calls (the feed writer, the show writer and its punch-up,
+ *      which must answer within UrlFetchApp's minute) turn thinking off the way each model allows (Sonnet 5.5:
+ *      thinking between_tools; Haiku 5.5: thinking disabled; Opus 5.5: effort low), as the 4.5 models answered
+ *      without it; the batch calls (the articles' research, writing and punch-up) keep the model's own thinking and
+ *      get room for it. The 4.5 fallbacks get no extra parameter. A model that refuses a thinking or effort
+ *      parameter (a 400 naming it) is asked once more without it.
+ *   2. max_tokens: feed 2,000 (was 900), show 4,000 (was 2,000), research 8,000 (was 3,000), article writing and
+ *      punch-up 16,000 (was 6,000).
+ *   3. An article that failed under an older Code.gs is tried once more by a newer one, as long as its window is
+ *      still open (the failure log now ends with the version that failed); a failure under the same version is
+ *      final, as before. So the GW6 preview starts again by itself once this version is live.
+ *   No new setup and no new permissions.
  * v3.19 · 8 Oct 2026
  *   The app knows the waiver window (Parker: Jive should know the waiver deadline).
  *   1. Matchweeks gains a last column, Waivers (UTC): FPL's own waivers_time for each gameweek (claims are processed
@@ -1764,6 +1781,22 @@ function aiMemory(ev) {
   return lines.join('\n');
 }
 
+/* ---------- v3.20: what each model needs so a reply is never cut off ----------
+ * The Claude 5.5 models think before answering unless told otherwise, and the thinking counts against max_tokens.
+ * mode 'quick': a synchronous call that must answer inside UrlFetchApp's minute (the feed writer, the show writer and
+ * its punch-up): thinking off, the way each model allows. mode 'batch': the articles through the Batches API, where
+ * time does not matter: the model keeps its thinking and max_tokens leaves room for it. Older models get nothing. */
+var EMT_AI_MAX_TOKENS = 2000, EMT_SHOW_MAX_TOKENS = 4000, EMT_ART_RESEARCH_MAX_TOKENS = 8000, EMT_ART_WRITE_MAX_TOKENS = 16000, EMT_ART_PUNCH_MAX_TOKENS = 16000;
+function emtModelParams(model, mode) {
+  var m = String(model || '');
+  if (mode !== 'quick' || !/^claude-(sonnet|haiku|opus|fable)-5/.test(m)) return {};
+  if (/^claude-sonnet-5/.test(m)) return { thinking: { type: 'between_tools' } };
+  if (/^claude-haiku-5/.test(m)) return { thinking: { type: 'disabled' } };
+  return { output_config: { effort: 'low' } };
+}
+/* a 400 that names a thinking or effort parameter: the model does not take it; the call is made once more without */
+function emtParamRefused(code, msg) { return code === 400 && /thinking|output_config|effort/i.test(String(msg || '')); }
+
 /* ---------- one call to Claude, checked before anything is kept ---------- */
 function aiWrite(ev) {
   var mem = aiMemory(ev), facts = JSON.stringify(ev.facts);
@@ -1771,12 +1804,18 @@ function aiWrite(ev) {
   /* v3.13: the model chain; a retired model (404, or a 400 about the model) passes to the next one */
   var models = emtModelsLive(emtModelChain('EMT_AI_MODEL', EMT_AI_MODELS)), code = 0, body = '';
   for (var mi = 0; mi < models.length; mi++) {
-    var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
-      method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-      headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
-      payload: JSON.stringify({ model: models[mi], max_tokens: 900, system: EMT_AI_SYSTEM, messages: [{ role: 'user', content: user }] })
-    });
-    code = res.getResponseCode(); body = res.getContentText();
+    var extra = emtModelParams(models[mi], 'quick');                            /* v3.20 */
+    for (var again = 0; again < 2; again++) {
+      var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+        method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+        headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
+        payload: JSON.stringify(Object.assign({ model: models[mi], max_tokens: EMT_AI_MAX_TOKENS, system: EMT_AI_SYSTEM, messages: [{ role: 'user', content: user }] }, extra))
+      });
+      code = res.getResponseCode(); body = res.getContentText();
+      if (code === 200 || again || !Object.keys(extra).length || !emtParamRefused(code, emtApiErr(body).msg)) break;
+      Logger.log('AI writer: ' + models[mi] + ' refused a parameter (' + emtApiErr(body).msg.slice(0, 100) + '); asking again without it.');
+      extra = {};
+    }
     if (code === 200) break;
     var er = emtApiErr(body);
     if (mi === models.length - 1 || !emtModelMissing(code, er.type, er.msg)) break;
@@ -2618,12 +2657,18 @@ function emtShowCore(facts) {
  * missing = the model does not exist or is retired, so the chain moves on). system: EMT_SHOW_SYSTEM unless given
  * (v3.13: the punch-up passes EMT_PUNCH_SHOW_SYSTEM) */
 function emtShowAsk(model, user, system) {
-  var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
-    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
-    payload: JSON.stringify({ model: model, max_tokens: 2000, system: system || EMT_SHOW_SYSTEM, messages: [{ role: 'user', content: user }] })
-  });
-  var code = res.getResponseCode(), body = String(res.getContentText() || '');
+  var extra = emtModelParams(model, 'quick'), res, code, body;                 /* v3.20: thinking off for a quick answer */
+  for (var again = 0; again < 2; again++) {
+    res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { 'x-api-key': emtAiKey(), 'anthropic-version': '2023-06-01' },
+      payload: JSON.stringify(Object.assign({ model: model, max_tokens: EMT_SHOW_MAX_TOKENS, system: system || EMT_SHOW_SYSTEM, messages: [{ role: 'user', content: user }] }, extra))
+    });
+    code = res.getResponseCode(); body = String(res.getContentText() || '');
+    if (code === 200 || again || !Object.keys(extra).length || !emtParamRefused(code, emtApiErr(body).msg)) break;
+    Logger.log('Show writer: ' + model + ' refused a parameter (' + emtApiErr(body).msg.slice(0, 100) + '); asking again without it.');
+    extra = {};
+  }
   if (code !== 200) { var er = emtApiErr(body); return { error: 'Claude API ' + code + ': ' + body.slice(0, 200), missing: emtModelMissing(code, er.type, er.msg), msg: er.msg }; }
   var j = null;
   try { j = JSON.parse(body); } catch (e) { return { text: '', stop: '' }; }
@@ -2921,7 +2966,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.19';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.20';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -3175,7 +3220,8 @@ function emtArtMeta() {
     if (!id) return;
     var note = emtArtNote(b[i][0]), log = emtUnq(b[i][2]);
     out.push({ row: i + 2, id: id, gw: Number(r[1]) || 0, kind: emtUnq(r[2]), status: emtUnq(r[3]), written: emtUnq(r[4]), model: emtUnq(r[5]),
-      factsAt: emtUnq(r[6]), note: note.text, redos: note.redos, pend: note.pend, approved: emtUnq(b[i][1]), log: log, since: emtArtLogAt(log) });
+      factsAt: emtUnq(r[6]), note: note.text, redos: note.redos, pend: note.pend, approved: emtUnq(b[i][1]), log: log, since: emtArtLogAt(log),
+      failedBy: (/\[Code\.gs (v[\d.]+)\]\s*$/.exec(emtArtLogLast(log)) || [])[1] || '' });   /* v3.20: the version a failed article failed under ('' before v3.20) */
   });
   return out;
 }
@@ -3341,6 +3387,13 @@ function emtArtCreate(job, build) {
     var r = emtArtApi('post', EMT_ART_BATCHES, { requests: [{ custom_id: emtArtCid(job), params: build(models[i]) }] });
     if (r.code === 200 && r.json && r.json.id) return { batch: String(r.json.id), model: models[i] };
     var er = emtApiErr(r.json || r.text);
+    if (emtParamRefused(r.code, er.msg)) {                                        /* v3.20: once more without thinking or effort */
+      var p2 = build(models[i]); delete p2.thinking; delete p2.output_config;
+      emtArtSay(job, models[i] + ' refused a parameter (' + er.msg.slice(0, 100) + '); asking again without it.');
+      r = emtArtApi('post', EMT_ART_BATCHES, { requests: [{ custom_id: emtArtCid(job), params: p2 }] });
+      if (r.code === 200 && r.json && r.json.id) return { batch: String(r.json.id), model: models[i] };
+      er = emtApiErr(r.json || r.text);
+    }
     /* web search off for the organisation can come back as a 400 or as a 403 permission_error: either way the article
      * is written from the league data (checked before the 401/403 wait, which would otherwise hold it for 36 hours) */
     if (r.code && r.code !== 429 && r.code < 500 && job.phase === 'research' && emtArtSearchOff(er.type, er.msg)) return { searchOff: er.msg };
@@ -3455,7 +3508,7 @@ function emtArtResearchUser(job, f) {
 function emtArtResearchParams(job, facts, model, cont) {
   var msgs = [{ role: 'user', content: emtArtResearchUser(job, facts) }];
   if (cont && cont.length) msgs.push({ role: 'assistant', content: cont });   /* pause_turn: the paused turn, unchanged */
-  return { model: model, max_tokens: 3000, system: emtArtResearchSystem(job.kind),
+  return { model: model, max_tokens: EMT_ART_RESEARCH_MAX_TOKENS, system: emtArtResearchSystem(job.kind),   /* v3.20: room for the model's thinking */
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 10 }], messages: msgs };
 }
 function emtArtUrlKey(u) { return String(u || '').trim().replace(/#.*$/, '').replace(/\/+$/, '').toLowerCase(); }
@@ -3575,7 +3628,7 @@ function emtArtWriteParams(user, fix, model) {
     if (reply) msgs.push({ role: 'assistant', content: reply }, { role: 'user', content: ask });
     else msgs[0].content = user + '\n\n' + ask;
   }
-  return { model: model, max_tokens: 6000, system: EMT_ART_SYSTEM, messages: msgs };
+  return { model: model, max_tokens: EMT_ART_WRITE_MAX_TOKENS, system: EMT_ART_SYSTEM, messages: msgs };   /* v3.20: room for the model's thinking */
 }
 
 /* every number the article may use (as a set): each number in the facts as sent and in the research (emtShowAllowed:
@@ -3783,8 +3836,14 @@ function emtArticleCheck(text, facts, research, kind, gw, sent, extra) {
 /* what to start: the recap, else the preview. → { gw, kind, facts, why } | { gw: 0, why } */
 function emtArtDue(force, now) {
   var meta = emtArtMeta(), why = [];
+  /* v3.20: a row that failed under an older Code.gs does not count; this version tries once (its own failure is final) */
   var taken = function (gw, kind) {
-    return meta.some(function (m) { return m.gw === gw && m.kind === kind && (!force || ['research', 'writing', 'draft', 'live'].indexOf(m.status) > -1); });
+    return meta.some(function (m) {
+      if (m.gw !== gw || m.kind !== kind) return false;
+      if (force) return ['research', 'writing', 'draft', 'live'].indexOf(m.status) > -1;
+      if (m.status === 'failed') return emtSelfCmp(m.failedBy || 'v0', EMT_VERSION) >= 0;
+      return true;
+    });
   };
   var hrs = function (ms) { return Math.round(ms / 36e5 * 10) / 10; };
   var rg = emtArtRecapGw();
@@ -3891,7 +3950,7 @@ function emtArtFail(job, why, S) {
       kept = true;
       emtArtUpdateLocked(job.id, { note: emtArtNoteSet(emtArtCell(m.row, EMT_ART_COL.note), { pend: 'failed' }) },
         'the rewrite failed, so the live version stays up as it was: ' + why, ['live'], job.run || '');
-    } else emtArtUpdateLocked(job.id, { status: 'failed' }, why, EMT_ART_ACTIVE, job.run || '');
+    } else emtArtUpdateLocked(job.id, { status: 'failed' }, why + ' [Code.gs ' + EMT_VERSION + ']', EMT_ART_ACTIVE, job.run || '');   /* v3.20: a newer version tries once more */
   } finally { lock.releaseLock(); }
   emtArtJobEnd(job.id, job.run || '');
   S.ok = false; S.stopped = kept ? 'kept' : 'failed'; S.error = why;
@@ -4558,7 +4617,7 @@ function emtArtPunchBase(job) {
 function emtArtPunchParams(job, article, model) {
   var u = 'THE ARTICLE:\n' + JSON.stringify(article);
   if (job.redos && job.note) u += '\n\nTHE COMMISSIONER\'S NOTE (he asked for this rewrite; the punch-up keeps to it too): "' + job.note + '"';
-  return { model: model, max_tokens: 6000, system: EMT_PUNCH_ART_SYSTEM, messages: [{ role: 'user', content: u }] };
+  return { model: model, max_tokens: EMT_ART_PUNCH_MAX_TOKENS, system: EMT_PUNCH_ART_SYSTEM, messages: [{ role: 'user', content: u }] };   /* v3.20 */
 }
 /* the writing passed the checks: keep it sealed as the base and move to the punch phase (status stays 'writing').
  * → false when the job is over */
