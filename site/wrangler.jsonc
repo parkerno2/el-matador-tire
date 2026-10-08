@@ -1,0 +1,13 @@
+// matchweek.gg: the Cloudflare Worker "matchweek" (static assets only).
+// Cloudflare Workers Builds deploys this folder on every push to main that touches site/,
+// so nobody's computer is needed. Edit the pages in site/public/ and push.
+{
+  "name": "matchweek",
+  "compatibility_date": "2026-08-31",
+  "assets": { "directory": "./public" },
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "matchweek.gg", "custom_domain": true },
+    { "pattern": "www.matchweek.gg", "custom_domain": true }
+  ]
+}
