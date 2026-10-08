@@ -18,7 +18,7 @@ How items are worked:
   - It loads the live app headless in Chromium, computes `MW.facts.preview()` and `MW.facts.recap()` with the app's own engine, and commits `facts/preview-gw<N>.json` and `facts/recap-gw<N>.json` when they change.
   - Code.gs reads those raw files from the repo whenever phone facts are missing or older. The repo is the trust anchor, so no secret is needed.
   - Tests in `tests/codegs/`.
-- [ ] **A1 CI gate for Code.gs.**
+- [x] **A1 CI gate for Code.gs.** (Shipped 8 Oct 2026: `.github/workflows/codegs.yml`; `release` created from main at v3.15, Code.gs v3.16 reads from it.)
   - Run every `tests/codegs/*.js` on each push that touches Code.gs or tests.
   - The self-update reads Code.gs from a `release` branch that CI fast-forwards only when the suites pass. A broken push to main can then never reach the live script.
 - [ ] **A2 Monitor (no AI).** A GitHub Action every 15 min checks:

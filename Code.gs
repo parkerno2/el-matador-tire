@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,13 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.16 · 8 Oct 2026
+ *   The self-update reads Code.gs from the repo's `release` branch instead of main. A GitHub Action
+ *   (.github/workflows/codegs.yml) runs every test suite in tests/codegs on each push to main that touches Code.gs or
+ *   the tests, and fast-forwards `release` to that commit only when all of them pass. A broken push to main therefore
+ *   never reaches this script: release stays where it was and the Action's run is red. Nothing else changes; the
+ *   version, size, marker and load checks of v3.12 still apply to what is fetched.
+ *   No new setup and no new permissions. The release branch was created from main (at v3.15) before this switch.
  * v3.15 · 8 Oct 2026
  *   The facts without anyone's phone: the Facts bot.
  *   1. A GitHub Action (.github/workflows/facts.yml, every 3 hours and on demand) loads the live app headless in
@@ -107,7 +114,7 @@
  *      rewritten, delete its ShowScripts row.
  *      GET <API URL>?show=<gw> also returns "script" (the repo json, else ShowScripts, else null); add &meta=1 to
  *      leave out the audio (secs, hash and complete stay).
- *   2. Code.gs updates itself from GitHub. Once an hour aiTick fetches Code.gs from the repo's main branch, checks
+ *   2. Code.gs updates itself from GitHub. Once an hour aiTick fetches Code.gs from the repo's main branch (v3.16: the release branch), checks
  *      it (size, markers, syntax, that it loads, not older than the running version), and when it differs it
  *      replaces this file, saves a version and points the web app at it (same URL). Off with EMT_SELF_UPDATE = off.
  *      Menu: Update Code.gs from GitHub now. selfUpdateStatus() logs the state. It stays dormant (state 'off: ...') until this SETUP:
@@ -2882,7 +2889,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.15';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.16';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4539,7 +4546,7 @@ function emtShowPunch(gw, W, facts, t0) {
  *   EMT_SELF_UPDATE = off turns the hourly check off. Menu: Update Code.gs from GitHub now. selfUpdateStatus().
  *   QUOTA: one GitHub fetch an hour, plus one API read once set up; an update is five API calls.
  * ===================================================================================================== */
-var EMT_SELF_SRC = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/main/Code.gs';
+var EMT_SELF_SRC = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/release/Code.gs';   // v3.16: the tested release branch (codegs.yml fast-forwards it)
 var EMT_SELF_API = 'https://script.googleapis.com/v1/projects/';
 var EMT_SELF_EVERY_MS = 60 * 60 * 1000;
 var EMT_SELF_LATE_MS = 300 * 1000;          // aiTick: not when the run is already 5 minutes old (Apps Script stops at 6)
