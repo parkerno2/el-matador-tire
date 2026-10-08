@@ -1,5 +1,9 @@
 # Matchweek roadmap (from 8 Oct 2026)
 
+## In progress
+One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
+- (nothing claimed)
+
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
 - **Backend is Claude's call.** Parker said "backend stuff is all you".
