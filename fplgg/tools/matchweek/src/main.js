@@ -8,7 +8,9 @@ import { SHEETS } from './sheets/index.js';
 import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } from './feed/showfacts.js';
 import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
 import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
+import { installReadTab, readMeta, staleInfo, matchOn } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5) */
 installErrorReporting();
+installReadTab();
 
 const PAGES = { matchday, team, league, feed };
 const app = document.getElementById('app');
@@ -57,7 +59,7 @@ export function render(opt = {}) {
   try { html = mod.render(r.sub, r.args); }
   catch (e) { console.error(e); html = UI.pageHead(mod.title || '') + '<div class="err">Something went wrong drawing this page. ' + UI.esc(e.message) + '</div>'; }
   const unread = PAGES.feed.unread ? PAGES.feed.unread() : 0;
-  app.innerHTML = html + UI.navBar(r.page, unread);
+  app.innerHTML = staleBanner() + html + UI.navBar(r.page, unread);
   document.body.dataset.page = r.page; document.body.dataset.sub = r.sub;
   document.title = (mod.title || 'Matchweek') + ' · El Matador Tire';
   try { mod.mount && mod.mount(app, r.sub, r.args); } catch (e) { console.error(e); }
@@ -159,6 +161,8 @@ let BUSY = false;
 export function reload(quiet) {
   if (BUSY) return Promise.resolve(true);
   BUSY = true;
+  const meta = readMeta();   /* the Meta tab's refresh time, read alongside the data; never holds up the first paint */
+  meta.then(t => { D.updated = t || 0; if (D.ro && D.ro.length && !RENDERING && !!document.querySelector('#app > .stale') !== !!staleBanner()) render({ keepScroll: true }); });
   return loadData(quiet).then(() => { BUSY = false; flushErrors(); render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
     .catch(e => {
       BUSY = false;
@@ -180,10 +184,17 @@ function scheduleEdge() {
   const ms = Math.min(...t) - now + 20e3;
   if (ms < 2 ** 31 - 1) EDGE_T = setTimeout(() => reload(true), ms);
 }
+/* the stale-data banner (A5): the Meta tab's refresh time against 2 hours, or 20 minutes while a match is on */
+function staleBanner() {
+  try {
+    const st = staleInfo(D && D.updated, Date.now(), matchOn(D && D.cf, Date.now()));
+    return st ? '<div class="stale" role="status">' + UI.esc(st.text) + '</div>' : '';
+  } catch (e) { return ''; }
+}
 function cadence() { return D && D.liveNow ? 90e3 : 300e3; }
 setInterval(() => { if (document.visibilityState === 'visible' && Date.now() - (LOADED_AT || 0) > cadence()) reload(true); }, 30e3);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - (LOADED_AT || 0) > 60e3) reload(true); });
-setInterval(() => { const p = document.querySelector('.abar .sp'); if (p && D && D.ro && D.ro.length) p.innerHTML = UI.statePill(); }, 30e3);
+setInterval(() => { const p = document.querySelector('.abar .sp'); if (p && D && D.ro && D.ro.length) p.innerHTML = UI.statePill(); const b = document.querySelector('#app > .stale'), want = staleBanner(); if (!!b !== !!want && D && D.ro && D.ro.length && !RENDERING) render({ keepScroll: true }); }, 30e3);
 
 function boot() {
   app.innerHTML = '<div class="boot">' + UI.leagueCrest(44) + UI.mwMark(30) + '<div class="bar"><i></i></div><span>Loading El Matador Tire</span></div>';

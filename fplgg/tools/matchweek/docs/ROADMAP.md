@@ -35,10 +35,10 @@ How items are worked:
   - Errors go to a hidden Errors tab.
   - `?health=1` gains an error count for the last 24 h.
   - The monitor opens an issue on a spike.
-- [ ] **A5 Data guards.**
-  - #5: validate each tab by its header row in the app's readTab, showing an empty state rather than wrong data.
-  - #3: trim the GW Stats fetch.
-  - A stale-data banner when `data.updated` is old.
+- [ ] **A5 Data guards.** (8 Oct 2026: #5 and the banner shipped, `src/data/tabs.js`; #3 stays open, measured in BUGS.md with the lossless approach, which is an engine change.)
+  - [x] #5: validate each tab by its header row in the app's readTab, showing an empty state rather than wrong data.
+  - [ ] #3: trim the GW Stats fetch.
+  - [x] A stale-data banner when `data.updated` is old.
 - [ ] **A6 #8 Per-fixture BPS in Code.gs**, so double-gameweek bonus can be estimated per match. Must ship before the first double gameweek.
 - [ ] **A7 #25 Clubs strength mirror:** re-source it from FPL's new fields, or drop it.
 

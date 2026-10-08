@@ -33,7 +33,7 @@ The data lives in the public Google Sheet `1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZi
 - **Testing before you push:**
   - App: test changes with `cd fplgg/tools/matchweek && npm ci && bash ci-build.sh`.
   - Code.gs: run `node tests/codegs/<file>.js` for v319, v318, v317, v315, v314, v313, v312, show and test; all must print ALL PASS (test.js prints rows). The CI gate runs the same suites and only a passing commit reaches `release`, which the live script installs within the hour; a red run means the league keeps the previous Code.gs until main is fixed.
-  - App error reporting: `node tests/app-errors.js`. Monitor: `node tests/monitor.js`.
+  - App error reporting: `node tests/app-errors.js`. Sheet reader guard and stale banner: `node tests/app-tabs.js`. Monitor: `node tests/monitor.js`.
   - Facts bot: `node tests/factsbot.js` (and `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/factsbot/factsbot.js --out /tmp/facts` runs it for real against the live app).
   - Run `node --check` on a `.js` copy of Code.gs.
 
