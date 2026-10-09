@@ -12,9 +12,15 @@
    The leak check reads the real names from the live Standings tab and fails when one appears as a whole word anywhere
    under site/public: team names, full names, first names, surnames and the engine's short names (SHORTOF). A first name
    a footballer in the Players tab shares (Jacob Ramsey, Ethan Nwaneri) is not checked, and no first or short name is
-   checked in the data files of the player tabs; team names, full names and surnames always are. */
+   checked in the data files of the player tabs; team names, full names and surnames always are.
+   No EA assets (Parker, 9 Oct 2026): the demo uses FPL photos and initials only. faces/ is not copied and the demo's
+   core.js has an empty FC_FACES, so every player goes through FPL's photo and then initials; the EA Map and FC27 tabs are
+   not read or written, and the Rosters OVR column (an EA-based rating) is blanked, so the engine's rating derived from the
+   FPL projection stands in (ovrOf) and the player sheet's Ratings tab says so (src/sheets/player.js, DEMO). The EA check
+   (eaScan) fails the build when a file byte-identical to one in faces/, a faces/ folder, a <code>.png of FC_FACES, or a
+   file named fc27 or ea-map lands anywhere under site/public. */
 'use strict';
-const fs = require('fs'), path = require('path'), { spawnSync } = require('child_process');
+const fs = require('fs'), path = require('path'), crypto = require('crypto'), { spawnSync } = require('child_process');
 const names = require('./names.js'), snap = require('./snapshot.js');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
@@ -22,7 +28,9 @@ const APP = path.join(ROOT, 'fplgg', 'tools', 'matchweek');
 const SITE = path.join(ROOT, 'site', 'public');
 const OUT = path.join(SITE, 'demo');
 const TEXT_EXT = /\.(html?|js|mjs|css|json|jsonc|webmanifest|txt|md|svg|xml|csv)$/i;
-const ASSET_DIRS = ['faces', 'icons', 'voices', 'press'];   /* press/: the editorial posts' pictures */
+const ASSET_DIRS = ['icons', 'voices', 'press'];   /* press/: the editorial posts' pictures; never faces/ (EA renders, 9 Oct 2026) */
+const EA_TABS = ['EA Map', 'FC27'];                /* the EA tabs: not read, not written (9 Oct 2026) */
+const EA_FILE_RE = /(^|[\\/])(fc27|ea[-_ ]?map)[^\\/]*$/i;   /* a data file named after them, anywhere, any extension */
 
 /* the engine's initials per team, from core.gen.js's TEAMS table (ini:'XX'), so the mapping renames the keys it uses */
 function engineInitials(core) {
@@ -36,6 +44,48 @@ function engineShorts(core) {
   const out = {}; const t = /const SHORTOF=\{([^}]*)\}/.exec(core); if (!t) return out;
   const re = /'([^']+)':'([^']+)'/g; let x; while ((x = re.exec(t[1]))) out[x[1]] = x[2];
   return out;
+}
+/* the engine for the demo: FC_FACES emptied, so faceUrls never names faces/<code>.png and every player takes FPL's photo,
+   then initials (the set stays a Set: the engine calls .has on it) */
+function demoCore(core) {
+  const re = /const FC_FACES=new Set\('[^']*'\.split\(' '\)\);/;
+  if (!re.test(core)) throw new Error('core.gen.js: the FC_FACES set is not where the demo build expects it');
+  return core.replace(re, 'const FC_FACES=new Set();/* the demo carries no EA faces */');
+}
+/* the snapshot without the EA ratings: the Rosters OVR column blanked (Code.gs builds it on the FC27 base), so the
+   engine's ovrOf falls back to its rating from the FPL projection; the EA tabs, if a caller passed them, dropped */
+function dropRatings(tabs) {
+  const out = {};
+  Object.keys(tabs).forEach(n => { if (!EA_TABS.includes(n)) out[n] = tabs[n]; });
+  if (out.Rosters && out.Rosters.cols.includes('OVR')) out.Rosters = { cols: out.Rosters.cols, rows: out.Rosters.rows.map(r => Object.assign({}, r, { OVR: '' })) };
+  return out;
+}
+/* the EA check over a folder: { file: why } for every file that is byte-identical to one in faces/ (md5), sits in a
+   faces/ folder, is named <code>.png for a code of FC_FACES, or is named fc27 or ea-map. faceDir: the EA renders to
+   compare against (the repo's faces/ by default); codes: the FC_FACES codes (from core.gen.js by default). */
+function faceHashes(faceDir) {
+  const out = new Map();
+  if (!fs.existsSync(faceDir)) return out;
+  fs.readdirSync(faceDir).filter(f => /\.(png|jpe?g|webp)$/i.test(f)).forEach(f => out.set(crypto.createHash('md5').update(fs.readFileSync(path.join(faceDir, f))).digest('hex'), f));
+  return out;
+}
+function faceCodes(core) { const m = /const FC_FACES=new Set\('([^']*)'\.split\(' '\)\)/.exec(core); return new Set(m ? m[1].split(' ') : []); }
+function eaScan(dir, faceDir, codes) {
+  const hashes = faceHashes(faceDir === undefined ? path.join(ROOT, 'faces') : faceDir);
+  codes = codes || faceCodes(fs.readFileSync(path.join(APP, 'core.gen.js'), 'utf8'));
+  const found = {};
+  const walkAll = rel => {
+    for (const e of fs.readdirSync(path.join(dir, rel), { withFileTypes: true })) {
+      const r = rel ? rel + '/' + e.name : e.name;
+      if (e.isDirectory()) { walkAll(r); continue; }
+      if (/(^|\/)faces\//.test(r)) found[r] = 'in a faces folder';
+      else if (EA_FILE_RE.test(r)) found[r] = 'an EA data file by name';
+      else if (/^\d+\.png$/i.test(e.name) && codes.has(e.name.replace(/\.png$/i, ''))) found[r] = 'an FC face by code';
+      else if (/\.(png|jpe?g|webp)$/i.test(e.name) && hashes.size) { const h = crypto.createHash('md5').update(fs.readFileSync(path.join(dir, r))).digest('hex'); if (hashes.has(h)) found[r] = 'byte-identical to faces/' + hashes.get(h); }
+    }
+  };
+  walkAll('');
+  return found;
 }
 /* the demo's index.html from the app's template: its own title and description, no manifest (not installable), no
    preconnect to the Sheet, the build stamp in place */
@@ -83,7 +133,7 @@ async function main(argv) {
   const core = fs.readFileSync(path.join(APP, 'core.gen.js'), 'utf8');
   /* 1. the live tabs */
   let shot;
-  try { shot = await snap.snapshot(undefined, checkOnly ? null : log); }
+  try { shot = await snap.snapshot(undefined, checkOnly ? null : log, EA_TABS); }
   catch (e) {
     const msg = 'the league Sheet could not be read (' + String(e && e.message || e).slice(0, 160) + ')';
     if (strict) throw new Error(msg);
@@ -93,13 +143,13 @@ async function main(argv) {
   const m = names.mapping(shot.tabs.Standings.rows, engineInitials(core), engineShorts(core));
   if (!checkOnly) {
     /* 2. the anonymised data */
-    const tabs = names.anonymiseTabs(shot.tabs, m);
+    const tabs = dropRatings(names.anonymiseTabs(shot.tabs, m));   /* no EA ratings in the demo (9 Oct 2026) */
     const build = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
     const tmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'mw-demo-'));
     /* 3. the app with __MW_DEMO__ set; identifiers are kept so a name in a string is the only two-letter word that changes */
     run(path.join(APP, 'node_modules', '.bin', 'esbuild'), ['src/main.js', '--bundle', '--minify-whitespace', '--minify-syntax', '--format=iife', '--target=es2020', '--define:__MW_DEMO__=true', '--log-level=warning', '--legal-comments=none', '--outfile=' + path.join(tmp, 'app.js')], APP);
     const appJs = names.substituteCode(fs.readFileSync(path.join(tmp, 'app.js'), 'utf8'), m);
-    const coreJs = names.substituteCode(core, m);
+    const coreJs = names.substituteCode(demoCore(core), m);   /* no EA faces in the demo (9 Oct 2026) */
     const cssFiles = fs.readdirSync(path.join(APP, 'src', 'css')).filter(f => f.endsWith('.css')).sort();   /* name order, as ci-build.sh with LC_ALL=C */
     const appCss = names.substituteCode(cssFiles.map(f => fs.readFileSync(path.join(APP, 'src', 'css', f), 'utf8')).join(''), m);
     const index = demoIndex(fs.readFileSync(path.join(APP, 'index.template.html'), 'utf8'), build);
@@ -127,7 +177,15 @@ async function main(argv) {
     return 1;
   }
   log('leak check: clean (' + walk(SITE).length + ' files)');
+  /* 6. the EA check, over the whole site: no EA face, no fc27 or ea-map file (Parker, 9 Oct 2026) */
+  const ea = eaScan(SITE);
+  const eaFiles = Object.keys(ea);
+  if (eaFiles.length) {
+    console.error('[demo] an EA asset is in site/public: ' + eaFiles.slice(0, 20).map(f => f + ' (' + ea[f] + ')').join(', ') + (eaFiles.length > 20 ? ' and ' + (eaFiles.length - 20) + ' more' : ''));
+    return 1;
+  }
+  log('EA check: clean');
   return 0;
 }
-module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, engineInitials, engineShorts, demoIndex, walk, playerFile, leakScan, main };
+module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, EA_TABS, EA_FILE_RE, engineInitials, engineShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, demoIndex, walk, playerFile, leakScan, main };
 if (require.main === module) main(process.argv.slice(2)).then(code => process.exit(code), e => { console.error('[demo] ' + (e && e.stack || e)); process.exit(1); });

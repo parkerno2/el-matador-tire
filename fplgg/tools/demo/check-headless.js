@@ -1,6 +1,7 @@
 /* fplgg/tools/demo/check-headless.js — opens the built demo (site/public/demo) in headless Chromium at phone width and
    checks what Parker asked for (Q2): the demo opens on its home screen, the League table, a team, a player sheet and
-   the Feed work, there are no console errors, and no request goes to the Sheet, Apps Script or Supabase. Serves
+   the Feed work, there are no console errors, and no request goes to the Sheet, Apps Script or Supabase; and (9 Oct
+   2026) no request for an EA face (faces/) or an EA data file, and the player sheet's Ratings tab renders. Serves
    site/public itself on a local port. Needs Playwright with Chromium (as the Facts bot does):
        NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/demo/check-headless.js [--shots DIR]
    Exits 1 on any failure. Not part of the CI gate (it needs a browser); run it before shipping a demo change. */
@@ -29,7 +30,7 @@ function serve() {
   const base = 'http://127.0.0.1:' + port + '/demo/';
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
-  const errors = [], forbidden = [], failed = [], hosts = new Set(), offsite = [];
+  const errors = [], forbidden = [], failed = [], hosts = new Set(), offsite = [], ea = [];
   page.on('console', m => {
     if (m.type() !== 'error') return;
     const loc = (m.location() || {}).url || '';
@@ -38,7 +39,7 @@ function serve() {
     errors.push((loc ? loc.slice(-60) + ': ' : '') + m.text().slice(0, 200));
   });
   page.on('pageerror', e => errors.push('pageerror: ' + String(e && e.message || e).slice(0, 200)));
-  page.on('request', r => { const u = r.url(); try { hosts.add(new URL(u).host); } catch (e) { } if (FORBIDDEN.test(u)) forbidden.push(u.slice(0, 160)); });
+  page.on('request', r => { const u = r.url(); try { hosts.add(new URL(u).host); } catch (e) { } if (FORBIDDEN.test(u)) forbidden.push(u.slice(0, 160)); if (/\/faces\/|fc27|ea[-_]?map/i.test(u)) ea.push(u.slice(0, 160)); });
   page.on('response', r => { const u = r.url(); if (u.startsWith(base) && r.status() >= 400 && !/\/show\//.test(u) && !/\/show\/gw\d+\.json$/.test(u)) failed.push(r.status() + ' ' + u.slice(base.length)); });
   let fails = 0;
   const check = (label, cond, info) => { if (!cond) fails++; console.log((cond ? 'PASS ' : 'FAIL ') + label + (info ? '  ' + info : '')); };
@@ -73,6 +74,10 @@ function serve() {
   if (opener) { await opener.click(); await page.waitForSelector('.sheet.in', { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(600); await shot('4-player'); }
   const sheetText = opener ? await page.$eval('.sheet', e => e.innerText).catch(() => '') : '';
   check('the player sheet opens with content', sheetText.length > 40, sheetText.slice(0, 100).replace(/\n/g, ' | '));
+  const ratingsTab = opener ? await page.$('.sheet [data-tab="ratings"], .sheet [role="tab"]:has-text("Ratings")') : null;
+  if (ratingsTab) { await ratingsTab.click().catch(() => {}); await page.waitForTimeout(500); await shot('4b-ratings'); }
+  const ratingsText = ratingsTab ? await page.$eval('.sheet', e => e.innerText).catch(() => '') : '';
+  check('the Ratings tab renders without the EA attributes (the demo note, no FC 27)', !!ratingsTab && /demo/i.test(ratingsText) && !/FC 27/.test(ratingsText), ratingsText.slice(-160).replace(/\n/g, ' | '));
   if (opener) { await page.goBack().catch(() => {}); await page.waitForTimeout(500); }
 
   await page.evaluate(() => { location.hash = '#/feed'; }); await page.waitForTimeout(1500); await shot('5-feed');
@@ -84,6 +89,7 @@ function serve() {
 
   check('no console errors or page errors', errors.length === 0, errors.slice(0, 5).join(' || '));
   check('no request to the Sheet, Apps Script, Supabase or the league app', forbidden.length === 0, forbidden.slice(0, 3).join(' '));
+  check('no request for an EA face or an EA data file', ea.length === 0, ea.slice(0, 3).join(' '));
   check('no failed same-origin request apart from the show files', failed.length === 0, failed.slice(0, 5).join(', '));
   console.log('hosts seen: ' + [...hosts].sort().join(', ') + (offsite.length ? '\nnote: ' + offsite.length + ' third-party images or fonts failed to load from this network (first: ' + offsite[0] + ')' : ''));
   await browser.close(); srv.close();

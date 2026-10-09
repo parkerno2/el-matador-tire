@@ -26,7 +26,7 @@ function load(o) {
     document: { createElement: () => { const s = { remove() {} }; scripts.push(s); return s; }, head: { appendChild: () => {} } } };
   if (o.demo) ctx.__MW_DEMO__ = true;
   ctx.window = ctx; vm.createContext(ctx);
-  vm.runInContext(src + '\n;this.__x = { TABS, QUERIES, DEMO, DEMO_DATA, demoFile, readDemo, dataSource, dataReport, guardedReadTab, readMeta, pickSource };', ctx);
+  vm.runInContext(src + '\n;this.__x = { TABS, QUERIES, DEMO, DEMO_DATA, DEMO_EMPTY, demoFile, readDemo, dataSource, dataReport, guardedReadTab, readMeta, pickSource };', ctx);
   return { x: ctx.__x, ctx, scripts, fetches, warns, store };
 }
 const GWS = 'GW,Code,Player,Pos,Club,Owner,Mins,Pts,G,A,CS,GC,OG,PS,PM,YC,RC,Saves,Bonus,BPS,DefCon,xG,xA,xGC,Starts,Final'.split(',');
@@ -46,6 +46,8 @@ const gwRow = (code, owner, mins) => { const o = {}; GWS.forEach(c => { o[c] = '
   check('a tab is read from its JSON file, through the header guard', rows.length === 1 && rows[0].Team === 'Wirtz Case Scenario' && L.x.dataReport().tabs.Standings === 'demo', JSON.stringify(L.x.dataReport()));
   rows = await L.x.guardedReadTab('GW Stats');
   check('the GW Stats trim applies to the demo rows too (owned or played kept)', rows.length === 2 && rows.map(r => r.Code).join() === '1,2');
+  rows = await L.x.guardedReadTab('FC27'); const rowsEa = await L.x.guardedReadTab('EA Map');
+  check('the EA tabs are answered empty without a request (no EA data in the demo, 9 Oct 2026)', L.x.DEMO_EMPTY.join() === 'EA Map,FC27' && rows.length === 0 && rowsEa.length === 0 && !L.fetches.some(u => /fc27|ea-map/.test(u)) && L.x.dataReport().tabs.FC27 === 'demo (left out, empty)', L.fetches.join(' '));
   rows = await L.x.guardedReadTab('Fixture BPS');
   check('a tab without a file is empty, with the header the guard needs (an optional tab stays optional)', Array.isArray(rows) && rows.length === 0 && /^demo \(no file/.test(L.x.dataReport().tabs['Fixture BPS']));
   let err = ''; await L.x.guardedReadTab('Rosters').catch(e => { err = e.message; });
@@ -130,7 +132,42 @@ const gwRow = (code, owner, mins) => { const o = {}; GWS.forEach(c => { o[c] = '
   const engShort = build.engineShorts(core);
   check('engineShorts reads the SHORTOF table of core.gen.js, one short name per team of TEAMS', Object.keys(engShort).length >= 8 && Object.keys(engShort).every(t => t in engIni) && Object.values(engShort).every(v => /^\S+$/.test(v)));
   check('engineInitials reads one initials code per TEAMS entry of core.gen.js', Object.keys(engIni).length === (core.match(/ini:'[A-Z]{2}'/g) || []).length && Object.keys(engIni).length >= 8 && Object.values(engIni).every(v => /^[A-Z0-9]{2}$/.test(v)));
-  check('build-demo writes into site/public/demo and copies the faces, icons, voices and press folders', build.OUT.replace(/\\/g, '/').endsWith('site/public/demo') && build.ASSET_DIRS.join() === 'faces,icons,voices,press');
+  check('build-demo writes into site/public/demo and copies the icons, voices and press folders, never faces/ (9 Oct 2026)', build.OUT.replace(/\\/g, '/').endsWith('site/public/demo') && build.ASSET_DIRS.join() === 'icons,voices,press' && !build.ASSET_DIRS.includes('faces'));
+
+  /* ---------- no EA assets in the demo (Parker, 9 Oct 2026) ---------- */
+  check('the EA tabs are named and left out of the snapshot the build takes', build.EA_TABS.join() === 'EA Map,FC27' && /snap\.snapshot\(undefined, checkOnly \? null : log, EA_TABS\)/.test(read('fplgg/tools/demo/build-demo.js')));
+  const skipped = []; const fakeFetch = async url => { skipped.push(decodeURIComponent((url.match(/sheet=([^&]+)/) || [])[1])); return { ok: true, text: async () => 'google.visualization.Query.setResponse({"table":{"cols":[{"id":"A","label":"X","type":"string"}],"rows":[]}})' }; };
+  let snapErr = ''; await snap.snapshot(fakeFetch, null, build.EA_TABS).catch(e => { snapErr = e.message; });
+  check('snapshot(fetch, log, skip) never asks the Sheet for a skipped tab', !skipped.includes('EA Map') && !skipped.includes('FC27') && skipped.includes('Rosters'), snapErr || skipped.join());
+  const demoCore = build.demoCore(core);
+  check('demoCore empties FC_FACES (still a Set, so faceUrls only ever names FPL\'s photo), the rest of the engine untouched', /const FC_FACES=new Set\(\);/.test(demoCore) && !/const FC_FACES=new Set\('\d/.test(demoCore) && demoCore.length < core.length && demoCore.includes('const faceUrls=c=>') && (() => { try { build.demoCore('const FC_FACES=new Set(x);'); return false; } catch (e) { return /FC_FACES set is not where/.test(e.message); } })());
+  const dropped = build.dropRatings({ Rosters: { cols: ['Team', 'Player', 'OVR', 'Proj pts'], rows: [{ Team: 'A', Player: 'Raya', OVR: '87', 'Proj pts': '150' }] }, 'EA Map': { cols: ['fpl_code'], rows: [] }, FC27: { cols: ['fpl_code'], rows: [] }, Standings: { cols: ['Team'], rows: [] } });
+  check('dropRatings blanks the Rosters OVR column (an EA-based rating) and drops the EA tabs; the other columns and tabs stay', dropped.Rosters.rows[0].OVR === '' && dropped.Rosters.rows[0]['Proj pts'] === '150' && dropped.Rosters.cols.join() === 'Team,Player,OVR,Proj pts' && !('EA Map' in dropped) && !('FC27' in dropped) && 'Standings' in dropped);
+  check('the engine rates a player without OVR from his projected points (62 to 96), so a blank column breaks nothing', /function ovrOf\(p\)\{\n\s*if\(p\.OVR!==''&&p\.OVR!==undefined&&p\.OVR!==null&&p\.OVR!=0\)return Math\.round\(num\(p\.OVR\)\);\n\s*return Math\.max\(62,Math\.min\(96,Math\.round\(62\+22\*num\(p\['Proj pts'\]\)\/170\)\)\);/.test(core));
+  const eaTmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'mw-ea-test-'));
+  const facesDir = path.join(eaTmp, 'repo-faces'); fs.mkdirSync(facesDir); fs.writeFileSync(path.join(facesDir, '17761.png'), 'EA-RENDER-BYTES');
+  const site = path.join(eaTmp, 'site'); fs.mkdirSync(path.join(site, 'demo', 'data'), { recursive: true }); fs.mkdirSync(path.join(site, 'demo', 'img')); fs.mkdirSync(path.join(site, 'demo', 'faces'));
+  fs.writeFileSync(path.join(site, 'demo', 'img', 'copy.png'), 'EA-RENDER-BYTES');            /* byte-identical to a face, renamed */
+  fs.writeFileSync(path.join(site, 'demo', 'img', '487838.png'), 'other bytes');              /* an FC face by code */
+  fs.writeFileSync(path.join(site, 'demo', 'faces', 'x.png'), 'anything');                   /* a faces folder */
+  fs.writeFileSync(path.join(site, 'demo', 'data', 'fc27.json'), '{}');
+  fs.writeFileSync(path.join(site, 'demo', 'data', 'ea-map.json'), '{}');
+  fs.writeFileSync(path.join(site, 'demo', 'data', 'EA_Map.csv'), '');
+  fs.writeFileSync(path.join(site, 'icon.png'), 'an icon');                                   /* clean */
+  fs.writeFileSync(path.join(site, 'demo', 'data', 'standings.json'), '{}');                 /* clean */
+  const eaFound = build.eaScan(site, facesDir, new Set(['487838']));
+  check('eaScan finds a byte-identical face under any name, a faces folder, an FC face by code and the EA data files by name; a clean icon and tab pass',
+    eaFound['demo/img/copy.png'] === 'byte-identical to faces/17761.png' && eaFound['demo/faces/x.png'] === 'in a faces folder' && eaFound['demo/img/487838.png'] === 'an FC face by code' &&
+    eaFound['demo/data/fc27.json'] === 'an EA data file by name' && eaFound['demo/data/ea-map.json'] === 'an EA data file by name' && eaFound['demo/data/EA_Map.csv'] === 'an EA data file by name' &&
+    !('icon.png' in eaFound) && !('demo/data/standings.json' in eaFound) && Object.keys(eaFound).length === 6, JSON.stringify(eaFound));
+  check('faceCodes reads the FC_FACES codes of core.gen.js (149 today) and faceHashes one md5 per face in faces/', build.faceCodes(core).size >= 100 && build.faceCodes(core).has('17761') && build.faceHashes(path.join(ROOT, 'faces')).size === fs.readdirSync(path.join(ROOT, 'faces')).filter(f => /\.png$/.test(f)).length);
+  check('the real site is clean of EA assets right now (the committed demo carries none)', Object.keys(build.eaScan(path.join(ROOT, 'site', 'public'))).length === 0, JSON.stringify(Object.keys(build.eaScan(path.join(ROOT, 'site', 'public'))).slice(0, 5)));
+  check('the build runs the EA check after the leak check and fails on a hit, in --check mode too', /const ea = eaScan\(SITE\);/.test(read('fplgg/tools/demo/build-demo.js')) && /an EA asset is in site\/public/.test(read('fplgg/tools/demo/build-demo.js')) && read('fplgg/tools/demo/build-demo.js').indexOf('leak check: clean') < read('fplgg/tools/demo/build-demo.js').indexOf('const ea = eaScan(SITE)'));
+  fs.rmSync(eaTmp, { recursive: true, force: true });
+  const playerJs = read('fplgg/tools/matchweek/src/sheets/player.js');
+  check('player.js: the Ratings tab in the demo shows no FC 27 attributes and says the rating comes from projected points; the league app is unchanged', /import \{ DEMO \} from '\.\.\/data\/tabs\.js'/.test(playerJs) && /const has = !DEMO && fc && keys\.some/.test(playerJs) && /DEMO \? '<div class="ps-none">The demo league shows no attribute ratings: every player is rated from his projected points\.<\/div>'/.test(playerJs) && /aside: DEMO \? 'Demo league' : 'FC 27'/.test(playerJs) && /FC 27 has no attribute ratings for him yet/.test(playerJs));
+  const headless = read('fplgg/tools/demo/check-headless.js');
+  check('check-headless fails on a request for an EA face or data file and checks the Ratings tab', /\/faces\\\/\|fc27\|ea\[-_\]\?map/i.test(headless) && /no request for an EA face or an EA data file/.test(headless) && /data-tab="ratings"/.test(headless));
   check('the snapshot reads every tab the engine reads, with the same GW Stats trim as the app', snap.TABS.length === 18 && ['Rosters', 'Standings', 'H2H Fixtures', 'Matchweeks', 'Club Fixtures', 'Clubs', 'Specials', 'EA Map', 'FC27', 'Transactions', 'Predictions', 'GW Stats', 'Players', 'GW Log', 'Fixture BPS', 'Managers', 'Social', 'Posts'].every(t => snap.TABS.includes(t)) && snap.QUERIES['GW Stats'].tq === L.x.QUERIES['GW Stats'].tq);
   const gv = snap.parseGviz('/*O_o*/\ngoogle.visualization.Query.setResponse({"table":{"cols":[{"id":"A","label":"Team","type":"string"},{"id":"B","label":"W","type":"number"}],"rows":[{"c":[{"v":"Team Bob"},{"v":3.0,"f":"3"}]},{"c":[{"v":"Zeta Zebras"},null]}]}});', 'Standings');
   check('parseGviz shapes the rows as the app\'s readRaw does (f over v, null blank, strings)', gv.cols.join() === 'Team,W' && gv.rows[0].W === '3' && gv.rows[0].Team === 'Team Bob' && gv.rows[1].W === '');

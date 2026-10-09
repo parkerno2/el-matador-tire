@@ -107,9 +107,12 @@ export const DEMO = typeof __MW_DEMO__ !== 'undefined' && !!__MW_DEMO__;
 export const DEMO_DATA = 'data/';
 /* the file a tab is read from in the demo (fplgg/tools/demo/names.js writes the same name) */
 export const demoFile = name => DEMO_DATA + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.json';
+/* the EA tabs are not part of the demo (Parker, 9 Oct 2026: no EA assets on matchweek.gg): answered empty without a request */
+export const DEMO_EMPTY = ['EA Map', 'FC27'];
 const demoEmpty = name => ({ cols: (TABS[name] || []).map(c => c.split('|')[0]), rows: [] });
 /* a tab from the demo's data folder: { cols, rows } as written, the GW Stats trim applied; no file is an empty tab */
 export function readDemo(name) {
+  if (DEMO_EMPTY.includes(name)) { REPORT[name] = 'demo (left out, empty)'; return Promise.resolve(demoEmpty(name)); }
   const ac = typeof AbortController === 'function' ? new AbortController() : null;
   const to = setTimeout(() => { if (ac) ac.abort(); }, TIMEOUT_MS);
   return fetch(demoFile(name), Object.assign({ cache: 'no-cache' }, ac ? { signal: ac.signal } : {})).then(r => {

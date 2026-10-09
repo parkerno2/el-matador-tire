@@ -51,10 +51,12 @@ function headerProblem(name, cols) {
   const miss = need.filter(c => !c.split('|').some(x => have.has(x)));
   return miss.length ? 'missing ' + miss.join(', ') : '';
 }
-/* every tab: { tabs: { name: { cols, rows } }, skipped: { name: why }, taken: ISO } */
-async function snapshot(fetchFn, log) {
-  const tabs = {}, skipped = {};
+/* every tab: { tabs: { name: { cols, rows } }, skipped: { name: why }, taken: ISO }. skip: tab names not to read at all
+   (the demo build leaves the EA tabs out, Parker, 9 Oct 2026) */
+async function snapshot(fetchFn, log, skip) {
+  const tabs = {}, skipped = {}, left = new Set(skip || []);
   for (const name of TABS) {
+    if (left.has(name)) continue;
     let t;
     try { t = await readTab(name, fetchFn); } catch (e) { if (REQUIRED.includes(name)) throw e; skipped[name] = String(e && e.message || e); continue; }
     const why = headerProblem(name, t.cols);
