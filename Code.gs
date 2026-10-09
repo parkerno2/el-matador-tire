@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,25 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.28 · 9 Oct 2026
+ *   The Gameweek Show's writer in dry British commentary (Parker, 9 Oct 2026, on the earlier drafts: "trying too hard";
+ *   he wants "British dry humour", commentators who are "clever and stupid but witty" who "talk about the season, the
+ *   league, the players"; jokes about numbers "like league form" and "how much people lost by" are not funny; no
+ *   whispering; about half the old length).
+ *   1. The voice bible (EMT_SHOW_SYSTEM): the voice of a dry British commentator; understatement, deadpan, real football
+ *      references (managers, clubs, the pundits' cliches turned); the season's storylines and the league's own running
+ *      jokes from the Feed's NOTES and the data (a striker left on the bench while he makes team of the week, a team
+ *      named after a player its manager does not own, the investigation into the leaders, the brothers' derby); no
+ *      joke built on a score, a margin, a form run, the table maths or the model's percentages (a number may appear,
+ *      never as the punchline); each beat 6 to 18 words, a setup then the turn; the open and the close in the same
+ *      voice. The style examples are lines from Parker's approved GW6 script (show/gw6.json, 9 Oct). The five-beat
+ *      structure stays (the player maps beats to scenes). The punch-up's brief (EMT_PUNCH_SHOW_SYSTEM) follows.
+ *   2. EMT_SHOW_BEAT_WORDS is 6 to 18 (was 10 to 22) and EMT_SHOW_BEAT_HARD 5 to 24 (was 5 to 32): emtShowCheck
+ *      refuses a beat outside the hard limits and asks for 6 to 18.
+ *   3. Delivery tags: at most EMT_SHOW_TAGS_PER_SHOW (2) in a whole show, subtle ones only ([long pause], [sighs]);
+ *      emtShowTagProblems refuses more, and refuses a whispering, shouting, yelling or screaming tag (EMT_SHOW_TAG_BAN);
+ *      the v3.26 per-line rule stays.
+ *   Nothing else changes: the facts, the number guard, the chapter and star rules, the render, the cap and the credits.
  * v3.27 · 9 Oct 2026
  *   The Gameweek Show's voicing cap counts per script version (Parker, 9 Oct 2026: a hand-written show/gw<N>.json that
  *   replaces a script already voiced must be voiced before the deadline; the v3.25 cap counted the gameweek as a whole,
@@ -2123,6 +2142,8 @@ var EMT_SHOW_V4_STABILITY = 0;                           /* v3.26: v4 settings: 
 var EMT_SHOW_V4_SIMILARITY = 0.75;
 var EMT_SHOW_TAG_RE = /\[[^\[\]]*\]/g;                   /* v3.26: an audio tag, [laughing]: voiced, never captioned */
 var EMT_SHOW_TAGS_PER_LINE = 2;                          /* v3.26: emtShowCheck refuses more tags on one line */
+var EMT_SHOW_TAGS_PER_SHOW = 2;                          /* v3.28: and more than this in a whole show (Parker: one or two, subtle) */
+var EMT_SHOW_TAG_BAN = /whisper|shout|yell|scream/i;     /* v3.28: never a whispered or raised voice */
 var EMT_SHOW_CHUNK = 45000;            // characters per Data cell (cells cap at 50,000)
 var EMT_SHOW_BUDGET_MS = 270 * 1000;   // no new clip after 4.5 min; Apps Script stops every run at 6
 var EMT_SHOW_BUSY_MS = 390 * 1000;     // a render flag older than 6.5 min belongs to a run that is already dead
@@ -2767,8 +2788,8 @@ var EMT_SHOW_FRESH_MS = 6 * 3600e3;         // ... from facts received in the la
 var EMT_SHOW_LASTCALL_MS = 4 * 3600e3;      // or in the last 4 hours from any facts
 var EMT_SHOW_TRIES = 3;                     // attempts per gameweek (one attempt = one run, with its one retry)
 var EMT_SHOW_WRITE_LATE_MS = 150 * 1000;    // aiTick: no new write once the run is 2.5 minutes old (v3.13: nor a punch-up)
-var EMT_SHOW_BEAT_WORDS = [10, 22];         // v3.13: words per beat the prompts ask for (was 10 to 16) ...
-var EMT_SHOW_BEAT_HARD = [5, 32];           // ... and outside which emtShowCheck refuses a beat (was 5 to 26: the same slack)
+var EMT_SHOW_BEAT_WORDS = [6, 18];          // v3.28: words per beat the prompts ask for (v3.13: 10 to 22; v3.12: 10 to 16) ...
+var EMT_SHOW_BEAT_HARD = [5, 24];           // ... and outside which emtShowCheck refuses a beat (was 5 to 32)
 var EMT_SHOW_VOICE_LABEL = 'Malcolm Tyre — El Matador Booth';
 var EMT_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -2776,19 +2797,21 @@ var EMT_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 var EMT_SHOW_SYSTEM = [
   'You write the Gameweek Show for Matchweek, the app of El Matador Tire: a private FPL Draft (fantasy Premier League) league of eight friends. Every gameweek each club plays one head to head fixture (3 points a win, 1 a draw). The show is a spoken preview of about two minutes: a synthetic voice reads it while the screen shows each fixture.',
   '',
-  'THE VOICE. Malcolm Tyre, a fictional British broadcaster in "the booth": commentary-box calm, short plain sentences, British spelling, no exclamation marks. The comedy is a deadpan undercut after a real fact, usually in the last few words of a beat. Not every beat needs a joke, but the show should make the group chat laugh at least five times.',
+  'THE VOICE. Malcolm Tyre, a fictional British broadcaster in "the booth": dry British commentary. Commentary-box calm, short plain sentences, British spelling, no exclamation marks. Clever and a little stupid, but witty: understatement, deadpan, a pundit\'s cliche turned on its owner, real football references (managers, clubs, what the pundits say about them). Every beat is a setup, then the turn, in the last few words. Never try too hard: one turn a beat, no stacked gags, no explaining. Not every beat needs a joke, but the show should make the group chat laugh at least five times.',
+  '',
+  'WHAT IS FUNNY. The season\'s storylines and the league\'s own running jokes, taken from FACTS (the names, the elevens, the flags, the fixtures), QUOTES and NOTES: a striker left on the bench while he makes team of the week; a club named after a player its manager does not own; an investigation into the leaders; the brothers\' derby; a goalkeeper started away at the Emirates; what a club\'s name promises against what its eleven delivers; the pundits\' cliches (hedging, cowardice, the bus, the youth project) said about eight lads and their fantasy teams. Never build a joke on a score, a margin, a points total, a form run, the table maths or the model\'s percentages, and never on how much someone lost by: a number may appear in a beat as plain fact, never as the punchline.',
   '',
   'THE SHAPE. It must match what the screen shows.',
-  '- open: about 20 words. "Gameweek <n>." then one hook for the whole week, then "Here\'s how it lines up."',
+  '- open: 15 to 25 words. "Gameweek <n>." then one hook for the whole week, built on the storylines, not the numbers.',
   '- One chapter per fixture in FACTS, each exactly five beats, in this order:',
-  '  [0] the home club: name the club, then one storyline only (their form, a run, their place in the table, or a quote and the model\'s odds on it).',
+  '  [0] the home club: name the club, then one storyline only (a running joke, the name, a quote, a pundit\'s cliche turned; their place in the table said plainly if at all).',
   '  [1] the home eleven: talk about the star, by default the highest ep in that xi; mention the flags if there are any (status d is doubtful; i, s, u and n are out; news says why).',
   '  [2] the away club, as [0].',
   '  [3] the away eleven, as [1].',
-  '  [4] the faceoff: the series (rec) and/or the model\'s win chance (win) or the predicted score (H.proj to A.proj).',
-  '- close: "That\'s the gameweek." then the deadline and lineups, then a nudge to go on the record in the press room.',
-  '- 10 to 22 words per beat.',
-  '- AUDIO TAGS (the voice is ElevenLabs v4: a tag in square brackets just before the words it shapes directs the delivery, e.g. [laughing], [whispering], [sighs], [deadpan], [annoyed], [ecstatic], [long pause]). Use them sparingly: one, at most two, on a line, and only where a tag lands the joke (a sigh before the undercut, a whisper for the aside); most lines carry none and never put one on every line. A tag is never a word of the script: no number, no name, nothing the listener needs is inside it.',
+  '  [4] the faceoff: the derby or the first meeting, the series (rec) said plainly, who the model favours in words; never the percentages or the predicted score as the joke.',
+  '- close: a sign-off ("That\'s your lot." or "That\'s the gameweek."), the deadline day and lineups, then one last dry dig or a nudge to go on the record in the press room.',
+  '- ' + EMT_SHOW_BEAT_WORDS[0] + ' to ' + EMT_SHOW_BEAT_WORDS[1] + ' words per beat: a setup, then the turn.',
+  '- AUDIO TAGS (the voice is ElevenLabs v4: a tag in square brackets just before the words it shapes directs the delivery). Use at most one or two in the whole show, subtle ones only ([long pause] before the turn, [sighs]); never [whispering], [shouting] or any raised or lowered voice, and never one on every line: most lines carry none. A tag is never a word of the script: no number, no name, nothing the listener needs is inside it.',
   '- The app plays the chapters in its own order, so never say first, next, then, finally, later or last, and never refer to another chapter.',
   '- star.h is the code of the home player beat [1] is about and star.a the code of the away player beat [3] is about, copied from that fixture\'s H.xi and A.xi.',
   '',
@@ -2806,7 +2829,7 @@ var EMT_SHOW_SYSTEM = [
   '- Banter only about the league: picks, form, the table, quotes, and the running jokes in NOTES. THE READERS below sets what is funny and the hard limits.',
   '- Real footballers only as players in someone\'s team.',
   '',
-  'STYLE. No em dashes or en dashes, no emoji, no hashtags. Three beats as a style reference only (their facts are not this week\'s; never copy them): "Gibbs-White tops the eleven. Not a single flag among PJ\'s starters. Fully fit. Just shite.", "Palmer, Mainoo, Rice and Jacquet all carry knocks. Bad week to have named your club after one of them." and "Haaland goes to Anfield. Ethan\'s plan is Haaland. Ethan\'s backup plan is also Haaland."',
+  'STYLE. No em dashes or en dashes, no emoji, no hashtags. Lines from an approved show as a style reference only (their facts are not this week\'s; never copy them): "Kobbie Mainoo Fan. Top of the league, pending an independent commission.", "Named after Kobbie Mainoo, who plays for Parker. Nobody\'s had the heart to tell Baha.", "Not a flag among PJ\'s starters. Fully fit. Just shite.", "Team Jacob. Kostoulas has made team of the week twice. From the bench. Twice.", "Bruno Fernandes at home to Spurs. Arms already out.", "I Am a Baleba. There is no Baleba. There has never been a Baleba." and "Ethan, meanwhile, starts Leeds\' goalkeeper at the Emirates. Bold. Possibly a cry for help."',
   ''
 ].concat(EMT_TONE_LINES, [
   '',
@@ -3241,16 +3264,20 @@ function emtShowAllowed(text) {
 /* v3.26: the audio tags of a script: each [tag] is lowercase letters and spaces, at most EMT_SHOW_TAGS_PER_LINE on a
  * line, and fewer than half the lines carry one (sparse: only where they land the joke). The problems, as strings. */
 function emtShowTagProblems(texts) {
-  var P = [], tagged = 0, n = 0;
+  var P = [], tagged = 0, n = 0, total = 0;
   (texts || []).forEach(function (t) {
     if (typeof t !== 'string' || !t) return;
     n++;
     var tags = emtShowTags(t);
     if (!tags.length) return;
-    tagged++;
+    tagged++; total += tags.length;
     if (tags.length > EMT_SHOW_TAGS_PER_LINE) P.push('"' + emtShowCaption(t).slice(0, 60) + '": ' + tags.length + ' audio tags; at most ' + EMT_SHOW_TAGS_PER_LINE + ' a line.');
-    tags.forEach(function (g) { if (!/^\[[a-z][a-z ]{1,30}\]$/.test(g)) P.push('The audio tag ' + g + ' is not lowercase words in square brackets, like [laughing].'); });
+    tags.forEach(function (g) {
+      if (!/^\[[a-z][a-z ]{1,30}\]$/.test(g)) P.push('The audio tag ' + g + ' is not lowercase words in square brackets, like [sighs].');
+      else if (EMT_SHOW_TAG_BAN.test(g)) P.push('The audio tag ' + g + ' is a whispered or raised voice; the show never whispers or shouts (a subtle tag only: [long pause], [sighs]).');   /* v3.28 */
+    });
   });
+  if (total > EMT_SHOW_TAGS_PER_SHOW) P.push(total + ' audio tags in the show; at most ' + EMT_SHOW_TAGS_PER_SHOW + ' in a whole show, subtle ones only.');   /* v3.28 */
   if (n && tagged * 2 > n) P.push(tagged + ' of ' + n + ' lines carry an audio tag; tags go only where they land the joke, on fewer than half the lines.');
   return P;
 }
@@ -3522,7 +3549,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.27';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.28';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -5132,7 +5159,7 @@ var EMT_PUNCH_ART_SYSTEM = [
   ''
 ].concat(EMT_TONE_LINES).join('\n');
 var EMT_PUNCH_SHOW_SYSTEM = [
-  'You are the punch-up writer for the Gameweek Show, read aloud by Malcolm Tyre, a fictional British broadcaster with commentary-box calm. You get a finished, fact-checked script as JSON. Make it funnier for the readers below and change nothing else. An audio tag in square brackets ([sighs], [laughing], [deadpan], [whispering]) directs the voice, never the reader: keep, move or drop the ones there, add one only where it lands the joke, at most two on a line and on fewer than half the lines. Keep every fact, number (as digits), name, team name, player code, chapter, beat count and the JSON shape exactly; never add a number, a fact, a claim or a quote. Each beat stays 10 to 22 words. Never say first, next, then, finally, later or last. No em dashes or en dashes, no emoji, no hashtags, no exclamation marks. REPLY with the whole JSON object only, no prose, no code fence.',
+  'You are the punch-up writer for the Gameweek Show, read aloud by Malcolm Tyre, a fictional British broadcaster: dry British commentary, understatement and deadpan, a setup then the turn. You get a finished, fact-checked script as JSON. Make it funnier for the readers below in that voice and change nothing else: no joke built on a score, a margin, a form run, the table maths or a percentage (a number may stay as plain fact, never as the punchline), nothing that tries too hard. An audio tag in square brackets ([long pause], [sighs]) directs the voice, never the reader: keep, move or drop the ones there, add one only where it lands the turn, at most two in the whole show and never a whispering or shouting tag. Keep every fact, number (as digits), name, team name, player code, chapter, beat count and the JSON shape exactly; never add a number, a fact, a claim or a quote. Each beat stays ' + EMT_SHOW_BEAT_WORDS[0] + ' to ' + EMT_SHOW_BEAT_WORDS[1] + ' words. Never say first, next, then, finally, later or last. No em dashes or en dashes, no emoji, no hashtags, no exclamation marks. REPLY with the whole JSON object only, no prose, no code fence.',
   ''
 ].concat(EMT_TONE_LINES).join('\n');
 

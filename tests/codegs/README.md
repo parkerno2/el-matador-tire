@@ -3,6 +3,7 @@
 Plain Node, no dependencies. Each file mocks the Apps Script services it needs (SpreadsheetApp, PropertiesService, UrlFetchApp, LockService, CacheService, Utilities) and loads `../../Code.gs` in a vm.
 
 ```bash
+node tests/codegs/v328.js   # the Gameweek Show in dry British commentary: the voice bible and the punch-up brief, 6 to 18 words a beat, at most two subtle tags a show, the approved GW6 script passes (v3.28)
 node tests/codegs/v327.js   # the voicing cap per script version: a hand-written rewrite gets its own allowance, at most 3 versions a gameweek, the balance read and the hold unchanged (v3.27)
 node tests/codegs/v326.js   # the Gameweek Show on ElevenLabs v4 Turbo: the model and its two settings, audio tags voiced but never captioned, the fallback once with a stable hash (v3.26)
 node tests/codegs/v325.js   # the ElevenLabs credit guard: the balance read before a render, the count fallback, the gameweek cap, the hold after a refusal, health, ai.last (v3.25)

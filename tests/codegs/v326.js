@@ -145,11 +145,12 @@ c = ctx.emtShowCheck(reply(okBeats.map(b => '[sighs] ' + b.replace(/\[[^\]]*\] /
 check('K3 tags on more than half the lines is refused', c.problems.some(p => /6 of 7 lines carry an audio tag/.test(p)), c.problems.join(' | '));
 c = ctx.emtShowCheck(reply(['[Sighs 2] Cold Palmers. Fifth, on 9 points, and the model gives them a fair chance.'].concat(okBeats.slice(1))), facts, allowed, 'end_turn');
 check('K4 a tag that is not lowercase words is refused, and a number inside it is not a fact', c.problems.some(p => /\[Sighs 2\] is not lowercase words/.test(p)) && !c.problems.some(p => /The number 2/.test(p)), c.problems.join(' | '));
-c = ctx.emtShowCheck(reply(['[sighs] Cold Palmers lose again badly.'].concat(okBeats.slice(1))), facts, allowed, 'end_turn');
-check('K5 a tag is not a word: five words plus a tag is five words (the floor), so it passes; four would not', c.problems.length === 0 && ctx.emtShowCheck(reply(['[sighs] Cold Palmers lose again.'].concat(okBeats.slice(1))), facts, allowed, 'end_turn').problems.some(p => /4 words/.test(p)), c.problems.join(' | '));
+const plain = okBeats.slice(1).map(b => b.replace(/\[[^\]]*\] /g, ''));   /* v3.28: at most two tags in a whole show, so the rest of the lines carry none here */
+c = ctx.emtShowCheck(reply(['[sighs] Cold Palmers lose again badly.'].concat(plain)), facts, allowed, 'end_turn');
+check('K5 a tag is not a word: five words plus a tag is five words (the floor), so it passes; four would not', c.problems.length === 0 && ctx.emtShowCheck(reply(['[sighs] Cold Palmers lose again.'].concat(plain)), facts, allowed, 'end_turn').problems.some(p => /4 words/.test(p)), c.problems.join(' | '));
 const same = ctx.emtShowPunchSame(c.script, JSON.parse(JSON.stringify(c.script)));
 check('K6 the punch-up may add a tag without changing the word count', same.length === 0 && (() => { const b = JSON.parse(JSON.stringify(c.script)); b.chapters[0].beats[4] = '[laughing] ' + b.chapters[0].beats[4]; return ctx.emtShowPunchSame(c.script, b).length === 0; })());
-check('K7 the prompts tell the writers about the tags: sparse, where they land the joke', /AUDIO TAGS/.test(ctx.EMT_SHOW_SYSTEM) && /at most two, on a line/.test(ctx.EMT_SHOW_SYSTEM) && /never put one on every line/.test(ctx.EMT_SHOW_SYSTEM) && /audio tag in square brackets/.test(ctx.EMT_PUNCH_SHOW_SYSTEM) && /at most two on a line/.test(ctx.EMT_PUNCH_SHOW_SYSTEM));
+check('K7 the prompts tell the writers about the tags: sparse, where they land the joke (v3.28: one or two in a whole show)', /AUDIO TAGS/.test(ctx.EMT_SHOW_SYSTEM) && /at most one or two in the whole show/.test(ctx.EMT_SHOW_SYSTEM) && /never one on every line/.test(ctx.EMT_SHOW_SYSTEM) && /audio tag in square brackets/.test(ctx.EMT_PUNCH_SHOW_SYSTEM) && /at most two in the whole show/.test(ctx.EMT_PUNCH_SHOW_SYSTEM));
 check('K8 a written script stores the default model as its label', ctx.emtShowSpoken(6, c.script, '2026-10-09T00:00:00Z', []).model === V4);
 
 T.done();

@@ -43,3 +43,14 @@ Rude without a twist is a miss. Swearing is seasoning, never the joke. The jokes
 2. Haiku rewrites only the jokes, using the tone block. It keeps every fact, number, name, fixture, star code and the structure exactly as they are.
 3. The full validator runs again on the punched-up version.
 4. If it fails, keep Sonnet's draft and log it.
+
+## The Gameweek Show (Parker, 9 Oct 2026)
+Parker on the 8 Oct drafts: "trying too hard". What he wants: "British dry humour", commentators who are "clever and stupid but witty", who "talk about the season, the league, the players". "Jokes about numbers like league form" and "how much people lost by" are not funny. No whispering. About half the old length. His approved GW6 script (`show/gw6.json`, 9 Oct) is the reference; its lines are the style examples in the writer's prompt (Code.gs v3.28, `EMT_SHOW_SYSTEM` and `EMT_PUNCH_SHOW_SYSTEM`).
+
+The rules the writer and the punch-up follow:
+- The voice: a dry British commentator. Understatement, deadpan, a pundit's cliche turned on its owner, real football references (managers, clubs, what the pundits say). "Named after Kobbie Mainoo, who plays for Parker. Nobody's had the heart to tell Baha." "Five at the back and one up front. Somewhere, Tony Pulis is welling up."
+- The material: the season's storylines and the league's own running jokes, from the Feed's notes and the data. The bench blunders (Kostoulas in team of the week twice, from the bench, twice), a team named after a player nobody in the club owns (there is no Baleba), the Baha investigation (top of the league, pending an independent commission), the brothers' Nolan derby, a goalkeeper started at the Emirates.
+- Numbers are facts, never jokes: nothing built on a score, a margin, a form run, the table maths or the model's percentages; a number may appear in a beat as plain fact, never as the punchline. "Leads the Nolan derby four to three" is a fact in a line about brothers; "lost by twenty-six, which is a lot" is the dead kind.
+- Delivery tags: at most one or two subtle ones in a whole show (a pause before the turn, a sigh), never whispering or shouting. The check refuses more and refuses a whispered or raised voice.
+- Length: each beat 6 to 18 words, a setup then the turn (the check refuses under 5 or over 24). The open 15 to 25 words, the close a sign-off, the deadline and one last dry dig. About half the 8 Oct length: GW6 is 1,818 characters in 22 lines.
+- The structure stays: open, one chapter of exactly five beats per fixture (the player maps the beats to its scenes), close.

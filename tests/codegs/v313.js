@@ -770,13 +770,13 @@ const before = (x, a, b) => x.indexOf(a) > -1 && x.indexOf(b) > -1 && x.indexOf(
 check('T2 where it goes: after the rules in the AI writer; after STYLE and before REPLY in the show and article writers; after the brief in both punch-ups', ctx.EMT_AI_SYSTEM.endsWith(TONE) && before(ctx.EMT_AI_SYSTEM, '9. Rumours come from', TONE) &&
   before(ctx.EMT_SHOW_SYSTEM, 'STYLE.', TONE) && before(ctx.EMT_SHOW_SYSTEM, TONE, 'REPLY with JSON only') && before(ctx.EMT_ART_SYSTEM, 'STYLE.', TONE) && before(ctx.EMT_ART_SYSTEM, TONE, 'REPLY with one JSON object only') &&
   ctx.EMT_PUNCH_ART_SYSTEM.endsWith(TONE) && ctx.EMT_PUNCH_SHOW_SYSTEM.endsWith(TONE) && ctx.EMT_PUNCH_ART_SYSTEM.startsWith('You are the punch-up writer for Matchweek, the app of El Matador Tire') &&
-  ctx.EMT_PUNCH_ART_SYSTEM.includes('Keep each field within about 15 percent of its length.') && ctx.EMT_PUNCH_SHOW_SYSTEM.startsWith('You are the punch-up writer for the Gameweek Show') && ctx.EMT_PUNCH_SHOW_SYSTEM.includes('Each beat stays 10 to 22 words.'));
-check('T3 the new lines: the three personas, rule 3, the booth voice, 10 to 22 words, three style beats (the old one gone), the article voice and banter', ctx.EMT_AI_SYSTEM.includes('His comedy is world-exclusive gravity for trivial fantasy news, told in insider jargon.') &&
+  ctx.EMT_PUNCH_ART_SYSTEM.includes('Keep each field within about 15 percent of its length.') && ctx.EMT_PUNCH_SHOW_SYSTEM.startsWith('You are the punch-up writer for the Gameweek Show') && ctx.EMT_PUNCH_SHOW_SYSTEM.includes('Each beat stays 6 to 18 words.'));
+check('T3 the new lines: the three personas, rule 3, the booth voice, 6 to 18 words (v3.28), the style beats from the approved show (the old ones gone), the article voice and banter', ctx.EMT_AI_SYSTEM.includes('His comedy is world-exclusive gravity for trivial fantasy news, told in insider jargon.') &&
   ctx.EMT_AI_SYSTEM.includes('The meltdown: furious, theatrical, calls for sackings, keeps receipts. The comedy is an overreaction to one real, specific decision.') && ctx.EMT_AI_SYSTEM.includes('"thumb": {"t1": big caps line, max 18 characters, "t2": second caps line, max 22, "lo": caps strap, max 22}') &&
   ctx.EMT_AI_SYSTEM.includes('Commentary-box calm with a knife in it: grave delivery and a deadpan undercut at the end.') && ctx.EMT_AI_SYSTEM.includes('3. Banter is about this fantasy league only: picks, benchings, results, quotes, form, the table. THE READERS below sets what is funny and the hard limits.') &&
-  ctx.EMT_SHOW_SYSTEM.includes('the show should make the group chat laugh at least five times.') && ctx.EMT_SHOW_SYSTEM.includes('\n- 10 to 22 words per beat.\n') && !ctx.EMT_SHOW_SYSTEM.includes('10 to 16') &&
-  ctx.EMT_SHOW_SYSTEM.includes('"Gibbs-White tops the eleven. Not a single flag among PJ\'s starters. Fully fit. Just shite."') && ctx.EMT_SHOW_SYSTEM.includes('"Palmer, Mainoo, Rice and Jacquet all carry knocks. Bad week to have named your club after one of them."') &&
-  ctx.EMT_SHOW_SYSTEM.includes('"Haaland goes to Anfield. Ethan\'s plan is Haaland. Ethan\'s backup plan is also Haaland."') && !ctx.EMT_SHOW_SYSTEM.includes('The model says 9%') &&
+  ctx.EMT_SHOW_SYSTEM.includes('the show should make the group chat laugh at least five times.') && ctx.EMT_SHOW_SYSTEM.includes('\n- 6 to 18 words per beat: a setup, then the turn.\n') && !ctx.EMT_SHOW_SYSTEM.includes('10 to 16') && !ctx.EMT_SHOW_SYSTEM.includes('10 to 22') &&
+  ctx.EMT_SHOW_SYSTEM.includes("Kobbie Mainoo Fan. Top of the league, pending an independent commission.") && ctx.EMT_SHOW_SYSTEM.includes("Not a flag among PJ\'s starters. Fully fit. Just shite.") && !ctx.EMT_SHOW_SYSTEM.includes('Gibbs-White tops the eleven') &&
+  ctx.EMT_SHOW_SYSTEM.includes("Team Jacob. Kostoulas has made team of the week twice. From the bench. Twice.") && !ctx.EMT_SHOW_SYSTEM.includes('The model says 9%') &&
   ctx.EMT_SHOW_SYSTEM.includes('- Banter only about the league: picks, form, the table, quotes, and the running jokes in NOTES. THE READERS below sets what is funny and the hard limits.') &&
   ctx.EMT_ART_SYSTEM.includes('THE VOICE. An objective third-person narrator who reports straight and is funny on top') && ctx.EMT_ART_SYSTEM.includes('Every matchup gets at least one real joke, built the way THE READERS describes.') &&
   !/minimal and dry/.test(ctx.EMT_ART_SYSTEM) && ctx.EMT_ART_SYSTEM.includes('THE READERS below sets what is funny and the hard limits. Quote a manager only word for word'));
@@ -786,8 +786,8 @@ const SHOW0 = () => ({ open: 'Gameweek 6. Two derbies and plenty of flags. Here\
 const sAllowed = ctx.emtShowPrompt(6, PREV, Date.now() + 20 * H).allowed;
 const beatN = n => Array.from({ length: n }, (_, i) => (i % 2 ? 'the' : 'eleven')).join(' ') + '.';
 const scN = n => { const s = SHOW0(); s.chapters[0].beats[1] = beatN(n); return ctx.emtShowCheck(JSON.stringify(s), PREV, sAllowed, 'end_turn').problems; };
-check('T4 emtShowCheck follows the new beat length: 22 and 32 words pass (the old slack of 10), 33 and 4 do not, and it says 10 to 22', scN(22).length === 0 && scN(32).length === 0 && scN(33).some(p => /33 words; keep every beat to 10 to 22\./.test(p)) &&
-  scN(4).some(p => /4 words/.test(p)) && /keep every beat to 10 to 22 words/.test(ctx.emtShowCheck('{"open":"Gamew', PREV, sAllowed, 'max_tokens').problems[0]), scN(33).join(' | '));
+check('T4 emtShowCheck follows the beat length (v3.28: 6 to 18, hard 5 to 24): 18 and 24 words pass, 25 and 4 do not, and it says 6 to 18', scN(18).length === 0 && scN(24).length === 0 && scN(25).some(p => /25 words; keep every beat to 6 to 18\./.test(p)) &&
+  scN(4).some(p => /4 words/.test(p)) && /keep every beat to 6 to 18 words/.test(ctx.emtShowCheck('{"open":"Gamew', PREV, sAllowed, 'max_tokens').problems[0]), scN(25).join(' | '));
 
 // P · articles: the punch phase
 let pS;
@@ -915,9 +915,9 @@ const swNum = SHOW0(); swNum.chapters[1].beats[1] = 'The eleven is settled, with
 showReset(); MSG = [{ text: JSON.stringify(sw0) }, { text: JSON.stringify(swNum) }]; reset(); sw = ctx.showWriterTick(Date.now());
 check('S2 show: a punch-up with an invented number (' + SINV + ') fails emtShowCheck -> the checked script stands', sw.written && showRows()[0][2] === 'claude-sonnet-5-5' && sw.punch.used === false &&
   logs.some(l => new RegExp('Punch-up not used: the check found 1 problem: The number ' + SINV + ' ').test(l)) && !JSON.stringify(stored17()).includes('fear the weekend'));
-const swLong = SHOW0(); swLong.chapters[2].beats[0] = beatN(26);
+const swLong = SHOW0(); swLong.chapters[2].beats[0] = beatN(21);
 showReset(); MSG = [{ text: JSON.stringify(sw0) }, { text: JSON.stringify(swLong) }]; reset(); sw = ctx.showWriterTick(Date.now());
-check('S2 show: a punch-up that grows a beat past 22 words (26: the check alone would let it through) -> refused', sw.written && showRows()[0][2] === 'claude-sonnet-5-5' && /, beat 0: 26 words; 22 at most; the checked script stands/.test(logs.join('\n')));
+check('S2 show: a punch-up that grows a beat past 18 words (21: the check alone would let it through) -> refused', sw.written && showRows()[0][2] === 'claude-sonnet-5-5' && /, beat 0: 21 words; 18 at most; the checked script stands/.test(logs.join('\n')));
 const realNow = Date.now;
 showReset(); MSG = [{ text: JSON.stringify(sw0), after: () => { Date.now = () => realNow() + 160e3; } }]; reset();
 try { sw = ctx.showWriterTick(realNow()); } finally { Date.now = realNow; }
