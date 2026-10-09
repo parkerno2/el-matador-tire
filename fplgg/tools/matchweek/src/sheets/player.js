@@ -2,7 +2,7 @@
    Hero = the locked Plate card under a spotlight; then Overview / Matches / Ratings. */
 import * as UI from '../ui.js';
 import * as K from './kit.js';
-import { DEMO } from '../data/tabs.js';   /* the demo league (9 Oct 2026): no EA ratings, the rating from the FPL projection */
+import { DEMO, HOUSE } from '../data/tabs.js';   /* house ratings (ROADMAP C3, 9 Oct 2026): the demo and any league on them show no EA figure */
 
 const esc = UI.esc;
 
@@ -284,6 +284,14 @@ function tierText(t, p) {
     default: return 'Silver tier: rated under 78 on current form.';
   }
 }
+/* the house rating in words (the engine's houseRank): his place among his position by projected points */
+function houseWhy(p) {
+  const h = typeof houseRank === 'function' ? houseRank(p) : null;
+  if (!h || !(h.proj > 0)) return ' Matchweek rates him from his projected points; with none projected he sits at the floor of 62.';
+  const pos = (K.POSPL[p.Pos] || 'players').toLowerCase();
+  return ' Matchweek rates him from his projected points: ' + K.ord(h.rank) + ' of the ' + pos + ' in the Premier League, against a pool of ' + h.pool
+    + (h.rank > h.pool ? ', so past the pool.' : '.');
+}
 function ratingsPanel(x) {
   const { p } = x, fc = (D.fc27 || {})[x.code], gk = p.Pos === 'GKP';
   const labs = gk ? ['DIV', 'HAN', 'KIC', 'REF', 'SPD', 'POS'] : ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'];
@@ -291,11 +299,11 @@ function ratingsPanel(x) {
   const keys = ['pac', 'sho', 'pas', 'dri', 'def', 'phy'];
   const o = dynOvr(p), base = ovrOf(p), fd = formDelta(p);
   const why = 'The card shows <b>' + o + '</b>: his base rating of ' + base + (fd ? (fd > 0 ? ', plus ' : ', minus ') + Math.abs(fd) + ' for recent form' : ', with no change for form') + '.'
-    + (DEMO ? ' In the demo league the base rating comes from his projected points.' : fc && fc.ovr ? ' FC 27 rates him ' + Math.round(fc.ovr) + ' overall.' : '');
-  const has = !DEMO && fc && keys.some(k => fc[k]);
+    + (HOUSE || !(fc && fc.ovr) ? houseWhy(p) : ' FC 27 rates him ' + Math.round(fc.ovr) + ' overall.');
+  const has = !HOUSE && fc && keys.some(k => fc[k]);
   const grid = has ? '<div class="ps-at">' + keys.map((k, i) => { const v = Math.round(fc[k] || 0);
     return '<div class="at" title="' + full[i] + '"><span>' + labs[i] + '</span><b class="n" style="color:' + RCOL(v) + '">' + v + '</b><i><u style="width:' + Math.min(99, v) + '%;background:' + RCOL(v) + '"></u></i></div>'; }).join('') + '</div>'
-    : DEMO ? '<div class="ps-none">The demo league shows no attribute ratings: every player is rated from his projected points.</div>'
+    : HOUSE ? '<div class="ps-none">' + (DEMO ? 'The demo league' : 'This league') + ' shows no attribute ratings: every player is rated from his projected points, position by position.</div>'
     : '<div class="ps-none">FC 27 has no attribute ratings for him yet.</div>';
   let league = '';
   if (x.own) {
@@ -305,7 +313,7 @@ function ratingsPanel(x) {
       + bar('Points', s.pts, s.pc.pts) + bar('Per game', avg.toFixed(1), apc) + bar('Team of the Week', s.totw, s.pc.totw) + bar('Impact', s.imp, s.imp)
       + '<div class="sub ps-lpn">Against the league’s ' + s.n + ' rostered ' + (K.POSPL[p.Pos] || 'players').toLowerCase() + '. Impact blends points, per game, last three, TOTW picks and points above the best free agent.</div></div>';
   }
-  return UI.sh('Ratings', { aside: DEMO ? 'Demo league' : 'FC 27' }) + '<div class="card pad ps-rt">' + grid
+  return UI.sh('Ratings', { aside: HOUSE ? (DEMO ? 'Demo league' : 'Matchweek') : 'FC 27' }) + '<div class="card pad ps-rt">' + grid
     + '<div class="ps-why">' + why + ' Form counts his last four finished games and moves the card between −3 and +5.</div>'
     + '<div class="ps-why">' + tierText(tierOf(p), p) + '</div></div>' + league;
 }

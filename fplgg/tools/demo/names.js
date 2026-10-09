@@ -179,7 +179,7 @@ function anonymiseLeague(cfg, m) {
     const sorted = p.slice().sort();
     seeded[sorted.join('|')] = sorted[0] === p[0] ? v : [v[1], v[0], v[2]];
   });
-  return Object.assign({}, cfg, { name: 'Demo league', teams, aliases: {}, derbies, seeded });
+  return Object.assign({}, cfg, { name: 'Demo league', ratings: 'house', teams, aliases: {}, derbies, seeded });   /* house ratings: no EA figure in the demo (ROADMAP C3) */
 }
 
 module.exports = { FICTIONAL, PLAYER_TABS, TEXT_COLS, mapping, nameRegex, replaceNames, anonymiseTab, anonymiseTabs, anonymiseLeague, substituteCode, leaks, playerFirstNames, slug, words };

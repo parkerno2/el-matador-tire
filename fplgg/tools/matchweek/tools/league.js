@@ -6,7 +6,9 @@
 
    league.json: { name, teams: { <team>: { mgr, first, ini, short, col, xi, lo, hi } }, aliases: { <old name>: <team> },
      derbies: { "<ini>|<ini>": name }, seeded: { "<ini>|<ini>": [w1, w2, d] } (the pair sorted, w1 for the first of the
-     two), periods: [[name, fromGw, toGw]...] (Manager of the Month), pot: { buyin, first, second, third, half, motm } } */
+     two), periods: [[name, fromGw, toGw]...] (Manager of the Month), pot: { buyin, first, second, third, half, motm },
+     ratings: "ea" | "house" (ROADMAP C3: "house" rates every player from the FPL projection and reads no EA tab; "ea", the
+     default when missing, keeps the FC27 overall where there is one) } */
 'use strict';
 const fs = require('fs'), path = require('path');
 const FILE = path.join(__dirname, '..', 'league.json');
@@ -63,6 +65,7 @@ function problems(cfg) {
     });
     if (per.every(p => Array.isArray(p) && isInt(p[2])) && next - 1 !== 38) out.push('periods: must end at GW38, not GW' + (next - 1));
   }
+  if (cfg.ratings != null && !['ea', 'house'].includes(cfg.ratings)) out.push('ratings: "ea" (the FC27 overall where there is one) or "house" (Matchweek\'s own, from the FPL projection)');
   const pot = isObj(cfg.pot) ? cfg.pot : null;
   if (!pot) out.push('pot: an object');
   else {

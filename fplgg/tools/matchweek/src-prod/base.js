@@ -275,9 +275,33 @@ function teamXPBlend(team){return effXiOf(team,true).reduce((s,p)=>s+xpBlendOf(p
 function teamEP(team,epMap){return xiOf(team).reduce((s,p)=>{const e=epMap[String(p.Code)];return s+(e||0)},0)}
 
 /* ================= cards ================= */
+/* house rating (ROADMAP C3, 9 Oct 2026): Matchweek's own rating from FPL's season projection, position by position, so
+   anything strangers see needs no FC27 figure. The pool at a position is one club XI's worth across the 20 clubs in a
+   4-4-2 (HOUSE_POOL), ranked by projected points (the Players tab, D.plr; ties share a rank): the best projected is 94,
+   the top tenth 85 and over (elite), the top half 78 and over (gold), the last of the pool 65, anyone past it 62
+   (HOUSE_CURVE, straight lines between the anchors). LEAGUE.ratings 'house' makes it the rating everywhere (the demo);
+   'ea', the default, keeps the FC27 overall where there is one and rates the rest this way. */
+const HOUSE=(LEAGUE.ratings||'ea')==='house';
+const HOUSE_POOL={GKP:20,DEF:80,MID:80,FWD:40};
+const HOUSE_CURVE=[[0,94],[0.1,85],[0.5,78],[1,65],[1.125,62]];
+let HOUSE_RANKS=null,HOUSE_SRC=null;
+function houseRank(p){ // {rank,pool,proj,known}: the player's place among his position by projected points, rank 1 the best; known is false before the Players tab is loaded
+  const proj=num(p['Proj pts']!==undefined?p['Proj pts']:p.Proj),pool=HOUSE_POOL[p.Pos]||80,plr=D.plr||[];
+  if(HOUSE_SRC!==plr){HOUSE_RANKS={};plr.forEach(q=>{(HOUSE_RANKS[q.Pos]=HOUSE_RANKS[q.Pos]||[]).push(num(q.Proj))});Object.keys(HOUSE_RANKS).forEach(k=>HOUSE_RANKS[k].sort((a,b)=>b-a));HOUSE_SRC=plr}
+  const arr=HOUSE_RANKS[p.Pos]||[];let rank=1;for(let i=0;i<arr.length&&arr[i]>proj;i++)rank++;
+  return{rank,pool,proj,known:arr.length>0};
+}
+function houseOvr(p){
+  const h=houseRank(p);
+  if(!(h.proj>0))return 62;
+  if(!h.known)return Math.max(62,Math.min(96,Math.round(62+22*h.proj/170))); // no Players pool yet: the projection on a straight line
+  const r=(h.rank-1)/h.pool,C=HOUSE_CURVE;
+  for(let i=1;i<C.length;i++)if(r<=C[i][0]){const x0=C[i-1][0],y0=C[i-1][1],x1=C[i][0],y1=C[i][1];return Math.round(y0+(y1-y0)*(r-x0)/(x1-x0))}
+  return 62;
+}
 function ovrOf(p){
-  if(p.OVR!==''&&p.OVR!==undefined&&p.OVR!==null&&p.OVR!=0)return Math.round(num(p.OVR));
-  return Math.max(62,Math.min(96,Math.round(62+22*num(p['Proj pts'])/170)));
+  if(!HOUSE&&p.OVR!==''&&p.OVR!==undefined&&p.OVR!==null&&p.OVR!=0)return Math.round(num(p.OVR));
+  return houseOvr(p);
 }
 function tierOf(p){
   if(D.potm&&normN(p.Player)===D.potm)return'potm';

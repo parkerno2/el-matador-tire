@@ -107,8 +107,10 @@ export const DEMO = typeof __MW_DEMO__ !== 'undefined' && !!__MW_DEMO__;
 export const DEMO_DATA = 'data/';
 /* the file a tab is read from in the demo (fplgg/tools/demo/names.js writes the same name) */
 export const demoFile = name => DEMO_DATA + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.json';
-/* the EA tabs are not part of the demo (Parker, 9 Oct 2026: no EA assets on matchweek.gg): answered empty without a request */
+/* the EA tabs are not part of the demo (Parker, 9 Oct 2026: no EA assets on matchweek.gg): answered empty without a request;
+   a league on house ratings (league.json "ratings": "house", ROADMAP C3) leaves them out the same way from any source */
 export const DEMO_EMPTY = ['EA Map', 'FC27'];
+export const HOUSE = typeof LEAGUE !== 'undefined' && !!LEAGUE && LEAGUE.ratings === 'house';
 const demoEmpty = name => ({ cols: (TABS[name] || []).map(c => c.split('|')[0]), rows: [] });
 /* a tab from the demo's data folder: { cols, rows } as written, the GW Stats trim applied; no file is an empty tab */
 export function readDemo(name) {
@@ -184,6 +186,7 @@ function fromSheet(name, why, say) {
 /* { cols, rows } from the source this phone uses */
 function readFrom(name) {
   if (dataSource() === 'demo') return readDemo(name);
+  if (HOUSE && DEMO_EMPTY.includes(name)) { REPORT[name] = 'left out (house ratings), empty'; return Promise.resolve(demoEmpty(name)); }
   if (dataSource() !== 'supabase') return fromSheet(name, '');
   if (SHEET_ONLY.includes(name)) return fromSheet(name, 'the web app writes it');
   return Promise.resolve().then(() => readSupabase(name)).then(r => { if (!r) return fromSheet(name, 'not on Supabase', true); REPORT[name] = 'supabase'; return r; }, e => fromSheet(name, String(e && e.message || e).slice(0, 80), true));

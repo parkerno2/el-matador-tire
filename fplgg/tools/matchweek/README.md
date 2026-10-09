@@ -22,7 +22,7 @@ This folder is the source of truth. Edit it here; never edit the six root files 
 | Path | What it is |
 |---|---|
 | `src/` | The UI as ES modules, bundled into `app.js`. `src/css/*.css` become `app.css` |
-| `league.json` | The league's config (ROADMAP C1): teams (manager, first name, initials, short name, colour, projection prior), aliases (a former team name), derbies, seeded series, Manager of the Month periods, the pot. `tools/league.js` checks it and writes the `const LEAGUE={...}` header |
+| `league.json` | The league's config (ROADMAP C1): teams (manager, first name, initials, short name, colour, projection prior), aliases (a former team name), derbies, seeded series, Manager of the Month periods, the pot, and `ratings` (`ea`: the FC27 overall where there is one; `house`: Matchweek's own from the FPL projection, no EA tab read, ROADMAP C3). `tools/league.js` checks it and writes the `const LEAGUE={...}` header |
 | `core.gen.js` | Becomes `core.js` with the LEAGUE header in front; the engine builds TEAMS, TEAM_ALIAS, MATCH, SEED, FIRST, SHORTOF and PERIODS from `LEAGUE` and refuses to load without it |
 | `index.template.html`, `sw.template.js`, `manifest.template.webmanifest` | Become `index.html`, `sw.js`, `manifest.webmanifest`; `__BUILD__` is replaced by the build stamp |
 | `package.json`, `package-lock.json` | Pin esbuild 0.28.2 for the build |
