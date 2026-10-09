@@ -41,8 +41,9 @@ export function normals(seed) {
   };
 }
 
-export const PAY = { first: 600, second: 180, third: 60, half: 90, motm: 30, buyin: 150 };
-export const POT = PAY.buyin * 8;
+/* the pot from the league's config (league.json, ROADMAP C1): the engine's LEAGUE global carries it */
+export const PAY = Object.assign({ first: 0, second: 0, third: 0, half: 0, motm: 0, buyin: 0 }, (typeof LEAGUE !== 'undefined' && LEAGUE.pot) || {});
+export const POT = PAY.buyin * Object.keys(TEAMS).length;
 export const FINAL = PAY.first + PAY.second + PAY.third;
 export const ord = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
 export const money = v => '$' + Math.round(v).toLocaleString('en-US');

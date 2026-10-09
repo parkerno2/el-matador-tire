@@ -28,10 +28,11 @@ const words = s => String(s || '').trim().split(/\s+/).filter(Boolean);
      sur: { real surname: fictional }, ini: { real initials: fictional }, short: { real short name: fictional short },
      shorts: { real team: { from, to } }, order: [real team names, sorted] }.
    Initials are the manager's first letters (the engine's TEAMS[team].ini), passed in when known (core.js carries them),
-   otherwise the first letters of the two names. Short names are the engine's SHORTOF table (the one word a team goes by
-   on a tight line: "Palmers 4 · Devils 0"), passed in when known. More than eight teams: the ninth onward gets
+   otherwise the first letters of the two names. Short names are the one word a team goes by on a tight line (league.json
+   short: "Palmers 4 · Devils 0"), passed in when known; aliases (old name to current) map an old name to the same
+   fictional team. More than eight teams: the ninth onward gets
    "Team <n>" and a numbered manager, so a bigger league still comes out fictional. */
-function mapping(rows, inis, shorts) {
+function mapping(rows, inis, shorts, aliases) {
   const list = (rows || []).map(r => Array.isArray(r) ? { team: r[0], mgr: r[1] } : { team: r.Team, mgr: r.Manager })
     .filter(r => r.team && String(r.team).trim()).map(r => ({ team: String(r.team).trim(), mgr: String(r.mgr || '').trim() }));
   const seen = new Set(); const uniq = list.filter(r => !seen.has(r.team) && seen.add(r.team));
@@ -51,6 +52,10 @@ function mapping(rows, inis, shorts) {
     const ri = (inis && inis[r.team]) || (rw.length > 1 ? rw[0][0] + rw[rw.length - 1][0] : rw.length ? rw[0].slice(0, 2).toUpperCase() : '');
     if (ri) m.ini[ri] = f.ini;
   });
+  /* a team's former name (league.json aliases, old name to current: FPL allows mid-season renames) maps to the same
+     fictional team, so the history rows that still carry it (GW Log, GW Stats) come out fictional and the leak check
+     knows it (BUGS.md #33, 9 Oct 2026) */
+  Object.keys(aliases || {}).forEach(old => { const cur = String(aliases[old] || '').trim(); if (m.teams[cur] && !(old in m.teams)) m.teams[old] = m.teams[cur]; });
   return m;
 }
 
@@ -149,4 +154,32 @@ function playerFirstNames(players) {
   return out;
 }
 
-module.exports = { FICTIONAL, PLAYER_TABS, TEXT_COLS, mapping, nameRegex, replaceNames, anonymiseTab, anonymiseTabs, substituteCode, leaks, playerFirstNames, slug, words };
+/* the league's config (league.json) anonymised for the demo's LEAGUE header (ROADMAP C1): team names, managers, first
+   names, initials and short names become the fictional ones; the derby and seeded-series keys follow the initials (a
+   seeded pair is re-sorted and its two win counts swapped when the new order flips); a derby name's real names are
+   replaced as whole words; the aliases are dropped (the demo's rows are mapped to the current fictional name already);
+   the colours, the projection priors, the periods and the pot stay. */
+function anonymiseLeague(cfg, m) {
+  const ini = k => (m.ini && m.ini[k]) || k;
+  const teams = {};
+  Object.keys(cfg.teams || {}).forEach(t => {
+    const x = cfg.teams[t], f = m.teams[t] || t, fm = m.mgrs[x.mgr] || replaceNames(x.mgr, m);
+    teams[f] = Object.assign({}, x, {
+      mgr: fm,
+      first: m.first[x.first] || words(fm)[0] || x.first,
+      ini: ini(x.ini),
+      short: (m.shorts[t] && m.shorts[t].to) || m.short[x.short] || (words(f)[words(f).length - 1]),
+    });
+  });
+  const derbies = {};
+  Object.keys(cfg.derbies || {}).forEach(k => { derbies[k.split('|').map(ini).join('|')] = replaceNames(cfg.derbies[k], m); });
+  const seeded = {};
+  Object.keys(cfg.seeded || {}).forEach(k => {
+    const p = k.split('|').map(ini), v = (cfg.seeded[k] || []).slice();
+    const sorted = p.slice().sort();
+    seeded[sorted.join('|')] = sorted[0] === p[0] ? v : [v[1], v[0], v[2]];
+  });
+  return Object.assign({}, cfg, { name: 'Demo league', teams, aliases: {}, derbies, seeded });
+}
+
+module.exports = { FICTIONAL, PLAYER_TABS, TEXT_COLS, mapping, nameRegex, replaceNames, anonymiseTab, anonymiseTabs, anonymiseLeague, substituteCode, leaks, playerFirstNames, slug, words };

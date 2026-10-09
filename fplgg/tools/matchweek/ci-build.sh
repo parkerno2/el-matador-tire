@@ -19,7 +19,8 @@ if grep -rlE 'premierleague/photos/players' src core.gen.js; then echo "the old 
 BUILD=$(date -u +%Y%m%d%H%M%S)
 node_modules/.bin/esbuild src/main.js --bundle --minify --format=iife --target=es2020 --outfile="$ROOT/app.js" --log-level=warning --legal-comments=none
 cat src/css/*.css > "$ROOT/app.css"
-cp core.gen.js "$ROOT/core.js"
+# The league's config (league.json, ROADMAP C1): checked, then written as `const LEAGUE={...}` in front of the engine.
+{ node -e 'const L=require("./tools/league.js");process.stdout.write(L.header(L.load()))'; cat core.gen.js; } > "$ROOT/core.js"
 sed "s/__BUILD__/$BUILD/g" index.template.html > "$ROOT/index.html"
 sed "s/__BUILD__/$BUILD/g" sw.template.js > "$ROOT/sw.js"
 cp manifest.template.webmanifest "$ROOT/manifest.webmanifest"

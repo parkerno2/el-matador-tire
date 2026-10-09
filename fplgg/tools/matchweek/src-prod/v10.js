@@ -124,7 +124,7 @@ function crestSVG(m, size=64, opt){
 function crestOf(team,size){const m=TEAMS[team]&&TEAMS[team].ini;return m?crestSVG(m,size||38):''}
 mg=(name,sm)=>{const t=TEAMS[name];if(!t)return'';return '<span class="mg cr'+(sm?' sm':'')+'">'+crestSVG(t.ini,sm?26:38)+'</span>'};
 const FIRSTOF=t=>FIRST[(TEAMS[t]||{}).ini]||((TEAMS[t]||{}).mgr||'').split(' ')[0]||t;
-const SHORTOF={'Cold Palmers':'Palmers','Trophy Hunters':'Trophy','The Soaring Gulls':'Gulls','Devils U21s':'Devils','I Am a Baleba':'Baleba','Kobbie Mainoo Fan':'Mainoo','Team Jacob':'Jacob','In It to McGinn It':'McGinn'};
+const SHORTOF={};Object.keys(LEAGUE.teams).forEach(t=>{SHORTOF[t]=LEAGUE.teams[t].short});
 const LIGHTCOL=t=>{const c=(TEAMS[t]||{}).col||'#5B1A66';const n=parseInt(c.slice(1),16);const r=n>>16,g=(n>>8)&255,b=n&255;return (r*299+g*587+b*114)/1000>170};
 const shadeHex=(hex,f)=>{const n=parseInt(hex.slice(1),16);const d=x=>Math.round(x*(1-f));return '#'+[d(n>>16),d((n>>8)&255),d(n&255)].map(x=>x.toString(16).padStart(2,'0')).join('')};
 const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')'};

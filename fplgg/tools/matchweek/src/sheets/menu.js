@@ -2,6 +2,7 @@
 import * as UI from '../ui.js';
 import * as K from './kit.js';
 import { DEMO } from '../data/tabs.js';   /* the demo league (Q2): no classic app, the legal pages one folder up */
+import { PAY, POT, money } from '../pages/league/data.js';   /* the pot from league.json (ROADMAP C1) */
 
 const esc = UI.esc;
 
@@ -66,7 +67,8 @@ function para(title, html) { return '<div class="mn-p"><h3>' + title + '</h3>' +
 function moneyRows() {
   const r = (l, v) => '<div class="mn-mr"><span>' + l + '</span><b class="n gold-c">' + v + '</b></div>';
   const months = (typeof PERIODS !== 'undefined' ? PERIODS : []).map(p => String(p[0]).replace(' & ', '–') + ' (GW' + p[1] + (p[2] !== p[1] ? '–' + p[2] : '') + ')').join(', ');
-  return '<div class="mn-money">' + r('1st place', '$600') + r('2nd place', '$180') + r('3rd place', '$60') + r('Leader after GW19', '$90') + r('Manager of the Month, 9 × $30', '$270') + '<div class="mn-mr tot"><span>The pot, 8 × $150 buy-in</span><b class="n gold-c">$1,200</b></div></div>'
+  const n = (typeof PERIODS !== 'undefined' ? PERIODS : []).length, teams = Object.keys(TEAMS).length;
+  return '<div class="mn-money">' + r('1st place', money(PAY.first)) + r('2nd place', money(PAY.second)) + r('3rd place', money(PAY.third)) + r('Leader after GW19', money(PAY.half)) + r('Manager of the Month, ' + n + ' × ' + money(PAY.motm), money(PAY.motm * n)) + '<div class="mn-mr tot"><span>The pot, ' + teams + ' × ' + money(PAY.buyin) + ' buy-in</span><b class="n gold-c">' + money(POT) + '</b></div></div>'
     + '<p>Manager of the Month goes to the most points scored in each period: ' + esc(months) + '.</p>';
 }
 function howView() {
@@ -79,7 +81,7 @@ function howView() {
     + para('Win chance and title odds', '<p>Win chance compares the two projected scores and how much each could swing. Title odds play out the rest of the season 5,000 times from the same projections; they move at full time, not mid-game.</p>')
     + para('Luck', '<p>Two parts, never added together. <b>Performance</b>: points actually scored by your XI, bonus out, against their xP. <b>Results</b>: league points banked against an all-play schedule, your score against all seven rivals every week (win 3, draw 1).</p>')
     + '</div>'
-    + UI.sh('The money', { aside: '$1,200' }) + '<div class="card mn-ps">' + para('Prizes', moneyRows()) + '</div>'
+    + UI.sh('The money', { aside: money(POT) }) + '<div class="card mn-ps">' + para('Prizes', moneyRows()) + '</div>'
     + UI.sh('League rules') + '<div class="card mn-ps">'
     + para('Format', '<p>Head to head over 38 gameweeks: 3 points for a win, 1 for a draw. Points for breaks ties. Waivers are open all season, with no transfer or injury restrictions.</p>')
     + para('The data', '<p>Scores and lineups come from the FPL Draft API on a rolling refresh. The app re-reads them whenever you open it, every 5 minutes, and every 90 seconds during games.</p>')

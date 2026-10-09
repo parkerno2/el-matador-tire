@@ -1,0 +1,237 @@
+{
+ "name": "El Matador Tire",
+ "teams": {
+  "Cold Palmers": {
+   "mgr": "Parker Nolan",
+   "first": "Parker",
+   "ini": "PN",
+   "short": "Palmers",
+   "col": "#2E5BFF",
+   "xi": 1185,
+   "lo": 904,
+   "hi": 1466
+  },
+  "Trophy Hunters": {
+   "mgr": "Bryant Scantlebury",
+   "first": "Bryant",
+   "ini": "BS",
+   "short": "Trophy",
+   "col": "#8E44AD",
+   "xi": 1215,
+   "lo": 865,
+   "hi": 1565
+  },
+  "The Soaring Gulls": {
+   "mgr": "CJ Taunt",
+   "first": "CJ",
+   "ini": "CT",
+   "short": "Gulls",
+   "col": "#00A88F",
+   "xi": 1170,
+   "lo": 889,
+   "hi": 1451
+  },
+  "Devils U21s": {
+   "mgr": "PJ Nolan",
+   "first": "PJ",
+   "ini": "PJ",
+   "short": "Devils",
+   "col": "#D6001C",
+   "xi": 1117,
+   "lo": 846,
+   "hi": 1388
+  },
+  "I Am a Baleba": {
+   "mgr": "Ethan Gould",
+   "first": "Ethan",
+   "ini": "EG",
+   "short": "Baleba",
+   "col": "#F0B323",
+   "xi": 1243,
+   "lo": 946,
+   "hi": 1540
+  },
+  "Kobbie Mainoo Fan": {
+   "mgr": "Baha Kharoofa",
+   "first": "Baha",
+   "ini": "BK",
+   "short": "Mainoo",
+   "col": "#E8710A",
+   "xi": 940,
+   "lo": 703,
+   "hi": 1177
+  },
+  "Team Jacob": {
+   "mgr": "Jacob Sodini",
+   "first": "Jacob",
+   "ini": "JS",
+   "short": "Jacob",
+   "col": "#795548",
+   "xi": 1137,
+   "lo": 871,
+   "hi": 1403
+  },
+  "In It to McGinn It": {
+   "mgr": "Nate Grahn",
+   "first": "Nate",
+   "ini": "NG",
+   "short": "McGinn",
+   "col": "#B5179E",
+   "xi": 1051,
+   "lo": 787,
+   "hi": 1315
+  }
+ },
+ "aliases": {
+  "Maize ‘n’ Mount": "I Am a Baleba"
+ },
+ "derbies": {
+  "BS|PN": "The Mr. Marks Bowl",
+  "PJ|PN": "The Nolan Derby",
+  "PN|BK": "El Clásico",
+  "JS|PN": "The Gamer Derby",
+  "NG|PN": "The Fortnite Derby",
+  "BS|CT": "De Klassieker",
+  "BS|BK": "The Sacred Heart Derby",
+  "PJ|CT": "El Jlásico",
+  "CT|BK": "The Cumtown Derby",
+  "PJ|BK": "Derby of the Eternal Enemies",
+  "PJ|NG": "The Hasbulla Derby",
+  "BS|NG": "The Green Bus Brouhaha",
+  "BK|EG": "The Rooney Toons Derby",
+  "JS|EG": "The Besties Derby",
+  "BK|JS": "Red Card Ranked Invitational"
+ },
+ "seeded": {
+  "BK|BS": [
+   5,
+   2,
+   0
+  ],
+  "BK|CT": [
+   2,
+   6,
+   0
+  ],
+  "BK|EG": [
+   3,
+   3,
+   1
+  ],
+  "BK|PJ": [
+   3,
+   5,
+   0
+  ],
+  "BK|PN": [
+   1,
+   7,
+   0
+  ],
+  "BS|CT": [
+   3,
+   5,
+   0
+  ],
+  "BS|EG": [
+   4,
+   4,
+   0
+  ],
+  "BS|PJ": [
+   5,
+   2,
+   0
+  ],
+  "BS|PN": [
+   2,
+   6,
+   0
+  ],
+  "CT|EG": [
+   3,
+   4,
+   0
+  ],
+  "CT|PJ": [
+   4,
+   4,
+   0
+  ],
+  "CT|PN": [
+   4,
+   3,
+   0
+  ],
+  "EG|PJ": [
+   3,
+   5,
+   0
+  ],
+  "EG|PN": [
+   4,
+   4,
+   0
+  ],
+  "PJ|PN": [
+   4,
+   3,
+   0
+  ]
+ },
+ "periods": [
+  [
+   "Aug & Sep",
+   1,
+   5
+  ],
+  [
+   "October",
+   6,
+   9
+  ],
+  [
+   "November",
+   10,
+   12
+  ],
+  [
+   "December",
+   13,
+   18
+  ],
+  [
+   "January",
+   19,
+   23
+  ],
+  [
+   "February",
+   24,
+   27
+  ],
+  [
+   "March",
+   28,
+   30
+  ],
+  [
+   "April",
+   31,
+   33
+  ],
+  [
+   "May",
+   34,
+   38
+  ]
+ ],
+ "pot": {
+  "buyin": 150,
+  "first": 600,
+  "second": 180,
+  "third": 60,
+  "half": 90,
+  "motm": 30
+ }
+}

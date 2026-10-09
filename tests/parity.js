@@ -11,9 +11,8 @@ const now = Date.parse('2026-10-10T14:30:00Z');
 const tabsSrc = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/src/data/tabs.js', 'utf8');
 const appTabs = Object.keys(new Function(tabsSrc.replace(/^export (function|const|let)/gm, '$1') + '\n;return TABS;')());
 check('the tabs compared are exactly the tabs the app reads (src/data/tabs.js TABS)', P.TABS.join('|') === appTabs.join('|'), P.TABS.join('|') + ' vs ' + appTabs.join('|'));
-const core = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/core.gen.js', 'utf8');
-const aliasLine = /const TEAM_ALIAS=(\{[^\n]*?\});/.exec(core);
-check('the alias is the engine\'s TEAM_ALIAS (core.gen.js)', aliasLine && JSON.stringify(new Function('return ' + aliasLine[1])()) === JSON.stringify(P.ALIAS), aliasLine && aliasLine[1]);
+const league = JSON.parse(fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/league.json', 'utf8'));
+check('the alias is the league\'s aliases (league.json, the engine\'s TEAM_ALIAS)', JSON.stringify(league.aliases || {}) === JSON.stringify(P.ALIAS) && Object.keys(P.ALIAS).length >= 1, JSON.stringify(P.ALIAS));
 P.TABS.forEach(t => check('keys for ' + t + ' are columns the app requires or the tab has', P.KEYS[t].length > 0));
 
 /* ---------- norm ---------- */

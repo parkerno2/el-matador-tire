@@ -45,9 +45,9 @@ const KEYS = {
   'Fixture BPS': ['GW', 'Fixture', 'Code'],
 };
 const TABS = Object.keys(KEYS);
-/* the engine's TEAM_ALIAS (core.gen.js): the app maps every value through it, so both sides are compared as the app
-   sees them (tests/parity.js keeps this in step with the engine) */
-const ALIAS = { 'Maize ‘n’ Mount': 'I Am a Baleba' };
+/* the league's aliases (league.json, the engine's TEAM_ALIAS): the app maps every value through them, so both sides
+   are compared as the app sees them (tests/parity.js keeps this in step with the config) */
+const ALIAS = Object.assign({}, require('../matchweek/league.json').aliases || {});
 /* each pipeline's own write time: compared and listed, but never a data difference */
 const CLOCK = ['Captured (UTC)', 'Logged (UTC)'];
 const STATUS = { same: 'same', columns: 'same data, columns differ', differs: 'differs', missing: 'not on Supabase', empty: 'empty on both', error: 'could not compare' };

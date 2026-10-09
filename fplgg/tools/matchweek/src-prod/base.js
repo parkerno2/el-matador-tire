@@ -4,24 +4,14 @@ const SHEET='1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
 /* FPL allows mid-season team renames (Ethan, 25 Aug: Maize 'n' Mount -> I Am a Baleba).
    Canonicalize every sheet cell to the CURRENT name so static config, GW Log history, series
    and standings all agree. One line per rename, old -> current. */
-const TEAM_ALIAS={'Maize ‘n’ Mount':'I Am a Baleba'};
+/* the league's config (league.json, ROADMAP C1, 9 Oct 2026): ci-build.sh and the demo build put `const LEAGUE={...}` in front of this file */
+if(typeof LEAGUE==='undefined')throw new Error('core.js needs LEAGUE (league.json): build with ci-build.sh');
+const TEAM_ALIAS=Object.assign({},LEAGUE.aliases||{});
 const canonTeam=v=>(typeof v==='string'&&TEAM_ALIAS[v])?TEAM_ALIAS[v]:v;
-const TEAMS={'Cold Palmers':{mgr:'Parker Nolan',ini:'PN',col:'#2E5BFF',xi:1185,lo:904,hi:1466},
-'Trophy Hunters':{mgr:'Bryant Scantlebury',ini:'BS',col:'#8E44AD',xi:1215,lo:865,hi:1565},
-'The Soaring Gulls':{mgr:'CJ Taunt',ini:'CT',col:'#00A88F',xi:1170,lo:889,hi:1451},
-'Devils U21s':{mgr:'PJ Nolan',ini:'PJ',col:'#D6001C',xi:1117,lo:846,hi:1388},
-'I Am a Baleba':{mgr:'Ethan Gould',ini:'EG',col:'#F0B323',xi:1243,lo:946,hi:1540},
-'Kobbie Mainoo Fan':{mgr:'Baha Kharoofa',ini:'BK',col:'#E8710A',xi:940,lo:703,hi:1177},
-'Team Jacob':{mgr:'Jacob Sodini',ini:'JS',col:'#795548',xi:1137,lo:871,hi:1403}, // colour changed from #1B7F79 (clashed with CJ's teal)
-'In It to McGinn It':{mgr:'Nate Grahn',ini:'NG',col:'#B5179E',xi:1051,lo:787,hi:1315}};
-const MATCH={'BS|PN':'The Mr. Marks Bowl','PJ|PN':'The Nolan Derby','PN|BK':'El Clásico','JS|PN':'The Gamer Derby',
-'NG|PN':'The Fortnite Derby','BS|CT':'De Klassieker','BS|BK':'The Sacred Heart Derby','PJ|CT':'El Jlásico',
-'CT|BK':'The Cumtown Derby','PJ|BK':'Derby of the Eternal Enemies','PJ|NG':'The Hasbulla Derby',
-'BS|NG':'The Green Bus Brouhaha','BK|EG':'The Rooney Toons Derby','JS|EG':'The Besties Derby','BK|JS':'Red Card Ranked Invitational'};
-const SEED={'BK|BS':[5,2,0],'BK|CT':[2,6,0],'BK|EG':[3,3,1],'BK|PJ':[3,5,0],'BK|PN':[1,7,0],'BS|CT':[3,5,0],
-'BS|EG':[4,4,0],'BS|PJ':[5,2,0],'BS|PN':[2,6,0],'CT|EG':[3,4,0],'CT|PJ':[4,4,0],'CT|PN':[4,3,0],
-'EG|PJ':[3,5,0],'EG|PN':[4,4,0],'PJ|PN':[4,3,0]};
-const FIRST={PN:'Parker',BS:'Bryant',CT:'CJ',PJ:'PJ',EG:'Ethan',BK:'Baha',JS:'Jacob',NG:'Nate'};
+const TEAMS={};Object.keys(LEAGUE.teams).forEach(t=>{const x=LEAGUE.teams[t];TEAMS[t]={mgr:x.mgr,ini:x.ini,col:x.col,xi:x.xi,lo:x.lo,hi:x.hi}});
+const MATCH=Object.assign({},LEAGUE.derbies||{});
+const SEED=Object.assign({},LEAGUE.seeded||{});
+const FIRST={};Object.keys(LEAGUE.teams).forEach(t=>{FIRST[LEAGUE.teams[t].ini]=LEAGUE.teams[t].first});
 const NAT={ES:'Spain',FR:'France','GB-ENG':'England','GB-SCT':'Scotland','GB-WLS':'Wales','GB-NIR':'Northern Ireland',NL:'Netherlands',
 RS:'Serbia',DE:'Germany',AR:'Argentina',SE:'Sweden',BR:'Brazil',IT:'Italy',NO:'Norway',BE:'Belgium',
 GW:'Guinea-Bissau',CD:'DR Congo',PT:'Portugal',EC:'Ecuador',UA:'Ukraine',HR:'Croatia',TR:'Türkiye',
@@ -35,8 +25,7 @@ BHA:'brightonandhovealbion.com',BUR:'burnleyfootballclub.com',CHE:'chelseafc.com
 CRY:'cpfc.co.uk',EVE:'evertonfc.com',FUL:'fulhamfc.com',LEE:'leedsunited.com',LIV:'liverpoolfc.com',
 MCI:'mancity.com',MUN:'manutd.com',NEW:'newcastleunited.com',NFO:'nottinghamforest.co.uk',
 SUN:'safc.com',TOT:'tottenhamhotspur.com',WHU:'whufc.com',WOL:'wolves.co.uk'};
-const PERIODS=[['Aug & Sep',1,5],['October',6,9],['November',10,12],['December',13,18],
-['January',19,23],['February',24,27],['March',28,30],['April',31,33],['May',34,38]];
+const PERIODS=LEAGUE.periods.map(p=>p.slice());
 
 /* ================= data layer ================= */
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

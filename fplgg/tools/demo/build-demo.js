@@ -25,6 +25,7 @@ const names = require('./names.js'), snap = require('./snapshot.js');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const APP = path.join(ROOT, 'fplgg', 'tools', 'matchweek');
+const league = require(path.join(APP, 'tools', 'league.js'));   /* league.json: the names the engine keys by, and the demo's own LEAGUE header */
 const SITE = path.join(ROOT, 'site', 'public');
 const OUT = path.join(SITE, 'demo');
 const TEXT_EXT = /\.(html?|js|mjs|css|json|jsonc|webmanifest|txt|md|svg|xml|csv)$/i;
@@ -32,19 +33,10 @@ const ASSET_DIRS = ['icons', 'voices', 'press'];   /* press/: the editorial post
 const EA_TABS = ['EA Map', 'FC27'];                /* the EA tabs: not read, not written (9 Oct 2026) */
 const EA_FILE_RE = /(^|[\\/])(fc27|ea[-_ ]?map)[^\\/]*$/i;   /* a data file named after them, anywhere, any extension */
 
-/* the engine's initials per team, from core.gen.js's TEAMS table (ini:'XX'), so the mapping renames the keys it uses */
-function engineInitials(core) {
-  const out = {}; const re = /'([^']+)':\{mgr:'[^']*',ini:'([A-Za-z0-9]+)'/g; let x;
-  while ((x = re.exec(core))) out[x[1]] = x[2];
-  return out;
-}
-/* the engine's short names per team, from core.gen.js's SHORTOF table ('Cold Palmers':'Palmers'), so the one word a
-   team goes by on a tight line is fictional too */
-function engineShorts(core) {
-  const out = {}; const t = /const SHORTOF=\{([^}]*)\}/.exec(core); if (!t) return out;
-  const re = /'([^']+)':'([^']+)'/g; let x; while ((x = re.exec(t[1]))) out[x[1]] = x[2];
-  return out;
-}
+/* the league's initials per team, from league.json (the engine keys its derby and series tables by them), so the mapping
+   renames the keys it uses; and the short names (the one word a team goes by on a tight line), so they are fictional too */
+function leagueInitials(cfg) { const out = {}; Object.keys(cfg.teams || {}).forEach(t => { out[t] = cfg.teams[t].ini; }); return out; }
+function leagueShorts(cfg) { const out = {}; Object.keys(cfg.teams || {}).forEach(t => { out[t] = cfg.teams[t].short; }); return out; }
 /* the engine for the demo: FC_FACES emptied, so faceUrls never names faces/<code>.png and every player takes FPL's photo,
    then initials (the set stays a Set: the engine calls .has on it) */
 function demoCore(core) {
@@ -131,6 +123,7 @@ async function main(argv) {
   const checkOnly = argv.includes('--check'), strict = argv.includes('--strict');
   const log = m => console.log('[demo] ' + m);
   const core = fs.readFileSync(path.join(APP, 'core.gen.js'), 'utf8');
+  const cfg = league.load();
   /* 1. the live tabs */
   let shot;
   try { shot = await snap.snapshot(undefined, checkOnly ? null : log, EA_TABS); }
@@ -140,7 +133,7 @@ async function main(argv) {
     log(msg + '; the demo is left as it was');
     return 0;
   }
-  const m = names.mapping(shot.tabs.Standings.rows, engineInitials(core), engineShorts(core));
+  const m = names.mapping(shot.tabs.Standings.rows, leagueInitials(cfg), leagueShorts(cfg), cfg.aliases);
   if (!checkOnly) {
     /* 2. the anonymised data */
     const tabs = dropRatings(names.anonymiseTabs(shot.tabs, m));   /* no EA ratings in the demo (9 Oct 2026) */
@@ -149,7 +142,7 @@ async function main(argv) {
     /* 3. the app with __MW_DEMO__ set; identifiers are kept so a name in a string is the only two-letter word that changes */
     run(path.join(APP, 'node_modules', '.bin', 'esbuild'), ['src/main.js', '--bundle', '--minify-whitespace', '--minify-syntax', '--format=iife', '--target=es2020', '--define:__MW_DEMO__=true', '--log-level=warning', '--legal-comments=none', '--outfile=' + path.join(tmp, 'app.js')], APP);
     const appJs = names.substituteCode(fs.readFileSync(path.join(tmp, 'app.js'), 'utf8'), m);
-    const coreJs = names.substituteCode(demoCore(core), m);   /* no EA faces in the demo (9 Oct 2026) */
+    const coreJs = league.header(names.anonymiseLeague(cfg, m)) + names.substituteCode(demoCore(core), m);   /* the fictional league in front of the engine; no EA faces (9 Oct 2026) */
     const cssFiles = fs.readdirSync(path.join(APP, 'src', 'css')).filter(f => f.endsWith('.css')).sort();   /* name order, as ci-build.sh with LC_ALL=C */
     const appCss = names.substituteCode(cssFiles.map(f => fs.readFileSync(path.join(APP, 'src', 'css', f), 'utf8')).join(''), m);
     const index = demoIndex(fs.readFileSync(path.join(APP, 'index.template.html'), 'utf8'), build);
@@ -187,5 +180,5 @@ async function main(argv) {
   log('EA check: clean');
   return 0;
 }
-module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, EA_TABS, EA_FILE_RE, engineInitials, engineShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, demoIndex, walk, playerFile, leakScan, main };
+module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, demoIndex, walk, playerFile, leakScan, main };
 if (require.main === module) main(process.argv.slice(2)).then(code => process.exit(code), e => { console.error('[demo] ' + (e && e.stack || e)); process.exit(1); });
