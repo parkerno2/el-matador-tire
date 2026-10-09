@@ -2601,6 +2601,10 @@ html.gs-on{overflow:hidden}
 .md-showc-play svg{margin-left:3px}
 .md-showc-by{font:800 14px/1 var(--f-ui)}
 .md-show-re{margin:4px 0 12px}
+/* the commissioner's line while the show is being voiced (Dec, 9 Oct 2026) */
+.show-note{display:flex;align-items:baseline;gap:8px;margin:6px 0 12px;font-size:12.5px;line-height:1.45;color:var(--tx2)}
+.show-note i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--p300);transform:translateY(-1px)}
+.feed .show-note{margin-left:16px;margin-right:16px}
 .fl-pin .sh{padding-top:14px}
 .fst-show{appearance:none}
 .fst-show .fring>span{position:relative;overflow:visible}

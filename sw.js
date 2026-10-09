@@ -1,9 +1,9 @@
-/* Matchweek · El Matador Tire — service worker (build 20261009005718)
+/* Matchweek · El Matador Tire — service worker (build 20261009010302)
  * The app shell, scripts and styles are network-first so a deploy shows up on the next open;
  * the cache is the offline fallback. Images and fonts live in their own cache that survives deploys:
  * faces and icons are served from it at once and refreshed in the background, club badges, flags,
  * player photos and font files from other sites are kept as they are (they never change). */
-const VERSION = 'emt-v21-20261009005718';
+const VERSION = 'emt-v21-20261009010302';
 const IMG = 'emt-img-v1';
 const CORE = ['./', './index.html', './app.js', './app.css', './core.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-180.png'];
 self.addEventListener('install', e => {
