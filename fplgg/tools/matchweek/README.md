@@ -35,6 +35,10 @@ Layout of `src/`: `main.js` (router `#/page/sub/args`, bottom sheets, refresh ca
 
 Until 8 Oct 2026 the source lived in `matchweek-src.tar.gz` (still in git history). On unpacking, `ci-build.sh` rebuilt the live `app.js`, `app.css`, `core.js` and `manifest.webmanifest` byte for byte; `index.html` and `sw.js` differed only in the build stamp.
 
+## The demo league
+
+matchweek.gg/demo/ is this app built with `__MW_DEMO__` (esbuild define) on a frozen, anonymised snapshot of the league's tabs: `fplgg/tools/demo/build-demo.js`, run by the same workflow after `ci-build.sh` and once a day. `src/data/tabs.js` (`DEMO`) is where the demo behaves differently (its data source, every write off, no service worker, the label). See `fplgg/tools/demo/README.md`.
+
 ## Deploying
 
 Push a change under `fplgg/tools/matchweek/` to `main`. The **Build Matchweek app** workflow (`.github/workflows/matchweek.yml`) runs `npm ci` and `ci-build.sh` here and commits the six root files as el-matador-build (`build: matchweek app from <sha>`). Actions tab → Build Matchweek app → Run workflow rebuilds without a source change. `?v=BUILD` busts the caches, and the new SW clears old caches when it activates. A phone that had the old app open may need one pull-to-refresh.

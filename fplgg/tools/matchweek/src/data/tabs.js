@@ -20,7 +20,13 @@
    canonTeam on every value, the same header guard, the same GW Stats trim). The tabs the web app writes itself
    (Managers, Social, Posts, Specials with the web app's own URL) stay on the Sheet whatever the source, and a tab
    Supabase lacks or fails to serve is read from the Sheet instead, said in the console; MW.data.report() lists where
-   each tab came from. The stale banner then follows Supabase's own refresh time (its Meta tab). */
+   each tab came from. The stale banner then follows Supabase's own refresh time (its Meta tab).
+   The demo (Parker's Q2, 8 Oct 2026: matchweek.gg's demo league runs the current app): the demo build sets __MW_DEMO__
+   (esbuild --define), which fixes the source to the frozen, anonymised JSON tabs shipped beside the page (data/<tab>.json,
+   { cols, rows } exactly as gviz hands them over, written by fplgg/tools/demo). A demo page never reads the Sheet, the web
+   app or Supabase: the URL flag and localStorage are ignored, a tab without a file is empty (an optional tab stays
+   optional, a required one shows its empty state), Specials has no API URL so D.api is blank and every write is off, and
+   readMeta answers 0 so frozen data never shows the stale banner. */
 const TIMEOUT_MS = 15000, STALE_MIN = 120, STALE_LIVE_MIN = 20, MATCH_PRE_MS = 5 * 60e3, MATCH_MS = (2 * 60 + 15) * 60e3;
 /* the columns each tab must have (a name with | means any one of them). A tab not listed here is read as before. */
 export const TABS = {
@@ -96,6 +102,28 @@ function readSheet(name) {
   });
 }
 
+/* ---------- the demo (Q2): frozen JSON tabs beside the page, set at build time ---------- */
+export const DEMO = typeof __MW_DEMO__ !== 'undefined' && !!__MW_DEMO__;
+export const DEMO_DATA = 'data/';
+/* the file a tab is read from in the demo (fplgg/tools/demo/names.js writes the same name) */
+export const demoFile = name => DEMO_DATA + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.json';
+const demoEmpty = name => ({ cols: (TABS[name] || []).map(c => c.split('|')[0]), rows: [] });
+/* a tab from the demo's data folder: { cols, rows } as written, the GW Stats trim applied; no file is an empty tab */
+export function readDemo(name) {
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  const to = setTimeout(() => { if (ac) ac.abort(); }, TIMEOUT_MS);
+  return fetch(demoFile(name), Object.assign({ cache: 'no-cache' }, ac ? { signal: ac.signal } : {})).then(r => {
+    if (r.status === 404) { REPORT[name] = 'demo (no file, empty)'; return demoEmpty(name); }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json().then(j => {
+      if (!j || !Array.isArray(j.cols) || !Array.isArray(j.rows)) throw new Error(name + ': not a demo tab');
+      REPORT[name] = 'demo';
+      const q = QUERIES[name]; if (q && q.keep) j.rows = j.rows.filter(q.keep);
+      return { cols: j.cols.map(String), rows: j.rows };
+    });
+  }).finally(() => clearTimeout(to));
+}
+
 /* ---------- the data source (ROADMAP B3): the Sheet, or Supabase behind the flag ---------- */
 export const SUPABASE = { base: 'https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1/tabs', league: 45380 };
 /* the tabs the web app (Code.gs) writes itself, which the Supabase ingest never has: logins and profiles, the social
@@ -112,6 +140,7 @@ export function pickSource(search, kept) {
 }
 export function dataSource() {
   if (SOURCE) return SOURCE;
+  if (DEMO) { SOURCE = 'demo'; return SOURCE; }
   let kept = ''; try { kept = localStorage.getItem(SOURCE_KEY) || ''; } catch (e) { }
   const p = pickSource(typeof location === 'object' && location ? location.search : '', kept);
   if (p.keep) try { if (p.source === 'sheet') localStorage.removeItem(SOURCE_KEY); else localStorage.setItem(SOURCE_KEY, p.source); } catch (e) { }
@@ -119,7 +148,7 @@ export function dataSource() {
   if (SOURCE === 'supabase') console.info('Matchweek data: Supabase (' + SUPABASE.base + '); add ?data=sheet to the URL to go back to the Sheet');
   return SOURCE;
 }
-/* { source, tabs: { name: 'sheet' | 'supabase' | 'sheet (why)' } } for the tabs read so far */
+/* { source, tabs: { name: 'sheet' | 'supabase' | 'demo' | 'sheet (why)' } } for the tabs read so far */
 export function dataReport() { return { source: dataSource(), tabs: Object.assign({}, REPORT) }; }
 export const sbUrl = name => SUPABASE.base + '/league/' + SUPABASE.league + '/tab/' + encodeURIComponent(name);
 /* a Supabase value as gviz hands the same cell over: a string, TRUE or FALSE, a date without the apostrophe the ingest
@@ -151,6 +180,7 @@ function fromSheet(name, why, say) {
 }
 /* { cols, rows } from the source this phone uses */
 function readFrom(name) {
+  if (dataSource() === 'demo') return readDemo(name);
   if (dataSource() !== 'supabase') return fromSheet(name, '');
   if (SHEET_ONLY.includes(name)) return fromSheet(name, 'the web app writes it');
   return Promise.resolve().then(() => readSupabase(name)).then(r => { if (!r) return fromSheet(name, 'not on Supabase', true); REPORT[name] = 'supabase'; return r; }, e => fromSheet(name, String(e && e.message || e).slice(0, 80), true));
@@ -174,6 +204,7 @@ export function metaUpdated(cols, rows) {
 const sheetMeta = () => readRaw('Meta').then(({ cols, rows }) => metaUpdated(cols, rows)).catch(() => 0);
 /* the Sheet's Meta tab, or Supabase's when that is the source (its Updated row is the ingest's last run) */
 export function readMeta() {
+  if (DEMO) return Promise.resolve(0);   /* frozen data is never "stale": the demo has no refresh to be late */
   if (dataSource() !== 'supabase') return sheetMeta();
   return readSupabase('Meta').then(r => (r ? metaUpdated(r.cols, r.rows) : sheetMeta()), () => sheetMeta()).then(t => t || sheetMeta());
 }

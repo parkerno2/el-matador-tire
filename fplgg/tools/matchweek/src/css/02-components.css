@@ -159,6 +159,9 @@
 .err{margin:16px var(--gutter);padding:16px;border-radius:var(--r-l);background:var(--loss-bg);color:#FFD0D2;font-size:14px;line-height:1.45}
 /* the stale-data banner (A5): the sheet's refresh time is old */
 .stale{margin:10px var(--gutter) 0;padding:10px 12px;border-radius:var(--r-l);background:var(--loss-bg);color:#FFD0D2;font-size:13px;line-height:1.4}
+/* the demo league's label (Q2): one small line at the top of every page */
+.demo-tag{margin:10px var(--gutter) 0;padding:7px 11px;border-radius:var(--r-l);background:var(--raised);border:1px solid var(--line);color:var(--tx3);font-size:12px;line-height:1.35;display:flex;gap:8px;align-items:baseline}
+.demo-tag b{color:var(--p100);font-weight:700;letter-spacing:.02em;text-transform:uppercase;font-size:11px;white-space:nowrap}
 
 /* bottom bar */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;height:calc(var(--nav-h) + var(--safe-b));padding:8px 6px var(--safe-b);display:flex;justify-content:space-around;align-items:flex-start;

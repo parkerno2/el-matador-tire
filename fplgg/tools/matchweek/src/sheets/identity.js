@@ -5,6 +5,7 @@
    identity applies on this phone at once (PROFILE + localStorage emt-identity) until the league sheet carries it. */
 import * as UI from '../ui.js';
 import * as K from './kit.js';
+import { DEMO } from '../data/tabs.js';   /* the demo league (Q2) has nothing to sign in to */
 
 const esc = UI.esc;
 const LS_KEY = 'emt-identity';
@@ -129,7 +130,7 @@ function claimView() {
   const teams = authTeams();
   const err = CL.err || (lockMs > 0 ? 'Too many tries. Locked for ' + Math.ceil(lockMs / 60000) + ' min.' : '');
   return '<div class="id-wrap"><div class="id-top"><span class="k">Your club</span><h2>' + (off ? 'Pick your team' : mode === 'login' ? 'Sign in' : 'Claim your team') + '</h2>'
-    + '<p class="sub id-lead" data-r="lead">' + (off ? 'Logins aren’t switched on yet, so club identity can’t be saved. You can still pick the team you follow.'
+    + '<p class="sub id-lead" data-r="lead">' + (off ? (DEMO ? 'This is the demo league, so there is nothing to sign in to. You can still pick the team you follow.' : 'Logins aren’t switched on yet, so club identity can’t be saved. You can still pick the team you follow.')
       : mode === 'login' ? 'This team is claimed. Enter its PIN to sign in on this phone.' : 'Pick your team and set a 4-digit PIN. Nobody else can claim it after that.') + '</p></div>'
     + (MSG ? '<div class="id-msg ' + MSG.kind + '" role="status">' + MSG.html + '</div>' : '')
     + '<div class="id-teams" role="radiogroup" aria-label="Team">' + teams.map(t => '<button type="button" role="radio" aria-checked="' + (t === sel) + '" class="id-tm' + (t === sel ? ' on' : '') + '" data-tm="' + esc(t) + '">'

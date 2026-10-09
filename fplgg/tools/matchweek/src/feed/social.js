@@ -3,6 +3,7 @@
    Writes need a signed-in manager (emt-auth); they show at once on this phone and land for everyone on the next read. */
 import * as UI from '../ui.js';
 import { lsGet, lsSet, bump } from './util.js';
+import { DEMO } from '../data/tabs.js';   /* the demo league (Q2): every write is off, and a tap says so */
 
 /* reactions: words in the log, line icons on screen (no emoji in the UI) */
 export const REACTS = [
@@ -88,6 +89,7 @@ export function sayQuote(target, line, claim, p, src) {
 /* ---------- writing ---------- */
 function rerender() { bump(); MEMO.k = null; if (window.MW) { window.MW.render({ keepScroll: true }); window.MW.refreshSheet && window.MW.refreshSheet(); } }
 export function needSignIn(what) {
+  if (DEMO) { UI.toast('This is the demo league, so posting is off.'); return Promise.resolve(false); }
   UI.toast(what === 'quote' ? 'Sign in as your club to go on the record' : what === 'vote' ? 'Sign in as your club to vote' : what === 'rumour' ? 'Sign in as your club to whisper to Archizio' : 'Sign in as your club to react');
   if (window.MW) window.MW.openSheet('identity');
   return Promise.resolve(false);

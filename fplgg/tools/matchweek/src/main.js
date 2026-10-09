@@ -8,9 +8,12 @@ import { SHEETS } from './sheets/index.js';
 import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } from './feed/showfacts.js';
 import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
 import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
-import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3) */
-installErrorReporting();
+import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport, DEMO } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3), the demo (Q2) */
+if (!DEMO) installErrorReporting();   /* the demo has no backend to report to */
 installReadTab();
+/* the demo league (Q2): nobody is signed in, whatever an older page on this origin left in localStorage; the engine's
+   authRead is a classic-script global, so the window property is what its own calls resolve to */
+if (DEMO) try { window.authRead = () => null; } catch (e) { }
 
 const PAGES = { matchday, team, league, feed };
 const app = document.getElementById('app');
@@ -59,9 +62,9 @@ export function render(opt = {}) {
   try { html = mod.render(r.sub, r.args); }
   catch (e) { console.error(e); html = UI.pageHead(mod.title || '') + '<div class="err">Something went wrong drawing this page. ' + UI.esc(e.message) + '</div>'; }
   const unread = PAGES.feed.unread ? PAGES.feed.unread() : 0;
-  app.innerHTML = staleBanner() + html + UI.navBar(r.page, unread);
+  app.innerHTML = staleBanner() + demoTag() + html + UI.navBar(r.page, unread);
   document.body.dataset.page = r.page; document.body.dataset.sub = r.sub;
-  document.title = (mod.title || 'Matchweek') + ' · El Matador Tire';
+  document.title = (mod.title || 'Matchweek') + (DEMO ? ' · Matchweek demo' : ' · El Matador Tire');
   try { mod.mount && mod.mount(app, r.sub, r.args); } catch (e) { console.error(e); }
   RENDERING = false;
   a11y(app);
@@ -163,7 +166,7 @@ export function reload(quiet) {
   BUSY = true;
   const meta = readMeta();   /* the Meta tab's refresh time, read alongside the data; never holds up the first paint */
   meta.then(t => { D.updated = t || 0; if (D.ro && D.ro.length && !RENDERING && !!document.querySelector('#app > .stale') !== !!staleBanner()) render({ keepScroll: true }); });
-  return loadData(quiet).then(() => { BUSY = false; flushErrors(); render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
+  return loadData(quiet).then(() => { BUSY = false; flushErrors(); render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); if (!DEMO) setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
     .catch(e => {
       BUSY = false;
       if (D.ro && D.ro.length) return false;   /* keep what's on screen; the caller says so */
@@ -191,13 +194,15 @@ function staleBanner() {
     return st ? '<div class="stale" role="status">' + UI.esc(st.text) + '</div>' : '';
   } catch (e) { return ''; }
 }
+/* the demo league's label (Q2): a small line at the top of every page, so nobody takes the frozen data for a live league */
+function demoTag() { return DEMO ? '<div class="demo-tag" role="note"><b>Demo league</b><span>Frozen data, fictional managers. The players and clubs are real.</span></div>' : ''; }
 function cadence() { return D && D.liveNow ? 90e3 : 300e3; }
 setInterval(() => { if (document.visibilityState === 'visible' && Date.now() - (LOADED_AT || 0) > cadence()) reload(true); }, 30e3);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - (LOADED_AT || 0) > 60e3) reload(true); });
 setInterval(() => { const p = document.querySelector('.abar .sp'); if (p && D && D.ro && D.ro.length) p.innerHTML = UI.statePill(); const b = document.querySelector('#app > .stale'), want = staleBanner(); if (!!b !== !!want && D && D.ro && D.ro.length && !RENDERING) render({ keepScroll: true }); }, 30e3);
 
 function boot() {
-  app.innerHTML = '<div class="boot">' + UI.leagueCrest(44) + UI.mwMark(30) + '<div class="bar"><i></i></div><span>Loading El Matador Tire</span></div>';
+  app.innerHTML = '<div class="boot">' + UI.leagueCrest(44) + UI.mwMark(30) + '<div class="bar"><i></i></div><span>' + (DEMO ? 'Loading the demo league' : 'Loading El Matador Tire') + '</span></div>';
   reload(false);
 }
 window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI, facts: { preview: computeFacts, recap: computeRecapFacts }, data: { source: dataSource, report: dataReport } };
@@ -226,4 +231,4 @@ function warmImages() {
 const idle = f => (window.requestIdleCallback ? requestIdleCallback(f, { timeout: 4000 }) : setTimeout(f, 300));
 if (history.state && history.state.sheet) history.replaceState(null, '');   /* a reload with a sheet open leaves no dead Back */
 boot();
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });
+if (!DEMO && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });   /* the demo ships no service worker */
