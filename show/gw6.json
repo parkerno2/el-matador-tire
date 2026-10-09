@@ -3,70 +3,34 @@
  "voice": "Malcolm Tyre — El Matador Booth",
  "model": "eleven_v4_turbo",
  "speed": 1.1,
- "written": "2026-10-08",
+ "written": "2026-10-09",
  "audio": "sheet",
- "open": "Gameweek six. Two derbies, a leader unbeaten in four, and a man on zero points who [deadpan] still leads his derby. Here's how it lines up.",
+ "open": "Gameweek six. The leaders are under investigation, the bottom side has yet to win, and Jacob's best striker is on the bench. Again.",
  "chapters": [
-  {
-   "home": "Kobbie Mainoo Fan",
-   "away": "Trophy Hunters",
-   "star": {
-    "h": "487838",
-    "a": "17761"
-   },
-   "beats": [
-    "Kobbie Mainoo Fan. Top of the table, unbeaten in four, and the finances still under investigation. [whispering] Baha's defence is the Man City one: no comment, and win again.",
-    "Hall scored thirteen last week, a goal and all three bonus. Isak scored as well and now carries a thigh flag, which for Isak is just part of the kit.",
-    "Trophy Hunters. Third, on three straight wins, the only winning run in the league. In August the name was the joke. Now it's the plan.",
-    "Semenyo and Brobbey hit seventeen each last week, Tarkowski fourteen. Semenyo and Tzolis now carry flags. [sighs] The purple patch has a hamstring.",
-    "Baha leads the series five to two and the model backs him again. Bryant's best run of the season meets the one result this league sets its watch by."
-   ]
-  },
-  {
-   "home": "Cold Palmers",
-   "away": "Devils U21s",
-   "star": {
-    "h": "575476",
-    "a": "222531"
-   },
-   "beats": [
-    "Cold Palmers. Fifth on nine points, and on the record: the thirty dollars for October has Parker's name on it. The model gives that nine percent.",
-    "Palmer, Mainoo, Rice and Jacquet all carry flags, four doubts in one eleven. [deadpan] Bad week to have named the club after one of them.",
-    "Devils U21s. Five games, five defeats, zero points, and PJ still leads this derby four to three. Form is temporary. Owning Parker is permanent.",
-    "Gibbs-White tops the eleven. Not a single flag among PJ's starters. Fully fit. [deadpan] Just shite.",
-    "Parker is the favourite, but only narrowly, against a side with nothing on the board. The model's nine percent for October suddenly looks generous."
-   ]
-  },
-  {
-   "home": "I Am a Baleba",
-   "away": "The Soaring Gulls",
-   "star": {
-    "h": "223094",
-    "a": "226597"
-   },
-   "beats": [
-    "I Am a Baleba. Fifty-four on PJ last week, Ethan's best of the season. Nate's best of the season was also against PJ. Devils U21s, the league's testimonial match.",
-    "Haaland goes to Anfield, with Cunha, Trafford and Gonzalo behind him. Ethan's plan is Haaland. [long pause] Ethan's backup plan is also Haaland.",
-    "The Soaring Gulls. Two hundred and forty points, the most in the league, and still second. Thirty-one last week, his lowest, against the one side above him. [laughing] Ange would call it progress.",
-    "Gabriel leads the eleven, at home to Leeds. CJ's best attacking option is a centre-back from set pieces. Arsenal fans will tell you that's a philosophy.",
-    "Ethan leads the series four to three. The model backs CJ anyway: it counts the two hundred and forty points and politely ignores the thirty-one."
-   ]
-  },
-  {
-   "home": "In It to McGinn It",
-   "away": "Team Jacob",
-   "star": {
-    "h": "141746",
-    "a": "223340"
-   },
-   "beats": [
-    "In It to McGinn It. Seventh, and two defeats on the spin: by one, then by twenty-six. [sighs] Nate is the only manager who can call a one-point loss the good week.",
-    "Fernandes leads the eleven, at home to Spurs. Porro and Rashford are seventy-five percent. For Rashford, seventy-five is a season high.",
-    "Team Jacob. Sixth. Lost by four, then by one. The margins are shrinking fast enough that Jacob's next defeat might count as a win.",
-    "Saka at home to Leeds, Mbeumo at home to Spurs, Havertz and Gakpo on seventy-five percent. Two sure things and two maybes. That's a Jacob week.",
-    "First ever meeting, and the model makes Jacob a clear favourite. Nate has been underestimated before. [deadpan] Correctly, but still."
-   ]
-  }
+  {"home": "Kobbie Mainoo Fan", "away": "Trophy Hunters", "star": {"h": "487838", "a": "17761"}, "beats": [
+   "Kobbie Mainoo Fan. Top of the league, pending an independent commission.",
+   "Named after Kobbie Mainoo, who plays for Parker. Nobody's had the heart to tell Baha.",
+   "Trophy Hunters. Bryant has stopped experimenting and started winning. It's ugly. It works.",
+   "Five at the back and one up front. Somewhere, Tony Pulis is welling up.",
+   "The Sacred Heart derby. Bryant brings the bus. Baha brings his lawyers."]},
+  {"home": "Cold Palmers", "away": "Devils U21s", "star": {"h": "575476", "a": "222531"}, "beats": [
+   "Cold Palmers. Parker built this app. It has been very honest with him.",
+   "Palmer, Rice, Mainoo and Jacquet all doubts. Less a team sheet, more a waiting room.",
+   "Devils U21s. Still no points. The youth project is taking its time.",
+   "Not a flag among PJ's starters. Fully fit. Just shite.",
+   "Brother against brother. PJ hasn't won all season, and leads the Nolan derby four to three. Christmas should be fun."]},
+  {"home": "I Am a Baleba", "away": "The Soaring Gulls", "star": {"h": "223094", "a": "226597"}, "beats": [
+   "I Am a Baleba. There is no Baleba. There has never been a Baleba.",
+   "Haaland goes to Anfield. Ethan's plan is Haaland. [long pause] Ethan's backup plan is also Haaland.",
+   "The Soaring Gulls. CJ scores more than anyone and sits second. He's taken it well. He hasn't.",
+   "Gabriel and two Leeds players, at the Emirates. Pundits call it hedging. Everyone else calls it cowardice.",
+   "Ethan, meanwhile, starts Leeds' goalkeeper at the Emirates. Bold. Possibly a cry for help."]},
+  {"home": "In It to McGinn It", "away": "Team Jacob", "star": {"h": "141746", "a": "223340"}, "beats": [
+   "In It to McGinn It. Nate is in it. McGinn, for the record, is not.",
+   "Bruno Fernandes at home to Spurs. Arms already out.",
+   "Team Jacob. Kostoulas has made team of the week twice. From the bench. Twice.",
+   "So this week, naturally, Oli McBurnie leads the line. Read that again.",
+   "First ever meeting. Jacob's the favourite, as long as he picks the right eleven. Big if."]}
  ],
- "close": "That's the gameweek. Lineups in before Saturday's deadline, and get yourself on the record. [whispering] Monday needs names."
+ "close": "That's your lot. Lineups in by Saturday morning. And Jacob, the lads on the bench are allowed to play."
 }
