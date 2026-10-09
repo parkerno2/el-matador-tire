@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,23 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.27 · 9 Oct 2026
+ *   The Gameweek Show's voicing cap counts per script version (Parker, 9 Oct 2026: a hand-written show/gw<N>.json that
+ *   replaces a script already voiced must be voiced before the deadline; the v3.25 cap counted the gameweek as a whole,
+ *   so a re-voice of the old script would have blocked the new one).
+ *   1. A script version is the md5 of its lines' texts (emtShowVersionId; the voice, model and speed do not count, so
+ *      a model change re-voices the same version). A render registers the version it voices in EMT_SHOW_GW_VER_<gw>
+ *      ({ list, used }) and counts the characters it sends against that version (emtShowCount), and the cap is the
+ *      version's own length plus a quarter (EMT_SHOW_GW_CAP_RATIO), so a new hand-written script gets its own
+ *      allowance. A pinned gameweek (v3.26) still gets exactly one more script's worth, per version.
+ *   2. Bounded: at most EMT_SHOW_GW_VERSIONS (3) versions a gameweek get an allowance of their own; a fourth and
+ *      every later rewrite count against the last registered version's allowance, so a script flipping between
+ *      versions can never voice more than three scripts and a quarter each (a gameweek that spent characters before
+ *      this version carries them as its first version). No loop: nothing here retries, re-renders or resets a count.
+ *   3. Unchanged: the balance read before any ElevenLabs call, the hold after a refusal and its hourly read, the
+ *      monthly count, and EMT_SHOW_GW_CAP_<gw>, which still caps the gameweek as a whole when set (EMT_SHOW_GW_CHARS_<gw>
+ *      keeps the gameweek's total for it).
+ *   4. ?health=1 show.cap { used, cap, version, versions, own } and the capped error name the version.
  * v3.26 · 9 Oct 2026
  *   The Gameweek Show is voiced by ElevenLabs v4 Turbo, with more emotion (Parker, 8 Oct 2026: "Give V4 Turbo a good
  *   shot. And let's try and give the voice more emotion.").
@@ -2114,6 +2131,7 @@ var EMT_SHOW_WORDS_COL = 9;            // v3.24: the Words column (word start ti
 var EMT_SHOW_SUB_URL = 'https://api.elevenlabs.io/v1/user/subscription';   // v3.25: the account's balance (needs user_read on the key)
 var EMT_SHOW_MONTHLY_DEFAULT = 10000;  // v3.25: the monthly limit assumed when the key cannot read the balance (EMT_SHOW_MONTHLY_LIMIT overrides)
 var EMT_SHOW_GW_CAP_RATIO = 1.25;      // v3.25: a gameweek may voice its script's length times this (EMT_SHOW_GW_CAP_<gw> overrides)
+var EMT_SHOW_GW_VERSIONS = 3;          // v3.27: script versions a gameweek may voice with an allowance of their own; later ones share the last
 var EMT_SHOW_HOLD_MS = 24 * 3600e3;    // v3.25: after a refusal with no reset time known, no render for this long
 var EMT_SHOW_HOLD_CHECK_MS = 3600e3;   // v3.25: while holding, the balance is read again this often
 var EMT_SHOW_CREDITS_FRESH_MS = 6 * 3600e3;   // v3.25: showTick refreshes the balance for ?health=1 when the last read is older
@@ -2359,8 +2377,9 @@ function emtShowTts(key, voice, model, speed, text, prev, next) {
  * Every render that has lines to voice first reads the account's balance (GET /v1/user/subscription with the same
  * key) and skips the render when the lines would not fit; a key without the user_read permission (or a read that
  * fails) falls back to the count kept here: EMT_SHOW_CHARS_<yyyy-mm>, the characters sent this calendar month, against
- * EMT_SHOW_MONTHLY_LIMIT (default 10,000). A gameweek may voice at most its script's own length plus a quarter
- * (EMT_SHOW_GW_CHARS_<gw> counts, EMT_SHOW_GW_CAP_<gw> in characters raises the cap). After a credit refusal or a
+ * EMT_SHOW_MONTHLY_LIMIT (default 10,000). A script version may voice at most its own length plus a quarter
+ * (v3.27: EMT_SHOW_GW_VER_<gw> counts per version, at most EMT_SHOW_GW_VERSIONS versions with an allowance of their own;
+ * EMT_SHOW_GW_CHARS_<gw> keeps the gameweek's total, which EMT_SHOW_GW_CAP_<gw> in characters caps when set). After a credit refusal or a
  * balance that does not fit, showTick makes no render until the reported reset (24 hours when unknown): EMT_SHOW_HOLD,
  * { until, why, since, checked }; meanwhile the balance is read once an hour so a top-up is noticed within the hour,
  * and the menu's Render now lifts the hold. The last balance read is kept in EMT_SHOW_CREDITS for ?health=1. */
@@ -2393,20 +2412,59 @@ function emtShowCreditsFresh(key) {
   var c = emtShowCreditsLast();
   if (!c || !(Date.now() - (Date.parse(c.at) || 0) < EMT_SHOW_CREDITS_FRESH_MS)) emtShowCreditsRead(key);
 }
-/* characters sent to ElevenLabs, counted per gameweek and per calendar month */
-function emtShowCount(gw, n) {
+/* characters sent to ElevenLabs, counted per gameweek, per script version (v3.27: ver, the version id the render
+ * registered) and per calendar month */
+function emtShowCount(gw, n, ver) {
   var p = emtProps(), mk = emtShowMonthKey();
   p.setProperty('EMT_SHOW_GW_CHARS_' + gw, String((Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0) + n));
   p.setProperty(mk, String((Number(p.getProperty(mk)) || 0) + n));
+  if (ver) { var V = emtShowVersions(gw); if (V.list.indexOf(ver) > -1) { V.used[ver] = (Number(V.used[ver]) || 0) + n; p.setProperty('EMT_SHOW_GW_VER_' + gw, JSON.stringify(V)); } }
 }
-/* a gameweek's cap: EMT_SHOW_GW_CAP_<gw> when set, else the script's length plus a quarter. { used, cap, chars, set }
+/* ---------- v3.27: the cap per script version ----------
+ * A script version is the md5 of its lines' texts: the voice, model and speed are not part of it, so a model change
+ * (v3.26) re-voices the same version within its allowance. EMT_SHOW_GW_VER_<gw> = { list: [id, ...], len: { id: chars },
+ * used: { id: n } } holds the versions a render has voiced, in order, each one's length and the characters each has had.
+ * A gameweek that spent characters before v3.27 (EMT_SHOW_GW_CHARS_<gw>) carries them as its first version, 'before'
+ * (its length taken as that spend), so the old script's spend never counts against a new one and still takes one of
+ * the three places. */
+function emtShowVersionId(lines) { return emtMd5hex((lines || []).map(function (c) { return String(c.text); }).join('\n')).slice(0, 12); }
+function emtShowVersions(gw) {
+  var p = emtProps(), V = null;
+  try { V = JSON.parse(p.getProperty('EMT_SHOW_GW_VER_' + gw) || 'null'); } catch (e) { V = null; }
+  if (!V || !Array.isArray(V.list) || !V.used || typeof V.used !== 'object') {
+    V = { list: [], len: {}, used: {} };
+    var before = Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0;
+    if (before > 0) { V.list.push('before'); V.len.before = before; V.used.before = before; }
+  }
+  if (!V.len || typeof V.len !== 'object') V.len = {};
+  return V;
+}
+/* the version a script's lines count against: its own id when it is registered already or the gameweek has a place left
+ * (at most EMT_SHOW_GW_VERSIONS), else the last registered version's (a fourth rewrite shares the third's allowance and
+ * the third's length, so the bound holds whatever the rewrite's length). register (the render, never health) writes a
+ * new version in. { id, own, len (the characters the allowance is built from), used, versions } */
+function emtShowVersion(gw, lines, register) {
+  var V = emtShowVersions(gw), id = emtShowVersionId(lines), known = V.list.indexOf(id) > -1, chars = 0;
+  (lines || []).forEach(function (c) { chars += String(c.text).length; });
+  if (!known && V.list.length < EMT_SHOW_GW_VERSIONS) {
+    if (register) { V.list.push(id); V.len[id] = chars; V.used[id] = 0; emtProps().setProperty('EMT_SHOW_GW_VER_' + gw, JSON.stringify(V)); }
+    return { id: id, own: true, len: chars, used: 0, versions: V.list.length + (register ? 0 : 1) };
+  }
+  var at = known ? id : V.list[V.list.length - 1];
+  return { id: at, own: known, len: Number(V.len[at]) > 0 ? Number(V.len[at]) : chars, used: Number(V.used[at]) || 0, versions: V.list.length };
+}
+/* the cap the lines are voiced against: EMT_SHOW_GW_CAP_<gw> when set (the gameweek as a whole, against its total), else
+ * the script version's length plus a quarter against what that version has voiced (v3.27; a rewrite beyond the three
+ * versions is measured against the last version's length and count). { used, cap, chars, set, pinned, version,
+ * versions, own }
  * v3.26: a gameweek pinned to the fallback model (EMT_SHOW_MODEL_GW_<gw>, set once by a refusal) gets exactly one more
  * script's worth, the re-voice the fallback needs; the pin can only be set once, so this is bounded. */
 function emtShowCap(gw, lines) {
   var p = emtProps(), chars = 0;
   (lines || []).forEach(function (c) { chars += String(c.text).length; });
-  var set = Number(p.getProperty('EMT_SHOW_GW_CAP_' + gw)), pinned = !!emtShowPin(gw);
-  return { used: Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0, cap: set > 0 ? Math.floor(set) : Math.ceil(chars * EMT_SHOW_GW_CAP_RATIO) + (pinned ? chars : 0), chars: chars, set: set > 0, pinned: pinned };
+  var set = Number(p.getProperty('EMT_SHOW_GW_CAP_' + gw)), pinned = !!emtShowPin(gw), V = emtShowVersion(gw, lines, false);
+  return { used: set > 0 ? Number(p.getProperty('EMT_SHOW_GW_CHARS_' + gw)) || 0 : V.used, cap: set > 0 ? Math.floor(set) : Math.ceil(V.len * EMT_SHOW_GW_CAP_RATIO) + (pinned ? V.len : 0),
+    chars: chars, set: set > 0, pinned: pinned, version: V.id, versions: V.versions, own: V.own };
 }
 /* the characters of the lines still to voice (missing or stale), from emtShowJudge's answer */
 function emtShowNeed(J) {
@@ -2491,18 +2549,20 @@ function emtShowRender(gw, startedAt) {
     Object.keys(idx).forEach(function (k) { if (!live[k]) { S.removed.push(k); gone = gone.concat(idx[k].rows); } });
     if (gone.length) { emtShowDeleteRows(sh, gone); idx = emtShowIndex(sh, gw); }
     /* v3.25: the credit guard, before any ElevenLabs call: the gameweek's cap (local), then the account's balance */
-    var need = 0, toVoice = 0;
+    var need = 0, toVoice = 0, ver = null;
     clips.forEach(function (c) { var h = idx[c.key]; if (!(h && h.ok && h.hash === c.hash)) { need += c.text.length; toVoice++; } });
     S.need = need;
     if (need > 0) {
       var cap = emtShowCap(gw, clips);
-      S.cap = { used: cap.used, cap: cap.cap };
+      S.cap = { used: cap.used, cap: cap.cap, version: cap.version, versions: cap.versions, own: cap.own };   /* v3.27 */
       if (cap.used + need > cap.cap) {
         S.ok = false; S.stopped = 'capped'; S.kept = clips.length - toVoice; S.left = toVoice;
-        S.error = 'GW' + gw + ' has voiced ' + cap.used + ' of its ' + cap.cap + '-character cap and the ' + toVoice + ' line' + (toVoice > 1 ? 's' : '') + ' still to voice need ' + need +
+        S.error = 'GW' + gw + ' has voiced ' + cap.used + ' of its ' + cap.cap + '-character cap' + (cap.set ? '' : ' for this script version (' + (cap.own ? 'version ' + cap.versions + ' of ' + EMT_SHOW_GW_VERSIONS : 'a rewrite beyond the ' + EMT_SHOW_GW_VERSIONS + ' versions a gameweek may voice, counted against the last') + ')') +
+          ' and the ' + toVoice + ' line' + (toVoice > 1 ? 's' : '') + ' still to voice need ' + need +
           ' more, so nothing was rendered. Set the Script Property EMT_SHOW_GW_CAP_' + gw + ' (characters) higher to voice them';
         Logger.log(emtShowSummary(S)); return S;
       }
+      ver = emtShowVersion(gw, clips, true).id;        /* v3.27: the version these lines count against, registered */
       var cr = emtShowCreditsRead(key);
       S.credits = cr.left;
       if (cr.left < need) {
@@ -2545,7 +2605,7 @@ function emtShowRender(gw, startedAt) {
         sh.appendRow([gw, c.key, "'" + c.hash, q + 1, n, secs, EMT_SHOW_MARK + b64.slice(q * EMT_SHOW_CHUNK, (q + 1) * EMT_SHOW_CHUNK), at, q === 0 && r.words ? JSON.stringify(r.words) : '']);
       }
       S.rendered.push(c.key);
-      emtShowCount(gw, c.text.length);                 /* v3.25: the gameweek's and the month's count */
+      emtShowCount(gw, c.text.length, ver);            /* v3.25: the gameweek's and the month's count; v3.27: the version's */
       if (!r.words) S.untimed = (S.untimed || 0) + 1;
       if (have) idx = emtShowIndex(sh, gw);           /* rows moved up */
     }
@@ -3462,7 +3522,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.26';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.27';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4867,7 +4927,7 @@ function emtShowHealth() {
     out.credits = emtShowCreditsLast();
     var need = J.lines ? emtShowNeed(J) : 0, cap = gw && J.lines ? emtShowCap(gw, J.lines) : null, H = emtShowHold();
     out.need = need;
-    out.cap = cap ? { used: cap.used, cap: cap.cap } : null;
+    out.cap = cap ? { used: cap.used, cap: cap.cap, version: cap.version, versions: cap.versions, own: cap.own } : null;   /* v3.27: per script version */
     out.capped = !!(cap && need > 0 && cap.used + need > cap.cap);
     out.hold = H && Date.parse(H.until) > Date.now() ? { until: H.until, why: H.why || 'credits', since: H.since || null } : null;
     out.punch = { off: emtPunchOff(), last: emtPunchLast().show || null };        /* v3.13: the punch-up's last outcome */
