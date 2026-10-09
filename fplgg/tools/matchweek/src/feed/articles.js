@@ -88,6 +88,8 @@ function draftsWanted(force) {
 export const live = () => (S.list ? S.list.live : []);
 export const waiting = () => (S.list ? S.list.waiting : []);
 export const commish = () => (S.list && S.list.commish) || null;
+/* the signed-in manager is the commissioner, by the list the app already holds (no round trip) */
+export function isCommishTeam() { const a = auth(), c = commish(); return !!(a && c && a.team === c); }
 export const commishFirst = () => { const c = commish(); return c ? (typeof FIRSTOF === 'function' ? FIRSTOF(c) : c) : 'the commissioner'; };
 /* the signed-in phone is the commissioner's, and the server said so */
 export function isCommish() { const a = auth(); return !!(a && S.commishOK && S.dFor === a.team); }

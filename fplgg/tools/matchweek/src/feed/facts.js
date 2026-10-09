@@ -1,5 +1,6 @@
 import * as UI from '../ui.js';
 /* feed/facts.js — every number a post states is computed here, from D and the engine. Nothing is invented. */
+import { showKeys, showVoiced } from './showsync.js';
 import { dt, byName, ptsOver, minsOver, startsOver, finishedGws, fxOf, fxFor, oppOf, chanceOf, lsGet, lsSet, bump, gwDoneTime } from './util.js';
 
 /* ---------- memo per data load ---------- */
@@ -387,20 +388,30 @@ export function oddsBefore() { const s = lsGet('emt-feed-odds', {}) || {}; const
 
 /* ---------- the Gameweek Show (show/gwN.json + clips) ---------- */
 const SHOWS = {}; let SHOWQ = false;
-export const shows = () => Object.values(SHOWS).filter(Boolean).sort((a, b) => b.gw - a.gw);
+/* only the shows every line of which is voiced (Parker, 9 Oct 2026); showPending has the rest */
+export const shows = () => Object.values(SHOWS).filter(s => s && s.ready).sort((a, b) => b.gw - a.gw);
+/* a gameweek's show that exists but is not fully voiced yet: { gw, voiced, expected }, else null */
+export const showPending = gw => { const s = SHOWS[gw]; return s && !s.ready ? { gw: s.gw, voiced: s.voiced, expected: s.expected } : null; };
 export function showsWanted() {
   if (SHOWQ) return; SHOWQ = true;
   /* a show is published with its written preview, and the show began in GW4 (its preview introduced Malcolm in the booth) */
   const gws = [...new Set((typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).map(p => p.gw).concat(D.gw ? [D.gw] : []))].filter(g => g >= 4);
   let left = gws.length; if (!left) return;
-  const fromSheet = g => g === D.gw && D.api ? fetch(D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + 'show=' + g + '&meta=1', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(r => r && r.ok && r.script && Array.isArray(r.script.chapters) ? r.script : null).catch(() => null) : Promise.resolve(null);
-  gws.forEach(g => fetch('show/gw' + g + '.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => j || fromSheet(g)).then(j => {
+  /* the server's meta answer: the script (when the repo has none) and which lines have a current take */
+  const meta = g => D.api ? fetch(D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + 'show=' + g + '&meta=1', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
+  const repoVoiced = j => !!(j && j.audio !== 'sheet' && j.dur);
+  gws.forEach(g => fetch('show/gw' + g + '.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => {
+    if (repoVoiced(j)) return { j, m: null };
+    if (!j && g !== D.gw) return { j: null, m: null };   /* an older gameweek without a repo script has no show */
+    return meta(g).then(m => ({ j: j || (m && m.ok && m.script && Array.isArray(m.script.chapters) ? m.script : null), m }));
+  }).then(({ j, m }) => {
     if (j && j.gw === g && Array.isArray(j.chapters)) {
-      const clips = ['open'].concat(...j.chapters.map((c, i) => c.beats.map((_, b) => 'c' + (i + 1) + 'b' + b)), ['close']);
+      const clips = showKeys(j);
       const txt = k => k === 'open' ? j.open : k === 'close' ? j.close : (j.chapters[+k.slice(1, k.indexOf('b')) - 1] || { beats: [] }).beats[+k.slice(k.indexOf('b') + 1)] || '';
       /* repo clips carry measured lengths; a script still being voiced gets an estimate from its words */
       const dur = clips.reduce((s, k) => s + ((j.dur || {})[k] || (String(txt(k)).replace(/\[[^\[\]]*\]/g, ' ').trim().split(/\s+/).filter(Boolean).length / 2.7 + .9)), 0);   /* the audio tags (v3.26) are not spoken words */
-      SHOWS[g] = { gw: g, j, clips, dur, base: 'show/gw' + g + '/', at: dt(j.rendered) };
+      const V = showVoiced(j, m, repoVoiced(j) ? j.dur : null);
+      SHOWS[g] = { gw: g, j, clips, dur, base: 'show/gw' + g + '/', at: dt(j.rendered), ready: V.ready, voiced: V.voiced, expected: V.expected, hashes: V.hashes };
     } else SHOWS[g] = null;
     if (--left === 0) { bump(); if (['feed', 'matchday'].includes(document.body.dataset.page) && window.MW && !document.getElementById('gs')) window.MW.render({ keepScroll: true }); }
   }));

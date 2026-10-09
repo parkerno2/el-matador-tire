@@ -9,12 +9,12 @@ import { presser, claimChip, pct } from '../feed/claims.js';
 import { me as signedIn, quotes, live as socialLive, rumours } from '../feed/social.js';
 import { quoteId } from '../feed/social-posts.js';
 import { VOICES, ORDER, avatar, tagChip, pic } from '../feed/voices.js';
-import { shows, mmss, selectionCall } from '../feed/facts.js';
-import { showSlot } from '../feed/showsync.js';
+import { shows, showPending, mmss, selectionCall } from '../feed/facts.js';
+import { showSlot, showNoteHTML } from '../feed/showsync.js';
 import { callKey } from '../feed/build.js';
 import { cut, mediaHTML } from '../feed/render.js';
 import { esc, short, dayMonth, lsGet, firstOf, dt, relTime } from '../feed/util.js';
-import { articlesWanted, allArticles, waiting as artWaiting, drafts as artDrafts, commishFirst, isCommish, KIND, artHref, maxRedos, review as artReview } from '../feed/articles.js';
+import { articlesWanted, allArticles, waiting as artWaiting, drafts as artDrafts, commishFirst, isCommish, isCommishTeam, KIND, artHref, maxRedos, review as artReview } from '../feed/articles.js';
 import { reader, readerHead, restoreNote, REV } from '../feed/article.js';
 
 const hasSeen = () => { try { return !!localStorage.getItem('emt-feed-seen'); } catch (e) { return false; } };
@@ -46,8 +46,13 @@ const list = (posts, opt = {}) => posts.map(p => renderPost(p, { unread: VISIT &
 
 /* the Gameweek Show pinned at the top of Everyone and For you while it is this gameweek's (Parker, 8 Oct 2026) */
 function pinnedGw() { let s = null; try { s = shows().find(x => x.gw === D.gw); } catch (e) { } return showSlot(s, D) ? s.gw : 0; }
+/* the commissioner's line where the show would be while it is being voiced (Parker, 9 Oct 2026); members see nothing */
+function showNoteFor() {
+  const p = showPending(D.gw);
+  return p && isCommishTeam() && showSlot({ gw: D.gw }, D) ? showNoteHTML(p) : '';
+}
 function pinnedShow() {
-  const g = pinnedGw(); if (!g) return '';
+  const g = pinnedGw(); if (!g) return showNoteFor();
   const s = shows().find(x => x.gw === g);
   return '<div class="fl-art fl-pin">' + UI.sh(D.dlPassed ? 'Replay the Gameweek Show' : 'The Gameweek Show', { aside: 'Pinned' }) + '<div class="fl-art-b">' + showCard(s) + '</div></div>';
 }
@@ -182,7 +187,7 @@ function articles(args) {
   /* the commissioner has those in his queue above; everyone else gets one line each */
   const notes = lines.filter(l => !Q.some(d => l.indexOf('GW' + d.gw + ' ' + KIND(d.kind).toLowerCase() + ':') === 0));
   return (Q.length ? UI.sh('Waiting for your read', { aside: Q.filter(d => d.status === 'draft' && d.a).length ? Q.filter(d => d.status === 'draft' && d.a).length + ' to read' : '' }) + '<div class="ar-list ar-q">' + Q.map(draftCard).join('') + '</div>' : '')
-    + (S.length ? UI.sh('The Gameweek Show') + S.map(s => '<div class="ar-show">' + showCard(s) + '</div>').join('') : '')
+    + (S.length || showNoteFor() ? UI.sh('The Gameweek Show') + showNoteFor() + S.map(s => '<div class="ar-show">' + showCard(s) + '</div>').join('') : '')
     + UI.sh('Previews and recaps', { aside: arts.length + ' articles' })
     + (notes.length ? '<div class="ar-waits">' + notes.map(l => '<p class="ar-wait"><i></i>' + esc(l) + '.</p>').join('') + '</div>' : '')
     + (arts.length ? '<div class="ar-list">' + arts.map(artCard).join('') + '</div>' : UI.empty('No articles yet', 'Previews land before each deadline, recaps after each gameweek.'))

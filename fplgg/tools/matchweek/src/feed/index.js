@@ -6,7 +6,7 @@ import { build, jivePosts, callPost, callKey, theShort } from './build.js';
 import { presser } from './claims.js';
 import { toggleReact, vote, sayQuote, quoteOf, me as signedIn, rumours, startRumour, passRumour } from './social.js';
 import { renderPost as R, cut } from './render.js';
-import { selectionCall, flagged, freeAgents, simWanted, showsWanted, shows, mmss } from './facts.js';
+import { selectionCall, flagged, freeAgents, simWanted, showsWanted, shows, showPending, mmss } from './facts.js';
 import { lsGet, lsSet, ver, bump, hash, esc, list, chanceOf, statusWord, newsLabel, newsWhen, buildUpTime, gwDoneTime, words, ord } from './util.js';
 import { VOICES } from './voices.js';
 import * as GS from './showplay.js';
@@ -235,4 +235,4 @@ if (typeof document !== 'undefined' && !window.__feedTaps) {
   document.addEventListener('click', onTap, true);
   document.addEventListener('scroll', onScroll, true);
 }
-export { theShort, VOICES, shows, mmss, cut };
+export { theShort, VOICES, shows, showPending, mmss, cut };

@@ -2,7 +2,8 @@
    Script: show/gwN.json (open, four chapters of five beats, close). Audio, one clip per line:
      · show/gwN/<clip>.mp3 in the repo (GW4, rendered by hand), or
      · rendered by Code.gs v3.11 with ElevenLabs into the Sheet and served by the web app (GET ?show=N).
-   No audio yet = the same show with timed captions, so it plays from the moment the script is published.
+   A show plays only once every line has a current voiced take (Parker, 9 Oct 2026); until then it is not offered, and a
+   tap that still reaches it (a rewrite landed after the page loaded) closes with one line instead of captions alone.
    The picture is built live from the app's own data: the real XIs, the model's numbers, the press room. */
 import * as UI from '../ui.js';
 import { allArticles } from './articles.js';
@@ -10,7 +11,7 @@ import * as M from '../pages/matchday/model.js';
 import { shows } from './facts.js';
 import { quotes } from './social.js';
 import { esc, firstOf } from './util.js';
-import { parseShow, wordsOn, wordsByShare, stripTags } from './showsync.js';
+import { parseShow, wordsOn, wordsByShare, stripTags, showPlayable, showNote } from './showsync.js';
 
 const HOLD = { open: 7200, intro: 3400, xi: 5800, face: 5400, close: 5200 };
 const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
@@ -39,15 +40,15 @@ export function audioFor(s) {
     .then(r => r.ok ? r.json() : null).then(r => {
       const P = parseShow(r);
       if (!P) { delete AUDIO[s.gw]; return null; }
-      const urls = {}, durs = {}, words = {};
+      const urls = {}, durs = {}, words = {}, hashes = {};
       Object.keys(P.clips).forEach(k => {
         const c = P.clips[k];
         const bin = atob(c.b64), u8 = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
         urls[k] = URL.createObjectURL(new Blob([u8], { type: 'audio/mpeg' })); durs[k] = c.secs;
-        if (c.w) words[k] = c.w;
+        if (c.w) words[k] = c.w; if (c.hash) hashes[k] = c.hash;
       });
-      return { urls, durs, words, from: 'sheet', complete: P.complete, stale: P.stale, missing: P.missing };
+      return { urls, durs, words, hashes, from: 'sheet', complete: P.complete, stale: P.stale, missing: P.missing };
     }).catch(() => { delete AUDIO[s.gw]; return null; });
   return (AUDIO[s.gw] = p);
 }
@@ -216,12 +217,28 @@ export function open(gw, only) {
     }
   } catch (e) { }
   const src = document.getElementById('gs-src'); if (src) src.textContent = 'Warming up the booth…';
-  /* show the cold open straight away; the clock starts when the audio has answered (or after 5 s without it) */
+  /* show the cold open straight away; the clock starts when the audio has answered. Without a complete answer (the
+     takes went stale under a rewrite since the page loaded, or nothing came back) the show does not play: it closes
+     with one line, never captions alone (Parker, 9 Oct 2026). */
   go(0, true);
   let settled = false;
-  const start = au => { if (settled || !Q || Q.el !== el) return; settled = true; Q.au = au; Q.ready = true; if (src) src.textContent = !au ? 'Captions only for now' : au.complete === false ? 'Some lines are being re-voiced' : ''; go(Q.i < 0 ? 0 : Q.i); };
+  const start = au => {
+    if (settled || !Q || Q.el !== el) return; settled = true;
+    if (!showPlayable(s, au)) { close(true); UI.toast(notReady(s, au)); return; }
+    Q.au = au; Q.ready = true; if (src) src.textContent = ''; go(Q.i < 0 ? 0 : Q.i);
+  };
   audioFor(s).then(start);
-  setTimeout(() => start(null), 5000);
+  setTimeout(() => start(null), 30000);
+}
+/* the line when a show cannot play: the voicing count when the server said it, a new version to reload for, or that
+   nothing came back (the next tap asks again) */
+function notReady(s, au) {
+  delete AUDIO[s.gw];
+  if (!au) return 'The Gameweek ' + s.gw + ' show could not load. Try again.';
+  if (au.from !== 'sheet') return 'The Gameweek ' + s.gw + ' show is not ready yet.';
+  if (au.complete === true) return 'The Gameweek ' + s.gw + ' show has a new version. Reload to watch it.';
+  const n = Object.keys(au.urls || {}).length, exp = n + (au.stale || []).length + (au.missing || []).length;
+  return exp > n ? showNote({ gw: s.gw, voiced: n, expected: exp }) : 'The Gameweek ' + s.gw + ' show is being voiced.';
 }
 export function close(silent) {
   if (!Q) return;

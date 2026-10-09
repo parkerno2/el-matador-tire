@@ -1,10 +1,10 @@
 /* matchday/overview.js — three blocks: your matchup (biggest), the other matchups, the latest from the feed */
 import * as UI from '../../ui.js';
-import { allArticles } from '../../feed/articles.js';
+import { allArticles, isCommishTeam } from '../../feed/articles.js';
 import * as M from './model.js';
-import { buildPosts, renderPost, shows, mmss } from '../../feed/index.js';
+import { buildPosts, renderPost, shows, showPending, mmss } from '../../feed/index.js';
 import { pic } from '../../feed/voices.js';
-import { showSlot } from '../../feed/showsync.js';
+import { showSlot, showNoteHTML } from '../../feed/showsync.js';
 
 const esc = UI.esc;
 
@@ -200,10 +200,12 @@ function feedRail() {
 
 /* ---------- the Gameweek Show: Malcolm's narrated preview, full screen ----------
    Parker, 8 Oct 2026: it was hard to find. The card sits at the top of Matchday from the moment the script exists until
-   the deadline; after the deadline a replay row stays until the gameweek is over (showSlot). */
+   the deadline; after the deadline a replay row stays until the gameweek is over (showSlot). Until every line is voiced
+   there is no card (Parker, 9 Oct 2026); the commissioner sees one line in its place. */
 export function showCard() {
   let s = null; try { s = shows().find(x => x.gw === D.gw); } catch (e) { }
-  const slot = showSlot(s, D); if (!slot) return '';
+  const slot = showSlot(s, D);
+  if (!slot) { const p = showPending(D.gw); return p && isCommishTeam() && showSlot({ gw: D.gw }, D) ? showNoteHTML(p) : ''; }
   if (slot === 'replay') {
     return '<button class="md-show md-show-re" data-fx="show:' + s.gw + '" aria-label="Replay the Gameweek ' + s.gw + ' show"><span class="md-show-av">' + pic('malcolm', 38) + '</span><span class="md-show-t"><b>Replay the Gameweek ' + s.gw + ' Show</b><span class="sub">Malcolm Tyre’s preview of all ' + s.j.chapters.length + ' matchups · ' + mmss(s.dur) + '</span></span><span class="md-show-p">' + UI.icon('play', 16) + '</span></button>';
   }
