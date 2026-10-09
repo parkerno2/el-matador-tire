@@ -5,6 +5,7 @@ import * as M from './model.js';
 import { buildPosts, renderPost, shows, showPending, mmss } from '../../feed/index.js';
 import { pic } from '../../feed/voices.js';
 import { showSlot, showNoteHTML } from '../../feed/showsync.js';
+import { artLeads, railOrder } from '../../feed/curate.js';
 
 const esc = UI.esc;
 
@@ -167,12 +168,17 @@ function footState(list) {
 }
 
 /* ---------- 3. the feed rail ---------- */
-function articleCard() {
+/* the article the rail carries: this gameweek's preview until the deadline, else the latest recap; { a, k } or null */
+function articleFor() {
   const all = allArticles(), R = all.filter(a => a.kind === 'Recap'), P = all.filter(a => a.kind === 'Preview');
   const rc = R.find(r => r.gw === D.gw && D.provOver) || R.find(r => r.gw === D.gwsDone);
   const pv = P.find(p => p.gw === D.gw && !D.dlPassed);
-  const a = pv || rc; if (!a) return '';
-  const k = pv ? 'preview' : 'recap';
+  const a = pv || rc; if (!a) return null;
+  return { a, k: pv ? 'preview' : 'recap' };
+}
+function articleCard(x) {
+  if (!x) return '';
+  const a = x.a, k = x.k;
   return '<a class="md-rc md-art" href="' + esc(a.href) + '"><span class="md-ak">Gameweek ' + a.gw + ' ' + k + '</span><b>' + esc(a.title) + '</b><span class="sub">' + esc(a.sub || '') + '</span><span class="md-go">Read the ' + k + ' ›</span></a>';
 }
 /* variety: the newest post from each league voice first, then more without two of one voice side by side.
@@ -185,15 +191,14 @@ function railPosts(n) {
   for (const p of posts) { if (pick.length >= n) break; if (!pick.includes(p) && (!pick.length || pick[pick.length - 1].voice !== p.voice)) pick.push(p); }
   return pick;
 }
+/* the article leads the rail for its first 24 hours, then sits after the newest voice posts (artLeads, curate.js) */
 function feedRail() {
-  const art = articleCard();
+  const x = articleFor(), art = articleCard(x);
   const posts = railPosts(art ? 3 : 4);
-  const cards = [];
-  if (art) cards.push(art);
-  posts.forEach(p => {
+  const cards = railOrder(art, posts.map(p => {
     let h = ''; try { h = renderPost(p, { compact: true }); } catch (e) { console.error(e); }
-    if (h) cards.push('<div class="md-rc">' + h + '</div>');
-  });
+    return h ? '<div class="md-rc">' + h + '</div>' : '';
+  }).filter(Boolean), x && artLeads(x.a, Date.now()));
   if (!cards.length) return UI.sh('Latest from the feed', { more: 'Feed', href: '#/feed' }) + '<div class="empty md-empty">Nothing new in the feed yet.</div>';
   return UI.sh('Latest from the feed', { more: 'Feed', href: '#/feed' }) + '<div class="md-rail">' + cards.join('') + '</div>';
 }

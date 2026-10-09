@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,26 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.29 · 9 Oct 2026
+ *   The feed writer's daily floor (Parker's Q3, 8 Oct 2026: "When will it go away and not be the first thing? I thought
+ *   they were also writing new articles. [Nothing] written since Wednesday."). The writer posted only when something
+ *   happened (a quote, full time, the build-up, a rumour), so a quiet stretch posted nothing and the last article sat
+ *   first in the Feed for days.
+ *   1. The floor (aiFloorTick, after the events in aiWriterTick): on a day with fewer than EMT_AI_FLOOR (2) voice posts
+ *      by EMT_AI_FLOOR_HOUR (14:00) Chicago time, the writer looks for something real and new in the data that changes
+ *      daily, each voice in its own lane (aiFloorEvents, TONE.md): Archizio on the market (the claims and pickups since
+ *      the last deadline from Transactions, the best free agents from Players, the waiver order and the clock to the
+ *      waiver deadline), Clark on form, the projections (each XI's EP next, the top projected starters), the fixtures and
+ *      the table, Malcolm on the build-up (one matchup of the coming gameweek with the all-time series and the last
+ *      meeting from H2H Fixtures). The first lane turns by day. One floor run a day (EMT_AI_STATE floor.day, Chicago),
+ *      at most 2 posts less what the day already has, inside the per-run (2) and per-day (6) caps; a lane with nothing
+ *      worth saying answers {"posts":[]} and the day stays quiet; a lane post in another voice is dropped. Off while a
+ *      gameweek is live (match days stay as they were) and on the first run after the update (no backfill). The
+ *      Chicago clock is computed from the US daylight-time rule (emtChicago), no time zone library.
+ *   2. Nothing repeats: a floor post's MEMORY is every voice post of the last EMT_AI_FLOOR_DAYS (7) days, and the ask
+ *      says a different number on the same point is still the same point.
+ *   3. ?health=1 ai.floor ({ day, made, why }) and ai.last.floor say what the floor did, so a quiet day reads as quiet.
+ *   The voices, the tone block, the four event triggers, the number guard and every Script Property are unchanged.
  * v3.28 · 9 Oct 2026
  *   The Gameweek Show's writer in dry British commentary (Parker, 9 Oct 2026, on the earlier drafts: "trying too hard";
  *   he wants "British dry humour", commentators who are "clever and stupid but witty" who "talk about the season, the
@@ -1771,6 +1791,8 @@ function adminResetPin(team) {
  *     · a gameweek that has just finished                  → two posts: the booth and the terrace
  *     · the build-up (the last 30 hours before a deadline) → one post per gameweek, voices take turns
  *     · a rumour passed on with a twist (the rumour mill)  → one retelling
+ *     · v3.29: the daily floor: a day with fewer than 2 voice posts by 14:00 Chicago gets them from the data that
+ *       changes daily, each voice in its lane (aiFloorTick, aiFloorEvents), nothing repeated from the last 7 days
  *   Each post goes into the Posts tab, which the app shows in the Feed and which is the writer's memory:
  *   the next prompt includes earlier posts and quotes about the same clubs, plus any 'note' rows (running jokes,
  *   storylines), so the voices can call back. Guardrails: every number in a post must appear in the facts or the
@@ -1783,6 +1805,11 @@ var EMT_AI_HEAD = ['When (UTC)', 'Id', 'Voice', 'Kind', 'Event', 'Teams', 'Playe
 var EMT_AI_MODEL_DEFAULT = 'claude-haiku-5-5';
 var EMT_AI_MODELS = [EMT_AI_MODEL_DEFAULT, 'claude-haiku-4-5'];   // v3.13: the chain after EMT_AI_MODEL (emtModelChain)
 var EMT_AI_PER_RUN = 2, EMT_AI_PER_DAY = 6;   // v3.10: quality over quantity
+var EMT_AI_FLOOR = 2, EMT_AI_FLOOR_HOUR = 14, EMT_AI_FLOOR_DAYS = 7;   // v3.29: the daily floor: by 14:00 Chicago a quiet day has 2 voice posts, nothing repeated from the last 7 days
+var EMT_AI_FLOOR_LANES = ['archizio', 'clark', 'malcolm'];           // v3.29: each voice in its own lane, the first lane turning by day
+var EMT_AI_FLOOR_ASK = 'This is a quiet day between gameweeks and the Feed has had nothing from the voices today, so find one thing in FACTS that is real, specific and new, and write one post about it as ' +
+  'VOICE only, in that voice\'s lane. Hard rules: nothing MEMORY already said in its posts of the last 7 days (a different number on the same point is still the same point); every number from FACTS; ' +
+  'no invented quotes. If nothing in FACTS is worth a post today, answer {"posts":[]}: a quiet day stays quiet rather than padded.';
 var EMT_AI_VOICES = ['archizio', 'clark', 'malcolm'];
 /* v3.13 · the house tone (Parker, 8 Oct 2026; it replaces "jokes minimal and dry" and "no swearing"). One block, THE
  * READERS, joined into every writer's system prompt: the AI writer, the show writer, the article writer and both
@@ -1980,12 +2007,112 @@ function aiEvents(S) {
   return out;
 }
 
+/* ---------- v3.29: the daily floor (Parker, 8 Oct 2026: "When will it go away and not be the first thing? I thought
+ * they were also writing new articles. [Nothing] written since Wednesday.") ----------
+ * The writer posts on four triggers (quotes, full time, the build-up, a rumour), so a quiet stretch posts nothing and the
+ * last article sits first in the Feed for days. The floor: on a day that has fewer than EMT_AI_FLOOR voice posts by
+ * EMT_AI_FLOOR_HOUR Chicago time, the writer looks for something real and new in the data that changes daily, each
+ * voice in its own lane (TONE.md): Archizio on the market (waiver claims, free agents, the waiver deadline), Clark on
+ * form, the projections, the fixtures and the table, Malcolm on the build-up (a matchup and its history from the
+ * booth). One floor run a day, at most EMT_AI_FLOOR posts, the per-run and per-day caps kept, memory the last 7 days
+ * of posts so nothing repeats, and a lane with nothing worth saying answers {"posts":[]}. Off while a gameweek is live
+ * (the deadline passed and a fixture unfinished: match days stay as they were) and on the first run after the update. */
+/* Chicago's clock without a time zone library: US daylight time runs from the second Sunday of March, 2:00 CST
+ * (08:00 UTC), to the first Sunday of November, 2:00 CDT (07:00 UTC). { day: 'YYYY-MM-DD', hour: 0 to 23.99, offset } */
+function emtChicagoOffset(ms) {
+  var y = new Date(ms).getUTCFullYear();
+  var nthSunday = function (month, n) { var first = new Date(Date.UTC(y, month, 1)).getUTCDay(); return Date.UTC(y, month, 1 + ((7 - first) % 7) + (n - 1) * 7); };
+  var start = nthSunday(2, 2) + 8 * 3600e3, end = nthSunday(10, 1) + 7 * 3600e3;
+  return ms >= start && ms < end ? -5 : -6;
+}
+function emtChicago(ms) {
+  var off = emtChicagoOffset(ms), l = new Date(ms + off * 3600e3);
+  return { day: l.toISOString().slice(0, 10), hour: l.getUTCHours() + l.getUTCMinutes() / 60, offset: off };
+}
+/* the voice posts (Kind ai) written on a Chicago day */
+function aiDayPosts(rows, day) { return rows.filter(function (r) { return r.Kind === 'ai' && aiTs(r['When (UTC)']) && emtChicago(aiTs(r['When (UTC)'])).day === day; }).length; }
+/* a gameweek is live: its deadline has passed and an H2H fixture of it is not finished */
+function aiLiveGw(L, now) {
+  return L.mw.some(function (w) {
+    var dl = aiTs(w['Deadline (UTC)']); if (!dl || dl > now || String(w.Finished).toUpperCase() === 'TRUE') return false;
+    return L.fx.some(function (f) { return Number(f.GW) === Number(w.GW) && String(f.Finished).toUpperCase() !== 'TRUE'; });
+  });
+}
+/* the all-time series between two teams from the finished H2H rows: { a_wins, b_wins, draws, last: 'GW5 Home 44-40 Away' } */
+function aiSeries(L, a, b) {
+  var o = { wins: {}, draws: 0, last: '' }; o.wins[a] = 0; o.wins[b] = 0;
+  L.fx.filter(function (f) { return String(f.Finished).toUpperCase() === 'TRUE' && ((f.Home === a && f.Away === b) || (f.Home === b && f.Away === a)); })
+    .sort(function (x, y) { return Number(x.GW) - Number(y.GW); }).forEach(function (f) {
+      var h = Number(f['Home pts']), w = Number(f['Away pts']);
+      if (h > w) o.wins[f.Home]++; else if (w > h) o.wins[f.Away]++; else o.draws++;
+      o.last = 'GW' + Number(f.GW) + ' ' + f.Home + ' ' + h + '-' + w + ' ' + f.Away;
+    });
+  return o;
+}
+/* the next gameweek's fixtures with each side's table position; the series and last meeting when asked */
+function aiNextFixtures(L, gwN, withSeries) {
+  var pos = {}; L.table.forEach(function (t) { pos[t.team] = t.pos; });
+  return L.fx.filter(function (z) { return Number(z.GW) === gwN; }).map(function (z) {
+    var o = { home: z.Home, home_table_pos: pos[z.Home], away: z.Away, away_table_pos: pos[z.Away] };
+    if (withSeries) { var sr = aiSeries(L, z.Home, z.Away); o.series_wins = sr.wins; o.series_draws = sr.draws; if (sr.last) o.last_meeting = sr.last; }
+    return o;
+  });
+}
+/* the three lanes as events, in today's order; each carries only facts from the sheet (every number real) */
+function aiFloorEvents(S, L, now, day) {
+  var next = L.mw.filter(function (w) { return String(w.Finished).toUpperCase() !== 'TRUE'; }).sort(function (a, b) { return Number(a.GW) - Number(b.GW); })[0];
+  if (!next) return [];
+  var gwN = Number(next.GW), dl = aiTs(next['Deadline (UTC)']), wv = aiTs(next['Waivers (UTC)']), prev = aiPrevDeadline(L, now);
+  var hrs = function (t) { return t ? Math.round((t - now) / 3600e3) : null; };
+  var teams = L.table.map(function (t) { return t.team; }), pos = {}; L.table.forEach(function (t) { pos[t.team] = t.pos; });
+  var players = emtRows('Players'), rosters = emtRows('Rosters'), ep = {};
+  players.forEach(function (p) { ep[String(p.Code)] = Number(p['EP next']) || 0; });
+  var lanes = {};
+  /* Archizio: the market */
+  var moves = emtRows('Transactions').filter(function (r) { return aiTs(r['When (UTC)']) > Math.max(prev, now - 7 * 864e5); })
+    .map(function (r) { return { gameweek: Number(r.GW), team: r.Team, manager: L.first(r.Team), in_: r.In, out: r.Out, type: r.Type, result: r.Result, when: String(r['When (UTC)']).slice(0, 10) }; })
+    .map(function (m) { var o = {}; Object.keys(m).forEach(function (k) { o[k === 'in_' ? 'in' : k] = m[k]; }); return o; });
+  var free = players.filter(function (p) { return String(p.Owner).toUpperCase() === 'FREE' && Number(p.Mins) > 0; })
+    .sort(function (a, b) { return Number(b.Form) - Number(a.Form) || Number(b['Season pts']) - Number(a['Season pts']); }).slice(0, 6)
+    .map(function (p) { return { player: p.Player, pos: p.Pos, club: p.Club, season_pts: Number(p['Season pts']), form: Number(p.Form), ep_next: Number(p['EP next']) }; });
+  var order = emtRows('Standings').filter(function (s) { return s['Waiver pick'] !== '' && s['Waiver pick'] != null; })
+    .sort(function (a, b) { return Number(a['Waiver pick']) - Number(b['Waiver pick']); }).map(function (s) { return { pick: Number(s['Waiver pick']), team: s.Team, manager: L.first(s.Team) }; });
+  lanes.archizio = { facts: { gameweek: gwN, waiver_deadline: wv ? new Date(wv).toISOString() : null, hours_to_waivers: hrs(wv), deadline: dl ? new Date(dl).toISOString() : null, hours_to_deadline: hrs(dl),
+      moves_since_last_deadline: moves, best_free_agents: free, waiver_order: order, table: L.table },
+    lane: 'the market: a waiver claim or pickup that stands out, a free agent nobody has moved for, the waiver order, the clock to the waiver deadline', line: 'Transactions, Players, the waiver order' };
+  /* Clark: form, the projections, the fixtures, the table */
+  var proj = {}; rosters.forEach(function (p) { if (String(p['Best XI']) === 'XI') { var t = p.Team; (proj[t] = proj[t] || { xi: 0, top: [] }); proj[t].xi += ep[String(p.Code)] || 0; proj[t].top.push({ player: p.Player, ep_next: ep[String(p.Code)] || 0 }); } });
+  var projected = Object.keys(proj).map(function (t) { var x = proj[t]; x.top.sort(function (a, b) { return b.ep_next - a.ep_next; }); return { team: t, manager: L.first(t), projected_xi_points: Math.round(x.xi * 10) / 10, top_projected: x.top.slice(0, 2) }; })
+    .sort(function (a, b) { return b.projected_xi_points - a.projected_xi_points; });
+  var flags = rosters.filter(function (p) { return (p.Status === 'd' || p.Status === 'i') && String(p['GW XI'] || p['Best XI']) === 'XI'; }).slice(0, 8)
+    .map(function (p) { return { player: p.Player, team: p.Team, news: String(p.News || '') }; });
+  lanes.clark = { facts: { gameweek: gwN, hours_to_deadline: hrs(dl), table_with_form: L.table.map(function (t) { return { pos: t.pos, team: t.team, manager: t.manager, pts: t.pts, pf: t.pf, pa: t.pa, last3: t.last3 }; }),
+      fixtures: aiNextFixtures(L, gwN, false), projected_for_next_gameweek: projected, flagged_starters: flags, results_last_gameweek: aiResults(L, L.lastDone) },
+    lane: 'form, the projections, the fixtures and the table: one real, specific decision or slide to melt down about', line: 'Standings, H2H Fixtures, Rosters, Players' };
+  /* Malcolm: the build-up from the booth */
+  lanes.malcolm = { facts: { gameweek: gwN, deadline: dl ? new Date(dl).toISOString() : null, hours_to_deadline: hrs(dl), fixtures_with_history: aiNextFixtures(L, gwN, true), table: L.table,
+      results_last_gameweek: aiResults(L, L.lastDone), quotes_this_gameweek: aiQuotes(null, gwN) },
+    lane: 'the build-up: one matchup of the coming gameweek and its history, set up calm from the booth with the knife at the end', line: 'H2H Fixtures, the table, the quotes' };
+  var n = EMT_AI_FLOOR_LANES.length, start = Math.floor(now / 864e5) % n, out = [];
+  for (var i = 0; i < n; i++) {   /* every lane, in today's order; the caller stops once it has what it needs */
+    var v = EMT_AI_FLOOR_LANES[(start + i) % n], ln = lanes[v];
+    out.push({ type: 'floor', key: 'fl:' + day + ':' + v, at: now, teams: teams, n: 1, voice: v, days: EMT_AI_FLOOR_DAYS,
+      ask: 'One ' + v + ' post. ' + EMT_AI_FLOOR_ASK.replace('VOICE', v) + ' The lane for ' + v + ': ' + ln.lane + '.',
+      desc: 'A quiet day before gameweek ' + gwN + (dl ? ', ' + hrs(dl) + ' hours to the deadline' : '') + '.', facts: ln.facts, line: ln.line });
+  }
+  return out;
+}
+
 /* ---------- memory: earlier posts and quotes about the same clubs, and the notes ---------- */
 function aiMemory(ev) {
   var rows = emtRows('Posts'), notes = rows.filter(function (r) { return r.Kind === 'note'; }).slice(-8);
   var posts = rows.filter(function (r) { return r.Kind === 'ai'; });
   var rel = posts.filter(function (r) { var t = String(r.Teams || '').split('|'); return ev.teams.some(function (x) { return t.indexOf(x) > -1; }); }).slice(-10);
   var recent = posts.slice(-4).filter(function (r) { return rel.indexOf(r) < 0; });
+  if (ev.days) {   /* v3.29: a floor post must not repeat anything from the last days, so every post of them is in memory */
+    var since = Date.now() - ev.days * 864e5;
+    rel = posts.filter(function (r) { return aiTs(r['When (UTC)']) > since; }).slice(-24); recent = [];
+  }
   var lines = [];
   notes.forEach(function (r) { lines.push('[note] ' + r.Text); });
   rel.concat(recent).forEach(function (r) { lines.push('[' + String(r['When (UTC)']).slice(0, 10) + ' ' + r.Voice + '] ' + r.Text); });
@@ -2041,7 +2168,7 @@ function aiWrite(ev) {
   var numsOk = function (s) { return (String(s).match(/\d+(?:\.\d+)?/g) || []).every(function (n) { return allowed.indexOf(n) > -1; }); };
   return out.map(function (p) {
     var voice = String(p.voice || '').toLowerCase(), text = emtClean(p.text, 300).replace(/—/g, ',');
-    if (EMT_AI_VOICES.indexOf(voice) < 0 || text.length < 15 || !numsOk(text)) { Logger.log('AI post dropped: ' + JSON.stringify(p)); return null; }
+    if (EMT_AI_VOICES.indexOf(voice) < 0 || text.length < 15 || !numsOk(text) || (ev.voice && voice !== ev.voice)) { Logger.log('AI post dropped: ' + JSON.stringify(p)); return null; }   /* v3.29: a lane post is in its voice */
     var th = null;
     if (voice === 'clark' && p.thumb && p.thumb.t1) {
       th = { t1: emtClean(p.thumb.t1, 22).toUpperCase(), t2: emtClean(p.thumb.t2, 26).toUpperCase(), lo: emtClean(p.thumb.lo, 26).toUpperCase() };
@@ -2093,10 +2220,46 @@ function aiWriterTick() {
       if (ev.type === 'build') S.buildGw = ev.gw;
       if (ev.type === 'rumour') S.rumourAt = Math.max(S.rumourAt || 0, ev.at);
     }
+    /* v3.29: the daily floor, after the events: a quiet day gets its two posts (see aiFloorEvents) */
+    var fl = aiFloorTick(S, made, err);
+    made += fl.made; if (fl.error) err = err || fl.error;
     /* v3.25: the last run, for ?health=1 ai.last: a quiet day (no event due) and a broken writer read differently */
-    S.last = { at: new Date().toISOString(), events: evs.length, kinds: evs.map(function (e) { return e.type; }).join(','), made: made, error: err };
+    S.last = { at: new Date().toISOString(), events: evs.length, kinds: evs.map(function (e) { return e.type; }).join(','), made: made, error: err, floor: fl.why };
     aiSaveState(S);
   } finally { lock.releaseLock(); }
+}
+/* v3.29: the floor step of a writer run. S is the writer's state, made the posts this run already wrote, err its
+ * error. Writes up to EMT_AI_FLOOR posts (less what the day already has), inside the per-run and per-day caps, once a
+ * day (S.floor.day), from EMT_AI_FLOOR_HOUR Chicago time, never while a gameweek is live, never on the first run after
+ * the update (no backfill, like every other trigger). { made, why, error }; why is kept in ?health=1 ai.last.floor. */
+function aiFloorTick(S, made, err) {
+  var now = Date.now(), C = emtChicago(now), out = { made: 0, why: '', error: '' };
+  if (!S.floor || typeof S.floor !== 'object') { S.floor = { day: C.day, made: 0, why: 'first run' }; out.why = 'first run'; return out; }
+  if (err) { out.why = 'writer error'; return out; }
+  if (S.floor.day === C.day) { out.why = 'done today: ' + S.floor.why; return out; }
+  if (C.hour < EMT_AI_FLOOR_HOUR) { out.why = 'before ' + EMT_AI_FLOOR_HOUR + ':00 Chicago'; return out; }
+  var rows = emtRows('Posts'), have = aiDayPosts(rows, C.day);
+  var need = Math.min(EMT_AI_FLOOR - have, EMT_AI_PER_RUN - made, EMT_AI_PER_DAY - (Number(S.count) || 0));
+  if (need <= 0) { out.why = have >= EMT_AI_FLOOR ? 'enough today (' + have + ')' : 'caps'; if (have >= EMT_AI_FLOOR) S.floor = { day: C.day, made: 0, why: out.why }; return out; }
+  var L = aiLeague();
+  if (aiLiveGw(L, now)) { out.why = 'live gameweek'; S.floor = { day: C.day, made: 0, why: out.why }; return out; }
+  var evs = aiFloorEvents(S, L, now, C.day), sh = emtPostsSheet(), made2 = 0, quiet = [];
+  for (var i = 0; i < evs.length && made2 < need; i++) {
+    var ev = evs[i], posts = [];
+    try { posts = aiWrite(ev); } catch (e) { out.error = String((e && e.message) || e).slice(0, 200); Logger.log('AI writer (floor): ' + e); break; }   /* try again next run */
+    if (!posts.length) { quiet.push(ev.voice); continue; }
+    posts.forEach(function (p, k) {
+      var media = p.thumb ? JSON.stringify({ type: 'thumb', t1: p.thumb.t1, t2: p.thumb.t2, lo: p.thumb.lo, team: p.teams[0] || '' }) : '';
+      sh.appendRow(["'" + new Date().toISOString(), emtCell('ai:' + ev.key + ':' + k), p.voice, 'ai', emtCell(ev.key), emtCell(p.teams.join('|')), '', emtCell(p.text), emtCell(ev.line), emtCell(media)]);
+    });
+    made2 += posts.length; S.count = (Number(S.count) || 0) + posts.length;
+  }
+  out.made = made2;
+  if (out.error) { out.why = 'error, trying again next run'; return out; }   /* the day is not marked done */
+  out.why = (made2 ? 'wrote ' + made2 : 'quiet day, nothing worth a post') + (quiet.length ? ' (nothing from ' + quiet.join(', ') + ')' : '');
+  S.floor = { day: C.day, made: made2, why: out.why };
+  Logger.log('AI writer floor: ' + out.why);
+  return out;
 }
 /* running jokes and storylines the writer should know about (rows with Kind 'note' are memory only, never shown) */
 function aiSeedNotes() {
@@ -3549,7 +3712,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.28';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.29';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -4981,7 +5144,8 @@ function emtHealth() {
         if (m.status === 'live' && m.pend) o.rewrite = m.pend;
         return o;
       }) },
-    ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn(), last: A.last && typeof A.last === 'object' ? A.last : null } };   /* v3.25: last */
+    ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn(), last: A.last && typeof A.last === 'object' ? A.last : null,   /* v3.25: last */
+      floor: A.floor && typeof A.floor === 'object' ? A.floor : null } };   /* v3.29: the daily floor's last day: { day (Chicago), made, why } */
 }
 /* ---------- v3.18: errors reported by phones (ROADMAP A4) ----------
  * The app's window.onerror and unhandledrejection post `clienterror`: build, route, kind, msg, stack, online. No login

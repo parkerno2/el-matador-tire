@@ -1,5 +1,6 @@
-/* feed/curate.js: the Feed's small, pure rules about Manager of the Month (Parker, 8 Oct 2026: "the feed leaves a bad
-   first impression because it's sort of just talking about my manager of the month thing way too much"). No globals. */
+/* feed/curate.js: the Feed's small, pure rules: Manager of the Month (Parker, 8 Oct 2026: "the feed leaves a bad first
+   impression because it's sort of just talking about my manager of the month thing way too much") and how long an article
+   leads (Parker, 8 Oct 2026, Q3: "When will it go away and not be the first thing?"). No globals. */
 
 /* a post about Manager of the Month: Archizio's own (kind motm) or one built on a manager's Manager of the Month claim
    (topic motm: the quote, Clark's bold call, the receipts, the pile-on) */
@@ -37,4 +38,20 @@ export function demote(posts, pred, n) {
   /* the head is topped up from the tail so the first screen stays full, then the moved posts, then the rest */
   const fill = tail.filter(p => !pred(p)).slice(0, moved.length), rest = tail.filter(p => !fill.includes(p));
   return head.concat(fill, moved, rest);
+}
+
+/* an article leads only while it is fresh (Parker, 8 Oct 2026): for its first ART_LEAD_H hours after it went live the
+   preview or recap card goes first on the Matchday rail and sits in For you's article slot; after that it follows the
+   newest voice posts (still on the rail until the deadline for a preview, until the next gameweek for a recap) and the
+   Feed keeps it in its place by time, never pinned. An article without a publish time (a built-in page) never leads. */
+export const ART_LEAD_H = 24;
+export function artLeads(a, now, hours = ART_LEAD_H) {
+  const t = a && a.approved ? Date.parse(a.approved) : NaN;
+  return isFinite(t) && now - t < hours * 3600e3;
+}
+/* the rail's cards in order: the article first while it leads, else after the posts; no article, the posts alone */
+export function railOrder(art, posts, lead) {
+  const ps = (posts || []).slice();
+  if (!art) return ps;
+  return lead ? [art].concat(ps) : ps.concat([art]);
 }

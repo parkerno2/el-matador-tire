@@ -1,6 +1,6 @@
 /* pages/feed.js — the Feed: Everyone (id league) · For you · Articles · Messages (+ #/feed/messages/<jive|archizio>, #/feed/league/<voice>). */
 import * as UI from '../ui.js';
-import { isMotm, oneMotm, demote } from '../feed/curate.js';
+import { isMotm, oneMotm, demote, artLeads } from '../feed/curate.js';
 import {
   unread, buildPosts, renderPost, unreadIds, markSeen, threads, markThread, unreadThreads, jiveTodo, jiveCall, warm, restoreCarousels, postById, PRESS, RUM,
 } from '../feed/index.js';
@@ -76,9 +76,11 @@ function forYou() {
   return pin + inbox + UI.sh('For ' + you) + (stream.length ? '<div class="fl">' + body + '</div>' : UI.empty('Quiet week for ' + you, 'Nothing about your club yet. Everyone has every post in the league.') + (art ? artBlock(art) : ''))
     + (stream.length > N ? '<a class="fl-more" href="#/feed/league">Every post is in Everyone ›</a>' : '');
 }
+/* For you's article slot: the newest article while it leads (its first 24 hours live, artLeads); after that the Feed keeps
+   it in its place by time in Everyone and under Articles, never pinned (Parker, 8 Oct 2026) */
 function latestArticle(pinned) {
   const s = pinned ? null : shows()[0];   /* the show pinned above is not repeated down here */
-  const a = allArticles()[0];
+  const a0 = allArticles()[0], a = a0 && artLeads(a0, Date.now()) ? a0 : null;
   if (s && (!a || s.gw * 2 >= a.ord)) return { show: s };
   return a ? { art: a } : null;
 }
