@@ -1,5 +1,9 @@
 # Matchweek roadmap (from 8 Oct 2026)
 
+## Review findings
+Unchecked lines are what a REVIEW MODE pass found on the preview branch; the next build run (lane app) fixes them all as one item, then the preview is reviewed again.
+- [ ] Q5 review, 10 Oct 2026 (`docs/runs/2026-10-10-review-q5.md`, FAIL, 1 finding): the manager sheet's All-time tab cuts a long team name in its Seasons table at 360 px ("The Soaring Gulls" reads "The Soaring G..." on both rows; "Kobbie Mainoo Fan" the same; screenshot `docs/runs/2026-10-10-review-q5/01-finding-sheet-seasons-360.png`). The Team cell of `.at-sr` (`src/css/45-alltime.css`, `src/sheets/manager.js` `alltimePanel`) is `minmax(0,1fr)` beside fixed columns of 56, 44, 52 and 32 px and carries `ell`, so it gets about 102 px at 360 px against the 107 px the name needs. The invariant is no clipped text at 360 and 390 px, and Parker's rule for the League table (Q6) is that a team name may take two lines and is never cut: let the name wrap to two lines there (or shorten the fixed columns at 360 px), add the case to `tests/app-alltime.js`, check both widths headless, push to the preview branch. Everything else passed: the gates, the contrast audit, the numbers against an independent recomputation, the Derbies agreement on all eight sheets.
+
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
 
