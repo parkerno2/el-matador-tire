@@ -1,7 +1,9 @@
 /* Manager sheet: data-open="manager:<team>" — another club's profile, dressed in THEIR colours.
-   Header (crest, manager, table strip, form) · Overview / Squad / Results / Season. */
+   Header (crest, manager, table strip, form) · Overview / Squad / Results / Season / All-time. */
 import * as UI from '../ui.js';
 import * as K from './kit.js';
+import { allTime, managerOf, nameOf, f1, f2, pct } from '../alltime.js';
+import { mark } from '../pages/league/alltime.js';
 
 const esc = UI.esc;
 const gwFx = g => (D.fx || []).filter(f => num(f.GW) === g);
@@ -262,20 +264,59 @@ function moves(team) {
   }).join('') + '</div>';
 }
 
+/* ---------- all-time (Parker's Q5, 10 Oct 2026): his line, his records, his finishes by season, his 2025/26 draft, his record against every other manager ---------- */
+const whenAt = (s, g) => s + ' GW' + g;
+export function alltimePanel(team) {
+  const m = managerOf(team);
+  if (!m || !m.P) return UI.sh('All-time') + UI.empty('No finished match yet', 'The all-time numbers start with the first finished gameweek.');
+  const A = allTime();
+  const cell = (v, l) => '<div><b class="n">' + v + '</b><span>' + l + '</span></div>';
+  let html = UI.sh('All-time', { aside: m.played + (m.played === 1 ? ' season' : ' seasons') + (m.titles ? ' · ' + m.titles + (m.titles === 1 ? ' title' : ' titles') : '') })
+    + '<div class="card at-line">' + cell(m.P, 'played') + cell(m.W + '-' + m.D + '-' + m.L, 'W-D-L') + cell(m.Pts, 'points') + cell(f2(m.ppm), 'per match')
+    + cell(m.PF, 'for') + cell(m.PA, 'against') + cell(f1(m.avg), 'a gameweek') + cell(pct(m.winPct), 'won') + '</div>';
+  /* records */
+  const row = (l, v, c) => '<div class="row ms-sn"><div><b>' + l + '</b><span class="sub">' + esc(c) + '</span></div><span class="ms-snv"><b class="n">' + v + '</b></span></div>';
+  let rec = '';
+  if (m.hi) rec += row('Highest score', m.hi.v, whenAt(m.hi.season, m.hi.gw) + ' v ' + nameOf(m.hi.opp));
+  if (m.lo) rec += row('Lowest score', m.lo.v, whenAt(m.lo.season, m.lo.gw) + ' v ' + nameOf(m.lo.opp));
+  if (m.bigWin) rec += row('Biggest win', m.bigWin.my + '-' + m.bigWin.their, 'by ' + m.bigWin.m + ', ' + whenAt(m.bigWin.season, m.bigWin.gw) + ' v ' + nameOf(m.bigWin.opp));
+  if (m.bigLoss) rec += row('Heaviest defeat', m.bigLoss.my + '-' + m.bigLoss.their, 'by ' + m.bigLoss.m + ', ' + whenAt(m.bigLoss.season, m.bigLoss.gw) + ' v ' + nameOf(m.bigLoss.opp));
+  if (m.winRun) rec += row('Longest winning run', m.winRun.n, whenAt(m.winRun.from.season, m.winRun.from.gw) + ' to ' + whenAt(m.winRun.to.season, m.winRun.to.gw));
+  if (m.lossRun) rec += row('Longest losing run', m.lossRun.n, whenAt(m.lossRun.from.season, m.lossRun.from.gw) + ' to ' + whenAt(m.lossRun.to.season, m.lossRun.to.gw));
+  rec += row('All-play record', m.allplay.w + '-' + m.allplay.l + '-' + m.allplay.t, 'W-L-T against every manager every gameweek');
+  html += UI.sh('Records') + '<div class="card">' + rec + '</div>';
+  /* finishes by season */
+  html += UI.sh('Seasons') + '<div class="card"><div class="at-sr hd"><span>Season</span><span>Team</span><span>Finish</span><span>W-D-L</span><span>Pts</span></div>'
+    + m.seasons.slice().reverse().map(s => '<div class="at-sr' + (s.title ? ' ttl' : '') + '"><span class="n">' + esc(s.season) + '</span><span class="tm ell">' + esc(s.team) + '</span><span class="n">' + (s.P ? K.ord(s.rank) + (s.current && !s.complete ? '*' : '') : '-') + (s.title ? '<i>title</i>' : '') + '</span><span class="n">' + s.W + '-' + s.D + '-' + s.L + '</span><b class="n">' + s.Pts + '</b></div>').join('')
+    + '</div>' + (m.seasons.some(s => s.current && !s.complete) ? K.note('* so far, finished gameweeks only.') : '');
+  /* the earlier seasons' drafts */
+  m.drafts.forEach(d => {
+    html += UI.sh(d.season + ' draft') + '<div class="card">'
+      + '<div class="row ms-sn"><div><b>First pick</b></div><span class="ms-snv"><b>' + esc(d.pick) + '</b></span></div>'
+      + (d.star ? '<div class="row ms-sn"><div><b>Best player</b><span class="sub">' + esc(d.star.pos_club || '') + '</span></div><span class="ms-snv"><b>' + esc(d.star.player) + '</b><span class="sub"><span class="n">' + d.star.pts + '</span> pts</span></span></div>' : '')
+      + '</div>';
+  });
+  /* head to head: the same records as the Derbies page's series */
+  const opps = Object.keys(m.h2h).map(c => A.managers[c]).filter(Boolean).sort((p, q) => p.rank - q.rank);
+  if (opps.length) html += UI.sh('Head to head', { aside: 'W-D-L' }) + '<div class="card">' + opps.map(o => { const r = m.h2h[o.code];
+    return '<div class="at-hr"' + (o.team ? ' data-open="manager:' + esc(o.team) + '" role="button" tabindex="0"' : '') + '>' + mark(o, 24) + '<span class="nm ell">' + esc(nameOf(o.code)) + '</span><b class="n">' + r.w + '-' + r.d + '-' + r.l + '</b><span class="n pf">' + r.pf + '-' + r.pa + '</span></div>'; }).join('') + '</div>';
+  return html;
+}
+
 /* ---------- the sheet ---------- */
 export default {
   cls: 'sk-manager',
   render(team) {
     if (!TEAMS[team]) return '<div class="sk-miss">' + UI.empty('Team not found', 'That club isn’t in this league.') + '</div>';
     return header(team)
-      + K.tabs([['overview', 'Overview'], ['squad', 'Squad'], ['results', 'Results'], ['season', 'Season']], 'overview')
+      + K.tabs([['overview', 'Overview'], ['squad', 'Squad'], ['results', 'Results'], ['season', 'Season'], ['alltime', 'All-time']], 'overview')
       + K.panel('overview', nextMatchCard(team) + lineup(team) + topScorer(team), true)
-      + K.panel('squad', null) + K.panel('results', null) + K.panel('season', null)
+      + K.panel('squad', null) + K.panel('results', null) + K.panel('season', null) + K.panel('alltime', null)
       + '<div class="sk-end"></div>';
   },
   mount(el, team) {
     if (!TEAMS[team]) return;
-    K.wireTabs(el, { squad: () => squadPanel(team), results: () => resultsPanel(team), season: () => luckBlock(team) + seasonRows(team) + moves(team) });
+    K.wireTabs(el, { squad: () => squadPanel(team), results: () => resultsPanel(team), season: () => luckBlock(team) + seasonRows(team) + moves(team), alltime: () => alltimePanel(team) });
     const rp = el.querySelector('[data-panel="results"]');
     if (rp) rp.addEventListener('click', e => {
       const h = e.target.closest('.ms-ch .hit'); if (!h) return;

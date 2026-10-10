@@ -20,7 +20,8 @@ BUILD=$(date -u +%Y%m%d%H%M%S)
 node_modules/.bin/esbuild src/main.js --bundle --minify --format=iife --target=es2020 --outfile="$ROOT/app.js" --log-level=warning --legal-comments=none
 cat src/css/*.css > "$ROOT/app.css"
 # The league's config (league.json, ROADMAP C1): checked, then written as `const LEAGUE={...}` in front of the engine.
-{ node -e 'const L=require("./tools/league.js");process.stdout.write(L.header(L.load()))'; cat core.gen.js; } > "$ROOT/core.js"
+# The earlier seasons (history/*.json, Parker's Q5): checked against league.json's seeded series, then written as `const HISTORY=[...]` after it.
+{ node -e 'const L=require("./tools/league.js"),H=require("./tools/history.js"),c=L.load(),h=H.load(),p=H.problems(h,c.seeded);if(p.length){console.error("history: "+p.join("; "));process.exit(1)}process.stdout.write(L.header(c)+H.header(h))'; cat core.gen.js; } > "$ROOT/core.js"
 sed "s/__BUILD__/$BUILD/g" index.template.html > "$ROOT/index.html"
 sed "s/__BUILD__/$BUILD/g" sw.template.js > "$ROOT/sw.js"
 cp manifest.template.webmanifest "$ROOT/manifest.webmanifest"

@@ -1,4 +1,4 @@
-/* League: the table, the money, the results, the derbies and the stats. */
+/* League: the table, the money, the results, the derbies, the stats and the all-time table. */
 import * as UI from '../ui.js';
 import { oddsReady, odds, money, POT, heavyPending, settleHeavy } from './league/data.js';
 import { overview } from './league/overview.js';
@@ -6,8 +6,9 @@ import { results, mountResults } from './league/results.js';
 import { moneyPage } from './league/money.js';
 import { derbiesPage } from './league/derbies.js';
 import { statsPage, mountStats } from './league/stats.js';
+import { alltimePage, mountAlltime } from './league/alltime.js';
 
-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'results', label: 'Results' }, { id: 'money', label: 'Money' }, { id: 'derbies', label: 'Derbies' }, { id: 'stats', label: 'Stats' }];
+const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'results', label: 'Results' }, { id: 'money', label: 'Money' }, { id: 'derbies', label: 'Derbies' }, { id: 'stats', label: 'Stats' }, { id: 'alltime', label: 'All-time' }];
 const NEEDS_ODDS = { overview: 1, money: 1 };
 
 function season() {
@@ -44,6 +45,7 @@ export default {
       case 'money': body = moneyPage(); break;
       case 'derbies': body = derbiesPage(); break;
       case 'stats': body = statsPage(); break;
+      case 'alltime': body = alltimePage(); break;
       default: body = overview();
     }
     return (sub === 'overview' ? head() : compactHead()) + UI.pills(SUBS.map(s => ({ label: s.label, href: '#/league/' + s.id, on: s.id === sub })))
@@ -63,6 +65,7 @@ export default {
     }
     if (sub === 'results') mountResults(root);
     if (sub === 'stats') mountStats(root);
+    if (sub === 'alltime') mountAlltime(root);
     /* title odds take ~0.5 s and the month's projections ~50 ms: draw the page first, then fill them in */
     if ((NEEDS_ODDS[sub] && !oddsReady()) || heavyPending()) {
       const tok = ++PENDING;
