@@ -14,9 +14,9 @@ FPL Draft API ──> Code.gs (Apps Script, triggers) ──> the Google Sheet (
                          v                                    |              the Facts bot (Action, facts branch)
                    hidden tabs: Articles, ShowScripts, ShowAudio, Posts ...
 
-GitHub Actions: Build Matchweek app, Code.gs tests and release, Monitor, Facts bot, Supabase parity
+GitHub Actions: Build Matchweek app, Code.gs tests and release, Monitor, Facts bot, Supabase parity, Supabase functions
 Cloudflare Worker (matchweek.gg): the public site, the demo, the status page, cron that starts the Monitor and the Facts bot
-Supabase (vcokquhzqpqvwrybndnr): the second data pipeline, compared with the Sheet by the parity report (ROADMAP B)
+Supabase (vcokquhzqpqvwrybndnr): the second data pipeline (its functions and schema under supabase/), compared with the Sheet by the parity report (ROADMAP B)
 ```
 
 | Piece | Where | Runs on | Deploys by |
@@ -79,6 +79,7 @@ The self-update (`selfUpdateTick`, since v3.16): every hour the script fetches `
 | Monitor | `.github/workflows/monitor.yml` | every 15 min; dispatch | `fplgg/tools/monitor/monitor.js`: the app loads, the Sheet and `?health=1` answer, the data is fresh (2 h, 20 min live), the FPL API answers, the self-update is not refused or in error, no error spike; a check that fails twice 4 min apart opens one issue labelled `outage` assigned to the repo owner, closed on recovery |
 | Facts bot | `.github/workflows/facts.yml` | minute 23 every 3 h; dispatch | `fplgg/tools/factsbot/factsbot.js`: loads the live app headless, computes the preview and recap facts with the app's engine, commits `facts/*.json` and `facts/index.json` to the orphan `facts` branch |
 | Supabase parity | `.github/workflows/parity.yml` | minute 41 every 3 h; dispatch | `fplgg/tools/parity/parity.js`: every engine tab from the Sheet and from Supabase's public `tabs` function, compared; the report is the run's summary and an artifact |
+| Supabase functions | `.github/workflows/supabase.yml` | a push to `main` under `supabase/functions/` or `supabase/config.toml`; dispatch | `node tests/supabase.js`, then the Supabase CLI deploys every function under `supabase/functions/` to the project with the repository secret `SUPABASE_ACCESS_TOKEN` (bundled server side); the last step lists each function's version. The schema (`supabase/migrations/`) is applied by the session that writes it, through the Management API (`docs/SUPABASE.md`) |
 | Preview Matchweek app | `.github/workflows/preview.yml` | a push to the `preview` branch; dispatch | the same gate as Code.gs tests and release, `ci-build.sh` (the six files restored), then `fplgg/tools/preview/build-preview.js` and a commit of the folder `/preview/` on `main`, so GitHub Pages serves that branch's app at `/el-matador-tire/preview/` for Parker's eye on the live data; the league app is untouched (`sw.js` passes `/preview/` requests straight to the network) |
 | Build app | `.github/workflows/build.yml` | the old app's paths; dispatch | the classic app (`classic.html`), kept for rollback; it never writes `index.html` |
 
