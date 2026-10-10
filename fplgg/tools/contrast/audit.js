@@ -278,7 +278,7 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
   for (const s of ['squad', 'transfers', 'fixtures', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
 
   /* League */
-  for (const s of ['overview', 'results', 'money', 'derbies', 'stats']) { await go('#/league/' + s); await scan('league ' + s); }
+  for (const s of ['overview', 'results', 'money', 'derbies', 'stats', 'alltime']) { await go('#/league/' + s); await scan('league ' + s); }
 
   /* Feed */
   for (const s of ['league', 'foryou', 'articles', 'messages']) { await go('#/feed/' + s); await scan('feed ' + s); }
@@ -300,7 +300,7 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
   if (codes.fa) { await page.evaluate(c => window.MW.openSheet('player', c), codes.fa); await sheetOpen(); await scan('player sheet, free agent', { sheet: true }); await closeSheets(); }
   if (codes.doubt) { await page.evaluate(c => window.MW.openSheet('player', c), codes.doubt); await sheetOpen(); await scan('player sheet, a doubt', { sheet: true }); await closeSheets(); }
   await page.evaluate(t => window.MW.openSheet('manager', t), team); await sheetOpen(); await scan('manager sheet', { sheet: true });
-  for (const t of ['season', 'squad']) { if (await tap('.sk-manager [data-tab="' + t + '"]')) await scan('manager sheet, ' + t, { sheet: true }); }
+  for (const t of ['season', 'squad', 'alltime']) { if (await tap('.sk-manager [data-tab="' + t + '"]')) await scan('manager sheet, ' + t, { sheet: true }); }
   await closeSheets();
   await page.evaluate(() => window.MW.openSheet('menu')); await sheetOpen(); await scan('menu', { sheet: true }); await closeSheets();
   await page.evaluate(() => window.MW.openSheet('menu', 'how')); await sheetOpen(); await scan('menu, how it works', { sheet: true }); await closeSheets();

@@ -16,6 +16,7 @@ const fs = require('fs'), path = require('path'), { spawnSync } = require('child
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const APP = path.join(ROOT, 'fplgg', 'tools', 'matchweek');
 const league = require(path.join(APP, 'tools', 'league.js'));
+const history = require(path.join(APP, 'tools', 'history.js'));   /* the earlier seasons, after the LEAGUE header (Q5) */
 const OUT_DEFAULT = path.join(ROOT, 'preview');
 const ASSET_DIRS = ['faces', 'icons', 'voices', 'press', 'show'];   /* read by relative path from the page */
 const FILES = ['index.html', 'app.js', 'app.css', 'core.js'];        /* no sw.js, no manifest */
@@ -46,7 +47,9 @@ function main(argv) {
   const appJs = fs.readFileSync(path.join(tmp, 'app.js'), 'utf8');
   const cssFiles = fs.readdirSync(path.join(APP, 'src', 'css')).filter(f => f.endsWith('.css')).sort();
   const appCss = cssFiles.map(f => fs.readFileSync(path.join(APP, 'src', 'css', f), 'utf8')).join('');
-  const coreJs = league.header(league.load()) + fs.readFileSync(path.join(APP, 'core.gen.js'), 'utf8');
+  const cfg = league.load(), hist = history.load(), hp = history.problems(hist, cfg.seeded);
+  if (hp.length) { console.error('history: ' + hp.join('; ')); process.exit(1); }
+  const coreJs = league.header(cfg) + history.header(hist) + fs.readFileSync(path.join(APP, 'core.gen.js'), 'utf8');
   const index = previewIndex(fs.readFileSync(path.join(APP, 'index.template.html'), 'utf8'), build);
   rmrf(out); fs.mkdirSync(out, { recursive: true });
   fs.writeFileSync(path.join(out, 'index.html'), index);

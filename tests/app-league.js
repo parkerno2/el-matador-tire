@@ -77,7 +77,7 @@ check('no team of league.json is a key of a table literal in core.gen.js', teams
 
 /* ---------- the builds put the header in front of the engine ---------- */
 const CI = rd('ci-build.sh');
-check('ci-build.sh writes core.js as the LEAGUE header (checked by tools/league.js) followed by core.gen.js, and no longer copies core.gen.js alone', /\{ node -e 'const L=require\("\.\/tools\/league\.js"\);process\.stdout\.write\(L\.header\(L\.load\(\)\)\)'; cat core\.gen\.js; \} > "\$ROOT\/core\.js"/.test(CI) && !/cp core\.gen\.js/.test(CI));
+check('ci-build.sh writes core.js as the LEAGUE header (checked by tools/league.js) followed by core.gen.js, and no longer copies core.gen.js alone', /\{ node -e 'const L=require\("\.\/tools\/league\.js"\),H=require\("\.\/tools\/history\.js"\),c=L\.load\(\),h=H\.load\(\),p=H\.problems\(h,c\.seeded\);[^']*process\.stdout\.write\(L\.header\(c\)\+H\.header\(h\)\)'; cat core\.gen\.js; \} > "\$ROOT\/core\.js"/.test(CI) && !/cp core\.gen\.js/.test(CI));
 check('ci-build.sh still checks core.js with node --check after writing it', /node --check "\$ROOT\/app\.js" && node --check "\$ROOT\/core\.js"/.test(CI));
 
 /* ---------- the UI's pot and the Manager of the Month periods ---------- */

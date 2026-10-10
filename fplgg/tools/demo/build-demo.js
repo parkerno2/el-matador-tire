@@ -28,7 +28,8 @@ const names = require('./names.js'), snap = require('./snapshot.js');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const APP = path.join(ROOT, 'fplgg', 'tools', 'matchweek');
-const league = require(path.join(APP, 'tools', 'league.js'));   /* league.json: the names the engine keys by, and the demo's own LEAGUE header */
+const league = require(path.join(APP, 'tools', 'league.js'));
+const history = require(path.join(APP, 'tools', 'history.js'));   /* the earlier seasons, anonymised for the demo's HISTORY header (Q5) */   /* league.json: the names the engine keys by, and the demo's own LEAGUE header */
 const SITE = path.join(ROOT, 'site', 'public');
 const OUT = path.join(SITE, 'demo');
 const TEXT_EXT = /\.(html?|js|mjs|css|json|jsonc|webmanifest|txt|md|svg|xml|csv)$/i;
@@ -159,7 +160,7 @@ async function main(argv) {
     /* 3. the app with __MW_DEMO__ set; identifiers are kept so a name in a string is the only two-letter word that changes */
     run(path.join(APP, 'node_modules', '.bin', 'esbuild'), ['src/main.js', '--bundle', '--minify-whitespace', '--minify-syntax', '--format=iife', '--target=es2020', '--define:__MW_DEMO__=true', '--log-level=warning', '--legal-comments=none', '--outfile=' + path.join(tmp, 'app.js')], APP);
     const appJs = names.substituteCode(fs.readFileSync(path.join(tmp, 'app.js'), 'utf8'), m);
-    const coreJs = league.header(names.anonymiseLeague(cfg, m)) + names.substituteCode(demoCore(core), m);   /* the fictional league in front of the engine; no EA faces (9 Oct 2026) */
+    const coreJs = league.header(names.anonymiseLeague(cfg, m)) + history.header(history.anonymise(history.load(), m, cfg)) + names.substituteCode(demoCore(core), m);   /* the fictional league in front of the engine; no EA faces (9 Oct 2026) */
     const cssFiles = fs.readdirSync(path.join(APP, 'src', 'css')).filter(f => f.endsWith('.css')).sort();   /* name order, as ci-build.sh with LC_ALL=C */
     const appCss = names.substituteCode(cssFiles.map(f => fs.readFileSync(path.join(APP, 'src', 'css', f), 'utf8')).join(''), m);
     const index = demoIndex(fs.readFileSync(path.join(APP, 'index.template.html'), 'utf8'), build);

@@ -239,7 +239,7 @@
 
 /* team names that may take two lines split evenly ("In It to / McGinn It", never a lone "It") */
 @supports (text-wrap-style:balance){
-  .lg-tr .tn,.md-mt span,.md-hs b,.lg-res .side .t,.lg-hold .who b,.lg-mrow .tx b,.lg-mt .tx b,.id-tm b,.tm-pkn,.tm-nmm b,.lg-derby .sd b,.fsb-t b{text-wrap-style:balance}
+  .lg-tr .tn,.md-mt span,.md-hs b,.lg-res .side .t,.lg-hold .who b,.lg-mrow .tx b,.lg-mt .tx b,.id-tm b,.tm-pkn,.tm-nmm b,.lg-derby .sd b,.fsb-t b,.at-sr .tm{text-wrap-style:balance}
 }
 
 /* installed on an iPhone the page runs under the status bar: keep a base-coloured strip behind it */
