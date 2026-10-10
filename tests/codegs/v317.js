@@ -9,6 +9,10 @@ console.log('--- V the release');
 check('V1 EMT_VERSION is v3.17 or later and the CHANGELOG has the v3.17 entry', ctx.emtSelfVersion(src) === ctx.EMT_VERSION && ctx.emtSelfCmp(ctx.EMT_VERSION, 'v3.17') >= 0 && /\* v3\.17 · 8 Oct 2026\n \*   \?health=1 adds data, for the cloud monitor/.test(src));
 
 console.log('--- D data in health');
+/* the fixture tab carries GW6's real kick-off times, so without this the D checks read a live window whenever a real
+   GW6 game is on (10 Oct 2026, 15:19 UTC: AVL-BRE live, the gate red on every push; BUGS.md #34). Every GW6 game is
+   moved two days away here, before any check; the L checks below set the kick-offs they need themselves. */
+{ const cf0 = sheets['Club Fixtures'], k0 = cf0.rows[0].indexOf('Kickoff (UTC)'), g0 = cf0.rows[0].indexOf('GW'); cf0.rows.slice(1).forEach(x => { if (Number(x[g0]) === 6) x[k0] = iso(Date.now() + 2 * 24 * H); }); }
 let h = get({ health: '1' });
 check('D1 before any refresh: updated null, source empty, ageMin null, attempted null, not live', JSON.stringify(h.data) === JSON.stringify({ updated: null, source: '', ageMin: null, attempted: null, live: false, liveWhy: '', liveSince: null }), JSON.stringify(h.data));
 let ran = 0; ctx.refreshCore = () => { ran++; };

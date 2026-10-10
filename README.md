@@ -24,4 +24,4 @@ The 8-manager FPL Draft league app (league 45380), and the product it is becomin
 
 ## Branches
 
-`main` is everything. `release` is the last `Code.gs` that passed every suite; the live script installs from it. `facts` holds the Facts bot's files. Only the workflows write the last two.
+`main` is everything. `release` is the last `Code.gs` that passed every suite; the live script installs from it. `facts` holds the Facts bot's files. Only the workflows write the last two. `preview` holds a change for Parker's eye: its build is published as the folder `/preview/` on `main` (https://parkerno2.github.io/el-matador-tire/preview/) by `.github/workflows/preview.yml`, and a merge into `main` ships it.

@@ -104,6 +104,9 @@ function readSheet(name) {
 
 /* ---------- the demo (Q2): frozen JSON tabs beside the page, set at build time ---------- */
 export const DEMO = typeof __MW_DEMO__ !== 'undefined' && !!__MW_DEMO__;
+/* the preview build (fplgg/tools/preview/build-preview.js, 10 Oct 2026): the league app's own source and data, served at
+   /preview/ beside it for Parker's eye; no service worker, no error reports, no facts sent, a Preview label on every page */
+export const PREVIEW = typeof __MW_PREVIEW__ !== 'undefined' && !!__MW_PREVIEW__;
 export const DEMO_DATA = 'data/';
 /* the file a tab is read from in the demo (fplgg/tools/demo/names.js writes the same name) */
 export const demoFile = name => DEMO_DATA + String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.json';

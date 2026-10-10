@@ -1,0 +1,71 @@
+# El Matador Tire: a PREVIEW of the Matchweek app for Parker's eye, no PC needed (10 Oct 2026, his UI pass request).
+#   On every push to the `preview` branch (or Actions tab → Preview Matchweek app → Run workflow on any branch): runs the
+#   same gate as Code.gs tests and release (every suite by pattern, node --check, ci-build.sh), then builds that branch's
+#   source with fplgg/tools/preview/build-preview.js and commits the result as preview/ on main, so GitHub Pages serves
+#   it at https://parkerno2.github.io/el-matador-tire/preview/ beside the league app. Nothing else on main is touched:
+#   the six root files stay the league app, and sw.js passes /preview/ requests straight to the network. A preview that
+#   fails a suite is not published (this run is red instead). Production gets a preview's changes only when its branch is
+#   merged into main by hand.
+name: Preview Matchweek app
+on:
+  push:
+    branches: [preview]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: matchweek-preview, cancel-in-progress: false }
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: fplgg/tools/matchweek/package-lock.json
+      - name: Install esbuild
+        working-directory: fplgg/tools/matchweek
+        run: npm ci --no-audit --no-fund
+      - name: Syntax check
+        run: cp Code.gs /tmp/codegs-check.js && node --check /tmp/codegs-check.js
+      - name: Run every suite (the same gate as Code.gs tests and release)
+        run: |
+          set -e
+          fail=0
+          n=0
+          for f in tests/codegs/*.js tests/*.js; do
+            case "$f" in *fixtures*|*harness*) continue ;; esac   # helpers, not suites
+            n=$((n + 1)); echo "== $f"
+            if out=$(node "$f" 2>&1); then
+              case "$f" in */test.js) echo "$out" | tail -3 ;; *) echo "$out" | tail -1; echo "$out" | grep -q '^ALL PASS$' || { echo "::error::$f did not print ALL PASS"; fail=1; } ;; esac
+            else
+              echo "$out" | grep -v '^PASS' | tail -40; echo "::error::$f failed"; fail=1
+            fi
+          done
+          echo "$n suites ran"
+          [ "$n" -ge 20 ] || { echo "::error::only $n suites matched the patterns; the loop is broken"; fail=1; }
+          exit $fail
+      - name: The league build still works (ci-build.sh, then the six root files restored)
+        run: bash fplgg/tools/matchweek/ci-build.sh && git checkout -- index.html app.js app.css core.js sw.js manifest.webmanifest
+      - name: Build the preview
+        run: node fplgg/tools/preview/build-preview.js /tmp/mw-preview
+      - name: Publish it as preview/ on main
+        run: |
+          set -e
+          SRC="${GITHUB_SHA::7}"; BR="${GITHUB_REF_NAME}"
+          git config user.name "el-matador-build"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          rm -rf preview && cp -r /tmp/mw-preview preview
+          OTHER=$(git status --porcelain --untracked-files=all | grep -v -E '^.. preview/.+$' || true)
+          if [ -n "$OTHER" ]; then echo "the preview build touched other files, refusing to commit:"; echo "$OTHER"; exit 1; fi
+          git add -A -- preview
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git commit -m "preview: matchweek app from $SRC ($BR)"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "published: https://parkerno2.github.io/el-matador-tire/preview/ (from $BR at $SRC)"

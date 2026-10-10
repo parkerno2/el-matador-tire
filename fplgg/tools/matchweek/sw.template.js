@@ -29,6 +29,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  /* the preview build (preview/, for Parker's eye): straight to the network, never the cached league shell or scripts */
+  if (url.origin === location.origin && url.pathname.indexOf('/preview/') > -1) return;
   if (req.mode === 'navigate') { e.respondWith(fresh(req)); return; }
   if (url.origin !== location.origin) {
     /* badges, flags, player photos, font files: cache-first. Sheet data and everything else: straight to the network */

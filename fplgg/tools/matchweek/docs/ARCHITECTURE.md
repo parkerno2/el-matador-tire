@@ -79,6 +79,7 @@ The self-update (`selfUpdateTick`, since v3.16): every hour the script fetches `
 | Monitor | `.github/workflows/monitor.yml` | every 15 min; dispatch | `fplgg/tools/monitor/monitor.js`: the app loads, the Sheet and `?health=1` answer, the data is fresh (2 h, 20 min live), the FPL API answers, the self-update is not refused or in error, no error spike; a check that fails twice 4 min apart opens one issue labelled `outage` assigned to the repo owner, closed on recovery |
 | Facts bot | `.github/workflows/facts.yml` | minute 23 every 3 h; dispatch | `fplgg/tools/factsbot/factsbot.js`: loads the live app headless, computes the preview and recap facts with the app's engine, commits `facts/*.json` and `facts/index.json` to the orphan `facts` branch |
 | Supabase parity | `.github/workflows/parity.yml` | minute 41 every 3 h; dispatch | `fplgg/tools/parity/parity.js`: every engine tab from the Sheet and from Supabase's public `tabs` function, compared; the report is the run's summary and an artifact |
+| Preview Matchweek app | `.github/workflows/preview.yml` | a push to the `preview` branch; dispatch | the same gate as Code.gs tests and release, `ci-build.sh` (the six files restored), then `fplgg/tools/preview/build-preview.js` and a commit of the folder `/preview/` on `main`, so GitHub Pages serves that branch's app at `/el-matador-tire/preview/` for Parker's eye on the live data; the league app is untouched (`sw.js` passes `/preview/` requests straight to the network) |
 | Build app | `.github/workflows/build.yml` | the old app's paths; dispatch | the classic app (`classic.html`), kept for rollback; it never writes `index.html` |
 
 GitHub runs this repo's scheduled workflows hours late (BUGS.md #26). The Worker's cron (`site/wrangler.jsonc`) starts the Monitor and the Facts bot on time through the workflow_dispatch API once its `GITHUB_TOKEN` secret is set; `https://matchweek.gg/__worker` says whether it is.
@@ -87,7 +88,8 @@ GitHub runs this repo's scheduled workflows hours late (BUGS.md #26). The Worker
 
 | Branch | Holds | Written by |
 |---|---|---|
-| `main` | everything; the app's source, Code.gs, the site, the docs, the builds | people and Claude sessions (pushes), the build workflow (the six root files and the demo) |
+| `main` | everything; the app's source, Code.gs, the site, the docs, the builds | people and Claude sessions (pushes), the build workflow (the six root files and the demo), the preview workflow (the folder `/preview/`) |
+| `preview` | a build for Parker's eye before it reaches the league: the app's source with a change he asked to see first | Claude sessions; the preview workflow publishes it as the folder `/preview/` on `main`, and a merge into `main` ships it |
 | `release` | the last `Code.gs` that passed every suite; the live script installs from it | the Code.gs tests and release workflow only, fast-forward only |
 | `facts` | `facts/*.json`, the Facts bot's output; orphan, so `main` stays clean | the Facts bot only |
 
