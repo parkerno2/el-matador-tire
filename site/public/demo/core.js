@@ -198,14 +198,9 @@ function autoSubs(team,likely){ // likely=true adds the projection tier; default
       break;
     }
   });
-  if(likely&&subs.length){ // report the NET effect: what's already certain (confirmed-facts pass) + who additionally comes in / goes out on the flagged assumption.
-    // A flagged starter early in the XI reshuffles which bench player covers which slot, but a starter who finished on 0 mins is out either way.
-    const base=autoSubs(team,false).subs;
-    const bi=new Set(base.map(x=>x.inn.Code)),bo=new Set(base.map(x=>x.out.Code));
-    const addIn=subs.filter(x=>!bi.has(x.inn.Code)).map(x=>x.inn),addOut=subs.filter(x=>!bo.has(x.out.Code)).map(x=>x.out);
-    const net=base.map(x=>({out:x.out,inn:x.inn,kind:'locked'}));
-    addIn.forEach((b,i)=>{if(addOut[i])net.push({out:addOut[i],inn:b,kind:'likely'});});
-    return{xi:xi,subs:net};
+  if(likely&&subs.length){ // the subs always describe this XI (BUGS #37, 10 Oct 2026: the old "net" list mixed in the confirmed-facts pass, so a locked swap whose cover the flagged assumption refuses was reported but never applied, and the starter showed on the pitch and the bench at once)
+    const pair=x=>String(x.out.Code)+'>'+String(x.inn.Code),sure=new Set(autoSubs(team,false).subs.map(pair)); // a swap the confirmed-facts pass makes too is locked (it counts in the score); any other rests on the flagged assumption, so it is likely
+    return{xi:xi,subs:subs.map(x=>({out:x.out,inn:x.inn,kind:sure.has(pair(x))?'locked':'likely'}))};
   }
   return{xi:xi,subs:subs};
 }
