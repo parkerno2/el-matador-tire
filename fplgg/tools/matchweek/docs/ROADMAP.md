@@ -6,6 +6,7 @@ Unchecked lines are what a REVIEW MODE pass found on the preview branch; the nex
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
+- Q5 review finding, the team name cut in the sheet's Seasons table at 360 px (lane app): builder started 2026-10-10T20:16:00Z
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
