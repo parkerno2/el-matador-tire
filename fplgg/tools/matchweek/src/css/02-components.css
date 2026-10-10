@@ -94,7 +94,7 @@
 /* an FPL photo (class fpl, from the shared chain): half body with the head in the top part, so it is framed by the head,
    scaled a little so the face fills the circle like an FC cutout. An FC cutout keeps the bottom-aligned frame above */
 .fc-i img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}
-.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}
+.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}   /* .36 of the circle: UI.face sets the circle's font-size to its width, so the initials scale with it (they read 5 px in a 28 px circle under a 14 px label) */
 .stack{display:inline-flex;align-items:center}
 .stack .fc-i{margin-left:-8px;box-shadow:0 0 0 2px var(--card)}
 .stack .fc-i:first-child{margin-left:0}
@@ -130,7 +130,7 @@
    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
-.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:1.2% 3.5% 1.6%;margin:-1.2% -3.5% -1.6%}
+.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
 .fc .rt span{color:var(--sub)}
 .fc .rt .fdar{text-shadow:none}
 .fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}

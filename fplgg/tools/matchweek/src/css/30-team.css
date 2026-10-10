@@ -85,7 +85,7 @@
 .tm-xif{display:flex;align-items:center;min-width:0}
 .tm-xif .fc-i{margin-left:-7px;outline:2px solid var(--card)}
 .tm-xif .fc-i:first-child{margin-left:0}
-.tm-xif .fc-i.done{opacity:.38}
+.tm-xif .fc-i.done{background:var(--raised)} .tm-xif .fc-i.done img{opacity:.38} .tm-xif .fc-i.done .ini{color:var(--tx3)}   /* a played face dims its picture, never its initials (DESIGN.md: the fallback shows whenever a photo fails to load) */
 .tm-xil{margin-left:auto;font-size:13px;font-weight:700;white-space:nowrap}
 .tm-switch{display:flex;justify-content:center;padding:14px 16px 0}
 .tm-switch button{font-size:13px;font-weight:600;color:var(--tx3);min-height:40px;padding:0 12px}
@@ -137,7 +137,7 @@
 .tm-lsc b{color:var(--tx)}
 .tm-lmeta img.crest{margin:-2px 0}
 .tm-lsc img.crest{vertical-align:-3px;margin-right:3px}
-.tm-lr.off .fc-i,.tm-lr.off img{opacity:.55}   /* a subbed-off row dims its picture; its words keep their contrast in a quieter colour */
+.tm-lr.off img{opacity:.55} .tm-lr.off .fc-i .ini{color:var(--tx3)}   /* a subbed-off row dims its picture; its words and the initials fallback keep their contrast in a quieter colour */
 .tm-lr.off .tm-lm b,.tm-lr.off .tm-lsc b{color:var(--tx3)} .tm-lr.off .sub,.tm-lr.off .tm-lsc{color:var(--tx4)} .tm-lr.off .tm-lslot,.tm-lr.off .tm-lpts,.tm-lr.off .tm-lsc .n{color:var(--num2)} .tm-lr.off .tm-lpts.live{color:var(--live)}
 /* the number alone, no pill (Parker, 8 Oct 2026): his projection muted, live points green, banked points bold */
 .tm-lpts{flex:none;min-width:34px;text-align:right;font-size:17px;font-weight:700;color:var(--tx)}

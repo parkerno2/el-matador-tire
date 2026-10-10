@@ -269,6 +269,7 @@
 .md-asr .sub{display:inline;font-size:12px}
 .md-asi{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:var(--win);display:flex;align-items:center;justify-content:center}
 .md-asr.lk .md-asi{background:var(--doubt)}
+.md-asr.no .md-asi{background:var(--loss)} .md-asr.no .md-asi b{font:900 12px/1 var(--f-ui);color:var(--base)}   /* did not play, no cover: the red "!" with a dark glyph, as on the card */
 .md-asr .cr{margin-top:1px}
 
 /* ---------- stats: paired bars ---------- */

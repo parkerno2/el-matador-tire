@@ -51,13 +51,13 @@ function token(x, T, mode) {
      kick-off, the minute or FT */
   const mark = sub ? (sub.kind === 'locked' ? 'in' : 'inl') : '';
   const title = sub ? (sub.kind === 'locked' ? 'On for ' : 'Likely on for ') + sub.out.Player : '';
-  const badge = UI.plateStatus(x.p, mark, { title, flag: !x.started });
+  const badge = UI.plateStatus(x.p, mark, { title, flag: !x.started, dnp: !!st.dnp });
   const line = st.t;
   const label = x.p.Player + ', ' + (b.cls === 'pj' ? 'projected ' + b.txt : b.cls === 'xp' ? 'xP ' + b.txt : b.txt + ' points') + (badge ? ', ' + badge.t : '') + (line ? ', ' + line : '');
   /* a double-figure haul turns the bubble gold, a banked blank goes quiet */
   const pv = parseFloat(b.txt), tone = (b.cls === 'bk' || b.cls === 'lv') && pv >= 10 ? 'haul' : b.cls === 'bk' && pv <= 1 ? 'blank' : '';
   return '<span class="md-tk" data-open="player:' + esc(x.code) + '" role="button" tabindex="0" aria-label="' + esc(label) + '"><span class="md-ph">'
-    + UI.plateMini(x.p, 64, { noOpen: true, mark, title, flag: !x.started, bubble: { st: b.cls, txt: b.txt, cls: tone, live: x.live } }) + '</span>'
+    + UI.plateMini(x.p, 64, { noOpen: true, mark, title, flag: !x.started, dnp: !!st.dnp, bubble: { st: b.cls, txt: b.txt, cls: tone, live: x.live } }) + '</span>'
     + '<span class="md-sl' + (st.live ? ' lv' : '') + '">' + esc(line) + '</span></span>';
 }
 function half(T, top, mode) {
@@ -93,7 +93,7 @@ function pitch(m) {
 function cell(x, T, r) {
   if (!x) return '<div class="md-hc' + (r ? ' r' : '') + ' none"><span class="sub">–</span></div>';
   const st = M.statusLine(x, true), sub = T.subs.find(s => String(s.inn.Code) === x.code);
-  const tag = sub ? UI.subChip(sub.kind === 'locked' ? 'in' : 'inl') : (!x.started ? UI.statusChip(x.p) : '');
+  const tag = sub ? UI.subChip(sub.kind === 'locked' ? 'in' : 'inl') : (!x.started ? UI.statusChip(x.p) : st.dnp ? '<span class="chip out">DID NOT PLAY</span>' : '');
   const where = x.fx ? M.fxOpp(x.fx, x.club) : '';
   return '<div class="md-hc' + (r ? ' r' : '') + '" data-open="player:' + esc(x.code) + '" role="button" tabindex="0">' + UI.face(x.p, 32)
     + '<div class="ell"><b>' + esc(x.p.Player) + '</b>' + tag + '<span class="sub">' + (where ? esc(where).replace(/ /g, '\u00a0') + ' · ' : '') + '<span class="' + (st.live ? 'live-c' : '') + '">' + esc(st.t).replace(/ /g, '\u00a0') + '</span></span></div></div>';
@@ -174,9 +174,15 @@ export function subLines(T, kind, opt = {}) {
   const L = T.subs.filter(s => s.kind === kind);
   return L.map(s => '<div class="md-asr' + (kind === 'likely' ? ' lk' : '') + '">' + (opt.crest ? UI.crest(T.t, 18) : '') + '<span class="md-asi">' + ICON_UP + '</span><span><b>' + esc(s.inn.Player) + '</b> ' + (kind === 'locked' ? 'on' : 'likely on') + ' for ' + esc(s.out.Player) + ' <span class="sub">(' + esc(M.subReason(s)) + ')</span></span></div>').join('');
 }
+/* a starter whose match finished without him and nobody came on (no fit cover on the bench) stays on the pitch with
+   the red "!"; the Bench card says it in words, under the auto-sub lines */
+export function dnpLines(T, opt = {}) {
+  return T.players.filter(x => x.finished && !(x.mins > 0)).map(x => '<div class="md-asr no">' + (opt.crest ? UI.crest(T.t, 18) : '') + '<span class="md-asi"><b>!</b></span><span><b>' + esc(x.p.Player) + '</b> did not play <span class="sub">(' + esc(M.fxLabel(x.fx)) + ' finished, no cover on the bench)</span></span></div>').join('');
+}
 function benches(m) {
   const any = k => m.tl.subs.concat(m.tr.subs).some(s => s.kind === k);
-  const notes = (any('locked') || any('likely')) ? '<div class="md-asl">' + subLines(m.tl, 'locked') + subLines(m.tr, 'locked') + subLines(m.tl, 'likely') + subLines(m.tr, 'likely') + '</div>' : '';
+  const dnp = dnpLines(m.tl) + dnpLines(m.tr);
+  const notes = (any('locked') || any('likely') || dnp) ? '<div class="md-asl">' + subLines(m.tl, 'locked') + subLines(m.tr, 'locked') + subLines(m.tl, 'likely') + subLines(m.tr, 'likely') + dnp + '</div>' : '';
   return UI.sh('Bench') + '<div class="card md-bench"><div class="md-bcs">' + benchCol(m, m.tl) + benchCol(m, m.tr, 1) + '</div>' + notes + '</div>';
 }
 

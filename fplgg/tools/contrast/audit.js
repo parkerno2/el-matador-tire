@@ -11,7 +11,11 @@
    so gradients, photos, hairlines, scrims, overlapping layers and opacity are all accounted for. A number (the numeric
    font, class n, or numeric text) needs 7:1 against both the darkest and the lightest pixel behind it, other text
    4.5:1, display type of 24 px and up 3:1; a number never sits on purple and is never purple (the Plate tiers excepted).
-       NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/contrast/audit.js [--dir DIR] [--shots DIR] [--report FILE] [--width 390] [--list N] [--at ISO]
+       NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/contrast/audit.js [--dir DIR] [--shots DIR] [--report FILE] [--width 390] [--list N] [--at ISO] [--no-photos]
+   A sheet is read on its own layer once its slide-in has finished (10 Oct 2026: read with the page, the scrim under it
+   counted as a cover and every sheet read 0 text boxes; a sheet that reads 0 boxes is a failed check now). --no-photos
+   refuses every image from another host, so the initials fallback in the face circles is read as a phone without the
+   photos would show it.
    --shots writes one screenshot per screen, --crops a close-up of each offending text (one per selector and colour,
    the first 80), --report the JSON of every offender with its rect. DIR holds the demo as demo/ (default: site/public). Exits 1 with the list of offenders (screen, selector, text,
    colours, ratio, rule) when any text fails, 0 and "CONTRAST OK" when none does. The CI steps in preview.yml and
@@ -49,9 +53,14 @@ const PAGE_SRC = Object.keys(L.PAGE_FNS).map(k => {
 /* in the page: every visible text box in the viewport, with what the audit needs to judge it. Scroller: 'window' or a
    selector for the open sheet. A text box counts when the element under its centre is the text's own element, a
    descendant or an ancestor (a scrim, another sheet or a fixed bar on top means the text is covered, not read). */
-function collectSrc() {
+function collectSrc(rootSel) {
   return PAGE_SRC + `
   const vw = innerWidth, vh = innerHeight, out = [];
+  /* the layer read: the page (body), or the open sheet alone. A sheet is a fixed box over a scrim that is painted under
+     it, so reading the whole document would count the scrim as a cover and drop every text in the sheet (the hole of
+     10 Oct 2026: every sheet read 0 text boxes); scoped to the sheet, only its own sticky bars can cover its text */
+  const root = ${JSON.stringify(rootSel || '')} ? document.querySelector(${JSON.stringify(rootSel || '')}) : document.body;
+  if (!root) return out;
   const sig = el => { const parts = []; let a = el, n = 0; while (a && a !== document.body && n < 3) { const c = String(a.className && a.className.baseVal !== undefined ? a.className.baseVal : a.className || '').trim().split(/\\s+/).filter(x => x && !/^(on|in|open|live|lv|dim|th|r|t|b|last|prov|long)$/.test(x)).slice(0, 3); if (c.length || n === 0) { parts.unshift(a.tagName.toLowerCase() + (c.length ? '.' + c.join('.') : '')); n++; } a = a.parentElement; } return parts.join(' '); };
   const SC = new Map(), OP = new Map(), DIS = new Map();
   const style = e => { let s = SC.get(e); if (!s) { s = getComputedStyle(e); SC.set(e, s); } return s; };
@@ -62,7 +71,7 @@ function collectSrc() {
      painted), so a text box is clipped away from a cover it does not belong to, and dropped when mostly under it */
   const covers = [];
   const union = e => { let r = e.getBoundingClientRect(); let L = r.left, T = r.top, R = r.right, B = r.bottom; e.querySelectorAll('*').forEach(d => { if (style(d).display === 'none') return; const q = d.getBoundingClientRect(); if (!q.width || !q.height) return; L = Math.min(L, q.left); T = Math.min(T, q.top); R = Math.max(R, q.right); B = Math.max(B, q.bottom); }); return { left: L, top: T, right: R, bottom: B, width: R - L, height: B - T }; };
-  document.querySelectorAll('body *').forEach(e => { const ps = style(e).position; if (ps !== 'fixed' && ps !== 'sticky') return; if (e.closest('.sheet') && !e.classList.contains('sheet')) { /* inside a sheet: a sticky tab bar, measured as any other */ } const r = union(e); /* a zero-height sticky anchor carries its bar as a positioned child */ if (r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < vh) covers.push({ e, r }); });
+  root.querySelectorAll('*').forEach(e => { const ps = style(e).position; if (ps !== 'fixed' && ps !== 'sticky') return; if (e.closest('.sheet') && !e.classList.contains('sheet')) { /* inside a sheet: a sticky tab bar, measured as any other */ } const r = union(e); /* a zero-height sticky anchor carries its bar as a positioned child */ if (r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < vh) covers.push({ e, r }); });
   const uncover = (el, L, T, R, B) => {
     for (const c of covers) {
       if (c.e.contains(el)) continue;
@@ -73,7 +82,7 @@ function collectSrc() {
     }
     return [L, T, R, B];
   };
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
     const t = node.nodeValue; if (!t || !t.trim()) continue;
@@ -91,10 +100,10 @@ function collectSrc() {
     }
     const range = document.createRange(); range.selectNodeContents(node);
     const rects = [...range.getClientRects()].filter(r => r.width >= 2 && r.height >= 4 && r.bottom > 1 && r.top < vh - 1 && r.right > 1 && r.left < vw - 1);
-    /* an ancestor that clips (overflow other than visible, an ellipsis) bounds what is painted: the hidden tail of an
-       ellipsised run lies under whatever is drawn beside it and is not read */
+    /* the element itself or an ancestor that clips (overflow other than visible, an ellipsis) bounds what is painted:
+       the hidden tail of an ellipsised run lies under whatever is drawn beside it (a chip) and is not read */
     const clips = [];
-    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) { const s = style(a); if (s.overflowX !== 'visible' || s.overflowY !== 'visible') clips.push(a.getBoundingClientRect()); }
+    for (let a = el; a && a !== document.body; a = a.parentElement) { const s = style(a); if (s.overflowX !== 'visible' || s.overflowY !== 'visible') clips.push(a.getBoundingClientRect()); }
     for (const r0 of rects) {
       let L = r0.left, T = r0.top, R = r0.right, B = r0.bottom;
       clips.forEach(c => { L = Math.max(L, c.left); T = Math.max(T, c.top); R = Math.min(R, c.right); B = Math.min(B, c.bottom); });
@@ -158,12 +167,17 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
   const base = 'http://127.0.0.1:' + port + '/demo/';
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width, height: 844 }, deviceScaleFactor: 1 });
+  /* --no-photos: every image from another host is refused (the FPL photos, the crests, the flags), so the screens show
+     the fallbacks a phone shows when a photo fails to load (the initials in the face circles), and those are read too */
+  const noPhotos = process.argv.includes('--no-photos');
+  if (noPhotos) await page.route(u => !u.href.startsWith('http://127.0.0.1'), r => r.request().resourceType() === 'image' ? r.abort() : r.continue());
   const errors = [], offsite = [];
   page.on('console', m => { if (m.type() !== 'error') return; const loc = (m.location() || {}).url || ''; if (/\/show\/gw\d+\.json$/.test(loc)) return; if (/^https?:/.test(loc) && !loc.startsWith(base) && /Failed to load resource/.test(m.text())) { offsite.push(loc.slice(0, 80)); return; } errors.push((loc ? loc.slice(-50) + ': ' : '') + m.text().slice(0, 160)); });
   page.on('pageerror', e => errors.push('pageerror: ' + String(e && e.message || e).slice(0, 160)));
   await page.clock.setFixedTime(new Date(at));
   const settled = async () => { await page.waitForSelector('.nav', { timeout: 60000 }); await page.waitForFunction(() => !document.querySelector('.boot'), null, { timeout: 60000 }); await page.waitForTimeout(350); };
-  const sheetOpen = async () => { await page.waitForSelector('.sheet.in', { timeout: 8000 }); await page.waitForTimeout(500); };
+  /* a sheet is read once its slide-in has finished: the open sheet's box ends at the bottom of the viewport */
+  const sheetOpen = async () => { await page.waitForSelector('.sheet.in', { timeout: 8000 }); await page.waitForFunction(() => { const s = document.querySelector('.sheet.in'); return !!s && Math.abs(s.getBoundingClientRect().bottom - innerHeight) < 1; }, null, { timeout: 8000 }); await page.waitForTimeout(400); };
   const closeSheets = async () => { dbg('close sheets'); for (let k = 0; k < 4 && await page.$('.sheet'); k++) { await page.evaluate(() => window.MW.closeSheet()); await page.waitForTimeout(400); } };
   const go = async h => { dbg('go ' + h); await page.evaluate(h => { location.hash = h; }, h); await page.waitForTimeout(700); };
   const only = arg('--only', '');   /* 'sheets': skip the pages (for debugging the sheet steps) */
@@ -181,9 +195,9 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
     let n = 0;
     for (let v = 0; v < views; v++) {
       await page.evaluate(([s, y]) => { if (s === 'window') scrollTo(0, y); else { const e = document.querySelector(s); if (e) e.scrollTop = y; } }, [scroller, v * vh]);
-      await page.waitForTimeout(v ? 120 : 40);
+      await page.waitForTimeout(v ? 350 : 40);   /* a scroll can show a sticky bar through an observer and a transition (the matchup's pinned score): the covers are read once those have settled, so they match the photograph */
       dbg('  view ' + v + ' collect');
-      const items = await page.evaluate('(() => {' + collectSrc() + '\n})()');
+      const items = await page.evaluate('(() => {' + collectSrc(opt.sheet ? scroller : '') + '\n})()');
       dbg('  ' + items.length + ' items, shot');
       if (!items.length) continue;
       const hide = await page.addStyleTag({ content: HIDE });
@@ -225,6 +239,7 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
     }
     texts += n;
     screensDone.push(name);
+    if (opt.sheet) check(name + ': the sheet\'s text was read (' + n + ' boxes)', n > 0);
     const mine = offenders.filter(o => o.screen === name).length;
     console.log('  ' + name + ': ' + n + ' text boxes over ' + views + ' view' + (views === 1 ? '' : 's') + (mine ? ', ' + mine + ' offender' + (mine === 1 ? '' : 's') : ''));
     await page.evaluate(([s]) => { if (s === 'window') scrollTo(0, 0); else { const e = document.querySelector(s); if (e) e.scrollTop = 0; } }, [scroller]);
@@ -237,7 +252,7 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
   await page.goto(base + '#/matchday/overview', { waitUntil: 'domcontentloaded' }); await settled();
   const now = await page.evaluate(() => new Date().toISOString());
   const state = await page.evaluate(() => ({ gw: D.gw, phase: (window.MW && window.MW.UI && window.MW.UI.statePill && window.MW.UI.statePill().replace(/<[^>]+>/g, '')) || '' }));
-  console.log('demo ' + base + ' at ' + now + ' (snapshot ' + (index.taken || 'unknown') + '), GW' + state.gw + ' ' + state.phase + ', following ' + team + ', ' + width + ' px');
+  console.log('demo ' + base + ' at ' + now + ' (snapshot ' + (index.taken || 'unknown') + '), GW' + state.gw + ' ' + state.phase + ', following ' + team + ', ' + width + ' px' + (noPhotos ? ', no photos (the initials fallback)' : ''));
 
   /* Matchday */
   if (only !== 'sheets') {
@@ -296,7 +311,7 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
   if (postId) { await page.evaluate(id => window.MW.openSheet('post', id), postId); await page.waitForTimeout(300); if (await page.$('.sheet')) { await sheetOpen(); await scan('feed post', { sheet: true }); await closeSheets(); } }
 
   check('no console errors during the walk', errors.length === 0, errors.slice(0, 4).join(' || '));
-  if (offsite.length) console.log('  note: ' + offsite.length + ' third-party image or font requests failed on this network (a crest, flag or font host): ' + [...new Set(offsite.map(u => u.replace(/^https?:\/\/([^/]+).*/, '$1')))].join(', '));
+  if (offsite.length && !noPhotos) console.log('  note: ' + offsite.length + ' third-party image or font requests failed on this network (a crest, flag or font host): ' + [...new Set(offsite.map(u => u.replace(/^https?:\/\/([^/]+).*/, '$1')))].join(', '));
   await browser.close(); srv.close();
 
   const R = L.report(offenders, screensDone.length);

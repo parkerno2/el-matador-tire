@@ -127,7 +127,7 @@ export function face(p, px = 32, opt = {}) {
   const ring = opt.ring ? ';box-shadow:inset 0 0 0 ' + (opt.ringW || 2) + 'px ' + opt.ring : '';
   const bg = opt.bg ? ';background:' + opt.bg : '';
   const urls = faceSrcs(code);
-  return '<span class="fc-i' + (opt.cls ? ' ' + opt.cls : '') + '" style="width:' + px + 'px;height:' + px + 'px' + bg + ring + '">'
+  return '<span class="fc-i' + (opt.cls ? ' ' + opt.cls : '') + '" style="width:' + px + 'px;height:' + px + 'px;font-size:' + px + 'px' + bg + ring + '">'
     + (urls.length
       ? chainImg(urls, 'loading="lazy" decoding="async" alt="' + esc(p.Player || '') + '" data-c="' + esc(code) + '"', 'this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ini\',textContent:\'' + ini + '\'}))')
       : '<span class="ini">' + ini + '</span>')
@@ -157,6 +157,9 @@ export function plateStatus(p, mark, opt = {}) {
   if (mark === 'inl') return { k: 'on', c: 'wn', t: t || 'Likely sub, on', dim: false };
   if (mark === 'out') return { k: 'off', c: 'no', t: t || 'Subbed off', dim: true };
   if (mark === 'outl') return { k: 'off', c: 'wn', t: t || 'Likely off', dim: false };
+  /* a starter whose match finished without him and nobody came on: the red "!" (the line under the card says FT; the
+     words live in the label and the Bench card) */
+  if (opt.dnp) return { k: 'flag', c: 'no', t: t || 'Did not play', dim: false };
   if (opt.flag === false || !p) return null;
   const s = String(p.Status || ''), news = String(p.News || '').trim();
   if (s === 'd') return { k: 'flag', c: 'wn', t: t || news || 'Doubtful', dim: false };

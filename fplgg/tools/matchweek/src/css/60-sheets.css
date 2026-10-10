@@ -50,8 +50,8 @@
 /* the next fixture chip (Parker, 10 Oct 2026): the opponent's crest and code, H or A, then the kick-off, minute or FT */
 .ps-fc.ps-nx .sk-cb{margin-right:-2px}
 .ps-fc.ps-nx i{margin-left:-3px}
-.ps-fc.ps-nx em{font-style:normal;font-weight:600;color:var(--tx2);padding-left:6px;border-left:1px solid var(--top)}
-.ps-fc.ps-nx.live em{color:var(--live)}
+.ps-fc.ps-nx > em{font-style:normal;font-weight:600;color:var(--tx2);padding-left:6px;border-left:1px solid var(--top)}   /* the H or A marker only: the crest circle's own em (the club's letters on white when the crest fails to load) keeps its dark colour */
+.ps-fc.ps-nx.live > em{color:var(--live)}
 /* the season card: apps, goals, assists, points and the rating in its colour (green from 78, amber from 70, red under) */
 .ps-cells.ps-cells5{grid-template-columns:repeat(5,minmax(0,1fr));border-top:0}
 .ps-cells5 .ps-cell{padding:12px 4px;align-items:center;text-align:center}

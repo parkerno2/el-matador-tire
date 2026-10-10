@@ -131,12 +131,14 @@ export function bubble(x, mode) {
   if (!x.started) return { cls: 'pj', txt: x.proj === null ? '–' : f1(x.proj) };
   return { cls: x.finished ? 'bk' : 'lv', txt: int(x.pts) };
 }
-/* the short line under a player: kick-off, minute, FT, not on yet */
+/* the short line under a player: kick-off, minute, FT, not on yet. A finished match he did not play says FT too, with
+   dnp set, so the card wears the red "!" and the words go to its label and the Bench card (Parker's rule: the line
+   under a card is only the kick-off, the minute or FT) */
 export function statusLine(x, compact) {
   if (!x) return { t: '', live: false };
   if (x.blank) return { t: 'No match', live: false };
   if (!x.started) return { t: compact ? tShort(x.ko) : tKo(x.ko), live: false };
-  if (x.finished) return { t: x.mins > 0 ? 'FT' : 'Did not play', live: false };
+  if (x.finished) return { t: 'FT', live: false, dnp: !(x.mins > 0) };
   if (x.st === 'bench' || (x.mins <= 0 && x.minute !== null)) return { t: 'not on yet', live: true };
   if (x.st === 'off') return { t: 'off · ' + x.mins + '’', live: false };
   if (x.st === 'pre') return { t: compact ? tShort(x.ko) : tKo(x.ko), live: false }; /* second leg of a double still to come */

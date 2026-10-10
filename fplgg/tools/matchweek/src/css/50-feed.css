@@ -30,7 +30,7 @@
 .fp.unread::before{content:'';position:absolute;left:0;top:18px;width:3px;height:36px;border-radius:0 3px 3px 0;background:var(--p300)}
 .fp-h{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0}
 .fp-who{display:flex;flex-direction:column;gap:1px;min-width:0}
-.fp-who b{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;min-width:0}
+.fp-who b{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;font-size:14px;font-weight:700;min-width:0}   /* the chips wrap under the name when the row is tight (a viral post in a rail card), so the name is never cut against the voice's chip */
 .fp-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .fp-who>span{font-size:12px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fp-new{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--p300);flex:none}
