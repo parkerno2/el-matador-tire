@@ -219,13 +219,12 @@ export const mgr = t => (PROFILE[t] || {}).manager || (TEAMS[t] || {}).mgr || ''
 /* ---------- auto-sub reasons ---------- */
 export function subReason(s) {
   const p = s.out, x = pl(p);
-  if (s.kind === 'likely') {
-    if (x && x.blank) return 'no match this week';
-    const n = String(p.News || '').split(' - ')[0].trim();
-    return n || (p.Status === 'd' ? 'doubtful' : 'flagged out');
-  }
   if (x && x.blank) return 'no match this week';
-  return 'did not play' + (x && x.fxs.length ? ', ' + fxLabel(x.fxs[0]) + ' finished' : '');
+  /* a starter whose match finished without him is out whatever the sub's kind (a likely sub can cover him when the
+     confirmed-facts pass would have used a flagged bench player instead, BUGS #37) */
+  if (s.kind === 'locked' || (x && x.finished && x.mins <= 0)) return 'did not play' + (x && x.fxs.length ? ', ' + fxLabel(x.fxs[0]) + ' finished' : '');
+  const n = String(p.News || '').split(' - ')[0].trim();
+  return n || (p.Status === 'd' ? 'doubtful' : 'flagged out');
 }
 
 /* ---------- this season's meetings between two teams ---------- */
