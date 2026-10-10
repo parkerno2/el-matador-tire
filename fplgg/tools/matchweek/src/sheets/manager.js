@@ -287,7 +287,7 @@ export function alltimePanel(team) {
   html += UI.sh('Records') + '<div class="card">' + rec + '</div>';
   /* finishes by season */
   html += UI.sh('Seasons') + '<div class="card"><div class="at-sr hd"><span>Season</span><span>Team</span><span>Finish</span><span>W-D-L</span><span>Pts</span></div>'
-    + m.seasons.slice().reverse().map(s => '<div class="at-sr' + (s.title ? ' ttl' : '') + '"><span class="n">' + esc(s.season) + '</span><span class="tm ell">' + esc(s.team) + '</span><span class="n">' + (s.P ? K.ord(s.rank) + (s.current && !s.complete ? '*' : '') : '-') + (s.title ? '<i>title</i>' : '') + '</span><span class="n">' + s.W + '-' + s.D + '-' + s.L + '</span><b class="n">' + s.Pts + '</b></div>').join('')
+    + m.seasons.slice().reverse().map(s => '<div class="at-sr' + (s.title ? ' ttl' : '') + '"><span class="n">' + esc(s.season) + '</span><span class="tm">' + esc(s.team) + '</span><span class="n">' + (s.P ? K.ord(s.rank) + (s.current && !s.complete ? '*' : '') : '-') + (s.title ? '<i>title</i>' : '') + '</span><span class="n">' + s.W + '-' + s.D + '-' + s.L + '</span><b class="n">' + s.Pts + '</b></div>').join('')
     + '</div>' + (m.seasons.some(s => s.current && !s.complete) ? K.note('* so far, finished gameweeks only.') : '');
   /* the earlier seasons' drafts */
   m.drafts.forEach(d => {

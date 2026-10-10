@@ -38,7 +38,7 @@
 .at-sr .n{font-size:14px;line-height:1.1;color:var(--num2);text-align:center;white-space:nowrap}
 .at-sr .n:first-child{text-align:left;color:var(--tx2)}
 .at-sr b.n{color:var(--tx);font-size:16px}
-.at-sr .tm{font-size:13px;font-weight:600}
+.at-sr .tm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;font-weight:600;line-height:1.2;overflow-wrap:anywhere;min-width:0}   /* a team name takes two lines, never a cut (the Q5 review, 10 Oct 2026) */
 .at-sr .n i{display:block;font-style:normal;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
 .at-hr{display:grid;grid-template-columns:24px minmax(0,1fr) 60px 70px;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--hair);min-height:44px;cursor:pointer}
 .at-hr:first-child{border-top:0}
