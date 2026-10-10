@@ -15,6 +15,10 @@ The league app at https://parkerno2.github.io/el-matador-tire/ is the Matchweek 
 
 The data comes from the Google Sheet through gviz by default. `?data=supabase` in the app's URL switches this phone to the Supabase project's public `tabs` function (ROADMAP B3, `src/data/tabs.js`: the same tab names and columns, the rows shaped like gviz's, the same header guard; the tabs the web app writes (Managers, Social, Posts, Specials) and any tab Supabase lacks stay on the Sheet; `MW.data.report()` in the console says where each tab came from; `?data=sheet` goes back). Logins and profiles go through the Apps Script in `Code.gs` (v3.7 adds custom club colours and patterns).
 
+## Docs
+
+`docs/ARCHITECTURE.md` says how the pieces fit (the Sheet and its tabs, the app, Code.gs and its triggers, the workflows, the branches); `docs/RUNBOOK.md` says where to look when something seems off and what to do; `docs/ROADMAP.md`, `docs/BUGS.md`, `docs/TONE.md` and `docs/ARTICLES.md` are the plan, the bug list, the voices and the article pipeline. `tests/app-docs.js` keeps the first two honest.
+
 ## Source
 
 This folder is the source of truth. Edit it here; never edit the six root files by hand (the next build overwrites them).
