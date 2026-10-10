@@ -27,4 +27,7 @@ Parker, 10 Oct 2026, about 18:57 UTC, after seeing the manager's screenshots of 
 - The manager sheet's figures use typographic dashes inside numbers ("W–D–L", "14–29", "46.2–48.1", "5–2"); the League table uses hyphens ("3-1-1"). This predates the change and Parker approved the screens; DESIGN.md's dash rule is written for generated text. Worth one decision from Parker on whether UI scores should use the hyphen everywhere (noted in BUGS.md).
 
 ## Proof of shipping
-The "Code.gs tests and release" and "Build Matchweek app" runs for the merge push, and the production build stamp, are added to this report by the docs commit that follows the green runs.
+- The merge commit: 3851f07, pushed to main at 19:15 UTC.
+- Code.gs tests and release, run 43, green: https://github.com/parkerno2/el-matador-tire/actions/runs/38079083311
+- Build Matchweek app, run 31, green (the audit on the demo just built, then the build commit 5c606e8 "build: matchweek app from 3851f07"): https://github.com/parkerno2/el-matador-tire/actions/runs/38079083376
+- Production, https://parkerno2.github.io/el-matador-tire/, at 19:20 UTC: build stamp `app.js?v=20261010191546` (before the merge: `20261010174942`); the bundle carries the table header "#, Team, W-D-L, PF, Pts, Title" and no "Prize places" band; headless Chromium at 390 px on the live data showed the League table with the PF column and no prize amounts, 0 page errors.
