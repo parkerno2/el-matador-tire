@@ -1715,6 +1715,53 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 
 /* quiet numbers (DESIGN.md: 7:1): the series count on a derby, the pot's shares and periods, points for and against */
 .srl.n,.lg-hold .pz .k,.per .n,.lg-pot .rows em.n,.sc td.pa.n{color:var(--num2)}
+/* 45-alltime.css — League › All-time and the manager sheet's All-time tab (Parker's Q5, 10 Oct 2026). Numbers in the
+   numeric font on dark neutral cards; the sort header is the one purple accent (an active state). */
+.at-tbl{padding:0;overflow:hidden}
+.at-th,.at-tr{display:grid;grid-template-columns:18px 30px minmax(0,1fr) 24px 44px 30px 34px 32px;align-items:center;gap:4px;padding-left:8px;padding-right:10px}
+.at-th{padding-top:10px;padding-bottom:8px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);border-bottom:1px solid var(--hair)}
+.at-th span:nth-child(1){text-align:center}
+.at-th button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:8px 0 4px;margin:-8px 0 -4px;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;text-align:center;white-space:nowrap;cursor:pointer;min-width:0}
+.at-th button.on{color:var(--p100);border-bottom-color:var(--p300)}
+.at-tr{position:relative;min-height:54px;padding-top:8px;padding-bottom:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.at-tr + .at-tr{border-top:1px solid var(--hair)}
+.at-tr.you{background:linear-gradient(90deg,rgba(122,149,255,.16),rgba(122,149,255,.04))}
+.at-tr.you::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--you)}
+.at-tr .pos{font-size:18px;font-weight:700;line-height:1;text-align:center}
+.at-tr .nm{display:flex;flex-direction:column;min-width:0;gap:3px}
+.at-tr .l1{display:flex;align-items:center;gap:5px;min-width:0}
+.at-tr .nm b{font-size:14px;font-weight:800;line-height:1.15;min-width:0}
+.at-tr .tt{display:inline-flex;flex:none;gap:1px;color:var(--gold);line-height:0}
+.at-tr .l2{font-size:10.5px;color:var(--tx3)}
+.at-tr .v{font-size:14px;font-weight:600;line-height:1;color:var(--num2);text-align:center;white-space:nowrap}
+.at-tr .v.on{color:var(--tx)}
+.at-tr .pts{font-size:20px;font-weight:700}
+.at-code{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;background:var(--top);color:var(--tx2);font:800 10px/1 var(--f-num);letter-spacing:.02em}
+.at-code em{font-style:normal}
+.at-recs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.at-rec b{font-size:28px}
+.at-rec .w{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.3;color:var(--tx2)}
+.at-rec .sub{font-size:11px;line-height:1.3;color:var(--tx3)}
+/* the sheet */
+.at-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px 0}
+.at-line > div{display:flex;flex-direction:column;gap:3px;padding:10px 4px;text-align:center;min-width:0}
+.at-line b{font-size:20px;line-height:1;white-space:nowrap}
+.at-line span{font-size:11px;color:var(--tx3);white-space:nowrap}
+.at-sr{display:grid;grid-template-columns:56px minmax(0,1fr) 44px 52px 32px;align-items:center;gap:6px;padding:10px 12px;border-top:1px solid var(--hair);min-height:44px}
+.at-sr:first-child{border-top:0}
+.at-sr.hd{min-height:0;padding:10px 12px 6px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
+.at-sr.hd span{text-align:center}
+.at-sr.hd span:nth-child(1),.at-sr.hd span:nth-child(2){text-align:left}
+.at-sr .n{font-size:14px;line-height:1.1;color:var(--num2);text-align:center;white-space:nowrap}
+.at-sr .n:first-child{text-align:left;color:var(--tx2)}
+.at-sr b.n{color:var(--tx);font-size:16px}
+.at-sr .tm{font-size:13px;font-weight:600}
+.at-sr .n i{display:block;font-style:normal;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.at-hr{display:grid;grid-template-columns:24px minmax(0,1fr) 60px 70px;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--hair);min-height:44px;cursor:pointer}
+.at-hr:first-child{border-top:0}
+.at-hr .nm{font-size:14px;font-weight:600}
+.at-hr b.n{font-size:16px;text-align:center}
+.at-hr .pf{font-size:12px;color:var(--num2);text-align:right;white-space:nowrap}
 /* ===== Feed (pages/feed.js, feed/*) — four voices, each look inside its own posts; the chrome stays purple and blue ===== */
 
 /* voice type */
