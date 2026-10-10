@@ -72,6 +72,20 @@ function factChips(x) {
     + '<span class="ps-fc">' + esc(K.POSNAME[p.Pos] || p.Pos) + '</span>' + fx
     + '</div>';
 }
+/* the short name FPL shows (the Plate's name) under the full name only when it is not already part of it: "Jan Paul
+   van Hecke" carries "Van Hecke", "Bruno Guimarães" carries "B.Guimaraes", whatever the case, the accents or the dots
+   (Parker, 10 Oct 2026: the sheet showed the full name and then the short one under it). Part of: the short name's
+   words appear in the full name in order, each one a whole word or an initial of one. */
+const plain = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+export function webName(full, short) {
+  full = String(full || '').trim(); short = String(short || '').trim();
+  if (!full || !short || full === short) return false;
+  const f = plain(full), s = plain(short);
+  if (!s.length || !f.length) return false;
+  let i = 0;
+  for (const w of s) { while (i < f.length && !(f[i] === w || (w.length === 1 && f[i][0] === w))) i++; if (i >= f.length) return true; i++; }
+  return false;
+}
 function sentence(s) { s = String(s || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/\.$/, '') + '.' : ''; }
 function banner(x) {
   const st = x.status, news = x.news.trim();
@@ -353,7 +367,7 @@ export default {
     if (!x) return '<div class="sk-miss">' + UI.empty('Player not found', 'He may have left the Premier League or the data is still loading.') + '</div>';
     const nm = (x.full || x.p.Player || '').trim(), size = nm.length > 22 ? 24 : nm.length > 15 ? 28 : 34;
     return hero(x)
-      + '<div class="ps-id"><h2 class="wide ps-name" style="font-size:' + size + 'px">' + esc(nm) + '</h2>' + (x.full && x.full !== x.p.Player && !x.full.includes(x.p.Player) ? '<div class="sub ps-web">' + esc(x.p.Player) + '</div>' : '') + factChips(x) + '</div>'
+      + '<div class="ps-id"><h2 class="wide ps-name" style="font-size:' + size + 'px">' + esc(nm) + '</h2>' + (webName(x.full, x.p.Player) ? '<div class="sub ps-web">' + esc(x.p.Player) + '</div>' : '') + factChips(x) + '</div>'
       + banner(x)
       + K.tabs([['overview', 'Overview'], ['matches', 'Matches'], ['ratings', 'Ratings']], 'overview')
       + K.panel('overview', seasonCard(x) + formBlock(x) + nextFiveBlock(x) + thisMatch(x) + gwBlock(x) + moreBlock(x), true)

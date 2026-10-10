@@ -2,6 +2,9 @@
    Run after fplgg/tools/matchweek/ci-build.sh (the Build Matchweek app workflow does; `npm ci` in that folder first):
        node fplgg/tools/demo/build-demo.js            # snapshot the live tabs, anonymise, build, copy, check
        node fplgg/tools/demo/build-demo.js --check    # the leak check alone, over site/public, nothing written
+       node fplgg/tools/demo/build-demo.js --data site/public/demo/data --out /tmp/mw-demo/demo
+                                                      # the app from this checkout on the committed snapshot, no Sheet read
+                                                      # (what the contrast audit in CI builds, fplgg/tools/contrast)
    What it writes, and nothing else: site/public/demo/{index.html, app.js, app.css, core.js, data/*.json, data/index.json}
    plus copies of faces/, icons/ and voices/. The app is the same source as the league app, bundled with __MW_DEMO__ set
    (src/data/tabs.js: the data source fixed to the frozen tabs, nothing read from the Sheet, the web app or Supabase,
@@ -102,7 +105,7 @@ function walk(dir, rel, out) {
   return out;
 }
 /* the player tabs' data files, where first names are not checked */
-const playerFile = rel => names.PLAYER_TABS.some(t => rel.replace(/\\/g, '/').endsWith('/data/' + names.slug(t)));
+const playerFile = rel => names.PLAYER_TABS.some(t => ('/' + rel.replace(/\\/g, '/')).endsWith('/data/' + names.slug(t)));   /* the folder scanned may be the demo itself, so the path can start at data/ */
 /* { file: [names] } for every leak under dir; exempt: the footballers' first names (names.playerFirstNames) */
 function leakScan(dir, m, exempt) {
   const found = {};
@@ -119,14 +122,28 @@ function run(cmd, args, cwd) {
   return r.stdout;
 }
 
+/* the committed snapshot as the build's input (--data DIR: the anonymised data/*.json of an earlier build, index.json
+   beside them), for a build that must not touch the Sheet (the contrast audit in CI, fplgg/tools/contrast). The mapping
+   comes from league.json's own teams and managers, the rows the live Standings tab carries, so the names in core.js,
+   app.js and app.css come out as they do from a live snapshot. The tabs are copied as they are. */
+function fromData(dataDir, cfg) {
+  const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.json') && f !== 'index.json');
+  if (!files.includes('players.json') || !files.includes('standings.json')) throw new Error('no demo snapshot in ' + dataDir + ' (players.json, standings.json)');
+  let index = {}; try { index = JSON.parse(fs.readFileSync(path.join(dataDir, 'index.json'), 'utf8')); } catch (e) { }
+  const rows = Object.keys(cfg.teams || {}).map(t => ({ Team: t, Manager: cfg.teams[t].mgr }));
+  return { taken: index.taken || '', index, files, skipped: index.skipped || {}, tabs: { Standings: { rows }, Players: JSON.parse(fs.readFileSync(path.join(dataDir, 'players.json'), 'utf8')) } };
+}
 async function main(argv) {
   const checkOnly = argv.includes('--check'), strict = argv.includes('--strict');
+  const dataAt = argv.indexOf('--data'), dataDir = dataAt > -1 ? path.resolve(argv[dataAt + 1]) : '';
+  const outAt = argv.indexOf('--out'), out = outAt > -1 ? path.resolve(argv[outAt + 1]) : OUT;
   const log = m => console.log('[demo] ' + m);
   const core = fs.readFileSync(path.join(APP, 'core.gen.js'), 'utf8');
   const cfg = league.load();
-  /* 1. the live tabs */
+  /* 1. the live tabs (or, with --data, the committed snapshot and league.json's own rows) */
   let shot;
-  try { shot = await snap.snapshot(undefined, checkOnly ? null : log, EA_TABS); }
+  if (dataDir) shot = fromData(dataDir, cfg);
+  else try { shot = await snap.snapshot(undefined, checkOnly ? null : log, EA_TABS); }
   catch (e) {
     const msg = 'the league Sheet could not be read (' + String(e && e.message || e).slice(0, 160) + ')';
     if (strict) throw new Error(msg);
@@ -135,8 +152,8 @@ async function main(argv) {
   }
   const m = names.mapping(shot.tabs.Standings.rows, leagueInitials(cfg), leagueShorts(cfg), cfg.aliases);
   if (!checkOnly) {
-    /* 2. the anonymised data */
-    const tabs = dropRatings(names.anonymiseTabs(shot.tabs, m));   /* no EA ratings in the demo (9 Oct 2026) */
+    /* 2. the anonymised data (with --data: already anonymised, copied file by file below) */
+    const tabs = dataDir ? null : dropRatings(names.anonymiseTabs(shot.tabs, m));   /* no EA ratings in the demo (9 Oct 2026) */
     const build = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
     const tmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'mw-demo-'));
     /* 3. the app with __MW_DEMO__ set; identifiers are kept so a name in a string is the only two-letter word that changes */
@@ -147,23 +164,29 @@ async function main(argv) {
     const appCss = names.substituteCode(cssFiles.map(f => fs.readFileSync(path.join(APP, 'src', 'css', f), 'utf8')).join(''), m);
     const index = demoIndex(fs.readFileSync(path.join(APP, 'index.template.html'), 'utf8'), build);
     /* 4. write it all, fresh */
-    rmrf(OUT); fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
-    fs.writeFileSync(path.join(OUT, 'index.html'), index);
-    fs.writeFileSync(path.join(OUT, 'app.js'), appJs);
-    fs.writeFileSync(path.join(OUT, 'core.js'), coreJs);
-    fs.writeFileSync(path.join(OUT, 'app.css'), appCss);
+    const dataFiles = dataDir ? shot.files.map(f => [f, fs.readFileSync(path.join(dataDir, f))]) : [];   /* read before out is emptied: out may be the data's own folder */
+    const dataIndex = dataDir ? fs.readFileSync(path.join(dataDir, 'index.json'), 'utf8') : '';
+    rmrf(out); fs.mkdirSync(path.join(out, 'data'), { recursive: true });
+    fs.writeFileSync(path.join(out, 'index.html'), index);
+    fs.writeFileSync(path.join(out, 'app.js'), appJs);
+    fs.writeFileSync(path.join(out, 'core.js'), coreJs);
+    fs.writeFileSync(path.join(out, 'app.css'), appCss);
     const counts = {};
-    Object.keys(tabs).forEach(n => { fs.writeFileSync(path.join(OUT, 'data', names.slug(n)), JSON.stringify(tabs[n])); counts[n] = tabs[n].rows.length; });
-    fs.writeFileSync(path.join(OUT, 'data', 'index.json'), JSON.stringify({ taken: shot.taken, build, tabs: counts, skipped: shot.skipped, teams: m.order.length }, null, 1));
-    ASSET_DIRS.forEach(d => { if (fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(OUT, d), { recursive: true, filter: s => !/README\.md$/.test(s) }); });
-    run(process.execPath, ['--check', path.join(OUT, 'app.js')]);
-    run(process.execPath, ['--check', path.join(OUT, 'core.js')]);
+    if (dataDir) { dataFiles.forEach(([f, b]) => fs.writeFileSync(path.join(out, 'data', f), b)); fs.writeFileSync(path.join(out, 'data', 'index.json'), dataIndex); }
+    else {
+      Object.keys(tabs).forEach(n => { fs.writeFileSync(path.join(out, 'data', names.slug(n)), JSON.stringify(tabs[n])); counts[n] = tabs[n].rows.length; });
+      fs.writeFileSync(path.join(out, 'data', 'index.json'), JSON.stringify({ taken: shot.taken, build, tabs: counts, skipped: shot.skipped, teams: m.order.length }, null, 1));
+    }
+    ASSET_DIRS.forEach(d => { if (fs.existsSync(path.join(ROOT, d))) fs.cpSync(path.join(ROOT, d), path.join(out, d), { recursive: true, filter: s => !/README\.md$/.test(s) }); });
+    run(process.execPath, ['--check', path.join(out, 'app.js')]);
+    run(process.execPath, ['--check', path.join(out, 'core.js')]);
     rmrf(tmp);
-    log('written: ' + Object.keys(tabs).length + ' tabs' + (Object.keys(shot.skipped).length ? ' (skipped: ' + Object.keys(shot.skipped).join(', ') + ')' : '') + ', app ' + (appJs.length / 1024 | 0) + ' KB, core ' + (coreJs.length / 1024 | 0) + ' KB, build ' + build);
+    log('written' + (out !== OUT ? ' to ' + out : '') + ': ' + (dataDir ? dataFiles.length + ' tabs from ' + dataDir + ' (snapshot ' + shot.taken + ')' : Object.keys(tabs).length + ' tabs' + (Object.keys(shot.skipped).length ? ' (skipped: ' + Object.keys(shot.skipped).join(', ') + ')' : '')) + ', app ' + (appJs.length / 1024 | 0) + ' KB, core ' + (coreJs.length / 1024 | 0) + ' KB, build ' + build);
   }
-  /* 5. the leak check, over the whole site */
+  /* 5. the leak check, over the whole site (and over the out folder when it is elsewhere) */
   const exempt = names.playerFirstNames(shot.tabs.Players);
   const found = leakScan(SITE, m, exempt);
+  if (out !== OUT && !out.startsWith(SITE + path.sep)) Object.assign(found, leakScan(out, m, exempt));
   const files = Object.keys(found);
   if (files.length) {
     console.error('[demo] a real team or manager name is in site/public: ' + files.map(f => f + ' (' + found[f].length + ')').join(', '));
@@ -172,6 +195,7 @@ async function main(argv) {
   log('leak check: clean (' + walk(SITE).length + ' files)');
   /* 6. the EA check, over the whole site: no EA face, no fc27 or ea-map file (Parker, 9 Oct 2026) */
   const ea = eaScan(SITE);
+  if (out !== OUT && !out.startsWith(SITE + path.sep)) Object.assign(ea, eaScan(out));
   const eaFiles = Object.keys(ea);
   if (eaFiles.length) {
     console.error('[demo] an EA asset is in site/public: ' + eaFiles.slice(0, 20).map(f => f + ' (' + ea[f] + ')').join(', ') + (eaFiles.length > 20 ? ' and ' + (eaFiles.length - 20) + ' more' : ''));
@@ -180,5 +204,5 @@ async function main(argv) {
   log('EA check: clean');
   return 0;
 }
-module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, demoIndex, walk, playerFile, leakScan, main };
+module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, demoIndex, walk, playerFile, leakScan, fromData, main };
 if (require.main === module) main(process.argv.slice(2)).then(code => process.exit(code), e => { console.error('[demo] ' + (e && e.stack || e)); process.exit(1); });

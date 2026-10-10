@@ -147,8 +147,9 @@ let CARDI = 9000;
    mark: 'in' | 'inl' | 'out' | 'outl' | '' (the engine's SUBMARK words). opt.flag === false says his availability no
    longer matters (his match has started). opt.title carries the detail for the title and aria-label ("On for Doku");
    otherwise the FPL news stands in ("Knock - 75% chance of playing"). */
-const ARROW_UP = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 L8.5 5.5 H6.2 V8.5 H3.8 V5.5 H1.5 Z" fill="#fff"/></svg>';
-const ARROW_DN = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 L1.5 4.5 H3.8 V1.5 H6.2 V4.5 H8.5 Z" fill="#fff"/></svg>';
+/* dark glyphs on the status colours (DESIGN.md, 10 Oct 2026): 8:1 on green, 11:1 on amber, 9:1 on red; white read 2:1 */
+const ARROW_UP = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 L8.5 5.5 H6.2 V8.5 H3.8 V5.5 H1.5 Z" fill="#0E0A13"/></svg>';
+const ARROW_DN = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 L1.5 4.5 H3.8 V1.5 H6.2 V4.5 H8.5 Z" fill="#0E0A13"/></svg>';
 export function plateStatus(p, mark, opt = {}) {
   mark = mark || '';
   const t = opt.title || '';

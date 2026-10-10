@@ -6,6 +6,8 @@
 #   build time; Parker's Q2, 8 Oct 2026) and fails when a real team or manager name is anywhere under site/public.
 #   Cloudflare redeploys matchweek.gg on the commit. Touches nothing else: not classic.html, v12.html, Code.gs or any
 #   other file. The daily run refreshes the demo's snapshot, so its gameweek moves with the league's.
+#   Before the commit, the contrast audit (fplgg/tools/contrast/audit.js, docs/DESIGN.md) runs on the demo just built: an
+#   offender makes the run red and nothing is committed.
 #   Details: fplgg/tools/matchweek/README.md and fplgg/tools/demo/README.md
 name: Build Matchweek app
 on:
@@ -36,6 +38,17 @@ jobs:
         run: bash fplgg/tools/matchweek/ci-build.sh
       - name: Build the demo league (site/public/demo)
         run: node fplgg/tools/demo/build-demo.js
+      - name: Install Playwright for the contrast audit (the Facts bot's pin)
+        working-directory: fplgg/tools/factsbot
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: The contrast audit (docs/DESIGN.md) on the demo just built
+        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/contrast/audit.js --dir site/public --report /tmp/mw-contrast.json
+      - name: Keep the contrast report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: contrast-report, path: /tmp/mw-contrast.json, if-no-files-found: ignore }
       - name: Commit the build
         run: |
           FILES="index.html app.js app.css core.js sw.js manifest.webmanifest site/public/demo"

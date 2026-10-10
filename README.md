@@ -21,6 +21,7 @@ The 8-manager FPL Draft league app (league 45380), and the product it is becomin
 - `fplgg/tools/matchweek/docs/BUGS.md`: what is known to be wrong, and the audit log.
 - `fplgg/tools/matchweek/docs/TONE.md`: the voices and the tone every writer follows.
 - `fplgg/tools/matchweek/docs/ARTICLES.md`: the recap and preview pipeline and its contracts.
+- `fplgg/tools/matchweek/docs/DESIGN.md`: the design rules every screen follows (contrast, purple as the accent only, the status colours, one badge per card, the copy), with the token names; `fplgg/tools/contrast/` enforces the contrast rules in CI.
 
 ## Branches
 

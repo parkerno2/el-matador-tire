@@ -14,7 +14,7 @@
 .lg-prog .bar i.cur{background:var(--p300);opacity:.75;border-radius:0 3px 3px 0}
 .lg-prog .bar i.cur.live{background:var(--live);opacity:1;animation:lgblink 1.6s ease-in-out infinite}
 @keyframes lgblink{50%{opacity:.45}}
-.lg-prog .n{font:700 13px/1 var(--f-num);color:var(--p100);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.lg-prog .n{font:700 13px/1 var(--f-num);color:var(--tx2);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 .lg-prog .n em{font-style:normal;margin-left:2px}
 
 .lgx{display:block;padding-top:10px}
@@ -33,7 +33,7 @@
 .lg-foot .lg-more{margin:-10px 0 -10px auto}
 
 /* ---------- block 1: the table ---------- */
-.lg-tbl-hd{position:relative;display:flex;align-items:flex-end;gap:12px;padding:15px 14px 12px;background:linear-gradient(120deg,var(--p900) 0%,#24123A 55%,var(--card) 100%)}
+.lg-tbl-hd{position:relative;display:flex;align-items:flex-end;gap:12px;padding:15px 14px 12px;background:linear-gradient(120deg,#2B2338 0%,#211B2D 55%,var(--card) 100%)}   /* a dark tint, not purple: the headline carries a number */
 .lg-tbl-hd::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--logo)}
 .lg-tbl-hd .l{min-width:0}
 .lg-tbl-hd h2{margin:0;font-size:26px;line-height:.9}
@@ -83,7 +83,7 @@
 .lg-pips{display:flex;gap:6px;margin-top:12px}
 .lg-pips .pip{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .lg-pips .pip i{display:block;width:100%;height:6px;border-radius:3px;background:var(--top)}
-.lg-pips .pip .n{font-size:11px;color:var(--tx3);white-space:nowrap}
+.lg-pips .pip .n{font-size:11px;color:var(--num2);white-space:nowrap}
 .lg-pips .pip.done i{background:var(--p300)}
 .lg-pips .pip.done .n{color:var(--tx2)}
 .lg-pips .pip.live i{background:var(--live);animation:lgblink 1.6s ease-in-out infinite}
@@ -99,7 +99,7 @@
 .lg-mr{min-height:44px;cursor:pointer}
 .lg-mr:active{background:rgba(255,255,255,.03)}
 .lg-mr.you{background:rgba(122,149,255,.10)}
-.lg-mr .rk{font-size:15px;color:var(--tx3);text-align:center}
+.lg-mr .rk{font-size:15px;color:var(--num2);text-align:center}
 .lg-mr .cr{justify-self:center}
 .lg-mr .ln{display:block;min-width:0}
 .lg-mr .tn{display:block;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -137,9 +137,9 @@
 .lg-step .who{display:flex;flex-direction:column;align-items:center;font-size:11px;line-height:1.2;text-align:center;min-height:28px;max-width:100%}
 .lg-step .who b{font-weight:700;color:var(--tx2);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lg-step .who span{color:var(--tx3)}
-.lg-step .blk{width:100%;display:flex;flex-direction:column;align-items:center;padding-top:10px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 78%,#000) 100%)}
+.lg-step .blk{width:100%;display:flex;flex-direction:column;align-items:center;padding-top:10px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 78%,#000) 100%);color:#1C1402}
 .lg-step .blk b{font-size:24px;font-weight:700;line-height:1;color:#1A1405}
-.lg-step .blk span{margin-top:4px;font:800 11px/1 var(--f-ui);letter-spacing:.06em;color:#3A2C08;text-transform:uppercase}
+.lg-step .blk span{margin-top:4px;font:800 11px/1 var(--f-ui);letter-spacing:.06em;color:#1C1402;text-transform:uppercase}   /* 7.7:1 on the gold step */
 .lg-step.s1 .blk{height:96px} .lg-step.s2 .blk{height:66px} .lg-step.s3 .blk{height:48px}
 .lg-season{padding:16px 16px 12px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,210,63,.2)}
 .lg-season .hd{display:flex;align-items:baseline;margin-bottom:4px}
@@ -273,7 +273,7 @@
 .lg-mrow:first-child{border-top:0}
 .lg-mrow .per{display:flex;flex-direction:column;gap:2px}
 .lg-mrow .per b{font-size:13px;font-weight:800}
-.lg-mrow .per .n{font-size:13px;color:var(--tx3)}
+.lg-mrow .per .n{font-size:13px;color:var(--num2)}
 .lg-mrow .w{display:flex;align-items:center;gap:8px;min-width:0}
 .lg-mrow .w .cr + .cr{margin-left:-10px}
 .lg-mrow .amt{font-size:18px;font-weight:700;color:var(--gold);padding:4px 7px;border-radius:7px;background:var(--gold-bg)}
@@ -478,3 +478,6 @@
 .lg-tr .tb i{background:var(--tc,var(--p300))}
 .lg-mr .lane,.lg-mr.you .lane{--c:var(--tc,var(--p100))}
 .lg-odds .bar i,.lg-odds .r.baha .bar i{background:var(--tc,var(--tx3))}
+
+/* quiet numbers (DESIGN.md: 7:1): the series count on a derby, the pot's shares and periods, points for and against */
+.srl.n,.lg-hold .pz .k,.per .n,.lg-pot .rows em.n,.sc td.pa.n{color:var(--num2)}

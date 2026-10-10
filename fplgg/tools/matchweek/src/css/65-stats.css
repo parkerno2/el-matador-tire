@@ -21,7 +21,7 @@ main.lgx-stats,
 .md-stats,.md-rks,.md-tiles2,.card:has(> .md-tiles2),.card:has(> .md-cl){
   --base:var(--st-base);--bar:var(--st-base);--card:var(--st-card);--raised:var(--st-raised);--top:var(--st-top);
   --hair:var(--st-hair);--line:var(--st-line);
-  --tx:var(--st-num);--tx2:var(--st-num2);--tx3:var(--st-lab);--tx4:var(--st-lab2);--you:var(--st-you)
+  --tx:var(--st-num);--tx2:var(--st-num2);--tx3:var(--st-lab);--tx4:var(--st-lab2);--you:var(--st-you);--num2:var(--st-num2)
 }
 /* numbers that were purple, or a secondary grey, read white or the light grey */
 .sheet.sk-player .ps-bd b.xv,.sheet.sk-player .ps-bd.hd b.xv,.sheet.sk-player .ps-ml .xp{color:var(--st-num2)}
@@ -38,6 +38,6 @@ main.lgx-stats .lg-pick.on span{color:var(--st-num)}
 /* the red points chip (0 to 2) and the red rating badge (under 70): dark figures on the lighter red, like the green
    and amber ones; the match log's red event tags read the light red */
 .sheet.sk-player .sk-pc.p1,.sheet.sk-player .ps-rb.no{background:var(--st-redbg);color:var(--st-base)}
-.sheet.sk-player .sk-pc.z{color:var(--st-lab2);box-shadow:inset 0 0 0 1.5px var(--st-line)}
+.sheet.sk-player .sk-pc.z{color:var(--st-lab);box-shadow:inset 0 0 0 1.5px var(--st-line)}
 .sheet.sk-player .ps-ev.cs,.sheet.sk-player .ps-ev.gc,.sheet.sk-player .ps-ev.rc,.sheet.sk-player .ps-ev.bn{color:var(--st-num2)}
 .sheet.sk-player .ps-ev.cs{color:var(--st-win)} .sheet.sk-player .ps-ev.rc{color:var(--st-red)}
