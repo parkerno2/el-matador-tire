@@ -38,7 +38,7 @@ The tabs the app's engine reads, with the columns the header guard requires, are
 
 Who writes what:
 - **From FPL, by Code.gs:** Rosters, Standings, H2H Fixtures, Matchweeks (with the waiver deadline), Club Fixtures, Clubs (with FPL's difficulty in `Str H` and `Str A`), Transactions, Predictions, GW Stats, Players, GW Log, Fixture BPS (per-match BPS for a double gameweek), Meta (the last refresh, read by the app's stale banner and the parity report).
-- **By phones through the web app:** Managers (logins, colours, display names), Social (reactions, votes, quotes), Posts (the voices' posts and the rumours), Specials (the `API URL` row the app reads the web app's address from), Errors (what phones reported).
+- **By phones through the web app:** Managers (logins, colours, display names), Social (reactions, votes, quotes), Posts (the voices' posts and the rumours), Specials (the `API URL` row the app reads the web app's address from; its `POTM player` and `POTM month` rows are written by Code.gs from `fplgg/tools/matchweek/data/potm.json` on the `release` branch, v3.30, a hand edit for the same month kept), Errors (what phones reported).
 - **By the pipelines:** Articles and ArticleWork (recaps and previews), ShowScripts, ShowAudio and ShowFacts (the Gameweek Show), RecapFacts (recap facts). The engine never reads these; the app asks the web app for them.
 - **Frozen:** EA Map and FC27 (the EA ratings for the league's own app; the demo and any `house` league read neither, ROADMAP C3).
 
@@ -58,7 +58,7 @@ One Apps Script file bound to the Sheet, deployed as a web app (Execute as Me, A
 
 | Trigger | Every | Does |
 |---|---|---|
-| `refreshAll` | hour | rewrites the FPL tabs, Meta's `updated` |
+| `refreshAll` | hour | rewrites the FPL tabs, Meta's `updated`; the Player of the Month rows of Specials from the repo's `fplgg/tools/matchweek/data/potm.json` (`emtPotmSync`, one read an hour; `?health=1` `potm`) |
 | `liveTick` | 10 min | the same while a club match is on, by the Club Fixtures tab's kick-off times (`liveWindow`); `?health=1` `data.live` and `liveWhy` say so |
 | `aiTick` | 15 min | `aiWriterTick` (feed posts and the daily floor), `showWriterTick` (the show script), `showTick` (the voice), `articleTick` (recaps and previews), `selfUpdateTick` (install `release`), each in its own try and its own lock |
 

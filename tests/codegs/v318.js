@@ -36,7 +36,7 @@ check('E8 a message that looks like a formula is stored as text', rows()[rows().
 console.log('--- H health');
 h = get({ health: '1' });
 check('H1 errors: h24 counts occurrences (not rows) without the network ones, net24 the network ones, rows all, last the newest non-network', h.errors.h24 === 6 && h.errors.net24 === 1 && h.errors.rows === 6 && h.errors.last && h.errors.last.msg === '=HYPERLINK("x")' && h.errors.last.build === '1' && h.errors.last.kind === 'error' && /^\d{4}-/.test(h.errors.last.when), JSON.stringify(h.errors));
-check('H2 the health keys', Object.keys(h).sort().join() === 'ai,articles,data,errors,facts,ok,self,show,version');
+check('H2 the health keys', Object.keys(h).sort().join() === 'ai,articles,data,errors,facts,ok,potm,self,show,version');
 sheets.Errors.rows.slice(1).forEach(x => { x[7] = "'" + iso(Date.now() - 25 * 3600e3); x[0] = "'" + iso(Date.now() - 25 * 3600e3); });
 h = get({ health: '1' });
 check('H3 cached a minute: the old counts still show', h.errors.h24 === 6);

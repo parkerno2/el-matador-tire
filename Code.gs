@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.30 (the Player of the Month card fills itself) · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,22 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.30 · 10 Oct 2026
+ *   The Player of the Month card fills itself (Parker's Q7, 10 Oct 2026: "Oh pascal groß won potm", then "go ahead and
+ *   do that now"). The engine's POTM card tier reads the Specials tab ('POTM player', 'POTM month'), set by hand until
+ *   now, and nobody can edit the Sheet from the cloud.
+ *   1. The repo carries fplgg/tools/matchweek/data/potm.json (the newest month only: month, code, player, club and the
+ *      sources that confirmed it), committed once two independent sources confirm the award; the release branch carries
+ *      it once the gate passes. Every refresh (emtPotmSync from writeSheets, at most one read an hour, EMT_POTM_EVERY_MS)
+ *      fetches it from raw.githubusercontent.com (the host the self-update already reads, so no new permission) and,
+ *      when the file's month differs from the cell's 'POTM month', writes 'POTM player' (the Players tab's own Player
+ *      string for that Code, so the app's name match holds; the file's player only when the code is not in the tab)
+ *      and 'POTM month'.
+ *   2. A hand edit for the same month is never overwritten (the cell equal to the file's month, or to its month name
+ *      alone, as the tab was kept until now). A 404, a failed fetch or a file that does not parse or lacks a month
+ *      changes nothing and is logged; EMT_POTM keeps the last read (checked, error, what was written). The Specials tab
+ *      is created as before when missing (emtSpecialsSheet). The app is untouched.
+ *   3. ?health=1 potm: { month, player, from: file | hand | none, checked, error? }.
  * v3.29 · 9 Oct 2026
  *   The feed writer's daily floor (Parker's Q3, 8 Oct 2026: "When will it go away and not be the first thing? I thought
  *   they were also writing new articles. [Nothing] written since Wednesday."). The writer posted only when something
@@ -1180,15 +1196,9 @@ function writeSheets(boot, details, teams, picks, grades, leToEntry, estat, gwLi
   });
   put('Clubs', ['Short', 'Name', 'Badge code', 'Badge URL'].concat(CLUB_STR_HEAD), clubRows);
 
-  /* ----- specials: POTM is set by hand, never overwritten ----- */
-  if (!ss.getSheetByName('Specials')) {
-    var sp = ss.insertSheet('Specials');
-    sp.getRange(1, 1, 3, 2).setValues([
-      ['Setting', 'Value'],
-      ['POTM player', ''],
-      ['POTM month', '']
-    ]);
-  }
+  /* ----- specials: the POTM rows from the repo's potm.json (v3.30); a hand edit for the same month is kept ----- */
+  emtSpecialsSheet();
+  try { emtPotmSync(); } catch (e) { Logger.log('POTM: the sync threw (' + String((e && e.message) || e).slice(0, 120) + '); the Specials tab is unchanged.'); }
 
   put('H2H Fixtures', ['GW', 'Home', 'Home pts', 'Away', 'Away pts', 'Finished'],
     details.matches.map(function (m) {
@@ -3712,7 +3722,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.29';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.30';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -5134,6 +5144,7 @@ function emtHealth() {
     facts: emtFactsHealth(),                                                        /* v3.15 */
     data: emtDataHealth(),                                                          /* v3.17 */
     errors: emtErrorsHealth(),                                                      /* v3.18 */
+    potm: emtPotmHealth(),                                                          /* v3.30 */
     articles: { mode: emtArtReview() ? 'review' : 'auto',
       job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
         writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
@@ -5146,6 +5157,106 @@ function emtHealth() {
       }) },
     ai: { day: A.day || '', count: Number(A.count) || 0, on: emtAiOn(), last: A.last && typeof A.last === 'object' ? A.last : null,   /* v3.25: last */
       floor: A.floor && typeof A.floor === 'object' ? A.floor : null } };   /* v3.29: the daily floor's last day: { day (Chicago), made, why } */
+}
+/* ---------- v3.30 · the Player of the Month card fills itself (Parker's Q7, 10 Oct 2026) ----------
+ * The engine's POTM card tier reads the Specials tab ('POTM player', 'POTM month'), which was set by hand, and nobody
+ * can edit the Sheet from the cloud. The repo carries fplgg/tools/matchweek/data/potm.json (the newest month only:
+ * { month, code, player, club, sources }), committed once the award is confirmed; the release branch carries it once
+ * the gate passes. Every refresh (emtPotmSync from writeSheets, at most one read an hour) fetches that file from
+ * raw.githubusercontent.com (the host the self-update already reads, so no new permission) and, when its month differs
+ * from the cell's 'POTM month', writes 'POTM player' (the Players tab's own Player string for that Code, so the app's
+ * name match holds; the file's player only when the code is not in the tab) and 'POTM month'. A hand edit for the same
+ * month is never overwritten (the cell equal to the file's month, or to its month name alone, as the tab was kept until
+ * now). A 404, a failed fetch or a file that does not parse or lacks a month changes nothing and is logged. The
+ * Specials tab is created as before when missing. Nothing here throws out of a refresh. */
+var EMT_POTM_SRC = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/release/fplgg/tools/matchweek/data/potm.json';
+var EMT_POTM_EVERY_MS = 50 * 60 * 1000;     // one read an hour: the hourly refresh reads it, the live ticks between skip
+var EMT_POTM_MAX = 4000;                    // the file is a few hundred characters; anything longer is not it
+var EMT_SPECIALS_ROWS = [['Setting', 'Value'], ['POTM player', ''], ['POTM month', '']];
+/* the Specials tab, created with its header and the two POTM rows when missing (as every refresh did before v3.30) */
+function emtSpecialsSheet() {
+  var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName('Specials');
+  if (!sh) { sh = ss.insertSheet('Specials'); sh.getRange(1, 1, EMT_SPECIALS_ROWS.length, 2).setValues(EMT_SPECIALS_ROWS); }
+  return sh;
+}
+/* the 1-based row of a Setting in Specials, appended with an empty Value when missing */
+function emtSpecialRow(sh, setting) {
+  var n = sh.getLastRow(), v = n ? sh.getRange(1, 1, n, 1).getValues() : [];
+  for (var i = 1; i < v.length; i++) if (String(v[i][0]).trim() === setting) return i + 1;
+  sh.appendRow([setting, '']);
+  return sh.getLastRow();
+}
+function emtPotmState() { try { return JSON.parse(emtProps().getProperty('EMT_POTM') || '{}') || {}; } catch (e) { return {}; } }
+function emtPotmSave(st) { emtProps().setProperty('EMT_POTM', JSON.stringify(st)); }
+function emtPotmNorm(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toLowerCase(); }
+/* true when the cell names the file's month: equal, or the month name alone ('September' for 'September 2026') */
+function emtPotmSameMonth(cell, month) {
+  var c = emtPotmNorm(cell), m = emtPotmNorm(month);
+  return !!c && (c === m || c === m.split(' ')[0]);
+}
+/* the repo's file: { file: { month, code, player, club } } | { none: true } | { error } */
+function emtPotmFetch() {
+  var code, text;
+  try {
+    var res = UrlFetchApp.fetch(EMT_POTM_SRC + '?cb=' + Date.now(), { muteHttpExceptions: true });
+    code = res.getResponseCode(); text = String(res.getContentText() || '');
+  } catch (e) { return { error: String((e && e.message) || e).replace(/\s+/g, ' ').slice(0, 120) }; }
+  if (code === 404) return { none: true };
+  if (code !== 200) return { error: 'HTTP ' + code };
+  if (text.length > EMT_POTM_MAX) return { error: 'over ' + EMT_POTM_MAX + ' characters' };
+  var j = null;
+  try { j = JSON.parse(text); } catch (e) { return { error: 'it does not parse' }; }
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return { error: 'not one object' };
+  var month = String(j.month == null ? '' : j.month).replace(/\s+/g, ' ').trim(), player = String(j.player == null ? '' : j.player).replace(/\s+/g, ' ').trim(), c = Number(j.code);
+  if (!month || month.length > 40) return { error: 'no month' };
+  if (!(c > 0) && !player) return { error: 'no code and no player' };
+  return { file: { month: month, code: c > 0 ? String(Math.floor(c)) : '', player: player.slice(0, 60), club: String(j.club == null ? '' : j.club).trim().slice(0, 10) } };
+}
+/* the Players tab's own Player string for the file's code, else the file's player */
+function emtPotmName(file) {
+  if (file.code) {
+    var hit = emtRows('Players').filter(function (r) { return String(r.Code).replace(/\.0$/, '') === file.code; })[0];
+    if (hit && String(hit.Player || '').trim()) return String(hit.Player).trim();
+  }
+  return file.player || '';
+}
+/* every refresh calls it: { ok, skipped | none | kept | wrote | error }; force reads whatever the last read's age */
+function emtPotmSync(force) {
+  var st = emtPotmState(), now = Date.now();
+  if (!force && Number(st.checked) > 0 && now - Number(st.checked) < EMT_POTM_EVERY_MS) return { ok: true, skipped: true };
+  var r = emtPotmFetch();
+  st.checked = now;
+  if (r.error) { st.error = r.error; emtPotmSave(st); Logger.log('POTM: potm.json could not be used (' + r.error + '); the Specials tab is unchanged.'); return { ok: false, error: r.error }; }
+  st.error = '';
+  if (r.none) { st.file = null; emtPotmSave(st); return { ok: true, none: true }; }
+  var f = r.file;
+  st.file = { month: f.month, code: f.code, player: f.player };
+  var sh = emtSpecialsSheet(), mi = emtSpecialRow(sh, 'POTM month'), pi = emtSpecialRow(sh, 'POTM player');
+  var was = String(sh.getRange(mi, 2).getValue() == null ? '' : sh.getRange(mi, 2).getValue()).trim();
+  if (emtPotmSameMonth(was, f.month)) { emtPotmSave(st); return { ok: true, kept: true, month: was }; }
+  var name = emtPotmName(f);
+  if (!name) { st.error = 'no player name for ' + f.month; emtPotmSave(st); Logger.log('POTM: ' + st.error + '; the Specials tab is unchanged.'); return { ok: false, error: st.error }; }
+  sh.getRange(pi, 2).setValue(name);
+  sh.getRange(mi, 2).setValue(f.month);
+  st.wrote = { month: f.month, player: name, at: new Date(now).toISOString() };
+  emtPotmSave(st);
+  Logger.log('POTM: Specials now says ' + name + ', ' + f.month + ' (from potm.json' + (f.code ? ', code ' + f.code : '') + '; was ' + (was ? '"' + was + '"' : 'blank') + ').');
+  return { ok: true, wrote: true, month: f.month, player: name };
+}
+/* ?health=1 potm: { month, player, from: 'file' (the cells hold what the last sync wrote) | 'hand' | 'none', checked, error? } */
+function emtPotmHealth() {
+  var st = emtPotmState(), month = '', player = '';
+  try {
+    var sh = SpreadsheetApp.getActive().getSheetByName('Specials');
+    (sh && sh.getLastRow() > 1 ? sh.getRange(1, 1, sh.getLastRow(), 2).getValues() : []).forEach(function (r) {
+      var k = String(r[0]).trim(), v = String(r[1] == null ? '' : r[1]).trim();
+      if (k === 'POTM month') month = v; else if (k === 'POTM player') player = v;
+    });
+  } catch (e) { }
+  var from = !month && !player ? 'none' : st.wrote && st.wrote.month === month && st.wrote.player === player ? 'file' : 'hand';
+  var out = { month: month, player: player, from: from, checked: Number(st.checked) > 0 ? new Date(Number(st.checked)).toISOString() : '' };
+  if (st.error) out.error = st.error;
+  return out;
 }
 /* ---------- v3.18: errors reported by phones (ROADMAP A4) ----------
  * The app's window.onerror and unhandledrejection post `clienterror`: build, route, kind, msg, stack, online. No login
