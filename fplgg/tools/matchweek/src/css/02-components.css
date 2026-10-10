@@ -143,6 +143,10 @@
 .fc.silver{--tx:#1E222B;--sub:#3A3F4A;--up:#0F5C33;--dn:#8E0F18;--rtb:rgba(255,255,255,.84);--bub:#363C4A;--bubp:#F7F8FA;--bubpl:#363C4A;--bubpt:#1E222B;--nf:rgba(255,255,255,.82);--nfl:rgba(38,42,51,.3)}
 .fc.spec,.fc.elite,.fc.totw,.fc.potm{--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba(8,6,12,.62);--bubp:#15111D;--bubpl:rgba(255,255,255,.6);--bubpt:#FFFFFF;--nf:rgba(8,6,12,.55);--nfl:rgba(255,255,255,.4)}
 .fc.spec{--sub:#E6DCEC} .fc.elite{--sub:#D6F2FF} .fc.totw{--sub:#E9D98C} .fc.potm{--sub:#F6D9E5;--bub:#3A0A1E}
+/* a subbed-off card dims its art and its photo under a dark wash, never its words (DESIGN.md): the text goes light
+   and keeps its backings, so the name reads 4.5:1 and the figures 7:1 on every tier */
+.fc.dim{opacity:1;--tx:#F3EFE6;--sub:#D9D2C2;--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba(8,6,12,.62);--bub:#2A2230;--bubn:#fff;--bubp:#15111D;--bubpl:rgba(255,255,255,.6);--bubpt:#fff;--nf:rgba(8,6,12,.55);--nfl:rgba(255,255,255,.4)}
+.fc.dim::after{content:'';position:absolute;inset:0;z-index:1;border-radius:7%;background:rgba(10,8,14,.6);pointer-events:none}
 .fc .pts.haul b,.fc.mini .pts.haul b{color:#FFDC6B}
 
 /* bars */
