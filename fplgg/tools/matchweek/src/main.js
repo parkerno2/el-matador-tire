@@ -9,6 +9,7 @@ import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } 
 import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
 import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
 import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport, DEMO, PREVIEW } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3), the demo (Q2) */
+import { lockPage, unlockPage, pageY, setPageY, locked } from './sheets/lock.js';   /* the page behind a sheet: locked in place, back exactly where it was */
 if (!DEMO && !PREVIEW) installErrorReporting();   /* the demo has no backend to report to; the preview keeps its errors out of the league's count */
 installReadTab();
 /* the demo league (Q2): nobody is signed in, whatever an older page on this origin left in localStorage; the engine's
@@ -45,7 +46,7 @@ addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('[role=button][data-open],[role=button][data-go]')) { e.preventDefault(); e.target.click(); }
 });
 let ST;
-addEventListener('scroll', () => { clearTimeout(ST); ST = setTimeout(() => { if (!document.documentElement.style.overflow) SCROLLS[location.hash] = scrollY; }, 120); }, { passive: true });
+addEventListener('scroll', () => { clearTimeout(ST); ST = setTimeout(() => { if (!locked()) SCROLLS[location.hash] = scrollY; }, 120); }, { passive: true });
 export function render(opt = {}) {
   if (!D || !D.ro || !D.ro.length) return;
   const r = parse();
@@ -56,7 +57,7 @@ export function render(opt = {}) {
     if (location.hash !== canon && (!raw.length || !PAGES[raw[0]] || (raw[1] && !(mod.subs || []).some(s => s.id === raw[1])))) history.replaceState(history.state, '', canon); }
   LAST[r.page] = r.sub; try { localStorage.setItem('emt-subs', JSON.stringify(LAST)); } catch (e) { }
   const same = CUR && CUR.page === r.page && CUR.sub === r.sub && CUR.args.join('/') === r.args.join('/');
-  const y = same ? scrollY : 0;
+  const y = same ? pageY() : 0;
   RENDERING = true;
   let html;
   try { html = mod.render(r.sub, r.args); }
@@ -69,7 +70,7 @@ export function render(opt = {}) {
   RENDERING = false;
   a11y(app);
   const back = VIA_POP && !same && SCROLLS[location.hash] != null; VIA_POP = false;
-  if (back) scrollTo(0, SCROLLS[location.hash]); else if (!opt.keepScroll) scrollTo(0, same ? y : 0); else scrollTo(0, y);
+  if (back) setPageY(SCROLLS[location.hash]); else if (!opt.keepScroll) setPageY(same ? y : 0); else setPageY(y);
   CUR = r;
 }
 
@@ -85,15 +86,18 @@ export function openSheet(kind, arg, opt = {}) {
   const sh = document.createElement('div'); sh.className = 'sheet' + (S.cls ? ' ' + S.cls : ''); sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true');
   sh.innerHTML = CHROME() + body;
   document.body.append(scrim, sh);
-  document.documentElement.style.overflow = 'hidden';
-  requestAnimationFrame(() => { scrim.classList.add('in'); sh.classList.add('in'); });
   const entry = { kind, arg, scrim, sh, opener: document.activeElement };
   sh.tabIndex = -1; app.inert = true; STACK.forEach(x => { x.sh.inert = true; });
   STACK.push(entry);
   scrim.onclick = () => history.back();
   try { S.mount && S.mount(sh, arg); } catch (e) { console.error(e); }
   a11y(sh);
+  /* the history entry first, while the page still reads its true position (the browser restores that position on Back);
+     then the lock: the page behind stays exactly where it is (iOS scrolls it otherwise) and comes back there on close */
   if (!opt.noHistory) history.pushState({ sheet: STACK.length }, '');
+  lockPage();
+  sh.getBoundingClientRect();   /* lay the whole sheet out off screen first, so the slide-in paints a finished sheet, never a half one */
+  requestAnimationFrame(() => { scrim.classList.add('in'); sh.classList.add('in'); });
   swipeToClose(sh);
   requestAnimationFrame(() => { if (sh.contains(document.activeElement)) return; const x = sh.querySelector('.sheet-x'); x && x.focus({ preventScroll: true }); });
   return sh;
@@ -102,7 +106,7 @@ function dropTop() {
   const e = STACK.pop(); if (!e) return;
   e.scrim.classList.remove('in'); e.sh.classList.remove('in');
   setTimeout(() => { e.scrim.remove(); e.sh.remove(); }, 300);
-  if (!STACK.length) { document.documentElement.style.overflow = ''; app.inert = false; } else STACK[STACK.length - 1].sh.inert = false;
+  if (!STACK.length) { unlockPage(); app.inert = false; } else STACK[STACK.length - 1].sh.inert = false;
   try { e.opener && e.opener.isConnected && e.opener.focus({ preventScroll: true }); } catch (er) { }
   const S = SHEETS[e.kind]; S && S.unmount && S.unmount(e.sh);
 }

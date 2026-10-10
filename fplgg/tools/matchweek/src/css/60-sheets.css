@@ -33,7 +33,7 @@
   background:conic-gradient(from 160deg at 50% 0%,transparent 0deg,rgba(122,149,255,.18) 14deg,transparent 26deg,transparent 334deg,rgba(122,149,255,.18) 346deg,transparent 360deg)}
 .ps-floor{position:absolute;left:50%;bottom:44px;width:250px;height:32px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55) 0%,transparent 70%);pointer-events:none}
 .ps-top{position:relative;display:flex;align-items:center;padding:12px 56px 0 12px;min-height:46px}
-.ps-own{position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:34px;padding:5px 12px 5px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(14,10,19,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:12px;font-weight:700;color:#fff;text-align:left}
+.ps-own{position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:34px;padding:5px 12px 5px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(14,10,19,.68);font-size:12px;font-weight:700;color:#fff;text-align:left}
 .ps-own.fa{padding:7px 12px;background:rgba(122,149,255,.16);border-color:rgba(122,149,255,.45);color:var(--b300)}
 .ps-plate{position:relative;display:flex;justify-content:center;margin-top:10px}
 .ps-plate .plate .fc:hover{transform:none}
@@ -468,10 +468,10 @@
 }
 
 /* ---------- search ---------- */
-.sheet.sk-search{min-height:calc(100vh - 28px - var(--safe-t))}
+.sheet.sk-search{min-height:calc(100vh - 28px - var(--safe-t));min-height:calc(100dvh - 28px - var(--safe-t))}
 /* the close button lines up with the search field, at rest and once both stick */
 .sheet.sk-search .sheet-x{top:12px;margin-top:12px;margin-bottom:-48px}
-.sr-bar{position:sticky;top:0;z-index:6;padding:8px 56px 10px var(--gutter);background:rgba(14,10,19,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.sr-bar{position:sticky;top:0;z-index:6;padding:8px 56px 10px var(--gutter);background:var(--base)}
 .sr-in{display:flex;align-items:center;gap:8px;height:44px;padding:0 6px 0 12px;border-radius:12px;background:var(--raised);border:1.5px solid var(--top)}
 .sr-in:focus-within{border-color:var(--b300)}
 .sr-in input{flex:1;min-width:0;height:100%;border:0;background:none;color:#fff;font:600 16px/1 var(--f-ui);outline:none}
