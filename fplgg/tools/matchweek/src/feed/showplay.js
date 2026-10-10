@@ -108,9 +108,9 @@ function sceneXI(c, side, s) {
     return '<div class="gs-row n' + g.length + '">' + g.map(x => {
       const isStar = x.code === starCode;
       /* every player on a small Plate (Parker, 8 Oct 2026): face, name, club and nation, and the number he wears top right
-         (his projection, or his live or banked points once his match starts); a doubt keeps its chance chip over the card */
+         (his projection, or his live or banked points once his match starts); a doubt is the card's own badge (10 Oct 2026) */
       return '<span class="gs-tk' + (isStar ? ' star' : '') + (x.doubt || x.out ? ' flag' : '') + '" style="--d:' + (delay + (k++ % 5) * .05).toFixed(2) + 's">'
-        + UI.plateMini(x.p, isStar ? 78 : 64, { noOpen: true }) + (x.doubt || x.out ? '<i class="gs-fl">' + (x.chance || 0) + '%</i>' : '')
+        + UI.plateMini(x.p, isStar ? 78 : 64, { noOpen: true })
         + (isStar ? '<span class="gs-st">Star man</span>' : '') + '</span>';
     }).join('') + '</div>';
   }).join('');

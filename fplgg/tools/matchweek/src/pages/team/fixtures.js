@@ -58,7 +58,7 @@ function matchupsBlock(team) {
         + '<span class="tm-nmp"><b class="n">' + (r.me !== null ? r.me + '%' : '–') + '</b><span class="sub n">' + (r.muMe !== null ? f1(r.muMe) + '–' + f1(r.muThem) : '') + '</span></span>'
         + '</button>';
     }).join('')
-    + '<div class="foot">Win chance from each squad’s projection for that gameweek, using today’s squads. Numbers under it are the projected scores, yours first.</div></div>';
+    + '</div>';
 }
 
 export function fixturesPage(team) {

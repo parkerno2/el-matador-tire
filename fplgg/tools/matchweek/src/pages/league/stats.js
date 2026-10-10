@@ -62,10 +62,10 @@ function compare() {
     + '<div class="card lg-lab">'
     + '<div class="lg-picks" role="group" aria-label="Pick up to four managers">' + chips + '</div>'
     + '<div class="lg-mets" role="group" aria-label="Measure">' + mets + '</div>'
-    + '<div class="lg-ct"><b>' + esc(M.title) + '</b><span>Tap or drag the chart to read a gameweek</span></div>'
+    + '<div class="lg-ct"><b>' + esc(M.title) + '</b><span></span></div>'
     + chart
-    + '<div class="lg-rank"><div class="hd"><span>' + esc(M.rank) + '</span><span>Tap to compare</span></div>' + rankH + '</div>'
-    + '<div class="foot">' + esc(M.note) + (anyLive ? ' A hollow dot is the live week.' : '') + ' A fifth pick replaces the first.</div>'
+    + '<div class="lg-rank"><div class="hd"><span>' + esc(M.rank) + '</span><span></span></div>' + rankH + '</div>'
+    + (anyLive ? '<div class="foot">A hollow dot is the live week.</div>' : '')
     + '</div>';
 }
 
@@ -82,11 +82,8 @@ function luckCard() {
     + '<span class="nm"><b>' + esc(UI.short(r.t)) + '</b><span>' + esc(r.sub) + '</span></span>'
     + '<span class="dv"><i class="' + (r.d >= 0 ? 'p' : 'm') + '" style="width:' + (Math.abs(r.d) / mx * 50).toFixed(1) + '%"></i></span>'
     + '<b class="v n">' + sgn(r.d) + '</b></div>').join('');
-  const cap = perf
-    ? 'Performance: points scored minus xP, the points each XI’s performances deserved, season to date. Bonus is left out of both. Right of the line, the ball has bounced your way; left, you deserved more.'
-    : 'Results: league points banked minus what an all-play schedule would have given, your score against all seven rivals every week (3 for a win, 1 for a draw, scaled to one game). Right of the line, the fixture list has been kind. Close counts games decided by ' + CLOSE_MARGIN + ' or fewer.';
   return '<div class="sh"><h2>Luck index</h2><span class="aside">' + tog + '</span></div>'
-    + '<div class="card lg-luck"><div class="ax"><span>Unlucky</span><span>Lucky</span></div>' + body + '<div class="foot">' + esc(cap) + ' The two are never added together.</div></div>';
+    + '<div class="card lg-luck"><div class="ax"><span>Unlucky</span><span>Lucky</span></div>' + body + '</div>';
 }
 
 function managerTiles() {
@@ -112,7 +109,7 @@ function goldenBoot() {
       + '<span class="i n">' + (i + 1) + '</span>' + UI.face(pl, 34)
       + '<span class="nm"><b>' + esc(p.name) + '</b><span>' + UI.crest(p.owner, 14) + esc(UI.short(p.owner)) + (p.bench ? ' · +' + p.bench + ' on the bench' : '') + '</span></span>'
       + '<span class="bar"><i style="width:' + (p.xi / mx * 100).toFixed(1) + '%"></i></span><b class="v n">' + Math.round(p.xi) + '</b></div>';
-  }).join('') + '<div class="foot">Only weeks a player was in the starting XI count for his manager. A benched haul counts for nothing.</div></div>';
+  }).join('') + '</div>';
 }
 
 function recs() {
@@ -126,7 +123,7 @@ function recs() {
     + (R.ben ? tile('Most left on the bench', R.ben.v, cap(R.ben.who, x => line(x.t, esc(UI.short(x.t)) + ' · GW' + x.g))) : '')
     + (R.run ? tile('Longest winning run', R.run.v, cap(R.run.who, x => line(x.t, esc(UI.short(x.t)) + ' · GW' + x.from + '–' + x.to))) : '')
     + (R.loss ? tile('Best score in a defeat', R.loss.v, cap(R.loss.who, x => line(x.t, esc(UI.short(x.t)) + ' · ' + R.loss.v + '–' + x.op + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g))) : '')
-    + '</div><p class="lg-cap">Finished gameweeks only. A haul counts when the player started.</p>';
+    + '</div><p class="lg-cap">Finished gameweeks only.</p>';
 }
 
 export function statsPage() {

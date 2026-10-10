@@ -115,7 +115,7 @@ function lineup(team) {
   return UI.sh('Lineup', { aside: formation(xi).replace(/–/g, '-') + (real ? '' : ' · likely XI') })
     + '<div class="card ms-pitch" style="--pt:' + col.deep + '"><i class="ms-lines" aria-hidden="true"></i>' + rows + '</div>'
     + (bench.length ? '<div class="ms-bench"><span class="k">Bench</span>' + bench.map(p => '<button type="button" data-open="player:' + esc(p.Code) + '">' + UI.face(p, 30) + '<span>' + esc(p.Player) + '</span></button>').join('') + '</div>' : '')
-    + subs + (real ? '' : K.note('Before the deadline this is their likely XI: last week’s starters, topped up by projection. Managers can still change it.'));
+    + subs;
 }
 function topScorer(team) {
   const ex = K.effXi(team), inEx = new Set(ex.map(p => String(p.Code)));
@@ -146,7 +146,7 @@ function squadPanel(team) {
       + UI.face(p, 38) + '<div class="ms-pn"><span class="ms-pnt"><b class="ell">' + esc(p.Player) + '</b>' + UI.statusChip(p) + '</span><span class="sub ell">' + esc(K.clubName(p.Club)) + ' · ' + (inXi.has(String(p.Code)) ? 'XI' : 'bench') + ' · OVR ' + dynOvr(p) + '</span></div>'
       + '<div class="ms-ps"><b class="n">' + seasonTot(p) + '</b><span>season</span></div>' + gwBubble(p) + '</div>').join('') + '</div>';
   }).join('');
-  return grp + clubGrid(team) + K.note('Bubbles: dashed is this gameweek’s projection, green is live, white is banked.');
+  return grp + clubGrid(team);
 }
 function clubGrid(team) {
   const clubs = [...new Set(squadOf(team).slice().sort((a, b) => (num(a.Slot) || 99) - (num(b.Slot) || 99)).map(p => p.Club))];
@@ -177,7 +177,7 @@ function resultsPanel(team) {
     html += UI.sh('Results', { aside: UI.recL(T.w, T.d, T.l) })
       + '<div class="card"><div class="ms-r hd"><span class="gw"></span><span></span><span></span><span>Score</span><span class="ms-rp">Pos</span><span class="ms-rx nt">xP</span></div>' + rows
       + '<div class="ms-r tot"><span class="gw"></span><span></span><b>Points for and against</b><span class="n">' + T.pf + '–' + T.pa + '</span><span class="ms-rp"></span><span class="ms-rx"></span></div></div>'
-      + K.note('Score is this team first. Pos is the table position after that gameweek' + (rs.some(r => r.live) ? ' (* live, moves until FPL confirms)' : '') + '. xP is what the XI deserved, bonus left out.');
+      + (rs.some(r => r.live) ? K.note('* live, moves until FPL confirms.') : '');
   }
   const up = (D.fx || []).filter(f => (f.Home === team || f.Away === team) && num(f.GW) > D.gw).sort((a, b) => num(a.GW) - num(b.GW)).slice(0, 5);
   if (up.length) {
@@ -206,7 +206,7 @@ function chartBlock(team) {
   const L = gws[n - 1], la = A[L].act, lx = A[L].x, sep = Math.abs(y(la) - y(lx)) < 12 ? (la >= lx ? [-6, 6] : [6, -6]) : [0, 0];
   const lab = '<text x="' + (x(n - 1) + 8) + '" y="' + (y(la) + 4 + sep[0]) + '" class="dl act">' + Math.round(la) + '</text><text x="' + (x(n - 1) + 8) + '" y="' + (y(lx) + 4 + sep[1]) + '" class="dl xpe">' + K.f1(lx) + '</text>';
   const tot = K.luck()[team] || { act: 0, x: 0 };
-  return UI.sh('Actual v expected', { aside: 'by gameweek' }) + '<div class="card ms-ch"><div class="ms-lg"><span><i class="act"></i>Actual, bonus excluded</span><span><i class="xpe"></i>Expected (xP)</span></div>'
+  return UI.sh('Actual v expected') + '<div class="card ms-ch"><div class="ms-lg"><span><i class="act"></i>Actual, bonus excluded</span><span><i class="xpe"></i>Expected (xP)</span></div>'
     + '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Actual points without bonus against expected points, by gameweek">' + grid
     + (n > 1 ? '<polyline points="' + line('x') + '" class="ln xpe"/><polyline points="' + line('act') + '" class="ln act"/>' : '') + dots('x') + dots('act') + axis + lab + hit + '</svg>'
     + '<div class="ms-ro2 sub" data-readout>Tap a gameweek for its numbers. Season: actual ' + Math.round(tot.act) + ', xP ' + K.f1(tot.x) + '.</div></div>';
@@ -217,16 +217,15 @@ function luckBlock(team) {
   const P = K.luck(), S = K.sched(), p = P[team], s = S[team];
   if (!p && !s) return UI.sh('Luck') + UI.empty('No luck to measure yet', 'It needs a finished gameweek.');
   const rankOf = (map, f) => { const v = f(map[team]); return 1 + Object.keys(map).filter(t => f(map[t]) > v).length; };
-  let html = UI.sh('Luck', { aside: 'two parts, never added together' }) + '<div class="card">';
+  let html = UI.sh('Luck') + '<div class="card">';
   if (p) {
     const d = p.act - p.x, rk = rankOf(P, o => o.act - o.x);
-    html += '<div class="ms-lk"><div><span class="k">Performance</span><b class="n ' + (d >= 0 ? 'win-c' : 'loss-c') + '">' + K.sgn(d) + '</b><span class="sub">points v xP</span></div>'
-      + '<p>Scored <b>' + Math.round(p.act) + '</b> from the XI with bonus taken out, against an xP of <b>' + K.f1(p.x) + '</b>. ' + (d >= 0 ? 'Running hot' : 'Deserved more') + ', ' + K.ord(rk) + ' luckiest of ' + Object.keys(P).length + '.'
-      + (p.bon ? ' Bonus (+' + Math.round(p.bon) + ') sits outside both numbers.' : '') + '</p></div>';
+    html += '<div class="ms-lk"><div><span class="k">Performance</span><b class="n ' + (d >= 0 ? 'win-c' : 'loss-c') + '">' + K.sgn(d) + '</b></div>'
+      + '<p>Scored <b>' + Math.round(p.act) + '</b> from the XI with bonus taken out, against an xP of <b>' + K.f1(p.x) + '</b>. ' + (d >= 0 ? 'Running hot' : 'Deserved more') + ', ' + K.ord(rk) + ' luckiest of ' + Object.keys(P).length + '.' + '</p></div>';
   }
   if (s) {
     const d = s.pts - s.ap, rk = rankOf(S, o => o.pts - o.ap);
-    html += '<div class="ms-lk"><div><span class="k">Results</span><b class="n ' + (d >= 0 ? 'win-c' : 'loss-c') + '">' + K.sgn(d) + '</b><span class="sub">league points v all-play</span></div>'
+    html += '<div class="ms-lk"><div><span class="k">Results</span><b class="n ' + (d >= 0 ? 'win-c' : 'loss-c') + '">' + K.sgn(d) + '</b></div>'
       + '<p>Banked <b>' + s.pts + '</b> league points; playing all seven every week would be worth <b>' + K.f1(s.ap) + '</b>. Their scores beat ' + K.f1(s.beat).replace(/\.0$/, '') + ' of ' + s.opp + ' rivals. '
       + (d >= 0 ? 'The fixture list has been kind' : 'The fixture list has been unkind') + ', ' + K.ord(rk) + ' of ' + Object.keys(S).length + '.'
       + ((s.cw + s.cl + s.cd) ? ' Close games (' + CLOSE_MARGIN + ' or fewer): ' + UI.recL(s.cw, s.cd, s.cl) + '.' : '') + '</p></div>';
@@ -256,7 +255,7 @@ function seasonRows(team) {
 function moves(team) {
   const tx = (D.tx || []).filter(t => t.Team === team).slice().sort((a, b) => String(b['When (UTC)'] || '').localeCompare(String(a['When (UTC)'] || '')) || num(b.GW) - num(a.GW)).slice(0, 8);
   if (!tx.length) return UI.sh('Recent moves') + UI.empty('No moves yet', 'Waivers and free-agent signings show here.');
-  return UI.sh('Recent moves', { aside: 'latest first' }) + '<div class="card">' + tx.map(t => {
+  return UI.sh('Recent moves') + '<div class="card">' + tx.map(t => {
     const ok = /accept|success/i.test(t.Result || ''), pend = /pending/i.test(t.Result || '');
     return '<div class="row ms-tx' + (ok || pend ? '' : ' dim') + '"><span class="gw sub">' + (t.GW ? 'GW' + num(t.GW) : '') + '</span><div class="ms-mv"><span class="in"><i>IN</i>' + esc(t.In || '–') + '</span><span class="out"><i>OUT</i>' + esc(t.Out || '–') + '</span></div>'
       + '<span class="ms-tr"><b>' + esc(t.Type || '') + '</b><span class="sub">' + esc(t.Result || '') + '</span></span></div>';

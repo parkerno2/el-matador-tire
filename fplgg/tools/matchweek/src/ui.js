@@ -138,10 +138,54 @@ export function stack(list, px = 26, max = 5) {
   return '<span class="stack">' + show.map(p => face(p, px)).join('') + (more > 0 ? '<span class="more" style="width:' + px + 'px;height:' + px + 'px">+' + more + '</span>' : '') + '</span>';
 }
 let CARDI = 9000;
-/* the locked Plate card, at any width */
+/* ---------- the status badge (Parker, 10 Oct 2026) ----------
+   One visual language for subs and availability wherever a Plate appears: at most one round badge, top left of the
+   card, in the status colours only (green confirmed, amber likely or doubtful, red out; never a tier colour), and no text
+   tag, coloured or dashed frame or swap icon for status. A sub state outranks an availability state:
+     auto-sub on: green, up arrow     likely sub on: amber, up arrow     subbed off: red, down arrow, the card dimmed
+     likely off: amber, down arrow    doubt: amber "!"                   out, injured or suspended: red "!"
+   mark: 'in' | 'inl' | 'out' | 'outl' | '' (the engine's SUBMARK words). opt.flag === false says his availability no
+   longer matters (his match has started). opt.title carries the detail for the title and aria-label ("On for Doku");
+   otherwise the FPL news stands in ("Knock - 75% chance of playing"). */
+const ARROW_UP = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 L8.5 5.5 H6.2 V8.5 H3.8 V5.5 H1.5 Z" fill="#fff"/></svg>';
+const ARROW_DN = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 L1.5 4.5 H3.8 V1.5 H6.2 V4.5 H8.5 Z" fill="#fff"/></svg>';
+export function plateStatus(p, mark, opt = {}) {
+  mark = mark || '';
+  const t = opt.title || '';
+  if (mark === 'in') return { k: 'on', c: 'ok', t: t || 'Auto-sub, on', dim: false };
+  if (mark === 'inl') return { k: 'on', c: 'wn', t: t || 'Likely sub, on', dim: false };
+  if (mark === 'out') return { k: 'off', c: 'no', t: t || 'Subbed off', dim: true };
+  if (mark === 'outl') return { k: 'off', c: 'wn', t: t || 'Likely off', dim: false };
+  if (opt.flag === false || !p) return null;
+  const s = String(p.Status || ''), news = String(p.News || '').trim();
+  if (s === 'd') return { k: 'flag', c: 'wn', t: t || news || 'Doubtful', dim: false };
+  if (s === 'i' || s === 's' || s === 'u') return { k: 'flag', c: 'no', t: t || news || (s === 's' ? 'Suspended' : s === 'i' ? 'Injured' : 'Unavailable'), dim: false };
+  return null;
+}
+export function statusBadge(st) {
+  if (!st) return '';
+  return '<span class="st ' + st.c + '" title="' + esc(st.t) + '">' + (st.k === 'on' ? ARROW_UP : st.k === 'off' ? ARROW_DN : '<b>!</b>') + '</span>';
+}
+/* the badge onto a card the engine drew: its INJ pill goes, the badge sits inside the button, the label keeps the detail */
+function withStatus(h, st) {
+  h = h.replace(/<span class="inj">INJ<\/span>/, '');
+  if (!st) return h;
+  if (st.dim) h = h.replace('<button class="fc ', '<button class="fc dim ');
+  h = h.replace(/aria-label="([^"]*)"/, (m, a) => 'aria-label="' + a + ', ' + esc(st.t) + '"');
+  const i = h.lastIndexOf('</button>');
+  return i < 0 ? h : h.slice(0, i) + statusBadge(st) + h.slice(i);
+}
+/* the locked Plate card, at any width. The engine's own SUB, LIKELY and OUT tags and frames are never drawn: the mark
+   (opt.mark, or the SUBMARK the caller set) becomes the badge */
 export function plate(p, w = 100, opt = {}) {
   if (!p) return '';
-  return '<span class="plate" style="width:' + w + 'px" data-open="player:' + esc(p.Code) + '">' + card(p, ++CARDI) + '</span>';
+  const marks = typeof SUBMARK !== 'undefined' && SUBMARK ? SUBMARK : null;
+  const mark = opt.mark !== undefined ? opt.mark : (marks && marks[p.Code]) || '';
+  const st = plateStatus(p, mark, opt);
+  let h;
+  if (marks && marks[p.Code]) { const keep = marks; SUBMARK = Object.assign({}, keep, { [p.Code]: '' }); try { h = card(p, ++CARDI); } finally { SUBMARK = keep; } }
+  else h = card(p, ++CARDI);
+  return '<span class="plate" style="width:' + w + 'px" data-open="player:' + esc(p.Code) + '">' + withStatus(h, st) + '</span>';
 }
 /* the number a player wears right now, as the Plate's bubble shows it: his banked points once his match is over (bk),
    his live points while it is on (live), else his projection (proj; a dash when there is none, never a fake 0.0) */
@@ -161,20 +205,17 @@ export function plateBubble(b) {
   return '<span class="pts' + (st === 'live' ? ' live' : '') + extra + '"><b>' + esc(b.txt) + '</b><i>' + (st === 'live' ? 'LIVE' : 'PTS') + '</i></span>';
 }
 /* the small Plate (Parker, 8 Oct 2026): the same card without the overall rating; the face, the name, club and nation, and
-   the bubble top right as always (plateNum, or opt.bubble from the caller). The auto-sub tag and the INJ mark are kept,
-   as on the full card: SUBMARK is set by the caller (team/bits.js plateMarked), or opt.mark ('in' | 'inl' | 'out' | 'outl')
-   names it. For the Lineup pitch and bench, the matchup screen and the Gameweek Show's XI. opt.noOpen leaves the player
-   sheet closed (the show) */
+   the bubble top right as always (plateNum, or opt.bubble from the caller). Its status is the one badge (plateStatus:
+   opt.mark, or the SUBMARK the caller set, team/bits.js plateMarked; opt.title, opt.flag as there). For the Lineup pitch
+   and bench, the matchup screen and the Gameweek Show's XI. opt.noOpen leaves the player sheet closed (the show) */
 export function plateMini(p, w = 70, opt = {}) {
   if (!p) return '';
   if (!p.Nation && typeof NAT_FIX !== 'undefined' && NAT_FIX[String(p.Code)]) p.Nation = NAT_FIX[String(p.Code)];
-  const t = tierOf(p), sm = opt.mark || (typeof SUBMARK !== 'undefined' && SUBMARK[p.Code]) || '';
-  const tag = sm === 'in' ? 'SUB' : sm === 'inl' ? 'LIKELY' : sm.startsWith('out') ? 'OUT' : '';
-  const smc = sm ? ' sub' + (sm.startsWith('in') ? 'in' : 'out') + (sm.endsWith('l') ? ' likely' : '') : '';
+  const t = tierOf(p), sm = opt.mark !== undefined ? (opt.mark || '') : (typeof SUBMARK !== 'undefined' && SUBMARK && SUBMARK[p.Code]) || '';
+  const st = plateStatus(p, sm, opt);
   return '<span class="plate mini" style="width:' + w + 'px"' + (opt.noOpen ? '' : ' data-open="player:' + esc(p.Code) + '"') + '>'
-    + '<button class="fc mini ' + t + smc + '" aria-label="' + esc(p.Player) + '">' + cardBg(t)
-    + (tag ? '<span class="tag">' + tag + '</span>' : '')
-    + ('isud'.indexOf(p.Status) > -1 ? '<span class="inj">INJ</span>' : '')
+    + '<button class="fc mini ' + t + (st && st.dim ? ' dim' : '') + '" aria-label="' + esc(p.Player) + (st ? ', ' + esc(st.t) : '') + '">' + cardBg(t)
+    + statusBadge(st)
     + plateBubble(opt.bubble || plateNum(p))
     + '<span class="face">' + faceImgHTML(p) + '</span>'
     + '<span class="nm">' + esc(p.Player) + '</span>'
@@ -184,6 +225,8 @@ export function plateMini(p, w = 70, opt = {}) {
 export const club = c => clubName ? clubName(c) : c;
 export const badge = (c, px = 18) => badgeImg ? badgeImg(c, px) : '';
 export const flag = (nat, px = 12) => flagImg ? flagImg(nat, px) : '';
+/* list views carry a text chip in the same three colours as the badge: green SUB ON, amber LIKELY SUB or the chance,
+   red OUT (subChip for a sub state, statusChip for availability) */
 export const statusChip = p => {
   const s = p && p.Status, news = String((p && p.News) || '');
   if (s === 'd') { const m = news.match(/(\d+)% chance/); return '<span class="chip doubt">' + (m ? m[1] + '%' : 'DOUBT') + '</span>'; }
@@ -192,6 +235,7 @@ export const statusChip = p => {
   if (s === 'u') return '<span class="chip out">UNAVAILABLE</span>';
   return '';
 };
+export const subChip = mark => mark === 'in' ? '<span class="chip on">SUB ON</span>' : mark === 'inl' ? '<span class="chip doubt">LIKELY SUB</span>' : mark === 'out' ? '<span class="chip out">SUBBED OFF</span>' : mark === 'outl' ? '<span class="chip doubt">LIKELY OFF</span>' : '';
 export const chance = p => { if (!p) return 100; const m = String(p.News || '').match(/(\d+)% chance/); if (p.Status === 'd') return m ? +m[1] : 50; return p.Status && 'isun'.includes(p.Status) ? 0 : 100; };
 
 /* ---------- who am I ---------- */

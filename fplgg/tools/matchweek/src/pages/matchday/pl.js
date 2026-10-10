@@ -65,6 +65,6 @@ export function render() {
   const summary = [done ? done + ' finished' : '', live ? live + ' live' : '', left ? left + ' still to come' : ''].filter(Boolean).join(', ');
   return snapshot(rows)
     + UI.sh('Gameweek ' + D.gw + ' fixtures', { aside: '<button class="md-all" data-md-plall="1">' + (PLS.all ? 'Hide all' : 'Show all') + '</button>' })
-    + '<p class="md-cap top">' + esc(summary.charAt(0).toUpperCase() + summary.slice(1)) + '. The count is league starters in each game, out of every league player in it. Tap a game for the players.</p>'
+    + '<p class="md-cap top">' + esc(summary.charAt(0).toUpperCase() + summary.slice(1)) + '.</p>'
     + days.map(g => '<div class="md-day">' + esc(g.d ? M.tDayLong(g.d) : 'Date to be confirmed') + '</div><div class="card md-pl">' + g.list.map(fxRow).join('') + '</div>').join('');
 }

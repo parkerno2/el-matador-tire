@@ -68,7 +68,7 @@ const fx = { GW: 6, Home: 'ARS', Away: 'LEE' };
 /* ---------- listRow (lineup.js): the XI and the bench rows ---------- */
 function rowCtx(g) {
   const ctx = {
-    esc, UI: { badge: badgeImg, face: () => '<span class="fc-i"></span>', plateNum: () => ({ st: 'proj', txt: '4.9' }), statusChip: () => '' },
+    esc, UI: { badge: badgeImg, face: () => '<span class="fc-i"></span>', plateNum: () => ({ st: 'proj', txt: '4.9' }), statusChip: () => '', subChip: () => '' },
     POSN: { GKP: 'GK', DEF: 'DEF', MID: 'MID', FWD: 'FWD' }, flaggedOut: () => false, gwFix: () => g, oppChip: B.oppChip,
   };
   vm.createContext(ctx);

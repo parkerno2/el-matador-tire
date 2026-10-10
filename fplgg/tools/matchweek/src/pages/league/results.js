@@ -32,7 +32,7 @@ function gridCard() {
   return UI.sh('Scores by gameweek', { aside: G.gws.filter(x => !x.live).length + ' played' + (lv ? ' · GW' + lv.g + (lv.prov ? ' at full time' : ' live') : '') })
     + '<div class="card lg-grid"><div class="sc" tabindex="0" role="region" aria-label="Scores by gameweek, scrolls sideways"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>'
     + '<div class="lg-legend"><span><i class="fm w">W</i>won</span><span><i class="fm d">D</i>drew</span><span><i class="fm l">L</i>lost</span><span><i class="rg hi"></i>week’s top</span><span><i class="rg lo"></i>week’s lowest</span></div>'
-    + (w.live ? '<div class="foot">GW' + D.gw + ' scores are live and count once the gameweek is over. PF and PA are the table’s points for and against.</div>' : w.prov ? '<div class="foot">GW' + D.gw + ' is provisional until FPL confirms it.</div>' : '')
+    + (w.live ? '<div class="foot">GW' + D.gw + ' scores are live and count once the gameweek is over.</div>' : w.prov ? '<div class="foot">GW' + D.gw + ' is provisional until FPL confirms it.</div>' : '')
     + '</div>';
 }
 
@@ -80,7 +80,7 @@ function recordTiles() {
     + tile('Lowest score', R.lo.v, who(R.lo.who, x => 'GW' + x.g))
     + (R.big ? tile('Biggest win', 'by ' + R.big.v, who(R.big.who, x => x.s + '–' + x.os + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g)) : '')
     + (R.close ? tile('Closest win', 'by ' + R.close.v, who(R.close.who, x => x.s + '–' + x.os + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g)) : '')
-    + '</div><p class="lg-cap">Finished gameweeks only. A shared record lists everyone who holds it.</p>';
+    + '</div><p class="lg-cap">Finished gameweeks only.</p>';
 }
 
 export function results() {

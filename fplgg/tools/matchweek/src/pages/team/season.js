@@ -37,7 +37,7 @@ function resultsBlock(team, R) {
   }).join('');
   const anyLive = R.some(r => r.live);
   return UI.sh('Results', { aside: T.w + '–' + T.d + '–' + T.l + ' W–D–L' })
-    + '<div class="card tm-rl">' + rows + '<div class="foot">Score is yours first. The right column is your table position after that gameweek' + (anyLive ? ' (* live, it moves until FPL confirms)' : '') + '. Tap a row for that manager.</div></div>';
+    + '<div class="card tm-rl">' + rows + (anyLive ? '<div class="foot">* live, it moves until FPL confirms.</div>' : '') + '</div>';
 }
 
 /* points (bonus excluded) v xP per gameweek: columns with an expected tick; tap a column for the numbers */
@@ -67,13 +67,13 @@ function xpChart(team) {
 function luckBlock(team) {
   const P = luck()[team], S = sched()[team];
   if (!P && !S) return '';
-  const card = (lb, d, unit, line, more) => '<div class="tile tm-lk"><span class="lb">' + lb + '</span><b class="n ' + (d >= 0.05 ? 'win-c' : d <= -0.05 ? 'loss-c' : '') + '">' + sgn(d) + '</b><span class="cm">' + unit + '</span><span class="tm-lkl">' + line + '</span>' + (more ? '<span class="cm">' + more + '</span>' : '') + '</div>';
+  const card = (lb, d, unit, line, more) => '<div class="tile tm-lk"><span class="lb">' + lb + '</span><b class="n ' + (d >= 0.05 ? 'win-c' : d <= -0.05 ? 'loss-c' : '') + '">' + sgn(d) + '</b>' + (unit ? '<span class="cm">' + unit + '</span>' : '') + '<span class="tm-lkl">' + line + '</span>' + (more ? '<span class="cm">' + more + '</span>' : '') + '</div>';
   const pD = P ? P.act - P.x : 0, sD = S ? S.pts - S.ap : 0;
-  return UI.sh('Luck', { aside: 'two parts, never added' })
+  return UI.sh('Luck')
     + '<div class="tiles tm-lks">'
-    + (P ? card('Performance', pD, 'points v xP', '<span class="n">' + Math.round(P.act) + '</span> scored, <span class="n">' + f1(P.x) + '</span> expected.', 'Starters only, bonus left out' + (P.bon ? ' (+' + Math.round(P.bon) + ')' : '') + '.') : '')
-    + (S ? card('Results', sD, 'league points v all-play', '<span class="n">' + S.pts + '</span> banked, <span class="n">' + f1(S.ap) + '</span> if you played all seven every week.', 'You beat ' + f1(S.beat).replace(/\.0$/, '') + ' of ' + S.opp + ' scores. Close games ' + S.cw + '–' + S.cd + '–' + S.cl + ' (W–D–L).') : '')
-    + '</div><p class="sub tm-pnote">Plus means you’ve had the rub of the green: more than the performance deserved, or a kinder fixture list than an all-play schedule.</p>';
+    + (P ? card('Performance', pD, '', '<span class="n">' + Math.round(P.act) + '</span> scored, <span class="n">' + f1(P.x) + '</span> expected.', '') : '')
+    + (S ? card('Results', sD, '', '<span class="n">' + S.pts + '</span> banked, <span class="n">' + f1(S.ap) + '</span> if you played all seven every week.', 'You beat ' + f1(S.beat).replace(/\.0$/, '') + ' of ' + S.opp + ' scores. Close games ' + S.cw + '–' + S.cd + '–' + S.cl + ' (W–D–L).') : '')
+    + '</div>';
 }
 
 function posChart(team, R) {
@@ -89,9 +89,9 @@ function posChart(team, R) {
   const last = pts[n - 1];
   const end = '<text x="' + Math.min(x(n - 1), W - Rr) + '" y="' + (y(last.p) - 10) + '" text-anchor="end" class="tm-axv">' + ord(last.p) + '</text>';
   const best = Math.min(...pts.map(d => d.p)), worst = Math.max(...pts.map(d => d.p));
-  return UI.sh('Table position', { aside: 'after each gameweek' })
+  return UI.sh('Table position')
     + '<div class="card tm-pos"><svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Table position after each gameweek, ' + pts.map(d => 'GW' + d.g + ' ' + ord(d.p)).join(', ') + '">' + grid + line + dots + lab + end + '</svg>'
-    + '<div class="foot">Highest ' + ord(best) + ', lowest ' + ord(worst) + '. Ties on league points split on points for.</div></div>';
+    + '<div class="foot">Highest ' + ord(best) + ', lowest ' + ord(worst) + '.</div></div>';
 }
 
 /* the squad's top scorer counting only weeks he started for you (GW Log for finished weeks, the effective XI this week) */

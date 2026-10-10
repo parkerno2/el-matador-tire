@@ -77,10 +77,11 @@ export function lastN(p, n = 5) {
   return out;
 }
 export const lastSum = p => lastN(p, 5).reduce((s, x) => s + (x.mins > 0 ? x.pts : 0), 0);
-/* points chip in the purple scale (player sheet look): 10+ light, 6+ purple, 4+ deep purple, less = flat */
+/* points chip (Parker, 10 Oct 2026): green 6 points or more, amber 3 to 5, red 0 to 2, grey for no minutes (the player
+   sheet's scale, kit.js ptsCls) */
 export function pc(x, sm) {
   if (x.pts === null || !(x.mins > 0)) return '<span class="tm-pc dnp' + (sm ? ' sm' : '') + '" title="GW' + x.g + ': did not play">–</span>';
-  const v = x.pts, k = v >= 10 ? 'c4' : v >= 6 ? 'c3' : v >= 3 ? 'c2' : 'c1'; /* the player sheet's scale */
+  const v = x.pts, k = v >= 6 ? 'c3' : v >= 3 ? 'c2' : 'c1';
   return '<span class="tm-pc ' + k + (x.live ? ' live' : '') + (sm ? ' sm' : '') + '" title="GW' + x.g + ': ' + v + ' pts' + (x.live ? ', live' : '') + '">' + v + '</span>';
 }
 export function chips(p, n = 5, sm) { const l = lastN(p, n); return l.length ? '<span class="tm-pcs">' + l.map(x => pc(x, sm)).join('') + '</span>' : ''; }
@@ -155,14 +156,19 @@ export function plateDefs() {
   const g = typeof document !== 'undefined' && document.getElementById('gGold');
   return g && !g.closest('#app') ? '' : DEFS;
 }
-/* a Plate card with the predicted auto-sub treatment (SUB / LIKELY / OUT tags come from the engine's SUBMARK) */
-/* a Plate with the auto-sub marks set for the render; mini is the small Plate (UI.plateMini: no overall, the number as text) */
+/* a Plate with the auto-sub marks set for the render (the one status badge, UI.plateStatus; marks.titles carries the
+   detail for the badge's title: "On for Doku"); mini is the small Plate (UI.plateMini: no overall, the number as text) */
 export function plateMarked(p, w, marks, mini) {
   const keep = SUBMARK;
-  try { SUBMARK = marks || {}; return mini ? UI.plateMini(p, w) : UI.plate(p, w); } finally { SUBMARK = keep; }
+  const opt = { title: ((marks || {}).titles || {})[p.Code] || '' };
+  try { SUBMARK = marks || {}; return mini ? UI.plateMini(p, w, opt) : UI.plate(p, w, opt); } finally { SUBMARK = keep; }
 }
 export function subMarks(as) {
-  const m = {};
-  (as.subs || []).forEach(s => { const l = s.kind === 'likely' ? 'l' : ''; m[s.inn.Code] = 'in' + l; m[s.out.Code] = 'out' + l; });
+  const m = { titles: {} };
+  (as.subs || []).forEach(s => {
+    const l = s.kind === 'likely' ? 'l' : '';
+    m[s.inn.Code] = 'in' + l; m[s.out.Code] = 'out' + l;
+    m.titles[s.inn.Code] = (l ? 'Likely on for ' : 'On for ') + s.out.Player; m.titles[s.out.Code] = (l ? 'Likely off, ' : 'Off, ') + s.inn.Player + ' on';
+  });
   return m;
 }

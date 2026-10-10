@@ -62,7 +62,7 @@
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
 .chip.doubt{background:var(--doubt);color:var(--base)}
 .chip.out{background:var(--loss);color:var(--base)}
-.chip.sub{background:var(--p500);color:#fff}
+.chip.on{background:var(--win);color:var(--base)}
 .chip.free{background:var(--b300);color:var(--base)}
 .chip.mute{background:var(--top);color:var(--tx2)}
 .chip.gold{background:var(--gold-bg);color:var(--gold)}
@@ -114,6 +114,16 @@
 /* a double-figure haul turns the bubble gold, a banked blank goes quiet (the matchup screen's tones) */
 .fc.mini .pts.haul b{color:var(--gold)}
 .fc.mini .pts.blank{opacity:.72}
+/* the status badge (Parker, 10 Oct 2026; UI.plateStatus): one round badge top left of a Plate, at most one, in the
+   status colours only: green confirmed (.ok), amber likely or doubtful (.wn), red out (.no); a white arrow for a sub
+   (up: on, down: off) or a white "!" for availability; a subbed-off card is dimmed (.dim). No tag, frame or swap icon.
+   On the full card the overall rating owns the top left corner, so the badge sits under it, where the INJ pill was */
+.fc .st{position:absolute;z-index:4;top:3.5%;left:4%;width:clamp(16px,19cqw,26px);height:clamp(16px,19cqw,26px);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.6),0 2px 5px rgba(0,0,0,.4)}
+.fc .st svg{width:62%;height:62%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.fc .st b{font:900 clamp(10px,12cqw,16px)/1 var(--f-ui);color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.fc .st.ok{background:var(--win)} .fc .st.wn{background:var(--doubt)} .fc .st.no{background:var(--loss)}
+.fc:not(.mini) .st{top:26%;left:7%}
+.fc.dim{opacity:.55}
 
 /* bars */
 .wbar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}

@@ -52,10 +52,7 @@ export function tableBlock() {
   const notes = [];
   if (w.live) notes.push('The table moves when GW' + D.gw + ' is over.');
   if (w.prov) notes.push('GW' + D.gw + ' is in at full time and provisional until FPL confirms it.');
-  notes.push('Level on points? Points for decides it.');
-  if (mv) notes.push('Arrows show the change since GW' + mv.prev + '.');
-  notes.push('Title chance comes from 5,000 simulated seasons and updates at full time.');
-  h += '<div class="foot lg-foot"><p>' + notes.join(' ') + '</p><a class="lg-more" href="#/league/results">Every result ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
+  h += '<div class="foot lg-foot">' + (notes.length ? '<p>' + notes.join(' ') + '</p>' : '') + '<a class="lg-more" href="#/league/results">Every result ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
   return h;
 }
 
@@ -103,7 +100,6 @@ export function motmBlock() {
       + '<b class="n pr">' + Math.round(r.proj) + '</b><b class="n wn' + (r.win === favWin && r.win > 0 ? ' fav' : '') + '">' + winTxt + '</b></div>';
   });
   h += '<div class="lg-key" aria-hidden="true"><span><i class="k-mk"></i>projected total</span><span><i class="k-rg"></i>likely range</span><span><i class="k-bk"></i>banked</span></div>'
-    + '<div class="lg-note">The bars fill with real points as each gameweek finishes' + (w.live || w.prov ? ' (GW' + D.gw + ' counts as it stands, scored like the scoreboard)' : '') + '. Projections use each XI’s projected points for the gameweeks left; the likely range is the middle 80% and win chance comes from 20,000 simulations.</div>'
     + '<div class="foot lg-foot"><a class="lg-more" href="#/league/money">Every month so far ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
   return h;
 }
