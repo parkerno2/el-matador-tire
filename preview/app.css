@@ -209,7 +209,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 /* an FPL photo (class fpl, from the shared chain): half body with the head in the top part, so it is framed by the head,
    scaled a little so the face fills the circle like an FC cutout. An FC cutout keeps the bottom-aligned frame above */
 .fc-i img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}
-.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}
+.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}   /* .36 of the circle: UI.face sets the circle's font-size to its width, so the initials scale with it (they read 5 px in a 28 px circle under a 14 px label) */
 .stack{display:inline-flex;align-items:center}
 .stack .fc-i{margin-left:-8px;box-shadow:0 0 0 2px var(--card)}
 .stack .fc-i:first-child{margin-left:0}
@@ -245,7 +245,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
-.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:1.2% 3.5% 1.6%;margin:-1.2% -3.5% -1.6%}
+.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
 .fc .rt span{color:var(--sub)}
 .fc .rt .fdar{text-shadow:none}
 .fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
@@ -633,6 +633,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-asr .sub{display:inline;font-size:12px}
 .md-asi{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:var(--win);display:flex;align-items:center;justify-content:center}
 .md-asr.lk .md-asi{background:var(--doubt)}
+.md-asr.no .md-asi{background:var(--loss)} .md-asr.no .md-asi b{font:900 12px/1 var(--f-ui);color:var(--base)}   /* did not play, no cover: the red "!" with a dark glyph, as on the card */
 .md-asr .cr{margin-top:1px}
 
 /* ---------- stats: paired bars ---------- */
@@ -945,7 +946,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-xif{display:flex;align-items:center;min-width:0}
 .tm-xif .fc-i{margin-left:-7px;outline:2px solid var(--card)}
 .tm-xif .fc-i:first-child{margin-left:0}
-.tm-xif .fc-i.done{opacity:.38}
+.tm-xif .fc-i.done{background:var(--raised)} .tm-xif .fc-i.done img{opacity:.38} .tm-xif .fc-i.done .ini{color:var(--tx3)}   /* a played face dims its picture, never its initials (DESIGN.md: the fallback shows whenever a photo fails to load) */
 .tm-xil{margin-left:auto;font-size:13px;font-weight:700;white-space:nowrap}
 .tm-switch{display:flex;justify-content:center;padding:14px 16px 0}
 .tm-switch button{font-size:13px;font-weight:600;color:var(--tx3);min-height:40px;padding:0 12px}
@@ -997,7 +998,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-lsc b{color:var(--tx)}
 .tm-lmeta img.crest{margin:-2px 0}
 .tm-lsc img.crest{vertical-align:-3px;margin-right:3px}
-.tm-lr.off .fc-i,.tm-lr.off img{opacity:.55}   /* a subbed-off row dims its picture; its words keep their contrast in a quieter colour */
+.tm-lr.off img{opacity:.55} .tm-lr.off .fc-i .ini{color:var(--tx3)}   /* a subbed-off row dims its picture; its words and the initials fallback keep their contrast in a quieter colour */
 .tm-lr.off .tm-lm b,.tm-lr.off .tm-lsc b{color:var(--tx3)} .tm-lr.off .sub,.tm-lr.off .tm-lsc{color:var(--tx4)} .tm-lr.off .tm-lslot,.tm-lr.off .tm-lpts,.tm-lr.off .tm-lsc .n{color:var(--num2)} .tm-lr.off .tm-lpts.live{color:var(--live)}
 /* the number alone, no pill (Parker, 8 Oct 2026): his projection muted, live points green, banked points bold */
 .tm-lpts{flex:none;min-width:34px;text-align:right;font-size:17px;font-weight:700;color:var(--tx)}
@@ -1746,7 +1747,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .fp.unread::before{content:'';position:absolute;left:0;top:18px;width:3px;height:36px;border-radius:0 3px 3px 0;background:var(--p300)}
 .fp-h{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0}
 .fp-who{display:flex;flex-direction:column;gap:1px;min-width:0}
-.fp-who b{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;min-width:0}
+.fp-who b{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;font-size:14px;font-weight:700;min-width:0}   /* the chips wrap under the name when the row is tight (a viral post in a rail card), so the name is never cut against the voice's chip */
 .fp-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .fp-who>span{font-size:12px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fp-new{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--p300);flex:none}
@@ -2859,8 +2860,8 @@ html.gs-on{overflow:hidden}
 /* the next fixture chip (Parker, 10 Oct 2026): the opponent's crest and code, H or A, then the kick-off, minute or FT */
 .ps-fc.ps-nx .sk-cb{margin-right:-2px}
 .ps-fc.ps-nx i{margin-left:-3px}
-.ps-fc.ps-nx em{font-style:normal;font-weight:600;color:var(--tx2);padding-left:6px;border-left:1px solid var(--top)}
-.ps-fc.ps-nx.live em{color:var(--live)}
+.ps-fc.ps-nx > em{font-style:normal;font-weight:600;color:var(--tx2);padding-left:6px;border-left:1px solid var(--top)}   /* the H or A marker only: the crest circle's own em (the club's letters on white when the crest fails to load) keeps its dark colour */
+.ps-fc.ps-nx.live > em{color:var(--live)}
 /* the season card: apps, goals, assists, points and the rating in its colour (green from 78, amber from 70, red under) */
 .ps-cells.ps-cells5{grid-template-columns:repeat(5,minmax(0,1fr));border-top:0}
 .ps-cells5 .ps-cell{padding:12px 4px;align-items:center;text-align:center}
