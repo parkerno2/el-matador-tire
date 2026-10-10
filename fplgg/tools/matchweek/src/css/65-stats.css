@@ -1,0 +1,43 @@
+/* ===== stats surfaces: neutral, high contrast (Parker, 10 Oct 2026) =====
+   "The purple background and the purple text and white is too hard to read at a glance. Stats need to be clear to
+   read. High contrast." The surfaces that carry numbers (the player sheet below its hero, the Matchup Stats tab,
+   League > Stats) sit on a near-black neutral: cards on --st-card, numbers in white, labels in a light neutral grey,
+   purple only on tabs and active states, never as a background behind a number or as the colour of a number. Values
+   that carry meaning use green, amber and red (the points chips, the difficulty bar, the rating badge). Everything
+   else keeps the team colours (headers, crests, Plates). tests/app-contrast.js reads the tokens below and fails under
+   7:1 for a number and 4.5:1 for a label, on the dark cards and on the light pills and chips alike. Built on the UI
+   pass of the same day (the season card's rating badge, the form chips and the next five already in green, amber and
+   red): here the red chip and badge carry dark figures on a lighter red, as the green and amber ones do, because white
+   on the app's red reads 3.3:1. */
+:root{
+  --st-base:#0B0B0D; --st-card:#141416; --st-raised:#1E1E22; --st-top:#2A2A2F; --st-hair:#232327; --st-line:#36363C;
+  --st-num:#FFFFFF; --st-num2:#D9D9DE; --st-lab:#B7B7BD; --st-lab2:#9D9DA3; --st-you:#93A9FF;
+  --st-win:#5FE09A; --st-amber:#FFD58A; --st-red:#FFA3A5; --st-redbg:#FF8A8D;
+}
+/* the scope: inside it every surface, text and hairline token is the neutral one, so the cards, tiles, rows and bars
+   already written against --card, --top, --tx3 and the rest change colour without a change of markup */
+.sheet.sk-player,
+main.lgx-stats,
+.md-stats,.md-rks,.md-tiles2,.card:has(> .md-tiles2),.card:has(> .md-cl){
+  --base:var(--st-base);--bar:var(--st-base);--card:var(--st-card);--raised:var(--st-raised);--top:var(--st-top);
+  --hair:var(--st-hair);--line:var(--st-line);
+  --tx:var(--st-num);--tx2:var(--st-num2);--tx3:var(--st-lab);--tx4:var(--st-lab2);--you:var(--st-you)
+}
+/* numbers that were purple, or a secondary grey, read white or the light grey */
+.sheet.sk-player .ps-bd b.xv,.sheet.sk-player .ps-bd.hd b.xv,.sheet.sk-player .ps-ml .xp{color:var(--st-num2)}
+.sheet.sk-player .ps-cell b small,.sheet.sk-player .ps-lp em{color:var(--st-lab)}
+.sheet.sk-player .ps-rating span em.up{color:var(--st-win)} .sheet.sk-player .ps-rating span em.dn{color:var(--st-red)}
+.md-tiles2 .md-t2 b,.md-bgr > b{color:var(--st-num)}
+main.lgx-stats .lg-rank .r b,main.lgx-stats .lg-mt .st b,main.lgx-stats .lg-chart .ro span b{color:var(--st-num)}
+main.lgx-stats .lg-mt .star i{color:var(--st-lab)}
+main.lgx-stats .lg-pick.on span{color:var(--st-num)}
+/* the paired bars of the Matchup Stats tab: the leader's pill is a light neutral with dark figures on both sides
+   (the right pill was a mid grey with white figures, 3.6:1) */
+.md-stats{--md-lc:var(--st-num);--md-rc:var(--st-lab);--md-rt:var(--st-base)}
+.md-stats.md-mine{--md-lc:var(--st-you);--md-rc:var(--opp);--md-rt:var(--st-base)}
+/* the red points chip (0 to 2) and the red rating badge (under 70): dark figures on the lighter red, like the green
+   and amber ones; the match log's red event tags read the light red */
+.sheet.sk-player .sk-pc.p1,.sheet.sk-player .ps-rb.no{background:var(--st-redbg);color:var(--st-base)}
+.sheet.sk-player .sk-pc.z{color:var(--st-lab2);box-shadow:inset 0 0 0 1.5px var(--st-line)}
+.sheet.sk-player .ps-ev.cs,.sheet.sk-player .ps-ev.gc,.sheet.sk-player .ps-ev.rc,.sheet.sk-player .ps-ev.bn{color:var(--st-num2)}
+.sheet.sk-player .ps-ev.cs{color:var(--st-win)} .sheet.sk-player .ps-ev.rc{color:var(--st-red)}

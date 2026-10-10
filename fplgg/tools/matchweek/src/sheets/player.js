@@ -363,9 +363,11 @@ export default {
   mount(el, arg) {
     const x = () => resolve(arg);
     K.wireTabs(el, { matches: () => matchesPanel(x()), ratings: () => ratingsPanel(x()) });
-    /* the folded cards (the projection row, More): a tap opens or closes the body */
-    if (!el.dataset.psFold) {
-      el.dataset.psFold = '1';
+    /* the folded cards (the projection row, More): a tap opens or closes the body. The once-only guard is a property,
+       never a data-ps-fold attribute on the sheet: that made closest('[data-ps-fold]') match the sheet itself for every
+       other tap (a tab, a match row) and throw on .ps-fold (BUGS.md #36) */
+    if (!el.__psFold) {
+      el.__psFold = 1;
       el.addEventListener('click', e => {
         const b = e.target.closest('[data-ps-fold]'); if (!b) return;
         const body = b.nextElementSibling, open = b.getAttribute('aria-expanded') === 'true';
