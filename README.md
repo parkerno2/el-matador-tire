@@ -9,6 +9,7 @@ The 8-manager FPL Draft league app (league 45380), and the product it is becomin
 | The backend | `Code.gs` (Apps Script on the league's Google Sheet: data refresh, logins, social, the feed writer, the Gameweek Show, the articles, the self-update) | its header's CHANGELOG, `fplgg/tools/matchweek/docs/ARTICLES.md` |
 | matchweek.gg | `site/` (the landing page, the setup wizard, the status page, the demo league, legal pages, the Worker) | `site/README.md`, `fplgg/tools/demo/README.md` |
 | The cloud jobs | `fplgg/tools/monitor/`, `fplgg/tools/factsbot/`, `fplgg/tools/parity/`, `.github/workflows/` | `fplgg/tools/factsbot/README.md`, `fplgg/tools/parity/README.md` |
+| The Supabase project | `supabase/` (the five edge functions, the schema, repairs, backups; deployed from `main` by `.github/workflows/supabase.yml`) | `supabase/README.md`, `fplgg/tools/matchweek/docs/SUPABASE.md` |
 | The show scripts | `show/gw<N>.json` | the CHANGELOG, `docs/TONE.md` |
 | Tests | `tests/` (plain Node; the CI gate runs them all) | `tests/README.md`, `tests/codegs/README.md` |
 
@@ -21,6 +22,7 @@ The 8-manager FPL Draft league app (league 45380), and the product it is becomin
 - `fplgg/tools/matchweek/docs/BUGS.md`: what is known to be wrong, and the audit log.
 - `fplgg/tools/matchweek/docs/TONE.md`: the voices and the tone every writer follows.
 - `fplgg/tools/matchweek/docs/ARTICLES.md`: the recap and preview pipeline and its contracts.
+- `fplgg/tools/matchweek/docs/SUPABASE.md`: the Supabase project (the second data pipeline): its inventory, how its code deploys from the repo, how to change its schema and repair its data from a session.
 - `fplgg/tools/matchweek/docs/DESIGN.md`: the design rules every screen follows (contrast, purple as the accent only, the status colours, one badge per card, the copy), with the token names; `fplgg/tools/contrast/` enforces the contrast rules in CI.
 
 ## Branches

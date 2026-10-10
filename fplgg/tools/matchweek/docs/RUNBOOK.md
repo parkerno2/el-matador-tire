@@ -71,7 +71,7 @@ GitHub runs this repo's cron hours late (BUGS.md #26). Actions, Monitor (or Fact
 The demo is rebuilt by every Build Matchweek app run and once a day at 06:41 UTC from a fresh snapshot; Run workflow refreshes it now. The build fails before committing when a real team, manager or first name appears under `site/public`, so a name on the live demo means the leak check's list (the live Standings tab) did not carry it: add the rule to `fplgg/tools/demo/names.js` and rebuild. Never edit `site/public/demo/` by hand.
 
 ### Supabase differs from the Sheet
-The parity report (Actions, Supabase parity, the run's summary) is the reference; a difference is a report, not a failure. The gaps are on the ingest side, outside this repo (BUGS.md #29, ROADMAP B1 and B2). The app keeps the Sheet until a report says every tab agrees.
+The parity report (Actions, Supabase parity, the run's summary) is the reference; a difference is a report, not a failure. The ingest is `supabase/functions/ingest/` since 10 Oct 2026: fix the transform there, run `node tests/supabase.js`, push to `main`, and the Supabase functions workflow deploys it (BUGS.md #29, `docs/SUPABASE.md`). A frozen block (a finished gameweek) is repaired from the Sheet's rows through the Management API, with the SQL kept under `supabase/repairs/`. The app keeps the Sheet until a report says every tab agrees.
 
 ## Changing things
 
@@ -88,7 +88,7 @@ The parity report (Actions, Supabase parity, the run's summary) is the reference
 | Change the show's voice settings | `EMT_VOICE_ID`, `EMT_TTS_MODEL`, `EMT_SHOW_STABILITY` (0 to 1); the credit guard's `EMT_SHOW_MONTHLY_LIMIT` and `EMT_SHOW_GW_CAP_<gw>`. Never weaken the guard in code |
 | Roll the app back | revert the source commit on `main` and let the workflow build; the old app is still served at `classic.html` for a reader who needs it |
 | Roll Code.gs back | revert the commit on `main` with a new, higher version number (the self-update refuses an older one); the gate moves `release` and the script installs it |
-| Start a job now | Actions, Run workflow (Monitor, Facts bot, Supabase parity, Build Matchweek app); the Apps Script menu (`Refresh now`, `Run the AI writer now`, `Render the Gameweek Show now`, `Update Code.gs from GitHub now`, `Articles: write now`) |
+| Start a job now | Actions, Run workflow (Monitor, Facts bot, Supabase parity, Supabase functions, Build Matchweek app); the Apps Script menu (`Refresh now`, `Run the AI writer now`, `Render the Gameweek Show now`, `Update Code.gs from GitHub now`, `Articles: write now`) |
 
 ## When not to ship
 

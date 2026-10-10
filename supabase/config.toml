@@ -1,0 +1,19 @@
+# The Supabase project vcokquhzqpqvwrybndnr (matchweek). Read by the Supabase CLI when .github/workflows/supabase.yml
+# deploys the functions; every function here is public (no JWT check), as deployed on 31 Aug 2026: the tabs function
+# is read only, the ingest is started by pg_cron, the wizard's calls are gated by the invite code.
+project_id = "matchweek"
+
+[functions.ingest]
+verify_jwt = false
+
+[functions.tabs]
+verify_jwt = false
+
+[functions.seed-statics]
+verify_jwt = false
+
+[functions.league-lookup]
+verify_jwt = false
+
+[functions.register-league]
+verify_jwt = false
