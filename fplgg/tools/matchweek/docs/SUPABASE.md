@@ -96,7 +96,7 @@ were not read; the ingest's own log is `ingest_runs` plus pg_net's reply bodies,
   cached. Repairs through the query endpoint: the `API URL` row appended to Specials (19:42), Predictions GW2 inserted
   from the Sheet (19:45, `supabase/repairs/sheet-block.js`). The parity report: 7 of 18 agreeing at 19:28, 11 at the
   end (the two Nation cells left were players pulselive's list lacks; the fallback table carries them since the third
-  commit, so the next hourly run closes them).
+  commit, so the next hourly run closes them; confirmed at 19:51 after one more run: 0 Nation cells differ).
 - Left: the frozen GW1 blocks of GW Stats (22 cells) and GW Log (6 rows each way, 17 cells), both written by the
   ingest on 31 Aug 2026 from the then-current feed. The repair is one command each, generated from the Sheet:
   `node supabase/repairs/sheet-block.js --tab "GW Stats" --gw 1 --block 1 --final --apply` and
