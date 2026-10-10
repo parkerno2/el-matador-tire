@@ -1,4 +1,7 @@
-/* GENERATED from transform.js by build_ingest.py — do not edit. ESM wrapper for Deno/edge runtimes. */
+/* supabase/functions/ingest/transform.esm.js: the ingest's pure pipeline (no I/O), the Code.gs refresh as one
+   function build(raw, statics, opts) that returns every tab the Sheet has. Was generated from a transform.js that is
+   not in the repo; since 10 Oct 2026 (Q8) this file is the source and tests/supabase.js runs it. Keep every tab's
+   header exactly as Code.gs writes it: the parity report (fplgg/tools/parity) compares them column for column. */
 export default (function () {
   'use strict';
 
@@ -211,6 +214,127 @@ export default (function () {
     return { gwLive: gwLive, stats: out };
   }
 
+  /* ---------- Code.gs v3.6: waiver and free-agent result codes, the Transactions 'Result' column ---------- */
+  var TX_RESULT = { 'a': 'Accepted', 'di': 'Denied (invalid)', 'dp': 'Denied (priority)', 'do': 'Denied (drop gone)',
+    'pd': 'Pending', 'r': 'Rejected', 'o': 'Out-prioritised' };
+  function txResultLabel(code, map) {
+    var c = String(code == null ? '' : code).trim(), m = map || TX_RESULT;
+    if (!c) return '';
+    return Object.prototype.hasOwnProperty.call(m, c) ? m[c] : 'Denied';
+  }
+
+  /* ---------- Code.gs v3.22: a club's Str H and Str A (FPL's 1 to 5 fixture difficulty), classic team first ---------- */
+  var CLUB_STR_FIELDS = ['strength_overall_home', 'strength_overall_away'];
+  function clubStrengthRow(classicTeam, draftTeam) {
+    return CLUB_STR_FIELDS.map(function (k) {
+      var v = (classicTeam && classicTeam[k] != null && classicTeam[k] !== '') ? classicTeam[k] : (draftTeam && draftTeam[k]);
+      var n = Number(v);
+      return (v == null || v === '' || isNaN(n) || n < 1 || n > 5) ? '' : n;
+    });
+  }
+
+  /* ---------- Code.gs v3.21 (BUGS #8): the current gameweek's BPS and bonus per fixture ----------
+   * A GW Stats row sums a player's whole gameweek, so in a double gameweek the app cannot rank one match's BPS. FPL
+   * publishes the lists per fixture: the draft live feed's fixtures (stats s/identifier bps and bonus with draft ids)
+   * and the classic fixtures feed (the same with classic ids). Per fixture the fresher feed wins (the classic one
+   * when it lists more players, or has the bonus the draft one lacks). The tab is the current gameweek only. */
+  var FIXBPS_HEAD = ['GW', 'Fixture', 'Home', 'Away', 'Kickoff (UTC)', 'Started', 'Finished', 'Code', 'Player', 'Club', 'BPS', 'Bonus'];
+  function fixBpsFromFeed(fixtures, gw, idToCode) {
+    var out = {};
+    (Array.isArray(fixtures) ? fixtures : []).forEach(function (f) {
+      if (!f || f.id == null || (f.event != null && Number(f.event) !== Number(gw))) return;
+      var o = { id: f.id, h: f.team_h, a: f.team_a, kickoff: f.kickoff_time || '', started: !!f.started, finished: !!(f.finished || f.finished_provisional), bps: {}, bonus: {} };
+      (f.stats || []).forEach(function (st) {
+        var key = st.identifier || st.s;
+        if (key !== 'bps' && key !== 'bonus') return;
+        ['h', 'a'].forEach(function (side) {
+          (st[side] || []).forEach(function (e) {
+            var code = idToCode[e.element];
+            if (code != null && e.value != null) o[key][String(code)] = Number(e.value) || 0;
+          });
+        });
+      });
+      out[String(f.code != null ? f.code : f.id)] = o;
+    });
+    return out;
+  }
+  /* { header, rows, gw } ; rows is null when neither feed lists the gameweek's fixtures (the tab is then left as it was) */
+  function fixtureBps(boot, gwLive, curEv, classicIdToCode, classicFixtures) {
+    if (!curEv) return { header: FIXBPS_HEAD, rows: null, gw: null };
+    var dId = {}, names = {}, clubs = {};
+    boot.elements.forEach(function (e) { dId[e.id] = e.code; names[String(e.code)] = e; });
+    boot.teams.forEach(function (t) { clubs[t.id] = t.short_name; });
+    var draft = fixBpsFromFeed(gwLive && gwLive.fixtures, curEv, dId);
+    var classic = (classicIdToCode && Object.keys(classicIdToCode).length) ? fixBpsFromFeed(classicFixtures, curEv, classicIdToCode) : {};
+    var keys = {};
+    Object.keys(draft).forEach(function (k) { keys[k] = 1; });
+    Object.keys(classic).forEach(function (k) { keys[k] = 1; });
+    var list = Object.keys(keys);
+    if (!list.length) return { header: FIXBPS_HEAD, rows: null, gw: curEv };
+    var rows = [], n = function (o) { return Object.keys(o).length; };
+    list.map(function (k) {
+      var d = draft[k], c = classic[k];
+      var fresher = !!(c && (!d || n(c.bps) > n(d.bps) || (n(c.bonus) && !n(d.bonus))));
+      return fresher ? c : d;
+    }).sort(function (x, y) { return (x.kickoff < y.kickoff ? -1 : x.kickoff > y.kickoff ? 1 : 0) || x.id - y.id; }).forEach(function (f) {
+      Object.keys(f.bps).sort(function (x, y) { return f.bps[y] - f.bps[x] || (x < y ? -1 : 1); }).forEach(function (code) {
+        var p = names[code] || {};
+        rows.push([curEv, f.id, clubs[f.h] || f.h, clubs[f.a] || f.a, "'" + f.kickoff, f.started, f.finished,
+          code, p.web_name || '', clubs[p.team] || '', f.bps[code], f.bonus[code] || 0]);
+      });
+    });
+    return { header: FIXBPS_HEAD, rows: rows, gw: curEv };
+  }
+
+  /* ---------- nations: pulselive's season players list (Code.gs getNationMap since September 2026) ----------
+   * The compseasons/{id}/teams and staff endpoints the first ingest called answer empty since September; the
+   * season-wide players list still carries every registered player with the opta id (= FPL code) and the nation. */
+  var PULSE = 'https://footballapi.pulselive.com/football/';
+  function pulsePlayersUrl(season, page) { return PULSE + 'players?pageSize=100&compSeasons=' + season + '&altIds=true&type=player&id=-1&page=' + page; }
+  /* one page's rows as [{ code, iso }], and how many entries the list has in all */
+  function pulseNations(json) {
+    var rows = [];
+    ((json && json.content) || []).forEach(function (p) {
+      var opta = p.altIds && p.altIds.opta ? String(p.altIds.opta).replace(/^p/, '') : null;
+      var iso = p.nationalTeam && p.nationalTeam.isoCode;
+      if (opta && /^\d+$/.test(opta) && iso) rows.push({ code: Number(opta), iso: String(iso) });
+    });
+    return { rows: rows, total: (json && json.pageInfo && json.pageInfo.numEntries) || 0 };
+  }
+
+  /* ---------- Specials: the POTM rows from the repo's potm.json (Code.gs v3.30) ----------
+   * rows is the tab as it stands ([[Setting, Value], ...] without the header); file is { month, code, player } or
+   * null (no file, or one that could not be used); players is the Players tab's rows (Code first, Player second).
+   * The two POTM rows exist afterwards (appended blank when missing, as Code.gs does); a hand edit for the same
+   * month is kept; the player written is the Players tab's own string for the file's code, else the file's name.
+   * Every other row (the API URL) is kept as it is. Returns { rows, wrote: { month, player } | null }. */
+  function specialsRows(rows, file, players) {
+    var out = (rows || []).map(function (r) { return [r[0], r.length > 1 ? r[1] : '']; });
+    var at = function (setting) {
+      for (var i = 0; i < out.length; i++) if (String(out[i][0]).trim() === setting) return i;
+      out.push([setting, '']); return out.length - 1;
+    };
+    var mi = at('POTM month'), pi = at('POTM player');
+    var norm = function (v) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().toLowerCase(); };
+    if (!file || !file.month) return { rows: out, wrote: null };
+    var was = norm(out[mi][1]), m = norm(file.month);
+    if (was && (was === m || was === m.split(' ')[0])) return { rows: out, wrote: null };
+    var name = '';
+    if (file.code) (players || []).some(function (r) { if (String(r[0]).replace(/\.0$/, '') === String(file.code) && String(r[1] || '').trim()) { name = String(r[1]).trim(); return true; } return false; });
+    if (!name) name = String(file.player || '').trim();
+    if (!name) return { rows: out, wrote: null };
+    out[pi][1] = name; out[mi][1] = String(file.month).replace(/\s+/g, ' ').trim();
+    return { rows: out, wrote: { month: out[mi][1], player: name } };
+  }
+  /* the file's contents checked as Code.gs checks them: { month, code, player } or null */
+  function potmFile(j) {
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return null;
+    var month = String(j.month == null ? '' : j.month).replace(/\s+/g, ' ').trim(), player = String(j.player == null ? '' : j.player).replace(/\s+/g, ' ').trim(), c = Number(j.code);
+    if (!month || month.length > 40) return null;
+    if (!(c > 0) && !player) return null;
+    return { month: month, code: c > 0 ? String(Math.floor(c)) : '', player: player.slice(0, 60) };
+  }
+
   /* ---------- the pipeline ----------
    * raw = {
    *   boot         /api/bootstrap-static
@@ -339,9 +463,12 @@ export default (function () {
     });
     T['Rosters'] = { header: ['Team', 'Manager', 'Player', 'Pos', 'Club', 'FPL rank', 'Proj pts', 'Best XI', 'Status', 'News', 'Drafted', 'Season pts', 'GW pts', 'GW mins', 'Code', 'Nation', 'OVR', 'TOTW', 'GW XI', 'Slot'], rows: rosterRows };
 
-    T['Clubs'] = { header: ['Short', 'Name', 'Badge code', 'Badge URL'], rows: boot.teams.map(function (t) {
+    /* Code.gs v3.22: Str H and Str A are FPL's 1 to 5 fixture difficulty (strength_overall_home and _away), the classic
+       team first and the draft team as the fallback per field; a figure outside 1 to 5 is left blank */
+    var cTeams = {}; ((cl.boot && cl.boot.teams) || []).forEach(function (t) { cTeams[t.short_name] = t; });
+    T['Clubs'] = { header: ['Short', 'Name', 'Badge code', 'Badge URL', 'Str H', 'Str A'], rows: boot.teams.map(function (t) {
       var code = clubCodes[t.short_name] || t.code || '';
-      return [t.short_name, t.name, code, code ? 'https://resources.premierleague.com/premierleague/badges/50/t' + code + '.png' : ''];
+      return [t.short_name, t.name, code, code ? 'https://resources.premierleague.com/premierleague/badges/50/t' + code + '.png' : ''].concat(clubStrengthRow(cTeams[t.short_name], t));
     }) };
 
     T['H2H Fixtures'] = { header: ['GW', 'Home', 'Home pts', 'Away', 'Away pts', 'Finished'], rows: details.matches.map(function (m) {
@@ -356,26 +483,29 @@ export default (function () {
       }) };
 
     var tk = { w: 'Waiver', f: 'Free agent' };
-    var tr2 = { a: 'Accepted', di: 'Denied — invalid', dp: 'Denied — priority', pd: 'Pending', r: 'Rejected', o: 'Out-prioritised' };
+    /* Code.gs v3.6 TX_RESULT: readable, no em dash; an unmapped code reads 'Denied' (FPL only adds codes for failure reasons) */
+    var tr2 = TX_RESULT;
     var trans = (raw.transactions && raw.transactions.transactions) || [];
     T['Transactions'] = { header: ['GW', 'Team', 'Manager', 'In', 'Out', 'Type', 'Result', 'When (UTC)'], rows: trans.slice().reverse().map(function (t) {
       var tm = teams[t.entry] || {}, pin = players[t.element_in] || {}, pout = players[t.element_out] || {};
       return [t.event || '', tm.name || '', tm.manager || '', pin.web_name || ('#' + t.element_in), pout.web_name || ('#' + t.element_out),
-        tk[t.kind] || t.kind || '', tr2[t.result] || t.result || '', "'" + (t.added || '')];
+        tk[t.kind] || t.kind || '', txResultLabel(t.result, tr2), "'" + (t.added || '')];
     }) };
 
-    T['Standings'] = { header: ['Team', 'Manager', 'W', 'D', 'L', 'Pts For', 'Pts Against', 'League Pts'], rows: details.standings.map(function (s) {
+    /* Code.gs v3.19: Waiver pick is FPL's own waiver order (league_entries waiver_pick: 1 = first claim, the lowest team) */
+    T['Standings'] = { header: ['Team', 'Manager', 'W', 'D', 'L', 'Pts For', 'Pts Against', 'League Pts', 'Waiver pick'], rows: details.standings.map(function (s) {
       var t = teams[leToEntry[s.league_entry]] || {};
-      return [t.name || '', t.manager || '', s.matches_won, s.matches_drawn, s.matches_lost, s.points_for, s.points_against, s.total];
+      return [t.name || '', t.manager || '', s.matches_won, s.matches_drawn, s.matches_lost, s.points_for, s.points_against, s.total, t.waiver || ''];
     }) };
 
     var periodOf = function (gw) {
       for (var i = 0; i < cfg.motmPeriods.length; i++) if (gw >= cfg.motmPeriods[i].from && gw <= cfg.motmPeriods[i].to) return cfg.motmPeriods[i].name;
       return '';
     };
-    T['Matchweeks'] = { header: ['GW', 'Deadline (UTC)', 'MOTM period', 'Finished', 'Notes'], rows: evs.map(function (e) {
+    /* Code.gs v3.19: Waivers (UTC) is FPL's own waivers_time (claims processed then, 24 hours before the deadline) */
+    T['Matchweeks'] = { header: ['GW', 'Deadline (UTC)', 'MOTM period', 'Finished', 'Notes', 'Waivers (UTC)'], rows: evs.map(function (e) {
       var note = e.id === cfg.midseasonGw ? '💰 $' + cfg.prizes.mid + ' mid-season leader after this GW' : (e.id === 38 ? '🏆 Final GW' : '');
-      return [e.id, "'" + e.deadline_time, periodOf(e.id), e.finished, note];
+      return [e.id, "'" + e.deadline_time, periodOf(e.id), e.finished, note, e.waivers_time ? "'" + e.waivers_time : ''];
     }) };
 
     var motmRows = [];
@@ -459,6 +589,9 @@ export default (function () {
     }
     T['GW Log'] = { header: ['GW', 'Team', 'Player', 'Code', 'Pos', 'Club', 'GW pts', 'GW mins', 'Started', 'TOTW', 'Logged (UTC)'], gw: lastDone, rows: logRows };
 
+    /* ----- Fixture BPS (Code.gs v3.21): the current gameweek's BPS and bonus per fixture, rewritten every run ----- */
+    T['Fixture BPS'] = fixtureBps(boot, gwLive, curEv, classicIdToCode, cl.fixtures);
+
     T._meta = { curEv: curEv, lastDone: lastDone, nextPredGw: next ? next.id : null, teams: teams, leToEntry: leToEntry, classicOverlay: overlayStats };
     return T;
   }
@@ -517,5 +650,7 @@ export default (function () {
   }
 
   return { build: build, fetchPlan: fetchPlan, assemble: assemble, mergeClassicLive: mergeClassicLive, projPoints: projPoints, gradePicks: gradePicks,
-    gradeTeams: gradeTeams, bestXI: bestXI, computeRatings: computeRatings, normName: normName, DEFAULTS: DEFAULTS, POS: POS, NATFALLBACK: NATFALLBACK };
+    gradeTeams: gradeTeams, bestXI: bestXI, computeRatings: computeRatings, normName: normName, DEFAULTS: DEFAULTS, POS: POS, NATFALLBACK: NATFALLBACK,
+    TX_RESULT: TX_RESULT, txResultLabel: txResultLabel, clubStrengthRow: clubStrengthRow, fixtureBps: fixtureBps, FIXBPS_HEAD: FIXBPS_HEAD,
+    pulsePlayersUrl: pulsePlayersUrl, pulseNations: pulseNations, specialsRows: specialsRows, potmFile: potmFile };
 })();
