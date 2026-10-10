@@ -87,3 +87,19 @@ were not read; the ingest's own log is `ingest_runs` plus pg_net's reply bodies,
 | Specials: no `API URL` row, POTM rows blank | the ingest keeps the rows it has, syncs POTM from `potm.json` on `release` as Code.gs v3.30 does, and the API URL row is a one-off repair |
 | Predictions GW2 missing, GW Stats and GW Log GW1 differing (written on 31 Aug from the then-current feed) | one-off repairs from the Sheet's rows (`supabase/repairs/`) |
 | Managers, Social, Posts | not the ingest's: the web app writes them (logins, social); they move with Code.gs's jobs later (B3) |
+
+## What was done on 10 Oct 2026 (Q8) and what is left
+
+- 19:38 UTC: the five functions redeployed from the repo unchanged (Supabase functions run 1, every function one
+  version up). 19:42: the ingest fixes deployed (run 2). 19:44 and 19:46: the ingest run by hand (`GET .../ingest`,
+  what the cron calls): 18 tabs, Fixture BPS 186 rows, the POTM rows written (Groß, September 2026), 944 nations
+  cached. Repairs through the query endpoint: the `API URL` row appended to Specials (19:42), Predictions GW2 inserted
+  from the Sheet (19:45, `supabase/repairs/sheet-block.js`). The parity report: 7 of 18 agreeing at 19:28, 11 at the
+  end (the two Nation cells left were players pulselive's list lacks; the fallback table carries them since the third
+  commit, so the next hourly run closes them; confirmed at 19:51 after one more run: 0 Nation cells differ).
+- Left: the frozen GW1 blocks of GW Stats (22 cells) and GW Log (6 rows each way, 17 cells), both written by the
+  ingest on 31 Aug 2026 from the then-current feed. The repair is one command each, generated from the Sheet:
+  `node supabase/repairs/sheet-block.js --tab "GW Stats" --gw 1 --block 1 --final --apply` and
+  `node supabase/repairs/sheet-block.js --tab "GW Log" --gw 1 --block 1 --final --league-key dfb6f97f-9dbf-419e-ac49-2f725cdf4423 --apply`;
+  the builder's permission check refused a rewrite of existing rows in this run, so the manager or Parker runs them
+  (without `--apply` the script prints the SQL). Managers, Social and Posts are the web app's tabs (B3).

@@ -1,9 +1,12 @@
-// fplgg/ingest/supabase/functions/ingest/index.ts — the Code.gs `refreshAll` trigger, as a
-// Supabase Edge Function (Deno). Scheduled hourly via pg_cron → net.http_post, or invoked by hand.
+// supabase/functions/ingest/index.ts — the Code.gs `refreshAll` trigger, as a Supabase Edge Function (Deno).
+// Scheduled by pg_cron through net.http_post (hourly at :07, and every 10 minutes with ?mode=live), or called by
+// hand. Deployed from this repo by .github/workflows/supabase.yml (docs/SUPABASE.md). The pure pipeline is
+// ./transform.esm.js (tests/supabase.js runs it); everything Supabase-specific is in this file.
 //
-// STATUS (23 Aug 2026): written against the pure pipeline that passed parity (see ../../README.md),
-// NOT yet run against a real Supabase project — that needs Parker's account (BUILD-PLAN W2 "Parker"
-// column). Everything Supabase-specific is in this one file so the first deploy is a config exercise.
+// 10 Oct 2026 (Q8, BUGS.md #29): the nation top-up reads pulselive's season players list (the endpoints the first
+// version called answer empty since September, so nation_cache stayed empty); the Fixture BPS tab is written every
+// run; the Specials tab keeps its rows and syncs the Player of the Month from the repo's potm.json on the release
+// branch, as Code.gs v3.30 does.
 //
 // Freeze discipline, unchanged from the sheet:
 //   Predictions — build() only ever emits the block for the next un-passed deadline; we upsert that
@@ -80,27 +83,50 @@ async function loadStatics(leagueId: string, cfg: Record<string, unknown>) {
   return st;
 }
 
-/** Nation map top-up (PulseLive), same as Code.gs getNationMap — only when codes are missing. */
-async function topUpNations(codes: string[], have: Record<string, string>) {
+/** Nation map top-up (pulselive's season players list, as Code.gs getNationMap reads it since September 2026), only
+ *  when a needed code is missing from nation_cache and the fallback table. Pages of 100, at most 20 pages, every
+ *  (code, iso) pair upserted into nation_cache, so the next run's Players and Rosters carry the nation. */
+async function topUpNations(codes: string[], have: Record<string, string>): Promise<{ missing: number; added: number; error?: string }> {
   const missing = codes.filter((c) => c && !have[c] && !(Ingest.NATFALLBACK as Record<string, string>)[c]);
-  if (!missing.length) return;
+  if (!missing.length) return { missing: 0, added: 0 };
   const season = Deno.env.get('PULSE_SEASON') ?? '841';
   const hdr = { Origin: 'https://www.premierleague.com', Referer: 'https://www.premierleague.com/' };
+  const rows: { code: number; iso: string }[] = [];
   try {
-    const clubs = (await (await fetch(`https://footballapi.pulselive.com/football/compseasons/${season}/teams`, { headers: hdr })).json()).content ?? [];
-    const rows: { code: number; iso: string }[] = [];
-    for (const t of clubs) {
-      try {
-        const staff = await (await fetch(`https://footballapi.pulselive.com/football/teams/${Math.round(t.id)}/compseasons/${season}/staff?pageSize=50&altIds=true&type=player`, { headers: hdr })).json();
-        for (const p of staff.players ?? []) {
-          const opta = p.altIds?.opta ? String(p.altIds.opta).replace(/^p/, '') : null;
-          const iso = p.nationalTeam?.isoCode;
-          if (opta && iso) rows.push({ code: Number(opta), iso });
-        }
-      } catch { /* one club failing shouldn't kill the map */ }
+    let page = 0, total = 1;
+    while (page * 100 < total && page < 20) {
+      const r = await fetch(Ingest.pulsePlayersUrl(season, page), { headers: hdr });
+      if (!r.ok) throw new Error(`pulselive players page ${page} → ${r.status}`);
+      const got = Ingest.pulseNations(await r.json()) as { rows: { code: number; iso: string }[]; total: number };
+      total = got.total; rows.push(...got.rows); page++;
     }
-    if (rows.length) await sb.from('nation_cache').upsert(rows, { onConflict: 'code' });
-  } catch (e) { console.warn('nation top-up failed', e); }
+    const seen = new Set<number>();
+    const fresh = rows.filter((x) => !seen.has(x.code) && seen.add(x.code));
+    if (fresh.length) { const { error } = await sb.from('nation_cache').upsert(fresh, { onConflict: 'code' }); if (error) throw error; }
+    return { missing: missing.length, added: fresh.length };
+  } catch (e) { console.warn('nation top-up failed', e); return { missing: missing.length, added: 0, error: String(e) }; }
+}
+
+/** The Player of the Month file on the release branch (Code.gs v3.30 EMT_POTM_SRC): { month, code, player } or null. */
+const POTM_SRC = 'https://raw.githubusercontent.com/parkerno2/el-matador-tire/release/fplgg/tools/matchweek/data/potm.json';
+async function readPotm(): Promise<{ month: string; code: string; player: string } | null> {
+  try {
+    const r = await fetch(`${POTM_SRC}?cb=${Date.now()}`);
+    if (!r.ok) return null;
+    const text = await r.text();
+    if (text.length > 4000) return null;
+    return Ingest.potmFile(JSON.parse(text)) as { month: string; code: string; player: string } | null;
+  } catch { return null; }
+}
+
+/** Specials: the tab keeps every row it has (the API URL, hand edits) and the two POTM rows follow potm.json. */
+async function syncSpecials(leagueId: string, players: Row[]): Promise<{ wrote: unknown; rows: number }> {
+  const have = await readTab(leagueId, 'Specials');
+  const file = await readPotm();
+  const out = Ingest.specialsRows(have.rows, file, players) as { rows: Row[]; wrote: { month: string; player: string } | null };
+  const changed = JSON.stringify(out.rows) !== JSON.stringify(have.rows) || have.header === null;
+  if (changed) await writeBlock(leagueId, 'Specials', 'all', ['Setting', 'Value'], out.rows);
+  return { wrote: out.wrote, rows: out.rows.length };
 }
 
 async function ingestLeague(league: { id: string; fpl_league_id: number; config: Record<string, unknown> }, global: { boot: unknown; classic: unknown }) {
@@ -123,16 +149,19 @@ async function ingestLeague(league: { id: string; fpl_league_id: number; config:
     await writeBlock(league.id, tab, 'all', T[tab].header, T[tab].rows);
   await writeBlock(league.id, 'Ratings', 'all', T.Ratings.header, T.Ratings.rows, { meta: { version: T.Ratings.version } });
   if (T['GW Log'].rows) await writeBlock(league.id, 'GW Log', String(T['GW Log'].gw), T['GW Log'].header, T['GW Log'].rows, { final: true });
+  const specials = await syncSpecials(league.id, T.Players.rows as Row[]);
 
   // ---- global tabs (same for every league; written by the first league of the cycle, cheap to repeat) ----
   for (const tab of ['Clubs', 'Club Fixtures', 'Matchweeks', 'Players'])
     await writeBlock(null, tab, 'all', T[tab].header, T[tab].rows);
   if (T.Predictions.gw) await writeBlock(null, 'Predictions', String(T.Predictions.gw), T.Predictions.header, T.Predictions.rows);
   for (const b of T['GW Stats'].blocks ?? []) await writeBlock(null, 'GW Stats', String(b.gw), T['GW Stats'].header, b.rows, { final: b.final });
+  // Fixture BPS (Code.gs v3.21): the current gameweek only, rewritten every run; left as it was when no feed lists the fixtures
+  if (T['Fixture BPS'].rows) await writeBlock(null, 'Fixture BPS', 'all', T['Fixture BPS'].header, T['Fixture BPS'].rows);
 
-  await topUpNations((T.Players.rows as Row[]).map((r) => String(r[0])), statics.natMap as Record<string, string>);
+  const nations = await topUpNations((T.Players.rows as Row[]).map((r) => String(r[0])), statics.natMap as Record<string, string>);
   const meta = T._meta as { curEv: number; classicOverlay?: { used: number; seen: number } };
-  return { league: L, curEv: meta.curEv, tabs: Object.keys(T).length, classicOverlay: meta.classicOverlay ?? null };
+  return { league: L, curEv: meta.curEv, tabs: Object.keys(T).length, classicOverlay: meta.classicOverlay ?? null, fixtureBps: T['Fixture BPS'].rows ? T['Fixture BPS'].rows.length : null, specials, nations };
 }
 
 Deno.serve(async (req) => {
