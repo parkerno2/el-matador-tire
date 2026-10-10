@@ -2,6 +2,7 @@
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
+- Manager's item, 10 Oct: the preview audit's sheet hole, the contrast offenders, the "Did not play" line (lane app): builder started 2026-10-10T18:05:00Z
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
