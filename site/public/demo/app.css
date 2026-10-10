@@ -57,17 +57,19 @@
 :root{
   /* surfaces */
   --base:#0E0A13; --card:#17121D; --raised:#221A2C; --top:#2D2339; --line:#3A2F47; --hair:#221A2C; --bar:#120D18;
-  /* text */
-  --tx:#FFFFFF; --tx2:#D3CADF; --tx3:#A398B2; --tx4:#8C809C;
+  /* text. --num2 is the quiet number (a secondary stat, a gameweek label, a record): 7:1 on every surface up to --top,
+     where the quiet label --tx3 reads 5.5:1 (DESIGN.md: a number needs 7:1, a label 4.5:1) */
+  --tx:#FFFFFF; --tx2:#D3CADF; --tx3:#A398B2; --tx4:#8C809C; --num2:#C4BBD2;
   /* brand */
   --p900:#37003C; --p700:#5B2D8E; --p500:#7B52D3; --p300:#A88BEB; --p100:#CDBDF0;
-  --b700:#1E3DD6; --b500:#2E5BFF; --b300:#7A95FF; --cyan:#04F5FF;
+  --b700:#1E3DD6; --b500:#2E5BFF; --b300:#9AB0FF; --cyan:#04F5FF;
   --logo:linear-gradient(90deg,#04F5FF,#2E5BFF 50%,#8E44AD);
-  /* states */
-  --live:#19D27A; --win:#2FBF71; --loss:#F0595E; --doubt:#F5B942; --gold:#FFD23F;
+  /* states: green, amber and red carry meaning and nothing else does (DESIGN.md). Each reads 7:1 as a figure on every
+     surface up to --top and takes dark figures (--base) as a fill, so a chip and a coloured number pass alike */
+  --live:#19D27A; --win:#40D085; --loss:#FF9598; --doubt:#F5B942; --gold:#FFD23F;
   --live-bg:#10301F; --win-bg:#14382A; --loss-bg:#3A1A1F; --doubt-bg:#2E2410; --gold-bg:#2A2310;
   /* roles in a matchup */
-  --you:#7A95FF; --opp:#D3CADF;
+  --you:#9AB0FF; --opp:#D3CADF;
   /* type */
   --f-ui:'Archivo',system-ui,-apple-system,sans-serif;
   --f-num:'Barlow Condensed','Archivo',sans-serif;
@@ -101,6 +103,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:700}
 .sub{font-size:12px;color:var(--tx3);line-height:1.3}
 .muted{color:var(--tx3)}
+/* a number set in a quiet label (a record under a name, a gameweek, the axis of a chart) still reads 7:1 */
+.sub .n,.n.sub,.muted .n,.n.muted,.k .n,.n.k{color:var(--num2)}
 .you-c{color:var(--you)} .opp-c{color:var(--opp)}
 .gold-c{color:var(--gold)} .live-c{color:var(--live)} .win-c{color:var(--win)} .loss-c{color:var(--loss)} .doubt-c{color:var(--doubt)}
 .ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -118,7 +122,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .abar .lg{flex:0 1 auto;overflow:hidden;min-height:40px}
 /* the Matchweek plate, with the league in small caps under it */
 .abar .lg{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
-.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;line-height:1;padding-left:2px}
+.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
 .abar .mwm{display:block;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
 @media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:7.5px;letter-spacing:.07em}}
 /* a longer state pill takes the league name's room rather than cutting it short */
@@ -147,7 +151,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .pills::-webkit-scrollbar{display:none}
 .pills a,.pills button{flex:none;padding:8px 15px;border-radius:999px;background:var(--raised);color:var(--tx2);font-size:13px;font-weight:600;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center;gap:6px}
 .pills .on{background:var(--p500);color:#fff}
-.pills .ct{font:700 11px/1 var(--f-num);padding:2px 5px;border-radius:6px;background:rgba(255,255,255,.18)}
+.pills .ct{font:700 11px/1 var(--f-num);padding:2px 5px;border-radius:6px;background:rgba(255,255,255,.18);color:#fff}
+.pills .on .ct{background:#fff;color:var(--base)}   /* a count is a number: never on the purple of the active tab */
 
 /* section heads */
 .sh{display:flex;align-items:center;gap:8px;padding:22px 16px 10px}
@@ -173,7 +178,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
 .chip.doubt{background:var(--doubt);color:var(--base)}
 .chip.out{background:var(--loss);color:var(--base)}
-.chip.sub{background:var(--p500);color:#fff}
+.chip.on{background:var(--win);color:var(--base)}
 .chip.free{background:var(--b300);color:var(--base)}
 .chip.mute{background:var(--top);color:var(--tx2)}
 .chip.gold{background:var(--gold-bg);color:var(--gold)}
@@ -190,7 +195,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .fd-e{--fdb:color-mix(in srgb,var(--win) 26%,var(--card));--fdt:color-mix(in srgb,var(--win) 35%,#fff)}
 .fd-n{--fdb:var(--top);--fdt:var(--tx2)}
 .fd-h{--fdb:color-mix(in srgb,var(--loss) 28%,var(--card));--fdt:color-mix(in srgb,var(--loss) 35%,#fff)}
-.fd-x{--fdb:color-mix(in srgb,var(--loss) 62%,var(--card));--fdt:#fff}
+.fd-x{--fdb:color-mix(in srgb,var(--loss) 40%,var(--card));--fdt:#fff}   /* white reads 7.5:1 on this mix (the 62% mix of the lighter red read 3.5:1) */
 
 /* points bubbles (matchup tokens, lists) */
 .pb{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 6px;border-radius:11px;font:700 15px/1 var(--f-num)}
@@ -204,7 +209,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 /* an FPL photo (class fpl, from the shared chain): half body with the head in the top part, so it is framed by the head,
    scaled a little so the face fills the circle like an FC cutout. An FC cutout keeps the bottom-aligned frame above */
 .fc-i img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}
-.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}
+.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}   /* .36 of the circle: UI.face sets the circle's font-size to its width, so the initials scale with it (they read 5 px in a 28 px circle under a 14 px label) */
 .stack{display:inline-flex;align-items:center}
 .stack .fc-i{margin-left:-8px;box-shadow:0 0 0 2px var(--card)}
 .stack .fc-i:first-child{margin-left:0}
@@ -224,7 +229,40 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .fc.mini .tag{left:12%;transform:none}
 /* a double-figure haul turns the bubble gold, a banked blank goes quiet (the matchup screen's tones) */
 .fc.mini .pts.haul b{color:var(--gold)}
-.fc.mini .pts.blank{opacity:.72}
+.fc.mini .pts.blank{--bubn:#EDE9E0}   /* a banked blank goes quiet in colour, never in opacity (the figure keeps 7:1) */
+/* the status badge (Dec, 10 Oct 2026; UI.plateStatus): one round badge top left of a Plate, at most one, in the
+   status colours only: green confirmed (.ok), amber likely or doubtful (.wn), red out (.no); a white arrow for a sub
+   (up: on, down: off) or a white "!" for availability; a subbed-off card is dimmed (.dim). No tag, frame or swap icon.
+   On the full card the overall rating owns the top left corner, so the badge sits under it, where the INJ pill was */
+.fc .st{position:absolute;z-index:4;top:3.5%;left:4%;width:clamp(16px,19cqw,26px);height:clamp(16px,19cqw,26px);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.6),0 2px 5px rgba(0,0,0,.4)}
+.fc .st svg{width:62%;height:62%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.fc .st b{font:900 clamp(10px,12cqw,16px)/1 var(--f-ui);color:var(--base)}   /* a dark glyph: 8:1 on green, 11:1 on amber, 9:1 on red (white read 1.8:1 on amber) */
+.fc .st.ok{background:var(--win)} .fc .st.wn{background:var(--doubt)} .fc .st.no{background:var(--loss)}
+.fc:not(.mini) .st{top:26%;left:7%}
+.fc.dim{opacity:.55}
+
+/* ===== the Plate's text (DESIGN.md, 10 Oct 2026): a number 7:1, a label 4.5:1, on every tier, measured against the
+   card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
+   the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
+   initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
+.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
+.fc .rt span{color:var(--sub)}
+.fc .rt .fdar{text-shadow:none}
+.fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
+.fc .pts{padding:4% 7.5% 3.5%}   /* room between the figure and the bubble's edge (a live bubble wears a green border) */
+.fc .pts.proj{background:var(--bubp);border:1.5px dashed var(--bubpl);box-shadow:none;font-weight:600}
+.fc .pts.proj b,.fc .pts.proj i{color:var(--bubpt);opacity:1;font-weight:600}
+.fc .noface{background:var(--nf);box-shadow:inset 0 0 0 1.5px var(--nfl)}
+.fc .pts.blank b,.fc .pts.blank i{color:var(--bubn)}
+.fc.gold{--tx:#2A1F03;--sub:#4A3A0B;--up:#0F5C33;--dn:#8E0F18;--rtb:rgba(255,249,228,.82);--bub:#4A3306;--bubp:#FFF6D8;--bubpl:#5A3F08;--bubpt:#2A1F03;--nf:rgba(255,250,235,.78);--nfl:rgba(58,43,5,.35)}
+.fc.silver{--tx:#1E222B;--sub:#3A3F4A;--up:#0F5C33;--dn:#8E0F18;--rtb:rgba(255,255,255,.84);--bub:#363C4A;--bubp:#F7F8FA;--bubpl:#363C4A;--bubpt:#1E222B;--nf:rgba(255,255,255,.82);--nfl:rgba(38,42,51,.3)}
+.fc.spec,.fc.elite,.fc.totw,.fc.potm{--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba(8,6,12,.62);--bubp:#15111D;--bubpl:rgba(255,255,255,.6);--bubpt:#FFFFFF;--nf:rgba(8,6,12,.55);--nfl:rgba(255,255,255,.4)}
+.fc.spec{--sub:#E6DCEC} .fc.elite{--sub:#D6F2FF} .fc.totw{--sub:#E9D98C} .fc.potm{--sub:#F6D9E5;--bub:#3A0A1E}
+/* a subbed-off card dims its art and its photo under a dark wash, never its words (DESIGN.md): the text goes light
+   and keeps its backings, so the name reads 4.5:1 and the figures 7:1 on every tier */
+.fc.dim{opacity:1;--tx:#F3EFE6;--sub:#D9D2C2;--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba(8,6,12,.62);--bub:#2A2230;--bubn:#fff;--bubp:#15111D;--bubpl:rgba(255,255,255,.6);--bubpt:#fff;--nf:rgba(8,6,12,.55);--nfl:rgba(255,255,255,.4)}
+.fc.dim::after{content:'';position:absolute;inset:0;z-index:1;border-radius:7%;background:rgba(10,8,14,.6);pointer-events:none}
+.fc .pts.haul b,.fc.mini .pts.haul b{color:#FFDC6B}
 
 /* bars */
 .wbar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}
@@ -327,7 +365,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 /* ===== Matchday (overview, matchup, all matchups, Premier League, week) ===== */
 .md{--md-pills:54px}
 .md-end{height:8px}
-.md-nw{white-space:nowrap}
+.md-nw{white-space:nowrap;color:var(--num2)}   /* a score in a quiet line */
 .md-tag{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:10.5px;font-weight:800;letter-spacing:.07em;color:var(--tx3);white-space:nowrap}
 .md-tag svg{margin-top:-1px}
 .md-you{display:inline-flex;align-items:center;font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:2px 6px;border-radius:4px;background:var(--you);color:var(--base);line-height:1.3;flex:none}
@@ -413,7 +451,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-ms{min-width:62px;text-align:center;font-size:24px;font-weight:700;line-height:1;white-space:nowrap}
 .md-ms.dec{font-size:20px}
 .md-ms i{font-style:normal;color:var(--tx4);padding:0 4px}
-.md-wb{display:flex;align-items:center;gap:8px;margin-top:9px;font:600 12px/1 var(--f-num);color:var(--tx3)}
+.md-wb{display:flex;align-items:center;gap:8px;margin-top:9px;font:600 12px/1 var(--f-num);color:var(--num2)}
 .md-wb .wbar{flex:1}
 .md-wb .l{color:var(--tx2)}
 .md-wb.md-fin{justify-content:center;font:600 12px/1.2 var(--f-ui)}
@@ -479,14 +517,10 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-seg button{flex:1;min-height:40px;font-size:13px}
 
 /* ---------- formation: the pitch ---------- */
-.md-leg{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 16px}
-.md-leg > span{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)}
-.md-leg .pb{height:19px;min-width:22px;font-size:13px;padding:0 5px;border-radius:10px}
-.md-leg .pb.pj{line-height:16px}
-.md-ring{display:block;width:14px;height:14px;border-radius:50%;border:2px solid var(--you)}
-.md-xprow{display:flex;align-items:center;gap:10px;padding:0 16px 12px;margin-top:-4px}
-.md-xps button{min-height:36px;padding:4px 14px}
-.md-pw{margin:0 var(--gutter);border-radius:var(--r-l);overflow:hidden;border:1px solid var(--top);--md-rt:var(--tx3);--md-rb:var(--opp);--md-bt:var(--top);--md-bb:var(--top)}
+/* the xP switch in the top team bar (Dec, 10 Oct 2026: no legend row, the pitch starts under the tabs) */
+.md-xpt{flex:none;min-height:30px;padding:4px 10px;border-radius:999px;background:var(--raised);border:1px solid var(--line);font:700 12px/1 var(--f-ui);color:var(--tx3)}
+.md-xpt.on{background:var(--p500);border-color:var(--p500);color:#fff}
+.md-pw{margin-top:12px;margin:0 var(--gutter);border-radius:var(--r-l);overflow:hidden;border:1px solid var(--top);--md-rt:var(--tx3);--md-rb:var(--opp);--md-bt:var(--top);--md-bb:var(--top)}
 .md-pw.md-mine{--md-rt:var(--opp);--md-rb:var(--you);--md-bb:#1E2A55}
 .md-tb{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);cursor:pointer;min-height:56px}
 .md-tb > .ell{flex:0 1 auto}
@@ -516,16 +550,14 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-ph{position:relative;width:100%;flex:none}
 .md-ph .plate{width:100%!important}
 .md-tk .fc{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
-.pb.xp{background:var(--p700);color:#fff;border:1.5px solid var(--p300)}
+.pb.xp{background:var(--b700);color:#fff;border:1.5px solid var(--b300)}   /* an xP figure on the brand blue, never on purple */
 .pb.haul{background:var(--gold);color:var(--base)}
 .pb.lv.haul{box-shadow:0 0 0 2px var(--live),0 1px 4px rgba(0,0,0,.4)}
 .pb.bk.blank{background:#C9C2D6;color:#3A2F47}
-.md-ic{position:absolute;left:-4px;top:-4px;z-index:4;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.7);font:900 11px/1 var(--f-ui);color:var(--base)}
-.md-ic.up{background:var(--win)} .md-ic.sw{background:var(--tx4)} .md-ic.dt{background:var(--doubt)} .md-ic.out{background:var(--loss)}
 /* the name sits on the bottom rim of the face, like a card's nameplate */
 .md-nm{position:relative;z-index:2;max-width:100%;padding:2px 7px;border-radius:5px;background:rgba(10,8,16,.86);box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:11px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:-9px}
-.md-sl{max-width:100%;margin-top:1px;font-size:10px;font-weight:600;color:rgba(255,255,255,.66);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
-.md-sl.lv{color:#5CF0A6}
+.md-sl{max-width:100%;margin-top:2px;font-size:10px;font-weight:600;color:#E4EAE6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;padding:1px 4px;max-width:calc(100% + 8px);margin-left:-4px;margin-right:-4px;border-radius:999px;background:rgba(7,20,12,.84)}   /* a solid pill: the line reads on any pitch colour and beside any card; it may run 4px past the card on each side so a kick-off stays whole */
+.md-sl.lv{color:#7CF7B8}
 
 /* ---------- by line, head to head rows ---------- */
 .md-bl{padding-bottom:0}
@@ -535,7 +567,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-blh + .md-lr{border-top:0}
 .md-lr .v{display:flex;flex-direction:column;gap:3px}
 .md-lr .v b{font-size:24px;line-height:1;font-weight:700}
-.md-lr .v span{font-size:11px;line-height:1;font-weight:600;color:var(--tx3);white-space:nowrap}
+.md-lr .v span{font-size:11px;line-height:1;font-weight:600;color:var(--num2);white-space:nowrap}
 .md-lr .v.r{align-items:flex-end}
 .md-lr .c{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
 .md-lr .c > span{font-size:13px;font-weight:700}
@@ -555,7 +587,6 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-hv{display:flex;flex-direction:column;align-items:center;gap:3px;width:40px}
 .md-hv small{font-size:11px;color:var(--tx3);line-height:1}
 .md-hv > b{font-size:20px;line-height:1}
-.chip.md-on{background:var(--win);color:var(--base)}
 .md-list .md-lg{padding:14px 14px 4px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
 .md-list .md-lg + .md-h2h{border-top:0}
 .md-tot{background:var(--bar)}
@@ -601,7 +632,8 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-asr{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.4}
 .md-asr .sub{display:inline;font-size:12px}
 .md-asi{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:var(--win);display:flex;align-items:center;justify-content:center}
-.md-asr.lk .md-asi{background:var(--tx4)}
+.md-asr.lk .md-asi{background:var(--doubt)}
+.md-asr.no .md-asi{background:var(--loss)} .md-asr.no .md-asi b{font:900 12px/1 var(--f-ui);color:var(--base)}   /* did not play, no cover: the red "!" with a dark glyph, as on the card */
 .md-asr .cr{margin-top:1px}
 
 /* ---------- stats: paired bars ---------- */
@@ -747,7 +779,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-gr.me{background:rgba(122,149,255,.07)}
 .md-gt{display:flex;align-items:center;gap:8px;min-width:0;font-size:13px;font-weight:700}
 .md-gt .live-dot{font-size:11px;flex:none}
-.md-gc{text-align:center;font:700 15px/1 var(--f-num);padding:7px 0;border-radius:8px;background:rgba(168,139,235,var(--a));color:#fff}
+.md-gc{text-align:center;font:700 15px/1 var(--f-num);padding:7px 0;border-radius:8px;background:rgba(30,61,214,var(--a));color:#fff}   /* the heat in the brand blue: white reads 7:1 at every step, and no number sits on purple */
 .md-gc.z{background:none;color:var(--tx4)}
 .md-gtot{text-align:center;font-size:17px}
 .md-ast{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-top:1px solid var(--hair)}
@@ -824,6 +856,9 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-msl{font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--tx3);line-height:1}
 .md-msl.live-dot{color:var(--live);font-size:9.5px;gap:4px}
 .md-msl.live-dot i{width:5px;height:5px}
+
+/* quiet numbers (DESIGN.md: 7:1): the gameweek of a past meeting, the small figure beside a head-to-head */
+.md-gw.n,.md-hv small.n{color:var(--num2)}
 /* ===== My team (pages/team.js) — every class is tm- prefixed; team colours arrive as --tc-* on .tm ===== */
 .tm-body{padding-bottom:4px}
 .tm-ch{color:var(--b300);margin-left:2px}
@@ -911,7 +946,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-xif{display:flex;align-items:center;min-width:0}
 .tm-xif .fc-i{margin-left:-7px;outline:2px solid var(--card)}
 .tm-xif .fc-i:first-child{margin-left:0}
-.tm-xif .fc-i.done{opacity:.38}
+.tm-xif .fc-i.done{background:var(--raised)} .tm-xif .fc-i.done img{opacity:.38} .tm-xif .fc-i.done .ini{color:var(--tx3)}   /* a played face dims its picture, never its initials (DESIGN.md: the fallback shows whenever a photo fails to load) */
 .tm-xil{margin-left:auto;font-size:13px;font-weight:700;white-space:nowrap}
 .tm-switch{display:flex;justify-content:center;padding:14px 16px 0}
 .tm-switch button{font-size:13px;font-weight:600;color:var(--tx3);min-height:40px;padding:0 12px}
@@ -946,7 +981,6 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-bl{font-size:13px;font-weight:700;color:var(--tx3)}
 .tm-bc{position:relative;display:block;width:100%;max-width:72px}
 .tm-bc .plate{width:100%!important}
-.tm-bout{position:absolute;left:50%;top:44%;transform:translateX(-50%);font-size:11px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:none;z-index:4}
 .tm-subs{display:flex;flex-direction:column;gap:4px;margin:12px 4px 0;font-size:13px;color:var(--tx2);line-height:1.35}
 .tm-subs.pad{margin:0 16px 10px}
 .tm-subs i{font-style:normal}
@@ -958,13 +992,14 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-lslot{width:26px;flex:none;font-size:12px;font-weight:700;color:var(--tx3)}
 .tm-lm{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .tm-lm b{font-size:14px}
-.tm-lmeta{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tm-lmeta{display:flex;align-items:center;flex-wrap:wrap;gap:3px 5px;white-space:nowrap}   /* a status chip wraps under the club when the row is tight, never under the fixture column (10 Oct 2026: a LIKELY OFF chip ran under "CHE A 1-5") */
 .tm-lopp{flex:none;display:flex;align-items:center;gap:4px}
 .tm-lsc{font-size:12px;color:var(--tx2);white-space:nowrap}
 .tm-lsc b{color:var(--tx)}
 .tm-lmeta img.crest{margin:-2px 0}
 .tm-lsc img.crest{vertical-align:-3px;margin-right:3px}
-.tm-lr.off{opacity:.55}
+.tm-lr.off img{opacity:.55} .tm-lr.off .fc-i .ini{color:var(--tx3)}   /* a subbed-off row dims its picture; its words and the initials fallback keep their contrast in a quieter colour */
+.tm-lr.off .tm-lm b,.tm-lr.off .tm-lsc b{color:var(--tx3)} .tm-lr.off .sub,.tm-lr.off .tm-lsc{color:var(--tx4)} .tm-lr.off .tm-lslot,.tm-lr.off .tm-lpts,.tm-lr.off .tm-lsc .n{color:var(--num2)} .tm-lr.off .tm-lpts.live{color:var(--live)}
 /* the number alone, no pill (Dec, 8 Oct 2026): his projection muted, live points green, banked points bold */
 .tm-lpts{flex:none;min-width:34px;text-align:right;font-size:17px;font-weight:700;color:var(--tx)}
 .tm-lpts.proj{font-weight:500;color:var(--tx2)}
@@ -1001,10 +1036,10 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-pcs{display:inline-flex;gap:4px}
 .tm-pc{display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:6px;font:700 13px/1 var(--f-num)}
 .tm-pc.sm{width:25px;height:20px;font-size:12px;border-radius:5px}
-.tm-pc.c4{background:var(--p100);color:var(--p900)}
-.tm-pc.c3{background:var(--p500);color:#fff}
-.tm-pc.c2{background:var(--p700);color:var(--p100)}
-.tm-pc.c1{background:var(--top);color:var(--tx3)}
+/* points chips (Dec, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
+.tm-pc.c3{background:var(--win);color:var(--base)}
+.tm-pc.c2{background:var(--doubt);color:var(--base)}
+.tm-pc.c1{background:var(--loss);color:var(--base)}
 .tm-pc.dnp{background:none;box-shadow:inset 0 0 0 1px var(--top);color:var(--tx4)}
 .tm-pc.live{box-shadow:0 0 0 1.5px var(--live)}
 .tm-avail{display:flex;gap:6px 16px;padding:12px 14px;font-size:13px;color:var(--tx2);border-bottom:1px solid var(--hair);flex-wrap:wrap}
@@ -1039,7 +1074,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-more{display:flex;width:calc(100% - 2 * var(--gutter));margin:10px var(--gutter) 0}
 .tm-tx{gap:10px;padding:10px 12px;align-items:center}
 .tm-tx.mine{background:color-mix(in srgb,var(--you) 8%,var(--card));box-shadow:inset 3px 0 0 var(--you)}
-.tm-tx.no .tm-txio{opacity:.5}
+.tm-tx.no .tm-txio span{color:var(--tx3)}   /* a denied claim reads quieter, never fainter */
 .tm-txc{width:24px;flex:none}
 .tm-txm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .tm-txm b{font-size:13px;display:flex;align-items:center;gap:6px}
@@ -1059,7 +1094,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .tm-gcl{display:flex;flex-direction:column;min-width:0;gap:1px}
 .tm-gcl b{font-size:13px;font-weight:800;letter-spacing:.02em}
 .tm-gcl .sub{font-size:11px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-.tm-gcl .bn{opacity:.55}
+.tm-gcl .bn{color:var(--tx4)}
 .tm-gc{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tm-gc .tm-fd{min-width:0;width:100%;height:36px;padding:0;flex-direction:column;gap:2px;font-size:11px}
 .tm-gc.dbl .tm-fd{height:17px;flex-direction:row;font-size:10px;gap:2px}
@@ -1192,6 +1227,10 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
   .tm-starc{width:96px}
 }
 .tm-fms .fm.prov{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 3px,rgba(255,255,255,0) 3px 6px)}
+
+/* quiet numbers (DESIGN.md: 7:1): the slot and bench labels, the gameweek of a row, the chart's axis and columns */
+.tm-lslot,.tm-bl.n,.tm-rg.n,.tm-xax.n,.tm-xg.n,.tm-gh .n,.tm-nmg.n{color:var(--num2)}
+.tm-fd i{opacity:1}
 /* ===== League (overview, results, money, derbies, stats) ===== */
 
 /* header: league identity + season progress */
@@ -1208,7 +1247,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-prog .bar i.cur{background:var(--p300);opacity:.75;border-radius:0 3px 3px 0}
 .lg-prog .bar i.cur.live{background:var(--live);opacity:1;animation:lgblink 1.6s ease-in-out infinite}
 @keyframes lgblink{50%{opacity:.45}}
-.lg-prog .n{font:700 13px/1 var(--f-num);color:var(--p100);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.lg-prog .n{font:700 13px/1 var(--f-num);color:var(--tx2);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 .lg-prog .n em{font-style:normal;margin-left:2px}
 
 .lgx{display:block;padding-top:10px}
@@ -1227,7 +1266,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-foot .lg-more{margin:-10px 0 -10px auto}
 
 /* ---------- block 1: the table ---------- */
-.lg-tbl-hd{position:relative;display:flex;align-items:flex-end;gap:12px;padding:15px 14px 12px;background:linear-gradient(120deg,var(--p900) 0%,#24123A 55%,var(--card) 100%)}
+.lg-tbl-hd{position:relative;display:flex;align-items:flex-end;gap:12px;padding:15px 14px 12px;background:linear-gradient(120deg,#2B2338 0%,#211B2D 55%,var(--card) 100%)}   /* a dark tint, not purple: the headline carries a number */
 .lg-tbl-hd::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--logo)}
 .lg-tbl-hd .l{min-width:0}
 .lg-tbl-hd h2{margin:0;font-size:26px;line-height:.9}
@@ -1235,15 +1274,15 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-tbl-hd .r{margin-left:auto;text-align:right;min-width:0}
 .lg-tbl-hd .r b{display:block;font-size:22px;line-height:1;font-weight:700}
 .lg-tbl-hd .r span{display:block;margin-top:3px;font-size:12px;color:var(--p100)}
-.lg-th,.lg-tr{display:grid;grid-template-columns:26px 32px minmax(0,1fr) 38px 28px 46px;align-items:center;gap:6px;padding-left:8px;padding-right:12px}
+/* #, crest, Team, W-D-L, PF, Pts, Title (Dec, 10 Oct 2026: PF its own column, no money in the table) */
+.lg-th,.lg-tr{display:grid;grid-template-columns:22px 32px minmax(0,1fr) 36px 30px 26px 34px;align-items:center;gap:4px;padding-left:8px;padding-right:10px}
 .lg-th{padding-top:10px;padding-bottom:8px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
 .lg-th span{white-space:nowrap}
-.lg-th span:nth-child(1),.lg-th span:nth-child(4),.lg-th span:nth-child(5){text-align:center}
-.lg-th span:nth-child(6){text-align:right}
+.lg-th span:nth-child(1),.lg-th span:nth-child(4),.lg-th span:nth-child(5),.lg-th span:nth-child(6){text-align:center}
+.lg-th span:nth-child(7){text-align:right}
 .lg-tr{position:relative;min-height:58px;padding-top:9px;padding-bottom:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lg-tr + .lg-tr{border-top:1px solid var(--hair)}
 .lg-tr:active{background:rgba(255,255,255,.03)}
-.lg-tr.prize::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
 .lg-tr.you{background:linear-gradient(90deg,rgba(122,149,255,.16),rgba(122,149,255,.04))}
 .lg-tr.you::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--you)}
 .lg-tr .pos{display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -1251,33 +1290,30 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .mv{font:700 10px/1 var(--f-num);letter-spacing:.02em;min-height:10px}
 .mv.up{color:var(--win)} .mv.dn{color:var(--loss)} .mv.eq{color:var(--tx4)}
 .lg-tr .nm{display:block;min-width:0}
-.lg-tr .tn{display:block;font-size:14px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg-tr .tn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;font-weight:800;line-height:1.2;overflow-wrap:anywhere}
 .lg-tr .l2{display:flex;align-items:center;flex-wrap:wrap;column-gap:5px;row-gap:3px;margin-top:4px;font-size:11px;color:var(--tx3);white-space:nowrap}
 .lg-tr .l2 .me{color:var(--you);font-weight:800}
-.lg-tr .l2 .pf b{font:600 12px/1 var(--f-num);color:var(--tx2)}
-.lg-tr .pz{font-size:12px;font-weight:700;line-height:1;color:var(--gold)}
 .fdots i.e{background:none;box-shadow:inset 0 0 0 1px var(--line)}
-.lg-tr .rec{font-size:15px;font-weight:600;line-height:1;color:var(--tx2);text-align:center;white-space:nowrap}
+.lg-tr .rec,.lg-tr .pf{font-size:15px;font-weight:600;line-height:1;color:var(--tx2);text-align:center;white-space:nowrap}
 .lg-tr .pts{font-size:24px;font-weight:700;line-height:1;text-align:center}
 .lg-tr .tc{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
 .lg-tr .tc b{font-size:15px;font-weight:700;line-height:1}
 .lg-tr .tc b.wait{color:var(--tx4)}
-.lg-tr .tb{display:block;width:44px;max-width:100%;height:4px;border-radius:2px;background:var(--top);overflow:hidden}
+.lg-tr .tb{display:block;width:32px;max-width:100%;height:4px;border-radius:2px;background:var(--top);overflow:hidden}
 .lg-tr .tb i{display:block;height:4px;border-radius:2px;background:var(--p300);transition:width .4s ease}
 .lg-tr .tb.wait i{width:40%;background:linear-gradient(90deg,var(--top),var(--line),var(--top));background-size:200% 100%;animation:sk 1.2s linear infinite}
-.lg-zone{display:flex;align-items:center;gap:8px;padding:6px 12px;font:700 11px/1 var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);background:var(--gold-bg);text-align:center}
-.lg-zone i{flex:1;height:1px;background:rgba(255,210,63,.35)}
+.lg-zone{height:0;border-top:1px solid rgba(255,210,63,.45)}
+.lg-zone + .lg-tr{border-top:0}
 
 /* ---------- block 2: Manager of the Month ---------- */
 .lg-motm-top{padding:14px 14px 12px;background:linear-gradient(120deg,#24123A 0%,var(--card) 70%)}
 .lg-motm-top .hd{display:flex;align-items:flex-start;gap:10px}
 .lg-motm-top .k{color:var(--p100)}
 .lg-motm-top h2{margin:4px 0 2px;font-size:24px;line-height:.95}
-.lg-cash{margin-left:auto;flex:none;font-size:20px;font-weight:700;line-height:1;color:var(--gold);padding:6px 9px;border-radius:8px;background:var(--gold-bg)}
 .lg-pips{display:flex;gap:6px;margin-top:12px}
 .lg-pips .pip{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .lg-pips .pip i{display:block;width:100%;height:6px;border-radius:3px;background:var(--top)}
-.lg-pips .pip .n{font-size:11px;color:var(--tx3);white-space:nowrap}
+.lg-pips .pip .n{font-size:11px;color:var(--num2);white-space:nowrap}
 .lg-pips .pip.done i{background:var(--p300)}
 .lg-pips .pip.done .n{color:var(--tx2)}
 .lg-pips .pip.live i{background:var(--live);animation:lgblink 1.6s ease-in-out infinite}
@@ -1285,15 +1321,17 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-pips .pip.prov i{background:repeating-linear-gradient(90deg,var(--p300) 0 6px,var(--p500) 6px 9px)}
 .lg-pips .pip.prov .n{color:var(--p100);font-weight:700}
 .lg-pipnote{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;margin-top:8px;font-size:11px;color:var(--tx3)}
-.lg-mh,.lg-mr{display:grid;grid-template-columns:18px 26px minmax(0,1fr) 40px 42px;align-items:center;gap:8px;padding:8px 12px}
+.lg-mh,.lg-mr{display:grid;grid-template-columns:18px 26px minmax(0,1fr) 44px 40px;align-items:center;gap:8px;padding:8px 12px}
 .lg-mh{padding-bottom:6px;border-top:1px solid var(--hair);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
 .lg-mh span:nth-child(2){grid-column:3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lg-mh span:nth-child(1){grid-column:1/3}
 .lg-mh span:nth-child(3),.lg-mh span:nth-child(4){text-align:right}
+.lg-mh .ph{justify-self:end;width:max-content}
+.lg-mh .ph em{font-style:normal}
 .lg-mr{min-height:44px;cursor:pointer}
 .lg-mr:active{background:rgba(255,255,255,.03)}
 .lg-mr.you{background:rgba(122,149,255,.10)}
-.lg-mr .rk{font-size:15px;color:var(--tx3);text-align:center}
+.lg-mr .rk{font-size:15px;color:var(--num2);text-align:center}
 .lg-mr .cr{justify-self:center}
 .lg-mr .ln{display:block;min-width:0}
 .lg-mr .tn{display:block;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1304,7 +1342,9 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-mr .lane .pj{position:absolute;top:3px;height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--c) 0 5px,transparent 5px 8px)}
 .lg-mr .lane .bk{position:absolute;left:0;top:2px;height:6px;border-radius:3px;background:var(--c)}
 .lg-mr .lane .mk{position:absolute;top:-2px;width:4px;height:14px;margin-left:-2px;border-radius:2px;background:var(--c)}
+.lg-mr .pv{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .lg-mr .pr,.lg-mr .wn{font-size:17px;font-weight:700;text-align:right;line-height:1}
+.lg-mr .sm{font-size:11px;font-weight:600;line-height:1;color:var(--num2);white-space:nowrap}   /* a quiet number: 7:1 (DESIGN.md) */
 .lg-mr .wn{color:var(--tx2)}
 .lg-mr .wn.fav{color:var(--tx)}
 .lg-key{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 14px 4px;font-size:11px;color:var(--tx3);border-top:1px solid var(--hair)}
@@ -1331,9 +1371,9 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-step .who{display:flex;flex-direction:column;align-items:center;font-size:11px;line-height:1.2;text-align:center;min-height:28px;max-width:100%}
 .lg-step .who b{font-weight:700;color:var(--tx2);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lg-step .who span{color:var(--tx3)}
-.lg-step .blk{width:100%;display:flex;flex-direction:column;align-items:center;padding-top:10px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 78%,#000) 100%)}
+.lg-step .blk{width:100%;display:flex;flex-direction:column;align-items:center;padding-top:10px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 78%,#000) 100%);color:#1C1402}
 .lg-step .blk b{font-size:24px;font-weight:700;line-height:1;color:#1A1405}
-.lg-step .blk span{margin-top:4px;font:800 11px/1 var(--f-ui);letter-spacing:.06em;color:#3A2C08;text-transform:uppercase}
+.lg-step .blk span{margin-top:4px;font:800 11px/1 var(--f-ui);letter-spacing:.06em;color:#1C1402;text-transform:uppercase}   /* 7.7:1 on the gold step */
 .lg-step.s1 .blk{height:96px} .lg-step.s2 .blk{height:66px} .lg-step.s3 .blk{height:48px}
 .lg-season{padding:16px 16px 12px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,210,63,.2)}
 .lg-season .hd{display:flex;align-items:baseline;margin-bottom:4px}
@@ -1372,14 +1412,14 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 
 /* narrow phones: the table keeps every column, names may take two lines */
 @media (max-width:359px){
-  .lg-th,.lg-tr{grid-template-columns:22px 32px minmax(0,1fr) 36px 24px 38px;gap:5px;padding-left:8px;padding-right:9px}
-  .lg-tr .tn{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13.5px}
-  .lg-tr .tb{width:36px}
-  .lg-tr .rec{font-size:14px}
+  .lg-th,.lg-tr{grid-template-columns:20px 30px minmax(0,1fr) 34px 28px 24px 32px;gap:4px;padding-left:8px;padding-right:8px}
+  .lg-tr .tn{font-size:13.5px}
+  .lg-tr .tb{width:30px}
+  .lg-tr .rec,.lg-tr .pf{font-size:14px}
   .lg-th{letter-spacing:.02em}
   .lg-tbl-hd{flex-wrap:wrap;align-items:flex-start}
   .lg-tbl-hd .r{margin-left:0;text-align:left;flex-basis:100%}
-  .lg-mh,.lg-mr{grid-template-columns:16px 24px minmax(0,1fr) 34px 38px;gap:6px;padding-left:10px;padding-right:10px}
+  .lg-mh,.lg-mr{grid-template-columns:16px 24px minmax(0,1fr) 40px 36px;gap:6px;padding-left:10px;padding-right:10px}
   .lg-pool-top .big{font-size:64px}
   .lg-step .blk b{font-size:21px}
 }
@@ -1467,7 +1507,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-mrow:first-child{border-top:0}
 .lg-mrow .per{display:flex;flex-direction:column;gap:2px}
 .lg-mrow .per b{font-size:13px;font-weight:800}
-.lg-mrow .per .n{font-size:13px;color:var(--tx3)}
+.lg-mrow .per .n{font-size:13px;color:var(--num2)}
 .lg-mrow .w{display:flex;align-items:center;gap:8px;min-width:0}
 .lg-mrow .w .cr + .cr{margin-left:-10px}
 .lg-mrow .amt{font-size:18px;font-weight:700;color:var(--gold);padding:4px 7px;border-radius:7px;background:var(--gold-bg)}
@@ -1672,6 +1712,9 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-tr .tb i{background:var(--tc,var(--p300))}
 .lg-mr .lane,.lg-mr.you .lane{--c:var(--tc,var(--p100))}
 .lg-odds .bar i,.lg-odds .r.baha .bar i{background:var(--tc,var(--tx3))}
+
+/* quiet numbers (DESIGN.md: 7:1): the series count on a derby, the pot's shares and periods, points for and against */
+.srl.n,.lg-hold .pz .k,.per .n,.lg-pot .rows em.n,.sc td.pa.n{color:var(--num2)}
 /* ===== Feed (pages/feed.js, feed/*) — four voices, each look inside its own posts; the chrome stays purple and blue ===== */
 
 /* voice type */
@@ -1704,7 +1747,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .fp.unread::before{content:'';position:absolute;left:0;top:18px;width:3px;height:36px;border-radius:0 3px 3px 0;background:var(--p300)}
 .fp-h{display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0}
 .fp-who{display:flex;flex-direction:column;gap:1px;min-width:0}
-.fp-who b{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;min-width:0}
+.fp-who b{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;font-size:14px;font-weight:700;min-width:0}   /* the chips wrap under the name when the row is tight (a viral post in a rail card), so the name is never cut against the voice's chip */
 .fp-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .fp-who>span{font-size:12px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fp-new{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--p300);flex:none}
@@ -1734,11 +1777,11 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .dd-tag,.aq-tag{position:absolute;left:4.5cqw;top:4.5cqw;font-size:4.4cqw;padding:1.5cqw 2.5cqw 1.2cqw;background:#C6FF00;color:#0A0A0A;line-height:1;letter-spacing:.02em}
 .dd-ct{position:absolute;right:4cqw;top:5cqw;font-size:3.1cqw;color:#fff;background:rgba(10,10,10,.72);padding:.9cqw 2.2cqw;border-radius:99px}
 .dd-txt{position:absolute;left:4.5cqw;right:4.5cqw;bottom:17cqw;display:flex;flex-direction:column;align-items:flex-start;gap:1.6cqw}
-.dd-nm{color:#fff;line-height:.84;white-space:nowrap;text-shadow:0 2px 24px rgba(0,0,0,.45)}
+.dd-nm{color:#fff;line-height:.84;white-space:nowrap;-webkit-text-stroke:2.5px #0A0A0A;paint-order:stroke fill}   /* an outline, as the tabloid cards: the name reads over the photo and the slab alike */
 .dd-sf{font-size:4.6cqw;color:#C6FF00;letter-spacing:.06em;margin-top:1cqw}
 .dd-to{display:flex;align-items:center;gap:2.2cqw;max-width:100%}
 .dd-to .cr svg{width:8.4cqw;height:auto}
-.dd-to b{color:#fff;line-height:1;white-space:nowrap;text-shadow:0 2px 18px rgba(0,0,0,.5)}
+.dd-to b{color:#fff;line-height:1;white-space:nowrap;-webkit-text-stroke:1.6px #0A0A0A;paint-order:stroke fill}
 .dd-bar{position:absolute;left:0;right:0;bottom:0;height:13cqw;background:#0A0A0A;border-top:1px solid #262626;display:flex;align-items:center;gap:2.4cqw;padding:0 4.5cqw}
 .dd-bar .f-mono{font-size:3cqw;color:#8A8A8A}
 .dd-bar b{font-size:4.8cqw;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30cqw}
@@ -1860,14 +1903,14 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .fct-stk img.fpl{object-fit:cover;object-position:50% 0}
 .fct-crest{position:absolute;right:7cqw;top:50%;transform:translateY(-50%) rotate(7deg);filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
 .fct-crest .cr svg{width:30cqw;height:auto}
-.fct-lbl{position:absolute;left:3.4cqw;top:3.4cqw;z-index:3;font:800 2.8cqw/1 var(--f-ui);letter-spacing:.08em;padding:1cqw 2cqw;background:#0A0A0A;color:#fff}
+.fct-lbl{position:absolute;left:3.4cqw;top:3.4cqw;z-index:3;font:800 2.8cqw/1 var(--f-ui);letter-spacing:.08em;padding:1.4cqw 2cqw;background:#0A0A0A;color:#fff}
 .fct-lbl.lo{top:auto;bottom:3.4cqw;background:#FFD60A;color:#0A0A0A}
 .fct-ttl{position:absolute;left:3.4cqw;top:11cqw;display:flex;flex-direction:column;gap:.4cqw;transform:rotate(-3deg);transform-origin:0 0;z-index:3}
 .fct-t1{color:#FFD60A;--sk:.75cqw;white-space:nowrap}
 .fct-t2{color:#fff;--sk:.55cqw;white-space:nowrap}
-.fct-yellow .fct-t1{color:#E8222E}
+.fct-yellow .fct-t1{color:#fff}   /* a figure in white inside its black outline (red read 4:1 against the outline) */
 .farw{position:absolute;left:46cqw;top:31cqw;width:12cqw;height:auto;z-index:3;filter:drop-shadow(0 2px 0 #0A0A0A)}
-.fct-lo{position:absolute;left:3.8cqw;bottom:4.4cqw;z-index:3;font-size:5cqw;color:#fff;-webkit-text-stroke:0;background:#0A0A0A;padding:.8cqw 2.2cqw .6cqw}
+.fct-lo{position:absolute;left:3.8cqw;bottom:4.4cqw;z-index:3;font-size:5cqw;line-height:1.1;color:#fff;-webkit-text-stroke:0;background:#0A0A0A;padding:1.6cqw 2.2cqw 1.3cqw}   /* the plate covers the whole glyph box */
 .fct-chip{position:absolute;right:16cqw;bottom:5.4cqw;z-index:3;font:700 3cqw/1 var(--f-ui);color:#fff;background:rgba(0,0,0,.66);padding:1.1cqw 1.7cqw;border-radius:4px;letter-spacing:.02em}
 .fct-chip.live{background:var(--live);color:#0A0A0A}
 .fct-play{position:absolute;right:3cqw;bottom:3cqw;z-index:3;width:11cqw;height:11cqw;border-radius:50%;background:rgba(10,10,10,.78);display:flex;align-items:center;justify-content:center;color:#fff}
@@ -1896,13 +1939,14 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .crm-r b{font-size:26px;color:#FFD60A;--sk:1.6px;text-align:right}
 
 /* ---------- MALCOLM: the house, Barlow scorebugs ---------- */
-.fmb{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(160deg,#37003C 0%,#1A0F24 60%,#17121D 100%);border:1px solid var(--line)}
+.fmb{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(160deg,#2A2237 0%,#1B1525 60%,#17121D 100%);border:1px solid var(--line)}   /* a dark tint behind the scores, never purple (DESIGN.md) */
 .fmb.ft{background:var(--card);border-color:var(--top)}
 .fmb-edge{display:block;height:3px;background:var(--logo)}
 .fmb-hd{display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(0,0,0,.18)}
-.fmb.ft .fmb-hd,.fmb-hd.ftg{background:linear-gradient(90deg,#37003C,#1E3DD6)}
+.fmb.ft .fmb-hd,.fmb-hd.ftg{background:linear-gradient(90deg,#1B1525,#1E3DD6)}
+.fmb.ft .fmb-hd>span,.fmb-hd.ftg>span{color:#fff}
 .fmb-hd b{font:700 16px/1.1 var(--f-num);letter-spacing:.08em}
-.fmb-hd>span{margin-left:auto;font:600 14px/1.1 var(--f-num);letter-spacing:.06em;color:var(--p100);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fmb-hd>span{margin-left:auto;font:600 14px/1.1 var(--f-num);letter-spacing:.06em;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .fmb-hd .live-dot{font-size:14px}
 .fsb-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px;padding:16px 10px 10px}
 .fsb-t{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;min-width:0}
@@ -1912,7 +1956,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .fsb-sc i{width:14px;height:4px;border-radius:2px;background:#5A4E69}
 .fsb-sc.pred b{font-size:40px}
 .fsb-nm{text-align:center;font-size:11px;letter-spacing:.14em;color:var(--p100);font-weight:700;padding:0 12px 12px}
-.fsb-proj{text-align:center;font-size:14px;letter-spacing:.06em;color:var(--p100);padding-bottom:6px}
+.fsb-proj{text-align:center;font-size:14px;letter-spacing:.06em;color:var(--tx2);padding-bottom:6px}
 .fsb-w{padding:4px 14px 14px}
 .fsb-wl{display:flex;align-items:baseline;gap:6px;margin-bottom:7px;font-size:12px;color:var(--tx3)}
 .fsb-wl b{font-size:22px;font-weight:700}
@@ -1953,13 +1997,13 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .fbd-t b{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fbd-s{display:flex;align-items:center;gap:5px}
 .fbd-s b{font-size:23px;font-weight:700;line-height:1}
-.fbd-s i{font-style:normal;color:var(--tx4)}
+.fbd-s i{font-style:normal;color:var(--tx3)}
 .fmb.res .fbd-s b{color:var(--tx3)}
 .fmb.res .fbd-s b.w{color:#fff}
 .fbd-w{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;align-items:center;gap:8px;margin-top:8px}
 .fbd-w span{font-size:12.5px;color:var(--tx2)}
 .fbd-w span:last-child{text-align:right}
-.fbd-pf{font-size:11.5px;color:var(--p100);letter-spacing:.05em;margin-top:6px;text-align:center}
+.fbd-pf{font-size:11.5px;color:var(--tx2);letter-spacing:.05em;margin-top:6px;text-align:center}
 .fmb-ft{padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);font-size:11.5px;color:var(--tx3)}
 /* table */
 .ftb{padding:6px 14px 10px}
@@ -2039,7 +2083,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .frail{display:flex;gap:10px;padding:0 var(--gutter) 2px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gutter);scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .frail::-webkit-scrollbar{display:none}
 .fpc{flex:none;width:min(300px,80vw);scroll-snap-align:start;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;min-width:0}
-.fpc.v-malcolm{background:linear-gradient(160deg,#37003C 0%,#1A0F24 60%,#17121D 100%)}
+.fpc.v-malcolm{background:linear-gradient(160deg,#2A2237 0%,#1B1525 60%,#17121D 100%)}
 .fpc.v-archizio{background:#0E0E0E;border-color:#262626}
 .fpc.v-jive{background:#1D3A31;border-color:#2B5246}
 .fpc-b{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;flex:1;min-width:0}
@@ -2153,9 +2197,9 @@ button.fl-more{width:calc(100% - 2 * var(--gutter))}
 .thread .ar-note{margin:4px 2px 0}
 /* articles */
 .far{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 12px;border-radius:14px;background:var(--card);border:1px solid var(--top);color:var(--tx);min-height:80px}
-.far-k{flex:none;width:52px;height:58px;border-radius:10px;background:linear-gradient(160deg,#37003C,#5B2D8E);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.far-k{flex:none;width:52px;height:58px;border-radius:10px;background:linear-gradient(160deg,#1E3DD6,#14288F);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 .far-k b{font-size:21px;line-height:1}
-.far-k em{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:var(--p100)}
+.far-k em{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;color:#fff}
 .far-t{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
 .far-t b{font-size:14.5px;font-weight:700;line-height:1.3;text-wrap:pretty}
 .far-t span{font-size:12px;color:var(--tx3);line-height:1.35}
@@ -2306,7 +2350,7 @@ button.fl-more{width:calc(100% - 2 * var(--gutter))}
 /* a post quoting another */
 .fqt .fpc{width:100%;border-radius:14px}
 /* going viral */
-.fp-viral{flex:none;font:800 9.5px/1.3 var(--f-ui);letter-spacing:.06em;padding:2px 6px;border-radius:4px;color:#fff;background:var(--logo)}
+.fp-viral{flex:none;font:800 9.5px/1.3 var(--f-ui);letter-spacing:.06em;padding:2px 6px;border-radius:4px;color:var(--cyan);background:#0A2E33}   /* cyan on its dark: 10.7:1 (white on the logo gradient read 1.7:1) */
 .fp.hot{box-shadow:inset 3px 0 0 #E8222E}
 /* reactions */
 .frx{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
@@ -2340,6 +2384,7 @@ button.fl-more{width:calc(100% - 2 * var(--gutter))}
 .fpr-crest{position:absolute;right:-6cqw;top:16cqw;transform:rotate(9deg);opacity:.95;filter:drop-shadow(0 10px 22px rgba(198,255,0,.18))}
 .fpr-crest .cr svg{width:46cqw;height:auto}
 .fpr-t{position:absolute;left:5cqw;top:24cqw;display:flex;flex-direction:column;line-height:.9;z-index:1}
+.fpr-t b{-webkit-text-stroke:2px #0A0A0A;paint-order:stroke fill}   /* the headline reads over the crest behind it */
 .fpr-t b{font-size:15cqw;letter-spacing:.005em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
 .fpr-t b+b{color:#C6FF00;font-size:12.4cqw}
 .fpr-s{position:absolute;left:5cqw;right:5cqw;bottom:16cqw;font-size:3.5cqw;letter-spacing:.06em;color:#BDBDBD;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2360,8 +2405,8 @@ button.fl-more{width:calc(100% - 2 * var(--gutter))}
 .fct-zoom{background:#FFD60A}
 .fct-dots{position:absolute;inset:0;background:radial-gradient(circle,rgba(232,34,46,.22) 1.1cqw,transparent 1.2cqw) 0 0/5cqw 5cqw}
 .fct-ring{position:absolute;right:4cqw;top:6cqw;width:38cqw;height:38cqw;border:1.6cqw solid #E8222E;border-radius:50%;z-index:2;box-shadow:0 0 0 .6cqw #fff}
-.fct-zoom .fct-t1{color:#E8222E}
-.fct-zoom .fct-t2{color:#0A0A0A;-webkit-text-stroke:0}
+.fct-zoom .fct-t1{color:#fff}   /* a figure in white inside its black outline (red read 4:1 against the outline) */
+.fct-zoom .fct-t2{color:#0A0A0A;-webkit-text-stroke:0;background:#FFD60A;padding:0 1cqw}   /* black on the card's own yellow: 15:1, so the plate is its own colour */
 .fct-chart{background:#0B1712}
 .fct-grid{position:absolute;inset:0;background:linear-gradient(rgba(25,210,122,.12) 1px,transparent 1px) 0 0/100% 9cqw,linear-gradient(90deg,rgba(25,210,122,.12) 1px,transparent 1px) 0 0/9cqw 100%}
 .fct-ch{position:absolute;inset:6cqw 2cqw 8cqw 2cqw;width:calc(100% - 4cqw);height:calc(100% - 14cqw);z-index:1;filter:drop-shadow(0 0 1.4cqw rgba(255,59,59,.5))}
@@ -2521,7 +2566,6 @@ html.gs-on{overflow:hidden}
 .gs-tk{position:relative;display:flex;flex-direction:column;align-items:center;width:64px;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both}
 .gs-tk .plate{width:100%!important}
 @keyframes gsDeal{from{opacity:0;transform:translateY(28px) scale(.55)}to{opacity:1;transform:none}}
-.gs-fl{position:absolute;left:-4px;top:-5px;z-index:3;font-style:normal;background:#F5B942;color:#1a1200;border-radius:999px;padding:3px 5px;font:800 10px/1 var(--f-ui);box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .gs-tk.star{width:78px;z-index:1;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both,gsStar .9s 2.1s ease-out both}
 .gs-tk.star .fc{filter:drop-shadow(0 0 2px #FFD23F) drop-shadow(0 0 12px rgba(255,210,63,.55))}
 .gs-st{margin-top:5px;font:800 9.5px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:#1a1200;background:#FFD23F;padding:3px 6px;border-radius:4px;animation:gsUp .4s 2.3s both}
@@ -2579,7 +2623,6 @@ html.gs-on{overflow:hidden}
 .md-show-t .sub{color:#D3CADF}
 .md-show-p{flex:none;width:40px;height:40px;border-radius:50%;background:#fff;color:#37003C;display:grid;place-items:center}
 .md-show-p svg{margin-left:2px}
-.md-watch{display:flex;align-items:center;gap:8px;margin:12px auto 2px;padding:9px 14px;border-radius:999px;background:rgba(123,82,211,.18);border:1px solid rgba(123,82,211,.55);color:#fff;font:700 13px/1 var(--f-ui)}
 .gs-watch{margin:10px 0 4px;display:flex;align-items:center;justify-content:center;gap:8px}
 .show-player .spl-c{display:flex;align-items:center;gap:8px;width:100%;text-align:left}
 .show-player .spl-c i{font-style:normal;color:var(--tx3)}
@@ -2775,10 +2818,10 @@ html.gs-on{overflow:hidden}
 .sk-cb em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 1em/1 var(--f-ui);font-style:normal;color:var(--base);letter-spacing:-.02em}
 .sk-cb img{position:relative;display:block;width:auto;max-width:76%;object-fit:contain;background:#fff}
 .sk-pc{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:30px;height:28px;padding:0 6px;border-radius:8px;font:700 17px/1 var(--f-num)}
-.sk-pc.p4{background:var(--p100);color:var(--p900)}
-.sk-pc.p3{background:var(--p500);color:#fff}
-.sk-pc.p2{background:var(--p700);color:var(--p100)}
-.sk-pc.p1{background:var(--top);color:var(--tx3)}
+/* points chips (Dec, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
+.sk-pc.p3{background:var(--win);color:var(--base)}
+.sk-pc.p2{background:var(--doubt);color:var(--base)}
+.sk-pc.p1{background:var(--loss);color:var(--base)}
 .sk-pc.z{background:transparent;color:var(--tx4);box-shadow:inset 0 0 0 1.5px var(--line)}
 .sk-pc.lv{background:var(--live-bg);color:var(--live);box-shadow:inset 0 0 0 1.5px var(--live)}
 .sk-res{display:inline-flex;align-items:center;gap:3px;font:700 12px/1 var(--f-num);padding:3px 6px;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
@@ -2814,6 +2857,28 @@ html.gs-on{overflow:hidden}
 .ps-fc em{font:700 11px/1 var(--f-ui);font-style:normal}
 .ps-fc em.up{color:var(--win)} .ps-fc em.dn{color:var(--loss)}
 .ps-fc i{font-style:normal;color:var(--tx3);font-weight:500}
+/* the next fixture chip (Dec, 10 Oct 2026): the opponent's crest and code, H or A, then the kick-off, minute or FT */
+.ps-fc.ps-nx .sk-cb{margin-right:-2px}
+.ps-fc.ps-nx i{margin-left:-3px}
+.ps-fc.ps-nx > em{font-style:normal;font-weight:600;color:var(--tx2);padding-left:6px;border-left:1px solid var(--top)}   /* the H or A marker only: the crest circle's own em (the club's letters on white when the crest fails to load) keeps its dark colour */
+.ps-fc.ps-nx.live > em{color:var(--live)}
+/* the season card: apps, goals, assists, points and the rating in its colour (green from 78, amber from 70, red under) */
+.ps-cells.ps-cells5{grid-template-columns:repeat(5,minmax(0,1fr));border-top:0}
+.ps-cells5 .ps-cell{padding:12px 4px;align-items:center;text-align:center}
+.ps-cells5 .ps-cell b{font-size:24px}
+.ps-rb{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:30px;padding:0 6px;border-radius:8px;font-size:19px!important;line-height:1}
+.ps-rb.ok{background:var(--win);color:var(--base)} .ps-rb.wn{background:var(--doubt);color:var(--base)} .ps-rb.no{background:var(--loss);color:var(--base)}
+.ps-rating span em{font:700 11px/1 var(--f-ui);font-style:normal}
+.ps-rating span em.up{color:var(--win)} .ps-rating span em.dn{color:var(--loss)}
+/* a folded card (the projection row, More): one row, the body under it on a tap */
+.ps-prow{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:12px 14px;text-align:left;font-size:15px;font-weight:700;color:#fff}
+.ps-prow > span{flex:1;display:flex;align-items:baseline;gap:8px;min-width:0}
+.ps-prow small{font-size:11px;font-weight:600;color:var(--tx3);white-space:nowrap}
+.ps-prow > b{font-size:22px;line-height:1}
+.ps-prow svg{flex:none;transition:transform .18s ease}
+.ps-fold.open .ps-prow svg{transform:rotate(90deg)}
+.ps-fbody .ps-bd:first-child{border-top:1px solid var(--hair)}
+.ps-bd b small{font-size:11px;font-weight:600;color:var(--tx3);margin-left:4px}
 .ps-ban{display:flex;align-items:center;gap:10px;margin:14px var(--gutter) 0;padding:11px 12px;border-radius:12px}
 .ps-ban.doubt{background:var(--doubt-bg);border:1px solid color-mix(in oklab,var(--doubt) 32%,var(--doubt-bg))}
 .ps-ban.out{background:var(--loss-bg);border:1px solid color-mix(in oklab,var(--loss) 32%,var(--loss-bg))}
@@ -3090,7 +3155,7 @@ html.gs-on{overflow:hidden}
 .ms-pp i{font-style:normal;font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.04em}
 .ms-pp b{font-size:16px}
 .ms-tx{gap:12px}
-.ms-tx.dim{opacity:.55}
+.ms-tx.dim .sub,.ms-tx.dim .ms-mv span{color:var(--tx3)}   /* a denied claim reads quieter, never fainter */
 .ms-tx .gw{width:34px;flex:none;font-size:12px}
 .ms-mv{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .ms-mv span{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3323,3 +3388,46 @@ html.gs-on{overflow:hidden}
 .mn-legal{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 16px 0;font-size:12px}
 .mn-legal a{display:inline-flex;align-items:center;min-height:40px;padding:0 6px;color:var(--tx3);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .mn-legal i{width:3px;height:3px;border-radius:50%;background:var(--tx4)}
+/* ===== stats surfaces: neutral, high contrast (Dec, 10 Oct 2026) =====
+   "The purple background and the purple text and white is too hard to read at a glance. Stats need to be clear to
+   read. High contrast." The surfaces that carry numbers (the player sheet below its hero, the Matchup Stats tab,
+   League > Stats) sit on a near-black neutral: cards on --st-card, numbers in white, labels in a light neutral grey,
+   purple only on tabs and active states, never as a background behind a number or as the colour of a number. Values
+   that carry meaning use green, amber and red (the points chips, the difficulty bar, the rating badge). Everything
+   else keeps the team colours (headers, crests, Plates). tests/app-contrast.js reads the tokens below and fails under
+   7:1 for a number and 4.5:1 for a label, on the dark cards and on the light pills and chips alike. Built on the UI
+   pass of the same day (the season card's rating badge, the form chips and the next five already in green, amber and
+   red): here the red chip and badge carry dark figures on a lighter red, as the green and amber ones do, because white
+   on the app's red reads 3.3:1. */
+:root{
+  --st-base:#0B0B0D; --st-card:#141416; --st-raised:#1E1E22; --st-top:#2A2A2F; --st-hair:#232327; --st-line:#36363C;
+  --st-num:#FFFFFF; --st-num2:#D9D9DE; --st-lab:#B7B7BD; --st-lab2:#9D9DA3; --st-you:#93A9FF;
+  --st-win:#5FE09A; --st-amber:#FFD58A; --st-red:#FFA3A5; --st-redbg:#FF8A8D;
+}
+/* the scope: inside it every surface, text and hairline token is the neutral one, so the cards, tiles, rows and bars
+   already written against --card, --top, --tx3 and the rest change colour without a change of markup */
+.sheet.sk-player,
+main.lgx-stats,
+.md-stats,.md-rks,.md-tiles2,.card:has(> .md-tiles2),.card:has(> .md-cl){
+  --base:var(--st-base);--bar:var(--st-base);--card:var(--st-card);--raised:var(--st-raised);--top:var(--st-top);
+  --hair:var(--st-hair);--line:var(--st-line);
+  --tx:var(--st-num);--tx2:var(--st-num2);--tx3:var(--st-lab);--tx4:var(--st-lab2);--you:var(--st-you);--num2:var(--st-num2)
+}
+/* numbers that were purple, or a secondary grey, read white or the light grey */
+.sheet.sk-player .ps-bd b.xv,.sheet.sk-player .ps-bd.hd b.xv,.sheet.sk-player .ps-ml .xp{color:var(--st-num2)}
+.sheet.sk-player .ps-cell b small,.sheet.sk-player .ps-lp em{color:var(--st-lab)}
+.sheet.sk-player .ps-rating span em.up{color:var(--st-win)} .sheet.sk-player .ps-rating span em.dn{color:var(--st-red)}
+.md-tiles2 .md-t2 b,.md-bgr > b{color:var(--st-num)}
+main.lgx-stats .lg-rank .r b,main.lgx-stats .lg-mt .st b,main.lgx-stats .lg-chart .ro span b{color:var(--st-num)}
+main.lgx-stats .lg-mt .star i{color:var(--st-lab)}
+main.lgx-stats .lg-pick.on span{color:var(--st-num)}
+/* the paired bars of the Matchup Stats tab: the leader's pill is a light neutral with dark figures on both sides
+   (the right pill was a mid grey with white figures, 3.6:1) */
+.md-stats{--md-lc:var(--st-num);--md-rc:var(--st-lab);--md-rt:var(--st-base)}
+.md-stats.md-mine{--md-lc:var(--st-you);--md-rc:var(--opp);--md-rt:var(--st-base)}
+/* the red points chip (0 to 2) and the red rating badge (under 70): dark figures on the lighter red, like the green
+   and amber ones; the match log's red event tags read the light red */
+.sheet.sk-player .sk-pc.p1,.sheet.sk-player .ps-rb.no{background:var(--st-redbg);color:var(--st-base)}
+.sheet.sk-player .sk-pc.z{color:var(--st-lab);box-shadow:inset 0 0 0 1.5px var(--st-line)}
+.sheet.sk-player .ps-ev.cs,.sheet.sk-player .ps-ev.gc,.sheet.sk-player .ps-ev.rc,.sheet.sk-player .ps-ev.bn{color:var(--st-num2)}
+.sheet.sk-player .ps-ev.cs{color:var(--st-win)} .sheet.sk-player .ps-ev.rc{color:var(--st-red)}
