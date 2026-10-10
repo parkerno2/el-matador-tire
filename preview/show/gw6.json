@@ -1,0 +1,36 @@
+{
+ "gw": 6,
+ "voice": "Malcolm Tyre — El Matador Booth",
+ "model": "eleven_v4_turbo",
+ "speed": 1.1,
+ "written": "2026-10-09",
+ "audio": "sheet",
+ "open": "Gameweek six. The leaders are under investigation, the bottom side has yet to win, and Jacob's best striker is on the bench. Again.",
+ "chapters": [
+  {"home": "Kobbie Mainoo Fan", "away": "Trophy Hunters", "star": {"h": "487838", "a": "17761"}, "beats": [
+   "Kobbie Mainoo Fan. Top of the league, pending an independent commission.",
+   "Named after Kobbie Mainoo, who plays for Parker. Nobody's had the heart to tell Baha.",
+   "Trophy Hunters. Bryant has stopped experimenting and started winning. It's ugly. It works.",
+   "Five at the back and one up front. Somewhere, Tony Pulis is welling up.",
+   "The Sacred Heart derby. Bryant brings the bus. Baha brings his lawyers."]},
+  {"home": "Cold Palmers", "away": "Devils U21s", "star": {"h": "575476", "a": "222531"}, "beats": [
+   "Cold Palmers. Parker built this app. It has been very honest with him.",
+   "Palmer, Rice, Mainoo and Jacquet all doubts. Less a team sheet, more a waiting room.",
+   "Devils U21s. Still no points. The youth project is taking its time.",
+   "Not a flag among PJ's starters. Fully fit. Just shite.",
+   "Brother against brother. PJ hasn't won all season, and leads the Nolan derby four to three. Christmas should be fun."]},
+  {"home": "I Am a Baleba", "away": "The Soaring Gulls", "star": {"h": "223094", "a": "226597"}, "beats": [
+   "I Am a Baleba. There is no Baleba. There has never been a Baleba.",
+   "Haaland goes to Anfield. Ethan's plan is Haaland. [long pause] Ethan's backup plan is also Haaland.",
+   "The Soaring Gulls. CJ scores more than anyone and sits second. He's taken it well. He hasn't.",
+   "Gabriel and two Leeds players, at the Emirates. Pundits call it hedging. Everyone else calls it cowardice.",
+   "Ethan, meanwhile, starts Leeds' goalkeeper at the Emirates. Bold. Possibly a cry for help."]},
+  {"home": "In It to McGinn It", "away": "Team Jacob", "star": {"h": "141746", "a": "223340"}, "beats": [
+   "In It to McGinn It. Nate is in it. McGinn, for the record, is not.",
+   "Bruno Fernandes at home to Spurs. Arms already out.",
+   "Team Jacob. Kostoulas has made team of the week twice. From the bench. Twice.",
+   "So this week, naturally, Oli McBurnie leads the line. Read that again.",
+   "First ever meeting. Jacob's the favourite, as long as he picks the right eleven. Big if."]}
+ ],
+ "close": "That's your lot. Lineups in by Saturday morning. And Jacob, the lads on the bench are allowed to play."
+}
