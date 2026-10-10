@@ -127,6 +127,9 @@ const statics = { fc27: {}, fc26: {}, existingRatings: {}, ratingsVersion: null,
   sp = Ingest.specialsRows([], { month: 'September 2026', code: '', player: '' }, players);
   check('specialsRows: no name at all: nothing written', sp.wrote === null && sp.rows.find(r => r[0] === 'POTM player')[1] === '');
   check('potmFile: the file\'s shape as Code.gs checks it', JSON.stringify(Ingest.potmFile({ month: ' September  2026 ', code: 1003.0, player: 'Watkins', club: 'AVL' })) === JSON.stringify({ month: 'September 2026', code: '1003', player: 'Watkins' }) && Ingest.potmFile(null) === null && Ingest.potmFile([]) === null && Ingest.potmFile({ month: '' }) === null && Ingest.potmFile({ month: 'X' }) === null && Ingest.potmFile({ month: 'X', player: 'P' }).code === '');
+  const cgFallback = new Function('return ' + read('Code.gs').match(/var NATFALLBACK = (\{[^\n]*\});/)[1])();
+  const trMissing = Object.keys(cgFallback).filter(k => Ingest.NATFALLBACK[k] !== cgFallback[k]);
+  check('the nation fallback table carries every Code.gs entry with the same nation (' + Object.keys(cgFallback).length + ')', trMissing.length === 0, trMissing.join(', '));
   const idx = read('supabase/functions/ingest/index.ts');
   check('the ingest writes Fixture BPS as a global block, syncs Specials per league and reads potm.json from the release branch', /writeBlock\(null, 'Fixture BPS', 'all'/.test(idx) && /syncSpecials\(league\.id/.test(idx) && idx.includes("raw.githubusercontent.com/parkerno2/el-matador-tire/release/fplgg/tools/matchweek/data/potm.json") && /Ingest\.pulsePlayersUrl\(season, page\)/.test(idx));
 
