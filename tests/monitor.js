@@ -13,6 +13,9 @@ const raw = o => Object.assign({
   health: { status: 200, text: JSON.stringify(goodHealth()) } }, o || {});
 const by = (r, k) => r.checks.find(c => c.key === k);
 
+/* ---------- the Specials read ---------- */
+check('the Specials tab is read with headers=1, as the app reads every tab (a date-typed Value column made gviz take two header rows: Code.gs v3.31)', /\/gviz\/tq\?tqx=out:csv&headers=1&sheet=Specials$/.test(M.SPECIALS_URL) && M.SPECIALS_URL.indexOf('https://docs.google.com/spreadsheets/d/1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk/') === 0, M.SPECIALS_URL);
+
 /* ---------- assess ---------- */
 let r = M.assess(raw(), now);
 check('all good: app, sheet, health, data, fpl, selfupdate ok; errors skipped (no count yet)', ['app', 'sheet', 'health', 'data', 'fpl', 'selfupdate'].every(k => by(r, k).ok === true) && by(r, 'errors').ok === null && by(r, 'app').detail === 'build 20261008112958' && r.apiUrl === API, JSON.stringify(r.checks));

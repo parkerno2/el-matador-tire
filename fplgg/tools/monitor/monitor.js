@@ -18,7 +18,7 @@ const { execFileSync } = require('child_process');
 
 const APP_URL = process.env.MW_APP_URL || 'https://parkerno2.github.io/el-matador-tire/';
 const SHEET = '1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
-const SPECIALS_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET + '/gviz/tq?tqx=out:csv&sheet=Specials';
+const SPECIALS_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET + '/gviz/tq?tqx=out:csv&headers=1&sheet=Specials';   /* headers=1 as the app sends it: without it gviz guesses the header rows from the column types (Code.gs v3.31) */
 const FPL_URL = 'https://draft.premierleague.com/api/game';
 const LIMITS = { dataMin: 120, liveMin: 20, liveSettleMin: 20, errors24h: 20, retryMs: 4 * 60e3, timeoutMs: 25e3 };
 const LABEL = 'outage';

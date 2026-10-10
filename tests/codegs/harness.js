@@ -13,7 +13,8 @@ Sheet.prototype.getRange = function (r, c, nr, nc) { const sh = this; nr = nr ||
   getValues() { const o = []; for (let i = 0; i < nr; i++) { const row = sh.rows[r - 1 + i] || []; o.push(Array.from({ length: nc }, (_, j) => row[c - 1 + j] == null ? '' : row[c - 1 + j])); } return o; },
   getValue() { return this.getValues()[0][0]; },
   setValues(v) { v.forEach((row, i) => { const idx = r - 1 + i; while (sh.rows.length <= idx) sh.rows.push([]); row.forEach((x, j) => { sh.rows[idx][c - 1 + j] = x; }); }); },
-  setValue(x) { this.setValues([[x]]); } }; };
+  setValue(x) { this.setValues([[x]]); return this; },
+  setNumberFormat(f) { sh.formats = sh.formats || {}; sh.formats[r + ',' + c] = f; (sh.formatLog = sh.formatLog || []).push([r, c, f]); return this; } }; };
 Sheet.prototype.getDataRange = function () { return this.getRange(1, 1, this.getLastRow(), this.getLastColumn()); };
 Sheet.prototype.appendRow = function (row) { this.rows.push(row.slice()); };
 Sheet.prototype.clearContents = function () { this.rows = []; };

@@ -3,6 +3,7 @@
 Plain Node, no dependencies. Each file mocks the Apps Script services it needs (SpreadsheetApp, PropertiesService, UrlFetchApp, LockService, CacheService, Utilities) and loads `../../Code.gs` in a vm.
 
 ```bash
+node tests/codegs/v331.js   # the Player of the Month month written as text: the plain-text format before every Value write, a date cell healed to its month's words, health reading it, the Monitor's headers=1 (v3.31)
 node tests/codegs/v330.js   # the Player of the Month card fills itself: potm.json from the release branch to the Specials rows, a hand edit for the same month kept, bad files and 404s ignored, the Players name with the ß intact, Specials created when missing, ?health=1 potm, the repo's own file checked (v3.30)
 node tests/codegs/v329.js   # the feed writer's daily floor: two voice posts by 14:00 Chicago on a quiet day, each voice in its lane, nothing repeated from the last 7 days, off while a gameweek is live (v3.29)
 node tests/codegs/v328.js   # the Gameweek Show in dry British commentary: the voice bible and the punch-up brief, 6 to 18 words a beat, at most two subtle tags a show, the approved GW6 script passes (v3.28)

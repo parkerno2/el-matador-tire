@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.30 (the Player of the Month card fills itself) · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.31 (the Player of the Month month written as text) · v3.30 (the Player of the Month card fills itself) · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,19 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.31 · 10 Oct 2026
+ *   The Player of the Month month is written as text (an outage fix). v3.30's first write put 'September 2026' into
+ *   the Specials tab's 'POTM month' cell and Sheets parsed it into a date, so column B was typed as a date: gviz without
+ *   headers=1 then took two rows as the header ("Setting POTM player") and served the API URL as null. The app and the
+ *   parity report send headers=1 and read the tab correctly; the Monitor did not, failed its sheet check twice and
+ *   opened a false outage issue (#2, 19:04 UTC); ?health=1 potm.month read "Tue Sep 01 2026 00:00:00 GMT-0500".
+ *   1. emtPotmSync sets the plain-text number format ('@') on both Value cells before it writes them, so Sheets keeps
+ *      the month as the words it was given. A 'POTM month' cell that holds a Date (this write, or a hand edit Sheets
+ *      parsed) is rewritten as the text of the same month ('<Month> <YYYY>', emtPotmMonthText) before anything else, so
+ *      the column's type heals without changing what the cell says; a hand edit for another month stays a hand edit.
+ *   2. ?health=1 potm.month reads a Date cell as that text, and 'from' judges the words, so the sync's own write reads
+ *      'file' again.
+ *   3. The Monitor's Specials read (fplgg/tools/monitor/monitor.js) sends headers=1 as the app does.
  * v3.30 · 10 Oct 2026
  *   The Player of the Month card fills itself (Parker's Q7, 10 Oct 2026: "Oh pascal groß won potm", then "go ahead and
  *   do that now"). The engine's POTM card tier reads the Specials tab ('POTM player', 'POTM month'), set by hand until
@@ -3722,7 +3735,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.30';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.31';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -5186,6 +5199,14 @@ function emtSpecialRow(sh, setting) {
   sh.appendRow([setting, '']);
   return sh.getLastRow();
 }
+var EMT_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+/* a Value cell as the words it means: a Date (Sheets parsed 'September 2026' when v3.30 wrote it) reads '<Month> <YYYY>' on the script's clock */
+function emtPotmMonthText(v) {
+  if (v && typeof v === 'object' && typeof v.getFullYear === 'function' && !isNaN(v.getTime())) return EMT_MONTHS[v.getMonth()] + ' ' + v.getFullYear();
+  return String(v == null ? '' : v).trim();
+}
+/* writes a Value cell as text, so Sheets never parses the month into a date (v3.31) */
+function emtPotmSetText(sh, row, text) { sh.getRange(row, 2).setNumberFormat('@').setValue(text); }
 function emtPotmState() { try { return JSON.parse(emtProps().getProperty('EMT_POTM') || '{}') || {}; } catch (e) { return {}; } }
 function emtPotmSave(st) { emtProps().setProperty('EMT_POTM', JSON.stringify(st)); }
 function emtPotmNorm(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toLowerCase(); }
@@ -5232,12 +5253,16 @@ function emtPotmSync(force) {
   var f = r.file;
   st.file = { month: f.month, code: f.code, player: f.player };
   var sh = emtSpecialsSheet(), mi = emtSpecialRow(sh, 'POTM month'), pi = emtSpecialRow(sh, 'POTM player');
-  var was = String(sh.getRange(mi, 2).getValue() == null ? '' : sh.getRange(mi, 2).getValue()).trim();
+  var raw = sh.getRange(mi, 2).getValue(), was = emtPotmMonthText(raw);
+  if (raw && typeof raw === 'object' && typeof raw.getFullYear === 'function') {
+    emtPotmSetText(sh, mi, was);
+    Logger.log('POTM: the Specials month cell held a date (' + String(raw) + '); rewritten as the text "' + was + '" so gviz reads the tab with one header row.');
+  }
   if (emtPotmSameMonth(was, f.month)) { emtPotmSave(st); return { ok: true, kept: true, month: was }; }
   var name = emtPotmName(f);
   if (!name) { st.error = 'no player name for ' + f.month; emtPotmSave(st); Logger.log('POTM: ' + st.error + '; the Specials tab is unchanged.'); return { ok: false, error: st.error }; }
-  sh.getRange(pi, 2).setValue(name);
-  sh.getRange(mi, 2).setValue(f.month);
+  emtPotmSetText(sh, pi, name);
+  emtPotmSetText(sh, mi, f.month);
   st.wrote = { month: f.month, player: name, at: new Date(now).toISOString() };
   emtPotmSave(st);
   Logger.log('POTM: Specials now says ' + name + ', ' + f.month + ' (from potm.json' + (f.code ? ', code ' + f.code : '') + '; was ' + (was ? '"' + was + '"' : 'blank') + ').');
@@ -5249,7 +5274,7 @@ function emtPotmHealth() {
   try {
     var sh = SpreadsheetApp.getActive().getSheetByName('Specials');
     (sh && sh.getLastRow() > 1 ? sh.getRange(1, 1, sh.getLastRow(), 2).getValues() : []).forEach(function (r) {
-      var k = String(r[0]).trim(), v = String(r[1] == null ? '' : r[1]).trim();
+      var k = String(r[0]).trim(), v = emtPotmMonthText(r[1]);
       if (k === 'POTM month') month = v; else if (k === 'POTM player') player = v;
     });
   } catch (e) { }
