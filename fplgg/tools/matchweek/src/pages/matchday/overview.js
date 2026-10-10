@@ -162,9 +162,9 @@ export function mrow(m) {
 }
 function footState(list) {
   const ph = list.map(m => m.ph), u = ph.every(x => x === ph[0]) ? ph[0] : 'mixed';
-  const bars = list.some(m => m.win) ? 'Bars show each side’s win chance' : '';
-  const st = { pre: 'Scores are predicted', live: 'All games live', locked: 'Lineups locked, nothing kicked off yet', prov: 'Provisional results', ft: 'Full time', mixed: '' }[u];
-  return [bars, st].filter(Boolean).join('. ') + '.';
+  const bars = '';
+  const st = { pre: 'Predicted until the deadline', live: '', locked: '', prov: 'Provisional until FPL confirms', ft: '', mixed: '' }[u];
+  return [bars, st].filter(Boolean).join('. ') + (st ? '.' : '');
 }
 
 /* ---------- 3. the feed rail ---------- */

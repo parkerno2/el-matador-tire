@@ -83,8 +83,8 @@ export const recL = s => UI.recL(s);
 export function cb(club, px = 28) {
   return '<span class="sk-cb" style="width:' + px + 'px;height:' + px + 'px;font-size:' + Math.max(6, Math.round(px * .3)) + 'px" title="' + esc(clubName(club)) + '"><em>' + esc(club || '') + '</em>' + UI.badge(club, Math.round(px * .72)) + '</span>';
 }
-/* points chip: the purple scale, brighter = bigger week */
-export function ptsCls(v, dnp) { return dnp ? 'z' : v >= 10 ? 'p4' : v >= 6 ? 'p3' : v >= 3 ? 'p2' : 'p1'; }
+/* points chip (Parker, 10 Oct 2026): green 6 points or more (p3), amber 3 to 5 (p2), red 0 to 2 (p1), grey for no minutes (z) */
+export function ptsCls(v, dnp) { return dnp ? 'z' : v >= 6 ? 'p3' : v >= 3 ? 'p2' : 'p1'; }
 export function pc(v, opt = {}) {
   return '<span class="sk-pc ' + (opt.live ? 'lv' : ptsCls(v, opt.dnp)) + '"' + (opt.w ? ' style="width:' + opt.w + 'px;height:' + (opt.h || 30) + 'px"' : '') + '>' + v + '</span>';
 }
@@ -92,7 +92,8 @@ export function pc(v, opt = {}) {
 export function res(r, score, live) {
   return '<span class="sk-res ' + (live ? 'lv' : r.toLowerCase()) + '">' + (live ? 'LIVE' : r) + (score ? ' ' + score : '') + '</span>';
 }
-export function fdrColor(n) { return n <= 2 ? 'var(--win)' : n === 3 ? 'var(--tx4)' : n === 4 ? 'var(--loss)' : 'var(--sk-fdr5)'; }
+/* fixture difficulty in the three standard colours (Parker, 10 Oct 2026): 1 and 2 green, 3 amber, 4 and 5 red */
+export function fdrColor(n) { return n <= 2 ? 'var(--win)' : n === 3 ? 'var(--doubt)' : 'var(--loss)'; }
 export const FDRWORD = { 1: 'easy', 2: 'easy', 3: 'medium', 4: 'hard', 5: 'very hard' };
 /* the pill switcher inside a sheet (local, not routes) */
 export function tabs(items, on) {

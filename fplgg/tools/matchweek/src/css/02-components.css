@@ -7,7 +7,7 @@
 .abar .lg{flex:0 1 auto;overflow:hidden;min-height:40px}
 /* the Matchweek plate, with the league in small caps under it */
 .abar .lg{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
-.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;line-height:1;padding-left:2px}
+.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
 .abar .mwm{display:block;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
 @media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:7.5px;letter-spacing:.07em}}
 /* a longer state pill takes the league name's room rather than cutting it short */
@@ -36,7 +36,8 @@
 .pills::-webkit-scrollbar{display:none}
 .pills a,.pills button{flex:none;padding:8px 15px;border-radius:999px;background:var(--raised);color:var(--tx2);font-size:13px;font-weight:600;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center;gap:6px}
 .pills .on{background:var(--p500);color:#fff}
-.pills .ct{font:700 11px/1 var(--f-num);padding:2px 5px;border-radius:6px;background:rgba(255,255,255,.18)}
+.pills .ct{font:700 11px/1 var(--f-num);padding:2px 5px;border-radius:6px;background:rgba(255,255,255,.18);color:#fff}
+.pills .on .ct{background:#fff;color:var(--base)}   /* a count is a number: never on the purple of the active tab */
 
 /* section heads */
 .sh{display:flex;align-items:center;gap:8px;padding:22px 16px 10px}
@@ -62,7 +63,7 @@
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
 .chip.doubt{background:var(--doubt);color:var(--base)}
 .chip.out{background:var(--loss);color:var(--base)}
-.chip.sub{background:var(--p500);color:#fff}
+.chip.on{background:var(--win);color:var(--base)}
 .chip.free{background:var(--b300);color:var(--base)}
 .chip.mute{background:var(--top);color:var(--tx2)}
 .chip.gold{background:var(--gold-bg);color:var(--gold)}
@@ -79,7 +80,7 @@
 .fd-e{--fdb:color-mix(in srgb,var(--win) 26%,var(--card));--fdt:color-mix(in srgb,var(--win) 35%,#fff)}
 .fd-n{--fdb:var(--top);--fdt:var(--tx2)}
 .fd-h{--fdb:color-mix(in srgb,var(--loss) 28%,var(--card));--fdt:color-mix(in srgb,var(--loss) 35%,#fff)}
-.fd-x{--fdb:color-mix(in srgb,var(--loss) 62%,var(--card));--fdt:#fff}
+.fd-x{--fdb:color-mix(in srgb,var(--loss) 40%,var(--card));--fdt:#fff}   /* white reads 7.5:1 on this mix (the 62% mix of the lighter red read 3.5:1) */
 
 /* points bubbles (matchup tokens, lists) */
 .pb{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 6px;border-radius:11px;font:700 15px/1 var(--f-num)}
@@ -93,7 +94,7 @@
 /* an FPL photo (class fpl, from the shared chain): half body with the head in the top part, so it is framed by the head,
    scaled a little so the face fills the circle like an FC cutout. An FC cutout keeps the bottom-aligned frame above */
 .fc-i img.fpl{flex:none;width:130%;height:130%;align-self:flex-start;margin-top:-3%;object-position:50% 0}
-.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}
+.fc-i .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tx2);font-size:.36em}   /* .36 of the circle: UI.face sets the circle's font-size to its width, so the initials scale with it (they read 5 px in a 28 px circle under a 14 px label) */
 .stack{display:inline-flex;align-items:center}
 .stack .fc-i{margin-left:-8px;box-shadow:0 0 0 2px var(--card)}
 .stack .fc-i:first-child{margin-left:0}
@@ -113,7 +114,40 @@
 .fc.mini .tag{left:12%;transform:none}
 /* a double-figure haul turns the bubble gold, a banked blank goes quiet (the matchup screen's tones) */
 .fc.mini .pts.haul b{color:var(--gold)}
-.fc.mini .pts.blank{opacity:.72}
+.fc.mini .pts.blank{--bubn:#EDE9E0}   /* a banked blank goes quiet in colour, never in opacity (the figure keeps 7:1) */
+/* the status badge (Parker, 10 Oct 2026; UI.plateStatus): one round badge top left of a Plate, at most one, in the
+   status colours only: green confirmed (.ok), amber likely or doubtful (.wn), red out (.no); a white arrow for a sub
+   (up: on, down: off) or a white "!" for availability; a subbed-off card is dimmed (.dim). No tag, frame or swap icon.
+   On the full card the overall rating owns the top left corner, so the badge sits under it, where the INJ pill was */
+.fc .st{position:absolute;z-index:4;top:3.5%;left:4%;width:clamp(16px,19cqw,26px);height:clamp(16px,19cqw,26px);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(14,10,19,.6),0 2px 5px rgba(0,0,0,.4)}
+.fc .st svg{width:62%;height:62%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.fc .st b{font:900 clamp(10px,12cqw,16px)/1 var(--f-ui);color:var(--base)}   /* a dark glyph: 8:1 on green, 11:1 on amber, 9:1 on red (white read 1.8:1 on amber) */
+.fc .st.ok{background:var(--win)} .fc .st.wn{background:var(--doubt)} .fc .st.no{background:var(--loss)}
+.fc:not(.mini) .st{top:26%;left:7%}
+.fc.dim{opacity:.55}
+
+/* ===== the Plate's text (DESIGN.md, 10 Oct 2026): a number 7:1, a label 4.5:1, on every tier, measured against the
+   card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
+   the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
+   initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
+.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
+.fc .rt span{color:var(--sub)}
+.fc .rt .fdar{text-shadow:none}
+.fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
+.fc .pts{padding:4% 7.5% 3.5%}   /* room between the figure and the bubble's edge (a live bubble wears a green border) */
+.fc .pts.proj{background:var(--bubp);border:1.5px dashed var(--bubpl);box-shadow:none;font-weight:600}
+.fc .pts.proj b,.fc .pts.proj i{color:var(--bubpt);opacity:1;font-weight:600}
+.fc .noface{background:var(--nf);box-shadow:inset 0 0 0 1.5px var(--nfl)}
+.fc .pts.blank b,.fc .pts.blank i{color:var(--bubn)}
+.fc.gold{--tx:#2A1F03;--sub:#4A3A0B;--up:#0F5C33;--dn:#8E0F18;--rtb:rgba(255,249,228,.82);--bub:#4A3306;--bubp:#FFF6D8;--bubpl:#5A3F08;--bubpt:#2A1F03;--nf:rgba(255,250,235,.78);--nfl:rgba(58,43,5,.35)}
+.fc.silver{--tx:#1E222B;--sub:#3A3F4A;--up:#0F5C33;--dn:#8E0F18;--rtb:rgba(255,255,255,.84);--bub:#363C4A;--bubp:#F7F8FA;--bubpl:#363C4A;--bubpt:#1E222B;--nf:rgba(255,255,255,.82);--nfl:rgba(38,42,51,.3)}
+.fc.spec,.fc.elite,.fc.totw,.fc.potm{--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba(8,6,12,.62);--bubp:#15111D;--bubpl:rgba(255,255,255,.6);--bubpt:#FFFFFF;--nf:rgba(8,6,12,.55);--nfl:rgba(255,255,255,.4)}
+.fc.spec{--sub:#E6DCEC} .fc.elite{--sub:#D6F2FF} .fc.totw{--sub:#E9D98C} .fc.potm{--sub:#F6D9E5;--bub:#3A0A1E}
+/* a subbed-off card dims its art and its photo under a dark wash, never its words (DESIGN.md): the text goes light
+   and keeps its backings, so the name reads 4.5:1 and the figures 7:1 on every tier */
+.fc.dim{opacity:1;--tx:#F3EFE6;--sub:#D9D2C2;--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba(8,6,12,.62);--bub:#2A2230;--bubn:#fff;--bubp:#15111D;--bubpl:rgba(255,255,255,.6);--bubpt:#fff;--nf:rgba(8,6,12,.55);--nfl:rgba(255,255,255,.4)}
+.fc.dim::after{content:'';position:absolute;inset:0;z-index:1;border-radius:7%;background:rgba(10,8,14,.6);pointer-events:none}
+.fc .pts.haul b,.fc.mini .pts.haul b{color:#FFDC6B}
 
 /* bars */
 .wbar{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}

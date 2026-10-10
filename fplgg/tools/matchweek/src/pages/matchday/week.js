@@ -40,7 +40,7 @@ function toPlay(ph) {
     + teams.map(r => '<div class="md-gr' + (r.t === me ? ' me' : '') + '" style="' + cols + '"><span class="md-gt" data-open="manager:' + esc(r.t) + '">' + UI.crest(r.t, 18) + '<span class="ell">' + esc(SHORTOF[r.t] || r.t) + '</span>' + (r.live ? '<span class="live-dot" title="' + r.live + ' playing now"><i></i>' + r.live + '</span>' : '') + '</span>'
       + days.map(d => { const v = r.c[d.k] || 0; return '<span class="md-gc' + (v ? '' : ' z') + '" style="--a:' + (v ? (.18 + .62 * v / max).toFixed(2) : 0) + '">' + (v || '·') + '</span>'; }).join('')
       + '<b class="n md-gtot">' + r.tot + '</b></div>').join('')
-    + '<div class="foot">' + (ph === 'live' ? 'Playing now counts beside the name. ' : '') + 'Doubles count once per game. Likely auto-subs are applied.</div></div>';
+    + '</div>';
 }
 
 /* the table if every live score held: the official table plus this week's results as they stand (tiebreak: points for) */
@@ -64,18 +64,16 @@ function ifEnded(ph) {
   const mine = me ? after.findIndex(r => r.t === me) : -1, was = me ? before.findIndex(r => r.t === me) : -1;
   const lead = mine >= 0 ? '<div class="md-tlead">You’d be <b>' + ORD(mine + 1) + '</b>' + (mine < was ? ', up ' + (was - mine) : mine > was ? ', down ' + (mine - was) : ', no change') + '.</div>' : '';
   return UI.sh('If it ended now', { aside: 'live scores held' }) + '<div class="card md-tbl">' + lead + '<div class="md-th"><span>#</span><span></span><span></span><span>Team</span><span>W–D–L</span><span>PF</span><span>Pts</span></div>' + rows
-    + '<div class="foot">This week’s scores as they stand, added to the table. Ties split on points for. The real table updates at full time.</div></div>';
+    + '</div>';
 }
 
 function autoSubs_() {
   const me = UI.you();
   const ts = Object.keys(TEAMS).sort((a, b) => (b === me) - (a === me) || a.localeCompare(b)).map(M.team);
   const withSubs = ts.filter(T => T.subs.length), none = ts.filter(T => !T.subs.length);
-  const any = k => withSubs.some(T => T.subs.some(s => s.kind === k));
   return UI.sh('Auto-subs', { aside: 'every team' })
     + '<div class="card md-asw">' + (withSubs.length ? withSubs.map(T => '<div class="md-ast"><div class="md-asth" data-open="manager:' + esc(T.t) + '" role="button" tabindex="0">' + UI.crest(T.t, 20) + '<b>' + esc(T.t) + '</b>' + (T.t === me ? '<span class="md-you">YOU</span>' : '') + '</div>' + subLines(T, 'locked') + subLines(T, 'likely') + '</div>').join('') : '<div class="pad sub">' + (M.phase() === 'pre' ? 'None expected yet. Until the deadline, likely lineups already leave out players FPL has flagged.' : 'No auto-subs anywhere so far. Every starter has played or is still due to.') + '</div>')
-    + (none.length && withSubs.length ? '<div class="md-asn">' + none.map(T => UI.crest(T.t, 16)).join('') + '<span class="sub">No auto-subs: ' + none.map(T => esc(SHORTOF[T.t] || T.t)).join(', ') + '</span></div>' : '')
-    + '<div class="foot">' + (any('locked') ? '<b>Locked</b>: the starter’s game finished without him, so the first eligible bench player comes in. Already counted in the score. ' : '') + (any('likely') ? '<b>Likely</b>: FPL flags the starter out before his game. Counted in projections only, and it settles the moment he plays a minute. ' : '') + 'FPL keeps a legal formation (1 GK, 3 DEF, 2 MID, 1 FWD at least) and makes subs official when the gameweek ends.</div></div>';
+    + (none.length && withSubs.length ? '<div class="md-asn">' + none.map(T => UI.crest(T.t, 16)).join('') + '<span class="sub">No auto-subs: ' + none.map(T => esc(SHORTOF[T.t] || T.t)).join(', ') + '</span></div>' : '') + '</div>';
 }
 
 function provBonus() {
@@ -89,7 +87,7 @@ function provBonus() {
         return '<div class="md-pbr" data-open="player:' + esc(o.r.Code) + '" role="button" tabindex="0"><span class="pb lv">+' + o.b + '</span>' + UI.face(o.r.Code, 26) + '<span class="ell"><b>' + esc(o.r.Player) + '</b><span class="sub">' + esc(o.r.Club) + ' · ' + o.r.BPS + ' BPS</span></span>' + (own ? UI.crest(own, 18) + '<span class="sub">' + esc(SHORTOF[own] || own) + '</span>' : '<span class="sub">Not owned</span>') + '</div>'; }).join('') + '</div>';
   }).join('');
   if (!blocks) return '';
-  return UI.sh('Provisional bonus') + '<div class="card md-pbw">' + blocks + '<div class="foot">Estimated from live BPS (3, 2 and 1 to the top three, ties share). It counts in the scores now and gives way to FPL’s official bonus once that lands.</div></div>';
+  return UI.sh('Provisional bonus') + '<div class="card md-pbw">' + blocks + '</div>';
 }
 
 function provNote(ph) {
@@ -104,6 +102,6 @@ export function render() {
   return (ph === 'prov' ? '<div style="height:12px"></div>' + provNote(ph) : '')
     + UI.sh('Gameweek ' + D.gw, { aside: { pre: 'before the deadline', locked: 'locked', live: 'live', prov: 'provisional', ft: 'full time' }[ph] })
     + timeline(ph)
-    + (pre && !lineupsLocked() ? '<p class="md-cap">Until the deadline every XI here is the manager’s likely lineup: last week’s XI, with new signings and flagged players covered by the projection.</p>' : '')
+    + (pre && !lineupsLocked() ? '<p class="md-cap">Likely lineups until the deadline.</p>' : '')
     + toPlay(ph) + ifEnded(ph) + autoSubs_() + provBonus();
 }

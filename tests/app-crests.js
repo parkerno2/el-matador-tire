@@ -68,7 +68,7 @@ const fx = { GW: 6, Home: 'ARS', Away: 'LEE' };
 /* ---------- listRow (lineup.js): the XI and the bench rows ---------- */
 function rowCtx(g) {
   const ctx = {
-    esc, UI: { badge: badgeImg, face: () => '<span class="fc-i"></span>', plateNum: () => ({ st: 'proj', txt: '4.9' }), statusChip: () => '' },
+    esc, UI: { badge: badgeImg, face: () => '<span class="fc-i"></span>', plateNum: () => ({ st: 'proj', txt: '4.9' }), statusChip: () => '', subChip: () => '' },
     POSN: { GKP: 'GK', DEF: 'DEF', MID: 'MID', FWD: 'FWD' }, flaggedOut: () => false, gwFix: () => g, oppChip: B.oppChip,
   };
   vm.createContext(ctx);
@@ -97,7 +97,7 @@ const crests = html => [...html.matchAll(/<img class="crest" style="height:(\d+)
 
 /* ---------- the CSS: the crest sits in the meta line without growing it, and inline in the score ---------- */
 check('the meta line\'s crest keeps the row at its height (negative vertical margin); the score\'s crest is aligned to the text', TEAMCSS.indexOf('.tm-lmeta img.crest{margin:-2px 0}\n') > -1 && TEAMCSS.indexOf('.tm-lsc img.crest{vertical-align:-3px;margin-right:3px}\n') > -1);
-check('the meta line and the chip lay their crest out as flex items, centred', /\.tm-lmeta\{display:flex;align-items:center;gap:5px;white-space:nowrap\}/.test(TEAMCSS) && /\.tm-fd\{display:inline-flex;align-items:center;justify-content:center;gap:3px;/.test(TEAMCSS));
+check('the meta line and the chip lay their crest out as flex items, centred', /\.tm-lmeta\{display:flex;align-items:center;flex-wrap:wrap;gap:3px 5px;white-space:nowrap\}/.test(TEAMCSS) && /\.tm-fd\{display:inline-flex;align-items:center;justify-content:center;gap:3px;/.test(TEAMCSS));
 
 console.log(fails ? 'FAILED ' + fails : 'ALL PASS');
 process.exit(fails ? 1 : 0);

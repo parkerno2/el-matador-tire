@@ -24,6 +24,16 @@ Facts bot's `fplgg/tools/factsbot/package.json` installs it). About a minute for
 - `--at ISO` fixes the page's clock elsewhere than the snapshot's time (the state of the gameweek follows the data, so
   a time before the deadline shows the pre-kick-off screens, the snapshot's own time what it caught).
 - `--only sheets` skips the pages (for a quick look at the sheets); `MWA_DEBUG=1` logs every step.
+- `--no-photos` refuses every image from another host (the FPL photos, the crests, the flags), so the screens show what
+  a phone shows when a photo fails to load (the initials in the face circles, the club's letters in a crest circle) and
+  those fallbacks are read too. Not in CI (one run there); run it by hand after a change to a face or crest fallback.
+
+A sheet is read on its own layer: once its slide-in has finished the collector is scoped to `.sheet.in`, so only the
+sheet's own sticky bars can cover its text (read with the page, the scrim painted under the sheet counted as a cover
+and every sheet read 0 text boxes, 10 Oct 2026). A sheet that reads 0 text boxes is a failed check. A text box is also
+clipped to its own element's overflow (an ellipsised line's hidden tail is not read against the chip beside it), and
+a scroll settles for 350 ms before the covers are read, so a sticky bar that appears through an observer matches the
+photograph.
 
 ## In CI
 

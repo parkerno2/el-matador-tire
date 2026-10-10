@@ -58,7 +58,7 @@ function motmHistory() {
   }).join('');
   const won = PERIODS.filter(p => periodState(p).complete).length;
   return UI.sh('Manager of the Month', { aside: won + ' of 9 paid' })
-    + '<div class="card lg-mhist">' + rows + '<div class="foot">Most points across the month’s gameweeks wins ' + money(PAY.motm) + '. Months follow the league’s calendar, so some have more gameweeks than others.</div></div>';
+    + '<div class="card lg-mhist">' + rows + '</div>';
 }
 
 function market() {
@@ -76,7 +76,7 @@ function market() {
     + '<div class="dial' + (hot ? ' hot' : '') + '" style="--v:' + Math.min(100, v).toFixed(1) + '" role="img" aria-label="' + esc(pctTxt(v)) + ' chance"><span class="in"><b class="n">' + (v > 0 && v < 1 ? '<1%' : pctTxt(v)) + '</b><span>chance</span></span></div>'
     + '<div class="q"><b>Will Baha finish 8th?</b><span class="sub">The chance ' + esc(t) + ' ends the season bottom, from 5,000 simulated seasons. Most likely 8th: ' + esc(ranked[0]) + ', ' + pctTxt(od.last[ranked[0]]) + '.</span><span class="vd' + (hot ? ' hot' : '') + '">' + verdict + '</span></div></div>'
     + '<div class="lg-odds">' + top.map(x => '<div class="r' + (x === t ? ' baha' : '') + (x === mine ? ' you' : '') + '" style="--tc:' + UI.tc(x) + '"' + tap(x, x + ', ' + pctTxt(od.last[x]) + ' to finish 8th') + '>' + UI.crest(x, 20) + '<span class="nm">' + esc(UI.short(x)) + '</span><span class="bar"><i style="width:' + Math.max(1.5, od.last[x] / mx * 100).toFixed(1) + '%"></i></span><b class="n">' + pctTxt(od.last[x]) + '</b></div>').join('') + '</div>'
-    + '<div class="foot">Chance of finishing 8th. It moves at full time, never during games.</div></div>';
+    + '<div class="foot">Chance of finishing 8th.</div></div>';
 }
 
 function pot() {
@@ -89,7 +89,7 @@ function pot() {
     + '<div class="eq"><b class="n">' + money(PAY.buyin) + '</b><span>buy-in</span><i>×</i><b class="n">' + Object.keys(TEAMS).length + '</b><span>managers</span><i>=</i><b class="n gold-c">' + money(POT) + '</b></div>'
     + '<div class="split" role="img" aria-label="How the pot is split">' + parts.map(p => '<i class="' + p.cls + '" style="flex:' + p.amt + '"></i>').join('') + '</div>'
     + '<div class="rows">' + parts.map(p => '<div class="r"><i class="' + p.cls + '"></i><span>' + esc(p.lab) + '</span><b class="n">' + money(p.amt) + '</b><em class="n">' + Math.round(p.amt / POT * 1000) / 10 + '%</em></div>').join('') + '</div>'
-    + '<p class="sub">' + money(P.paid) + ' paid so far, ' + money(P.left) + ' still to win. Level on points at the end? Points for decides the places.</p></div>';
+    + '<p class="sub">' + money(P.paid) + ' paid so far, ' + money(P.left) + ' still to win.</p></div>';
 }
 
 export function moneyPage() {

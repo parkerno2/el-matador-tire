@@ -5,7 +5,8 @@
 #   it at https://parkerno2.github.io/el-matador-tire/preview/ beside the league app. Nothing else on main is touched:
 #   the six root files stay the league app, and sw.js passes /preview/ requests straight to the network. A preview that
 #   fails a suite is not published (this run is red instead). Production gets a preview's changes only when its branch is
-#   merged into main by hand.
+#   merged into main by hand. Before publishing, the contrast audit (fplgg/tools/contrast/audit.js, docs/DESIGN.md)
+#   runs on the branch's app over the committed demo snapshot: an offender makes the run red and nothing is published.
 name: Preview Matchweek app
 on:
   push:
@@ -52,6 +53,19 @@ jobs:
         run: bash fplgg/tools/matchweek/ci-build.sh && git checkout -- index.html app.js app.css core.js sw.js manifest.webmanifest
       - name: Build the preview
         run: node fplgg/tools/preview/build-preview.js /tmp/mw-preview
+      - name: Install Playwright for the contrast audit (the Facts bot's pin)
+        working-directory: fplgg/tools/factsbot
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: The contrast audit (docs/DESIGN.md) on this branch's app over the committed demo snapshot
+        run: |
+          node fplgg/tools/demo/build-demo.js --data site/public/demo/data --out /tmp/mw-demo/demo
+          NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/contrast/audit.js --dir /tmp/mw-demo --report /tmp/mw-contrast.json
+      - name: Keep the contrast report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: contrast-report, path: /tmp/mw-contrast.json, if-no-files-found: ignore }
       - name: Publish it as preview/ on main
         run: |
           set -e

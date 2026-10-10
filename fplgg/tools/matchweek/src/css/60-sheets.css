@@ -8,10 +8,10 @@
 .sk-cb em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 1em/1 var(--f-ui);font-style:normal;color:var(--base);letter-spacing:-.02em}
 .sk-cb img{position:relative;display:block;width:auto;max-width:76%;object-fit:contain;background:#fff}
 .sk-pc{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:30px;height:28px;padding:0 6px;border-radius:8px;font:700 17px/1 var(--f-num)}
-.sk-pc.p4{background:var(--p100);color:var(--p900)}
-.sk-pc.p3{background:var(--p500);color:#fff}
-.sk-pc.p2{background:var(--p700);color:var(--p100)}
-.sk-pc.p1{background:var(--top);color:var(--tx3)}
+/* points chips (Parker, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
+.sk-pc.p3{background:var(--win);color:var(--base)}
+.sk-pc.p2{background:var(--doubt);color:var(--base)}
+.sk-pc.p1{background:var(--loss);color:var(--base)}
 .sk-pc.z{background:transparent;color:var(--tx4);box-shadow:inset 0 0 0 1.5px var(--line)}
 .sk-pc.lv{background:var(--live-bg);color:var(--live);box-shadow:inset 0 0 0 1.5px var(--live)}
 .sk-res{display:inline-flex;align-items:center;gap:3px;font:700 12px/1 var(--f-num);padding:3px 6px;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
@@ -47,6 +47,28 @@
 .ps-fc em{font:700 11px/1 var(--f-ui);font-style:normal}
 .ps-fc em.up{color:var(--win)} .ps-fc em.dn{color:var(--loss)}
 .ps-fc i{font-style:normal;color:var(--tx3);font-weight:500}
+/* the next fixture chip (Parker, 10 Oct 2026): the opponent's crest and code, H or A, then the kick-off, minute or FT */
+.ps-fc.ps-nx .sk-cb{margin-right:-2px}
+.ps-fc.ps-nx i{margin-left:-3px}
+.ps-fc.ps-nx > em{font-style:normal;font-weight:600;color:var(--tx2);padding-left:6px;border-left:1px solid var(--top)}   /* the H or A marker only: the crest circle's own em (the club's letters on white when the crest fails to load) keeps its dark colour */
+.ps-fc.ps-nx.live > em{color:var(--live)}
+/* the season card: apps, goals, assists, points and the rating in its colour (green from 78, amber from 70, red under) */
+.ps-cells.ps-cells5{grid-template-columns:repeat(5,minmax(0,1fr));border-top:0}
+.ps-cells5 .ps-cell{padding:12px 4px;align-items:center;text-align:center}
+.ps-cells5 .ps-cell b{font-size:24px}
+.ps-rb{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:30px;padding:0 6px;border-radius:8px;font-size:19px!important;line-height:1}
+.ps-rb.ok{background:var(--win);color:var(--base)} .ps-rb.wn{background:var(--doubt);color:var(--base)} .ps-rb.no{background:var(--loss);color:var(--base)}
+.ps-rating span em{font:700 11px/1 var(--f-ui);font-style:normal}
+.ps-rating span em.up{color:var(--win)} .ps-rating span em.dn{color:var(--loss)}
+/* a folded card (the projection row, More): one row, the body under it on a tap */
+.ps-prow{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:12px 14px;text-align:left;font-size:15px;font-weight:700;color:#fff}
+.ps-prow > span{flex:1;display:flex;align-items:baseline;gap:8px;min-width:0}
+.ps-prow small{font-size:11px;font-weight:600;color:var(--tx3);white-space:nowrap}
+.ps-prow > b{font-size:22px;line-height:1}
+.ps-prow svg{flex:none;transition:transform .18s ease}
+.ps-fold.open .ps-prow svg{transform:rotate(90deg)}
+.ps-fbody .ps-bd:first-child{border-top:1px solid var(--hair)}
+.ps-bd b small{font-size:11px;font-weight:600;color:var(--tx3);margin-left:4px}
 .ps-ban{display:flex;align-items:center;gap:10px;margin:14px var(--gutter) 0;padding:11px 12px;border-radius:12px}
 .ps-ban.doubt{background:var(--doubt-bg);border:1px solid color-mix(in oklab,var(--doubt) 32%,var(--doubt-bg))}
 .ps-ban.out{background:var(--loss-bg);border:1px solid color-mix(in oklab,var(--loss) 32%,var(--loss-bg))}
@@ -323,7 +345,7 @@
 .ms-pp i{font-style:normal;font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.04em}
 .ms-pp b{font-size:16px}
 .ms-tx{gap:12px}
-.ms-tx.dim{opacity:.55}
+.ms-tx.dim .sub,.ms-tx.dim .ms-mv span{color:var(--tx3)}   /* a denied claim reads quieter, never fainter */
 .ms-tx .gw{width:34px;flex:none;font-size:12px}
 .ms-mv{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .ms-mv span{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

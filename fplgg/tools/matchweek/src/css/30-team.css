@@ -85,7 +85,7 @@
 .tm-xif{display:flex;align-items:center;min-width:0}
 .tm-xif .fc-i{margin-left:-7px;outline:2px solid var(--card)}
 .tm-xif .fc-i:first-child{margin-left:0}
-.tm-xif .fc-i.done{opacity:.38}
+.tm-xif .fc-i.done{background:var(--raised)} .tm-xif .fc-i.done img{opacity:.38} .tm-xif .fc-i.done .ini{color:var(--tx3)}   /* a played face dims its picture, never its initials (DESIGN.md: the fallback shows whenever a photo fails to load) */
 .tm-xil{margin-left:auto;font-size:13px;font-weight:700;white-space:nowrap}
 .tm-switch{display:flex;justify-content:center;padding:14px 16px 0}
 .tm-switch button{font-size:13px;font-weight:600;color:var(--tx3);min-height:40px;padding:0 12px}
@@ -120,7 +120,6 @@
 .tm-bl{font-size:13px;font-weight:700;color:var(--tx3)}
 .tm-bc{position:relative;display:block;width:100%;max-width:72px}
 .tm-bc .plate{width:100%!important}
-.tm-bout{position:absolute;left:50%;top:44%;transform:translateX(-50%);font-size:11px;padding:3px 8px;box-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:none;z-index:4}
 .tm-subs{display:flex;flex-direction:column;gap:4px;margin:12px 4px 0;font-size:13px;color:var(--tx2);line-height:1.35}
 .tm-subs.pad{margin:0 16px 10px}
 .tm-subs i{font-style:normal}
@@ -132,13 +131,14 @@
 .tm-lslot{width:26px;flex:none;font-size:12px;font-weight:700;color:var(--tx3)}
 .tm-lm{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .tm-lm b{font-size:14px}
-.tm-lmeta{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tm-lmeta{display:flex;align-items:center;flex-wrap:wrap;gap:3px 5px;white-space:nowrap}   /* a status chip wraps under the club when the row is tight, never under the fixture column (10 Oct 2026: a LIKELY OFF chip ran under "CHE A 1-5") */
 .tm-lopp{flex:none;display:flex;align-items:center;gap:4px}
 .tm-lsc{font-size:12px;color:var(--tx2);white-space:nowrap}
 .tm-lsc b{color:var(--tx)}
 .tm-lmeta img.crest{margin:-2px 0}
 .tm-lsc img.crest{vertical-align:-3px;margin-right:3px}
-.tm-lr.off{opacity:.55}
+.tm-lr.off img{opacity:.55} .tm-lr.off .fc-i .ini{color:var(--tx3)}   /* a subbed-off row dims its picture; its words and the initials fallback keep their contrast in a quieter colour */
+.tm-lr.off .tm-lm b,.tm-lr.off .tm-lsc b{color:var(--tx3)} .tm-lr.off .sub,.tm-lr.off .tm-lsc{color:var(--tx4)} .tm-lr.off .tm-lslot,.tm-lr.off .tm-lpts,.tm-lr.off .tm-lsc .n{color:var(--num2)} .tm-lr.off .tm-lpts.live{color:var(--live)}
 /* the number alone, no pill (Parker, 8 Oct 2026): his projection muted, live points green, banked points bold */
 .tm-lpts{flex:none;min-width:34px;text-align:right;font-size:17px;font-weight:700;color:var(--tx)}
 .tm-lpts.proj{font-weight:500;color:var(--tx2)}
@@ -175,10 +175,10 @@
 .tm-pcs{display:inline-flex;gap:4px}
 .tm-pc{display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:6px;font:700 13px/1 var(--f-num)}
 .tm-pc.sm{width:25px;height:20px;font-size:12px;border-radius:5px}
-.tm-pc.c4{background:var(--p100);color:var(--p900)}
-.tm-pc.c3{background:var(--p500);color:#fff}
-.tm-pc.c2{background:var(--p700);color:var(--p100)}
-.tm-pc.c1{background:var(--top);color:var(--tx3)}
+/* points chips (Parker, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
+.tm-pc.c3{background:var(--win);color:var(--base)}
+.tm-pc.c2{background:var(--doubt);color:var(--base)}
+.tm-pc.c1{background:var(--loss);color:var(--base)}
 .tm-pc.dnp{background:none;box-shadow:inset 0 0 0 1px var(--top);color:var(--tx4)}
 .tm-pc.live{box-shadow:0 0 0 1.5px var(--live)}
 .tm-avail{display:flex;gap:6px 16px;padding:12px 14px;font-size:13px;color:var(--tx2);border-bottom:1px solid var(--hair);flex-wrap:wrap}
@@ -213,7 +213,7 @@
 .tm-more{display:flex;width:calc(100% - 2 * var(--gutter));margin:10px var(--gutter) 0}
 .tm-tx{gap:10px;padding:10px 12px;align-items:center}
 .tm-tx.mine{background:color-mix(in srgb,var(--you) 8%,var(--card));box-shadow:inset 3px 0 0 var(--you)}
-.tm-tx.no .tm-txio{opacity:.5}
+.tm-tx.no .tm-txio span{color:var(--tx3)}   /* a denied claim reads quieter, never fainter */
 .tm-txc{width:24px;flex:none}
 .tm-txm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .tm-txm b{font-size:13px;display:flex;align-items:center;gap:6px}
@@ -233,7 +233,7 @@
 .tm-gcl{display:flex;flex-direction:column;min-width:0;gap:1px}
 .tm-gcl b{font-size:13px;font-weight:800;letter-spacing:.02em}
 .tm-gcl .sub{font-size:11px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-.tm-gcl .bn{opacity:.55}
+.tm-gcl .bn{color:var(--tx4)}
 .tm-gc{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tm-gc .tm-fd{min-width:0;width:100%;height:36px;padding:0;flex-direction:column;gap:2px;font-size:11px}
 .tm-gc.dbl .tm-fd{height:17px;flex-direction:row;font-size:10px;gap:2px}
@@ -366,3 +366,7 @@
   .tm-starc{width:96px}
 }
 .tm-fms .fm.prov{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 3px,rgba(255,255,255,0) 3px 6px)}
+
+/* quiet numbers (DESIGN.md: 7:1): the slot and bench labels, the gameweek of a row, the chart's axis and columns */
+.tm-lslot,.tm-bl.n,.tm-rg.n,.tm-xax.n,.tm-xg.n,.tm-gh .n,.tm-nmg.n{color:var(--num2)}
+.tm-fd i{opacity:1}

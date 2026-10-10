@@ -195,7 +195,10 @@ export function motm() {
       rows.forEach((r, j) => { wins[r.t] = cnt[j]; });
     }
     rows.forEach(r => { r.win = wins[r.t] / N; });
-    rows.sort((p, q) => q.proj - p.proj || q.banked - p.banked);
+    /* the race (Parker, 10 Oct 2026): real points first (the month so far, the live gameweek as it stands), the
+       projection breaks ties; before the month has a point, the projection orders it */
+    if (rows.some(r => r.banked > 0)) rows.sort((p, q) => q.banked - p.banked || q.proj - p.proj);
+    else rows.sort((p, q) => q.proj - p.proj || q.banked - p.banked);
     const st = periodState(per);
     /* last finished period's winner */
     let last = null;

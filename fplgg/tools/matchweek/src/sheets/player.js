@@ -42,14 +42,49 @@ function hero(x) {
     + '<div class="ps-top">' + ownerChip(x) + '</div>'
     + '<div class="ps-plate">' + plate + '</div></header>';
 }
+/* his next fixture, or the one he is in: opponent, H or A, the kick-off, the minute or the score at FT (a blank gameweek
+   names the next one) */
+function fixtureNow(x) {
+  const club = x.club;
+  let fs = gwFixtures(club, D.gw), g = D.gw;
+  if (!fs.length) {
+    const later = (D.cf || []).filter(f => num(f.GW) > D.gw && !fin(f.Finished) && (f.Home === club || f.Away === club)).sort((a, b) => num(a.GW) - num(b.GW) || ((K.kickoff(a) || 0) - (K.kickoff(b) || 0)));
+    if (!later.length) return null;
+    g = num(later[0].GW); fs = later.filter(f => num(f.GW) === g);
+  }
+  const f = fs.find(f => !fin(f.Finished)) || fs[fs.length - 1];
+  const home = f.Home === club, opp = home ? f.Away : f.Home;
+  const started = fin(f.Started) || fin(f.Finished), done = fin(f.Finished);
+  const hg = num(f['Home goals']), ag = num(f['Away goals']);
+  let when;
+  if (done) when = 'FT ' + (home ? hg + '–' + ag : ag + '–' + hg);
+  else if (started) when = (num(f.Mins) ? Math.round(num(f.Mins)) + '’' : 'LIVE');
+  else when = UI.dayHm(K.kickoff(f)) || 'TBC';
+  return { f, g, opp, home, started, done, when, blank: g !== D.gw };
+}
 function factChips(x) {
-  const { p } = x, o = dynOvr(p), fd = formDelta(p), base = ovrOf(p);
+  const { p } = x, nx = fixtureNow(x);
   const nat = p.Nation ? '<span class="ps-fc">' + UI.flag(p.Nation, 11) + esc((typeof NAT !== 'undefined' && NAT[p.Nation]) || p.Nation) + '</span>' : '';
+  const fx = nx ? '<span class="ps-fc ps-nx' + (nx.started && !nx.done ? ' live' : '') + '" title="' + esc(K.clubName(nx.opp)) + ' (' + (nx.home ? 'home' : 'away') + ')' + (nx.blank ? ', gameweek ' + nx.g : '') + '">' + (nx.blank ? 'GW' + nx.g + ' ' : '') + K.cb(nx.opp, 18) + esc(nx.opp) + '<i>' + (nx.home ? 'H' : 'A') + '</i><em>' + esc(nx.when) + '</em></span>'
+    : '<span class="ps-fc">No fixtures left</span>';
   return '<div class="ps-chips">'
     + '<span class="ps-fc">' + K.cb(p.Club, 18) + esc(K.clubName(p.Club)) + '</span>' + nat
-    + '<span class="ps-fc">' + esc(K.POSNAME[p.Pos] || p.Pos) + '</span>'
-    + '<span class="ps-fc">OVR <b class="n">' + o + '</b>' + (fd ? '<em class="' + (fd > 0 ? 'up' : 'dn') + '">' + (fd > 0 ? '▲' : '▼') + Math.abs(fd) + '</em><i>base ' + base + '</i>' : '') + '</span>'
+    + '<span class="ps-fc">' + esc(K.POSNAME[p.Pos] || p.Pos) + '</span>' + fx
     + '</div>';
+}
+/* the short name FPL shows (the Plate's name) under the full name only when it is not already part of it: "Jan Paul
+   van Hecke" carries "Van Hecke", "Bruno Guimarães" carries "B.Guimaraes", whatever the case, the accents or the dots
+   (Parker, 10 Oct 2026: the sheet showed the full name and then the short one under it). Part of: the short name's
+   words appear in the full name in order, each one a whole word or an initial of one. */
+const plain = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+export function webName(full, short) {
+  full = String(full || '').trim(); short = String(short || '').trim();
+  if (!full || !short || full === short) return false;
+  const f = plain(full), s = plain(short);
+  if (!s.length || !f.length) return false;
+  let i = 0;
+  for (const w of s) { while (i < f.length && !(f[i] === w || (w.length === 1 && f[i][0] === w))) i++; if (i >= f.length) return true; i++; }
+  return false;
 }
 function sentence(s) { s = String(s || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/\.$/, '') + '.' : ''; }
 function banner(x) {
@@ -79,34 +114,23 @@ function fxMid(f, club) {
   return '<div class="ps-mid"><b class="n">' + esc(tp.t) + '</b><span class="sub">' + (tp.m ? esc(tp.m) + ' · ' : '') + (f.Home === club ? 'home' : 'away') + '</span></div>';
 }
 function cell(v, lab, cls) { return '<div class="ps-cell' + (cls ? ' ' + cls : '') + '"><b class="n">' + v + '</b><span>' + lab + '</span></div>'; }
-function nextMatch(x) {
+function thisMatch(x) {
   const club = x.club, code = x.code;
-  let fs = gwFixtures(club, D.gw), g = D.gw, blank = false;
-  if (!fs.length) {
-    blank = true;
-    const later = (D.cf || []).filter(f => num(f.GW) > D.gw && !fin(f.Finished) && (f.Home === club || f.Away === club)).sort((a, b) => num(a.GW) - num(b.GW) || ((K.kickoff(a) || 0) - (K.kickoff(b) || 0)));
-    if (!later.length) return UI.sh('Next match') + UI.empty('No fixtures left', 'His club has no more fixtures listed this season.');
-    g = num(later[0].GW); fs = later.filter(f => num(f.GW) === g);
-  }
-  const started = !blank && fxStarted(club), done = !blank && fxFinished(club);
+  const fs = gwFixtures(club, D.gw), g = D.gw;
+  if (!fs.length || !fxStarted(club)) return '';   /* before kick-off the header chip names the fixture and the projection row carries the number */
+  const done = fxFinished(club);
   const ko = K.kickoff(fs[0]);
   let cells;
   if (done) {
     const r = gwsRow(code), pb = (D.pbonus || {})[code] || 0, pts = Math.round(num(x.eng['GW pts'])) + pb;
-    cells = cell(pts, pb ? 'points, ' + pb + ' bonus provisional' : 'points') + cell(r ? K.f1(xpOf(r)) : '–', 'expected (xP)', 'mute') + cell(Math.round(num(x.eng['GW mins'])), 'minutes', 'mute');
-  } else if (started) {
+    cells = cell(pts, pb ? 'points, ' + pb + ' bonus provisional' : 'points') + cell(r ? K.f1(xpOf(r)) : '–', 'xP', 'mute') + cell(Math.round(num(x.eng['GW mins'])), 'minutes', 'mute');
+  } else {
     const L = hpLive(x.eng), so = L.pts - L.rem;
     cells = cell(K.f1(so).replace(/\.0$/, ''), 'points so far') + cell(K.f1(L.pts), 'projected final', 'mute') + cell(Math.round(num(x.eng['GW mins'])) + '’', 'minutes', 'mute');
-  } else {
-    const proj = blank ? hpPlayer(x.eng, g).pts : epOf(code), fpl = blank ? null : fplEpOf(code), n = fdrOf(club, fs[0]);
-    cells = cell(proj === null || proj === undefined ? '–' : K.f1(proj), blank ? 'projected, GW' + g : 'projected')
-      + cell(fpl === null || fpl === undefined ? '–' : K.f1(fpl), 'FPL projection', 'mute')
-      + cell(n + '<small> / 5</small>', 'difficulty');
   }
-  const head = '<div class="ps-nmh"><span class="k">' + (blank ? 'Gameweek ' + g + ' · next match' : 'Gameweek ' + g + (fs.length > 1 ? ' · double' : '')) + '</span><span class="sub">' + esc(UI.day(ko)) + '</span></div>';
+  const head = '<div class="ps-nmh"><span class="k">Gameweek ' + g + (fs.length > 1 ? ' · double' : '') + '</span><span class="sub">' + esc(UI.day(ko)) + '</span></div>';
   const rows = fs.map(f => '<div class="ps-fx">' + sideHTML(f.Home, club) + fxMid(f, club) + sideHTML(f.Away, club) + '</div>').join('');
-  const blankNote = blank ? '<div class="ps-blank">No match for ' + esc(K.clubName(club)) + ' in gameweek ' + D.gw + '.</div>' : '';
-  return UI.sh(blank ? 'Next match' : started ? 'This match' : 'Next match') + '<div class="card ps-nm">' + blankNote + head + rows + '<div class="ps-cells">' + cells + '</div></div>';
+  return UI.sh('This match') + '<div class="card ps-nm">' + head + rows + '<div class="ps-cells">' + cells + '</div></div>';
 }
 
 /* ---------- overview: this gameweek, itemised ---------- */
@@ -134,17 +158,17 @@ function gwBlock(x) {
     }
     if (!r.Mins && !r.Pts) {
       return UI.sh('Gameweek ' + D.gw, { aside: done ? 'full time' : 'live' }) + '<div class="card ps-gw">' + live
-        + '<div class="ps-bd two none"><span>' + (done ? 'Did not play. No points this gameweek.' : 'Not on the pitch yet. His breakdown starts when he comes on.') + '</span></div></div>';
+        + '<div class="ps-bd two none"><span>' + (done ? 'Did not play.' : 'Not on the pitch yet.') + '</span></div></div>';
     }
     const body = rows.length ? rows.map((b, i) => '<div class="ps-bd"><span>' + esc(b.lbl) + '</span><b class="n">' + sgnPts(b.pts) + '</b><b class="n xv">' + (b.x === null || b.x === undefined ? '–' : sgnX(xr[i])) + '</b></div>').join('')
       : '<div class="ps-bd none"><span>' + (r.Mins ? 'Nothing scored yet' : 'Not on the pitch yet') + '</span></div>';
     const pbRow = pb && !r.Bonus ? '<div class="ps-bd"><span>Bonus, provisional</span><b class="n">' + sgnPts(pb) + '</b><b class="n xv">–</b></div>' : '';
     const cs = r.Mins >= 60 && x.pos !== 'FWD' ? ' · clean-sheet odds ' + Math.round(Math.exp(-r.xGC) * 100) + '%' : '';
-    return UI.sh('Gameweek ' + D.gw, { aside: done ? 'points v expected' : 'live, points v expected' })
+    return UI.sh('Gameweek ' + D.gw, { aside: done ? 'full time' : 'live' })
       + '<div class="card ps-gw">' + live
       + '<div class="ps-bd hd"><span></span><b>PTS</b><b class="xv">xP</b></div>' + body + pbRow
       + '<div class="ps-bd tot"><span>Total</span><b class="n">' + (Math.round(r.Pts) + (r.Bonus ? 0 : pb)) + '</b><b class="n xv">' + K.f1(xp) + '</b></div>'
-      + '<div class="foot">xG ' + r.xG.toFixed(2) + ' · xA ' + r.xA.toFixed(2) + cs + '. xP is what the performance deserved: xG for goals, xA for assists, e<sup>−xGC</sup> for clean sheets, his usual rate for defensive contributions. Bonus sits outside xP.</div></div>';
+      + '<div class="foot">xG ' + r.xG.toFixed(2) + ' · xA ' + r.xA.toFixed(2) + cs + '</div></div>';
   }
   const h = hpPlayer(x.eng, D.gw);
   if (!h.nfx) return '';
@@ -153,10 +177,14 @@ function gwBlock(x) {
     ? P.rows.map(r => '<div class="ps-bd two"><span>' + esc(r.l) + '</span><b class="n xv">' + sgnX(r.v) + '</b></div>').join('')
       + '<div class="ps-bd two tot"><span>Projected total</span><b class="n xv">' + P.tot.toFixed(1) + '</b></div>'
     : '<div class="ps-bd two none"><span>Not expected to play' + (x.news ? ': ' + esc(x.news) : '') + '</span></div>';
-  return UI.sh('Projection', { aside: 'Gameweek ' + D.gw + (h.nfx > 1 ? ', double' : '') })
-    + '<div class="card ps-gw"><div class="ps-ph"><div class="big"><b class="n">' + K.f1(h.pts) + '</b><span>projected' + (fpl !== null && fpl !== undefined ? ' · FPL ' + K.f1(fpl) : '') + '</span></div>'
-    + '<div class="st"><b class="n">' + Math.round(h.pStart * 100) + '%</b><span>start chance</span></div><div class="st"><b class="n">' + Math.round(h.eMin) + '</b><span>expected minutes</span></div></div>'
-    + list + '<div class="foot">Start chance and minutes from his recent gameweeks, xG and xA per 90 and the opponent’s strength. It turns into the real breakdown at kick-off.</div></div>';
+  /* one row, closed by default (Parker, 10 Oct 2026): "Projected 4.4"; a tap opens the breakdown */
+  const head = '<div class="ps-bd two"><span>Start chance</span><b class="n">' + Math.round(h.pStart * 100) + '%</b></div><div class="ps-bd two"><span>Expected minutes</span><b class="n">' + Math.round(h.eMin) + '</b></div>'
+    + (fpl !== null && fpl !== undefined ? '<div class="ps-bd two"><span>FPL projection</span><b class="n">' + K.f1(fpl) + '</b></div>' : '');
+  return fold('Projected', '<b class="n">' + K.f1(h.pts) + '</b>', head + list, 'ps-proj', 'Gameweek ' + D.gw + (h.nfx > 1 ? ', double' : ''));
+}
+/* a folded card: one tappable row (label, a figure, a chevron), the body under it hidden until the tap (mount wires it) */
+function fold(label, figure, body, cls, aside) {
+  return '<div class="card ps-fold ' + (cls || '') + '"><button type="button" class="ps-prow" data-ps-fold aria-expanded="false"><span>' + esc(label) + (aside ? '<small>' + esc(aside) + '</small>' : '') + '</span>' + (figure || '') + UI.icon('chev', 16, 'var(--tx3)') + '</button><div class="ps-fbody" hidden>' + body + '</div></div>';
 }
 
 /* ---------- form, season, next five ---------- */
@@ -173,38 +201,52 @@ function apps(x) {
   });
   return out;
 }
+/* form, last five: chips green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes (kit.js ptsCls) */
 function formBlock(x) {
   const all = apps(x), last = all.slice(-5);
   if (!last.length) return UI.sh('Form') + UI.empty('No matches yet', 'His form shows here after his first finished game.');
-  const best = all.reduce((b, a) => (!b || a.r.Pts > b.r.Pts ? a : b), null);
-  const l3 = all.slice(-3).reduce((s, a) => s + a.r.Pts, 0);
   const chips = last.map(a => '<div class="ps-fm">' + K.pc(a.r.Pts, { dnp: !a.r.Mins, w: 44, h: 34 }) + '<span class="op">' + a.opp.map(o => K.cb(o.o, 22)).join('') + '</span><span class="sub">GW' + a.g + (a.r.Mins ? '' : ' · DNP') + '</span></div>').join('');
-  const F = psxForm(x.eng);
-  const c = (v, l) => '<div><b class="n">' + v + '</b><span>' + l + '</span></div>';
-  const value = F ? '<div class="ps-val">' + c(F.perStart === null ? '–' : K.f1(F.perStart), 'per start') + c(F.xg === null ? '–' : F.xg.toFixed(2), 'xG per 90') + c(F.xa === null ? '–' : F.xa.toFixed(2), 'xA per 90')
-    + c(Math.round(F.hitRate * 100) + '%', '6+ pts, ' + F.hits + ' of ' + F.n) + c(F.n >= 3 ? F.floor : '–', 'floor') + c(F.n >= 3 ? F.ceil : '–', 'ceiling') + '</div>' : '';
-  return UI.sh('Form', { aside: 'points, last ' + (last.length === 1 ? 'match' : last.length) })
-    + '<div class="card ps-form"><div class="ps-fms">' + chips + '</div>'
-    + '<div class="ps-fsum"><span>Best <b>' + best.r.Pts + '</b> v ' + esc(K.clubName(best.opp[0].o)) + '</span><span>Last three <b>' + l3 + '</b></span><span>Per game <b>' + plrAvg(x.p).toFixed(1) + '</b></span></div>'
-    + value + (F ? '<div class="foot">Floor and ceiling are the 10th and 90th percentile of his gameweek scores' + (F.n < 3 ? ', shown from three appearances' : '') + '. xG and xA per 90 as the projection rates them.</div>' : '') + '</div>';
+  return UI.sh('Form') + '<div class="card ps-form"><div class="ps-fms">' + chips + '</div></div>';
 }
-function seasonBlock(x) {
-  let G = 0, xG = 0, A = 0, xA = 0, M = 0, B = 0, ap = 0; const bg = [];
+/* his season so far, summed from the GW Stats rows up to now (a match still to come this gameweek is left out) */
+function seasonSums(x) {
+  const o = { G: 0, xG: 0, A: 0, xA: 0, M: 0, B: 0, ap: 0, bg: [] };
   Object.keys(D.gwsByGw || {}).map(Number).forEach(g => {
     if (g > D.gw) return;
     const r = (D.gwsByGw[g] || {})[x.code]; if (!r) return;
     if (g === D.gw && !fxStarted(r.Club)) return;
-    G += r.G; xG += r.xG; A += r.A; xA += r.xA; M += r.Mins; B += r.Bonus; if (r.Bonus) bg.push(g); if (r.Mins > 0) ap++;
+    o.G += r.G; o.xG += r.xG; o.A += r.A; o.xA += r.xA; o.M += r.Mins; o.B += r.Bonus; if (r.Bonus) o.bg.push(g); if (r.Mins > 0) o.ap++;
   });
+  return o;
+}
+/* the rating's colour (Parker, 10 Oct 2026): green from 78 (the gold tier and up), amber from 70, red under 70 */
+export const ratingCls = o => o >= 78 ? 'ok' : o >= 70 ? 'wn' : 'no';
+/* the season card, first on the sheet: apps, goals, assists, points and the rating with its badge */
+function seasonCard(x) {
+  const S = seasonSums(x), p = x.p, o = dynOvr(p), fd = formDelta(p);
+  return UI.sh('Season') + '<div class="card ps-season"><div class="ps-cells ps-cells5">'
+    + cell(S.ap, 'apps') + cell(S.G, 'goals') + cell(S.A, 'assists') + cell(seasonTot(p), 'points')
+    + '<div class="ps-cell ps-rating"><b class="n ps-rb ' + ratingCls(o) + '">' + o + '</b><span>rating' + (fd ? ' <em class="' + (fd > 0 ? 'up' : 'dn') + '">' + (fd > 0 ? '▲' : '▼') + Math.abs(fd) + '</em>' : '') + '</span></div>'
+    + '</div></div>';
+}
+/* the rest, folded under More: minutes, bonus, the per-90 rates, floor and ceiling, best and last three, drafted.
+   xG and xA per 90 are shown only when the projection rates him and the rate is not 0.00 (nothing to read in a zero) */
+function moreBlock(x) {
+  const S = seasonSums(x), F = psxForm(x.eng), all = apps(x);
+  const best = all.reduce((b, a) => (!b || a.r.Pts > b.r.Pts ? a : b), null);
+  const l3 = all.slice(-3).reduce((s, a) => s + a.r.Pts, 0);
   const dr = x.own ? String(x.own.Drafted || '') : 'FA', m = /^R(\d+)\.(\d+)$/.exec(dr);
-  const draft = m ? ['R' + m[1], 'pick ' + m[2]] : dr === 'WV' ? ['WV', 'waiver add'] : ['Free', 'free agent'];
-  const t = (lb, v, cm) => '<div class="tile"><span class="lb">' + lb + '</span><b>' + v + '</b><span class="cm">' + cm + '</span></div>';
-  return UI.sh('Season') + '<div class="tiles ps-tiles">'
-    + t('Goals', G, 'xG ' + xG.toFixed(2)) + t('Assists', A, 'xA ' + xA.toFixed(2))
-    + t('Points', seasonTot(x.p), D.started ? plrAvg(x.p).toFixed(1) + ' a game' : 'season not started')
-    + t('Minutes', M, ap ? Math.round(M / ap) + ' a game' : 'none yet')
-    + t('Bonus', B, bg.length === 1 ? 'all in GW' + bg[0] : bg.length ? 'in ' + bg.length + ' games' : 'none yet')
-    + t('Drafted', draft[0], draft[1]) + '</div>';
+  const draft = m ? 'round ' + m[1] + ', pick ' + m[2] : dr === 'WV' ? 'waiver add' : 'free agent';
+  const row = (l, v) => v === null || v === undefined || v === '' ? '' : '<div class="ps-bd two"><span>' + l + '</span><b class="n">' + v + '</b></div>';
+  const rate = v => v === null || v === undefined || !(v > 0) ? null : v.toFixed(2);
+  const body = row('Minutes', S.M + (S.ap ? ' <small>' + Math.round(S.M / S.ap) + ' a game</small>' : ''))
+    + row('Bonus', S.B + (S.bg.length === 1 ? ' <small>GW' + S.bg[0] + '</small>' : S.bg.length ? ' <small>in ' + S.bg.length + ' games</small>' : ''))
+    + row('xG', S.xG.toFixed(2)) + row('xA', S.xA.toFixed(2))
+    + (F ? row('Per start', F.perStart === null ? null : K.f1(F.perStart)) + row('xG per 90', rate(F.xg)) + row('xA per 90', rate(F.xa))
+      + row('6+ points', Math.round(F.hitRate * 100) + '% <small>' + F.hits + ' of ' + F.n + '</small>') + row('Floor', F.n >= 3 ? F.floor : null) + row('Ceiling', F.n >= 3 ? F.ceil : null) : '')
+    + (best ? row('Best', best.r.Pts + ' <small>v ' + esc(K.clubName(best.opp[0].o)) + '</small>') + row('Last three', l3) + row('Per game', plrAvg(x.p).toFixed(1)) : '')
+    + row('Drafted', draft);
+  return fold('More', '', body, 'ps-more');
 }
 function nextFiveBlock(x) {
   const club = x.club, start = fxFinished(club) ? D.gw + 1 : D.gw, last = Math.min(38, start + 4);
@@ -217,7 +259,7 @@ function nextFiveBlock(x) {
     cells.push('<div class="ps-n5" title="Difficulty ' + n + ' of 5, ' + K.FDRWORD[n] + '"><span class="sub">GW' + g + '</span><span class="ps-n5b">' + fs.map(f => K.cb(f.Home === club ? f.Away : f.Home, fs.length > 1 ? 22 : 30)).join('') + '</span><b>'
       + fs.map(f => (f.Home === club ? (fs.length > 1 ? 'H' : 'Home') : (fs.length > 1 ? 'A' : 'Away'))).join(' · ') + '</b><i style="background:' + K.fdrColor(n) + '"></i></div>');
   }
-  return UI.sh('Next five', { aside: 'bar shows difficulty' }) + '<div class="ps-n5s">' + cells.join('') + '</div>';
+  return UI.sh('Next five') + '<div class="ps-n5s">' + cells.join('') + '</div>';
 }
 
 /* ---------- matches ---------- */
@@ -268,8 +310,7 @@ function matchesPanel(x) {
   }).join('');
   const tt = (l, v) => '<div><b class="n">' + v + '</b><span>' + l + '</span></div>';
   return UI.sh('Match log', { aside: K.plural(rows.length, 'gameweek') }) + '<div class="card ps-mls">' + list + '</div>'
-    + UI.sh('Season totals') + '<div class="card ps-tot">' + tt('points', T.pts) + tt('xP', K.f1(T.xp)) + tt('minutes', T.min) + tt('goals', T.g) + tt('assists', T.a) + tt('clean sheets', T.cs) + tt('conceded', T.gc) + '</div>'
-    + K.note('Points as FPL scored them, bonus included. xP is what the performance deserved, bonus left out.');
+    + UI.sh('Season totals') + '<div class="card ps-tot">' + tt('points', T.pts) + tt('xP', K.f1(T.xp)) + tt('minutes', T.min) + tt('goals', T.g) + tt('assists', T.a) + tt('clean sheets', T.cs) + tt('conceded', T.gc) + '</div>';
 }
 
 /* ---------- ratings ---------- */
@@ -309,9 +350,9 @@ function ratingsPanel(x) {
   if (x.own) {
     const s = leagueStats(x.own), pool = (D.ro || []).filter(r => r.Pos === p.Pos), avg = plrAvg(x.own), apc = pctRank(avg, pool.map(r => plrAvg(r)));
     const bar = (l, v, pc) => '<div class="ps-lp"><span>' + l + '</span><b class="n">' + v + '</b><i><u style="width:' + Math.max(2, pc) + '%"></u></i><em>' + K.ord(pc) + '</em></div>';
-    league = UI.sh('In this league', { aside: 'percentile' }) + '<div class="card pad ps-lps">'
+    league = UI.sh('In this league') + '<div class="card pad ps-lps">'
       + bar('Points', s.pts, s.pc.pts) + bar('Per game', avg.toFixed(1), apc) + bar('Team of the Week', s.totw, s.pc.totw) + bar('Impact', s.imp, s.imp)
-      + '<div class="sub ps-lpn">Against the league’s ' + s.n + ' rostered ' + (K.POSPL[p.Pos] || 'players').toLowerCase() + '. Impact blends points, per game, last three, TOTW picks and points above the best free agent.</div></div>';
+      + '<div class="sub ps-lpn">Against the league’s ' + s.n + ' rostered ' + (K.POSPL[p.Pos] || 'players').toLowerCase() + '.</div></div>';
   }
   return UI.sh('Ratings', { aside: HOUSE ? (DEMO ? 'Demo league' : 'Matchweek') : 'FC 27' }) + '<div class="card pad ps-rt">' + grid
     + '<div class="ps-why">' + why + ' Form counts his last four finished games and moves the card between −3 and +5.</div>'
@@ -326,15 +367,26 @@ export default {
     if (!x) return '<div class="sk-miss">' + UI.empty('Player not found', 'He may have left the Premier League or the data is still loading.') + '</div>';
     const nm = (x.full || x.p.Player || '').trim(), size = nm.length > 22 ? 24 : nm.length > 15 ? 28 : 34;
     return hero(x)
-      + '<div class="ps-id"><h2 class="wide ps-name" style="font-size:' + size + 'px">' + esc(nm) + '</h2>' + (x.full && x.full !== x.p.Player && !x.full.includes(x.p.Player) ? '<div class="sub ps-web">' + esc(x.p.Player) + '</div>' : '') + factChips(x) + '</div>'
+      + '<div class="ps-id"><h2 class="wide ps-name" style="font-size:' + size + 'px">' + esc(nm) + '</h2>' + (webName(x.full, x.p.Player) ? '<div class="sub ps-web">' + esc(x.p.Player) + '</div>' : '') + factChips(x) + '</div>'
       + banner(x)
       + K.tabs([['overview', 'Overview'], ['matches', 'Matches'], ['ratings', 'Ratings']], 'overview')
-      + K.panel('overview', nextMatch(x) + gwBlock(x) + formBlock(x) + seasonBlock(x) + nextFiveBlock(x), true)
+      + K.panel('overview', seasonCard(x) + formBlock(x) + nextFiveBlock(x) + thisMatch(x) + gwBlock(x) + moreBlock(x), true)
       + K.panel('matches', null) + K.panel('ratings', null)
       + '<div class="sk-end"></div>';
   },
   mount(el, arg) {
     const x = () => resolve(arg);
     K.wireTabs(el, { matches: () => matchesPanel(x()), ratings: () => ratingsPanel(x()) });
+    /* the folded cards (the projection row, More): a tap opens or closes the body. The once-only guard is a property,
+       never a data-ps-fold attribute on the sheet: that made closest('[data-ps-fold]') match the sheet itself for every
+       other tap (a tab, a match row) and throw on .ps-fold (BUGS.md #36) */
+    if (!el.__psFold) {
+      el.__psFold = 1;
+      el.addEventListener('click', e => {
+        const b = e.target.closest('[data-ps-fold]'); if (!b) return;
+        const body = b.nextElementSibling, open = b.getAttribute('aria-expanded') === 'true';
+        b.setAttribute('aria-expanded', String(!open)); b.closest('.ps-fold').classList.toggle('open', !open); if (body) body.hidden = open;
+      });
+    }
   },
 };

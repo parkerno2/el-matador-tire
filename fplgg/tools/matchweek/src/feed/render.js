@@ -34,6 +34,8 @@ function wave(seed, n = 44, h = 34) {
 const youOf = () => UI.you();
 /* win-chance bar colours: you blue, the other side grey; a neutral matchup light v dim */
 function sideCols(h, a) { return UI.pairCols(h, a); }
+/* the two sides' figures as text: each club's light step (13:1 and up on the dark cards; the accent step is for bars) */
+function sideText(h, a) { return [UI.teamColors(h).light, UI.teamColors(a).light]; }
 
 /* ============================== ARCHIZIO ============================== */
 function deal(m, post) {
@@ -221,7 +223,7 @@ function scoreLine(m) {
   return '<span class="fsb-sc"><b class="n">' + m.hs + '</b><i></i><b class="n">' + m.as + '</b></span>';
 }
 function winRow(w, h, a, was) {
-  const [ch, ca] = sideCols(h, a);
+  const [ch, ca] = sideText(h, a);
   return '<div class="fsb-w"><div class="fsb-wl"><b class="n" style="color:' + ch + '">' + w.h + '%</b><span>' + (was ? 'was ' + was.h + '%' : 'win chance') + '</span><span class="fsb-d">draw ' + w.d + '%</span><span>' + (was ? 'was ' + was.a + '%' : '') + '</span><b class="n" style="color:' + ca + '">' + w.a + '%</b></div>' + UI.wbar(w.h / 100, w.d / 100, w.a / 100, ch, ca, true) + '</div>';
 }
 function scorebug(m) {

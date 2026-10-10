@@ -23,7 +23,12 @@ darkest and the lightest part behind it, and the lower ratio counts.
   Month): the rating and position sit on a backing box, the projection bubble is solid, the arrows, the position and
   the initials take a colour per tier (`02-components.css`, the Plate's text block).
 - A dimmed row dims its picture, never its words: the words take a quieter colour that still passes
-  (`--tx3`, `--tx4`, `--num2`), because opacity on text fails every rule.
+  (`--tx3`, `--tx4`, `--num2`), because opacity on text fails every rule. The fallbacks count as words: the initials in
+  a face circle (`.fc-i .ini`, shown whenever a photo fails to load; they scale with the circle) and the club's letters
+  in a crest circle (`.sk-cb em`, dark on white) read 4.5:1 in a played or subbed-off row too (`--tx3` on the circle).
+- The Plate's rating figure sits on a backing box that reaches the top of its glyph box (`.fc .rt`, 6% of the card
+  above the line box): the numeric font's ascent runs past the line box, and on the dark tiers the art showed through
+  there (4.3:1 for the cyan Elite figure).
 - The quiet number is `--num2` (#C4BBD2): 7:1 on every surface up to `--top`. The quiet label is `--tx3` (#A398B2):
   4.5:1 on the same surfaces. A number set inside a quiet label (`.sub .n`, `.k .n`, the gameweek of a row, a record
   under a name) reads `--num2`.
@@ -52,17 +57,24 @@ darkest and the lightest part behind it, and the lower ratio counts.
   never used as tiers.
 - One status badge per card, top left (`UI.plateStatus`, `statusBadge`): a dark glyph (`--base`) on the status colour,
   no tag, frame or swap icon. List views carry one text chip in the same three colours.
+- The line under a Matchup card is only the kick-off, the minute or FT. A starter whose match finished without him and
+  nobody came on says FT with the red "!" badge; the words ("Did not play") live in the card's aria-label, the List
+  tab's red chip and the Bench card's note (10 Oct 2026, Tzolis and Brobbey).
 
 ## 4. Copy
 
 - No explanatory captions for obvious things (the copy pass of 10 Oct 2026): labels that name things, data states and
   empty states stay; the methodology lives in Menu, How it works.
 - No emoji in the UI. No em or en dashes in generated text.
+- A voice's name in a post header is never cut against the voice's chip: the chips wrap under the name when the row is
+  tight (a viral post in a rail card).
 
 ## Checking a change
 
 - `node tests/app-contrast.js`: the tokens' pairs, the stats scope, the Plate's text block, the Gameweek Show's
   stylesheet colours, this file's token names. In the CI gate.
 - `node fplgg/tools/contrast/audit.js`: every page, sub-tab and sheet of the built demo in headless Chromium at 390 px,
-  every visible text box read against the pixels behind it (see `fplgg/tools/contrast/README.md`). Runs in CI on the
-  preview build and the league build, and fails the run on any offender.
+  every visible text box read against the pixels behind it (see `fplgg/tools/contrast/README.md`); a sheet is read on
+  its own layer once it has slid in, and one that reads no text fails the run. Runs in CI on the preview build and the
+  league build, and fails the run on any offender. The flag no-photos reads the fallbacks a phone shows when the photos and
+  crests fail to load (by hand, after a change to them).

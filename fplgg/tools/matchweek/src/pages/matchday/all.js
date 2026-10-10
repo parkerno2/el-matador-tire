@@ -40,7 +40,7 @@ function nextGw() {
       + '</div>';
   }).join('');
   return UI.sh('Gameweek ' + g, { aside: dl ? 'Deadline ' + esc(M.tFull(dl)) : '' })
-    + '<div class="card md-mlist">' + list + '<div class="foot">Projected from today’s lineups with the house model. Lineups and projections move until the deadline.</div></div>';
+    + '<div class="card md-mlist">' + list + '</div>';
 }
 
 export function render() {
@@ -50,7 +50,7 @@ export function render() {
   const order = fx.map((f, i) => i).sort((a, b) => (b === yi) - (a === yi) || a - b);
   const ms = order.map(M.mx);
   const ph = M.phase();
-  const lead = { pre: 'Predicted scores until the deadline' + (M.deadline() ? ', ' + M.tFull(M.deadline()) : '') + '.', locked: 'Lineups are locked. Nothing has kicked off yet.', live: 'Live scores. Locked auto-subs count; projections update as matches play.', prov: 'All matches finished. Provisional until FPL confirms.', ft: 'Final scores.' }[ph] || '';
+  const lead = { pre: 'Predicted until the deadline' + (M.deadline() ? ', ' + M.tFull(M.deadline()) : '') + '.', locked: '', live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
   return UI.sh('Gameweek ' + D.gw, { aside: ms.length + ' matchups' }) + (lead ? '<p class="md-cap top">' + esc(lead) + '</p>' : '')
     + '<div class="md-acs-list">' + ms.map(card).join('') + '</div>'
     + nextGw();

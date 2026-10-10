@@ -34,7 +34,7 @@ export function todoBlock(team) {
     + '<div class="tm-jw"><b>From Jive Tidlsey</b>' + (when ? '<span class="sub">' + esc(when) + '</span>' : '') + '</div>'
     + '<span class="tm-count n">' + items.length + ' TO DO</span></div>'
     + items.slice(0, 3).map(todoItem).join('')
-    + '<div class="foot">Lineups and waivers are set in FPL Draft. <a class="tm-ext" href="' + DRAFT + '" target="_blank" rel="noopener">Open FPL Draft ' + chev + '</a></div>'
+    + '<div class="foot"><a class="tm-ext" href="' + DRAFT + '" target="_blank" rel="noopener">Open FPL Draft ' + chev + '</a></div>'
     + '</section>';
 }
 

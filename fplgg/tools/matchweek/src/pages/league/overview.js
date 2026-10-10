@@ -16,11 +16,12 @@ export function moveTag(n) {
   if (n == null) return '<span class="mv nil" aria-hidden="true"></span>';
   if (n > 0) return '<span class="mv up" aria-label="up ' + n + '">▲' + n + '</span>';
   if (n < 0) return '<span class="mv dn" aria-label="down ' + (-n) + '">▼' + (-n) + '</span>';
-  return '<span class="mv eq" aria-label="no change">–</span>';
+  return '<span class="mv eq" aria-label="no change">-</span>';
 }
-const PRIZE = [PAY.first, PAY.second, PAY.third];
 
-/* ---------- block 1: the table ---------- */
+/* ---------- block 1: the table ----------
+   Parker, 10 Oct 2026 (Q6): no money in the table, PF as its own column, the line under the name only the manager and
+   his form. Columns: #, crest, Team, W-D-L, PF, Pts, Title. */
 export function tableBlock() {
   const rows = table(), mv = movement(), sum = tableSummary(), w = wk(), me = UI.you();
   const ready = oddsReady(), od = ready ? odds() : null;
@@ -30,69 +31,71 @@ export function tableBlock() {
   let h = '<section class="lg-hero lg-tbl" aria-labelledby="lg-tbl-h">'
     + '<div class="lg-tbl-hd"><div class="l"><h2 id="lg-tbl-h" class="wide">The table</h2><span>' + after + '</span>' + tag + '</div>'
     + '<div class="r"><b class="n">' + esc(sum.big) + '</b><span>' + esc(sum.sub) + '</span></div></div>'
-    + '<div class="lg-th" aria-hidden="true"><span>#</span><span></span><span>Team</span><span>W–D–L</span><span>Pts</span><span>Title</span></div>';
+    + '<div class="lg-th" aria-hidden="true"><span>#</span><span></span><span>Team</span><span>W-D-L</span><span>PF</span><span>Pts</span><span>Title</span></div>';
   rows.forEach((r, i) => {
-    const you = r.team === me, prize = i < 3 && begun() && PRIZE[i];
+    const you = r.team === me;
     const v = od ? od.title[r.team] || 0 : null;
-    const lab = ord(r.pos) + ', ' + r.team + ', ' + r.pts + ' points, ' + r.w + ' won ' + r.d + ' drawn ' + r.l + ' lost' + (v != null ? ', title chance ' + pctTxt(v) : '');
-    h += '<div class="lg-tr' + (you ? ' you' : '') + (prize ? ' prize' : '') + '" style="--tc:' + UI.tc(r.team) + '"' + tap(r.team, lab) + '>'
+    const lab = ord(r.pos) + ', ' + r.team + ', ' + r.pts + ' points, ' + r.w + ' won ' + r.d + ' drawn ' + r.l + ' lost, ' + r.pf + ' points for' + (v != null ? ', title chance ' + pctTxt(v) : '');
+    h += '<div class="lg-tr' + (you ? ' you' : '') + '" style="--tc:' + UI.tc(r.team) + '"' + tap(r.team, lab) + '>'
       + '<span class="pos"><b class="n">' + r.pos + '</b>' + moveTag(mv ? mv.by[r.team] : null) + '</span>'
       + UI.crest(r.team, 32)
       + '<span class="nm"><span class="tn">' + esc(r.team) + '</span><span class="l2">'
-      + (you ? '<b class="me">You</b>' : '<span class="mg">' + esc(UI.first(r.team)) + '</span>')
-      + '<span class="pf"><b class="n">' + r.pf + '</b> for</span>' + formDots(r.team)
-      + (prize ? '<span class="pz n">' + money(prize) + '</span>' : '') + '</span></span>'
-      + '<span class="rec n">' + r.w + '–' + r.d + '–' + r.l + '</span>'
+      + (you ? '<b class="me">You</b>' : '<span class="mg">' + esc(UI.first(r.team)) + '</span>') + formDots(r.team) + '</span></span>'
+      + '<span class="rec n">' + r.w + '-' + r.d + '-' + r.l + '</span>'
+      + '<span class="pf n">' + r.pf + '</span>'
       + '<span class="pts n">' + r.pts + '</span>'
       + '<span class="tc">' + (od ? '<b class="n">' + pctTxt(v) + '</b><span class="tb"><i style="width:' + Math.max(2, v / maxT * 100).toFixed(1) + '%"></i></span>'
         : '<b class="n">' + UI.waitN() + '</b><span class="tb wait"><i></i></span>') + '</span>'
       + '</div>';
-    if (i === 2) h += '<div class="lg-zone"><i></i>' + (begun() ? 'Prize places above' : 'Top three win') + ' · ' + money(FINAL) + ' at GW38<i></i></div>';
+    if (i === 2) h += '<div class="lg-zone" aria-hidden="true"></div>';   /* the prize places end here: a line, no text */
   });
   const notes = [];
   if (w.live) notes.push('The table moves when GW' + D.gw + ' is over.');
   if (w.prov) notes.push('GW' + D.gw + ' is in at full time and provisional until FPL confirms it.');
-  notes.push('Level on points? Points for decides it.');
-  if (mv) notes.push('Arrows show the change since GW' + mv.prev + '.');
-  notes.push('Title chance comes from 5,000 simulated seasons and updates at full time.');
-  h += '<div class="foot lg-foot"><p>' + notes.join(' ') + '</p><a class="lg-more" href="#/league/results">Every result ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
+  h += '<div class="foot lg-foot">' + (notes.length ? '<p>' + notes.join(' ') + '</p>' : '') + '<a class="lg-more" href="#/league/results">Every result ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
   return h;
 }
 
-/* ---------- block 2: Manager of the Month ---------- */
+/* ---------- block 2: Manager of the Month ----------
+   Parker, 10 Oct 2026 (Q6): the race leads with real points (the month so far, the live gameweek as it stands, scored
+   like the scoreboard), ranked by them with the projection breaking ties; the projection is the secondary figure and
+   the marker on the bar; before the month has a point the projection is the main number, labelled Projected. */
 export function motmBlock() {
   const m = motm(), me = UI.you(), w = wk();
-  const range = 'GW' + m.a + '–' + m.b;
-  const leader = m.rows.slice().sort((p, q) => q.banked - p.banked)[0];
+  const range = 'GW' + m.a + '-' + m.b, pn = p => String(p[0]);   /* the period as the sheet names it (Aug & Sep) */
+  const byPts = m.anyBanked || m.st.complete;                /* the main number: points, else the projection */
+  const leader = m.rows.slice().sort((p, q) => q.banked - p.banked || q.proj - p.proj)[0];
   let when;
   if (m.st.complete) when = 'decided';
   else if (!m.st.started) when = 'starts ' + dayWord(m.firstKo);
   else when = 'ends ' + dayWord(m.lastKo);
   const pips = m.gws.map(x => '<span class="pip ' + x.st + '"><i></i><span class="n">' + (x.st === 'live' ? 'GW' + x.g + ' LIVE' : x.st === 'prov' ? 'GW' + x.g + ' FT' : 'GW' + x.g) + '</span></span>').join('');
   const played = m.gws.filter(x => x.st === 'done').length;
+  const live = w.live && m.gws.some(x => x.st === 'live'), prov = w.prov && m.gws.some(x => x.st === 'prov');
   const bits = [];
   if (played) bits.push(played + ' of ' + m.gws.length + ' played');
-  if (w.live && m.gws.some(x => x.st === 'live')) bits.push('GW' + D.gw + ' live');
-  if (w.prov && m.gws.some(x => x.st === 'prov')) bits.push('GW' + D.gw + ' at full time');
+  if (live) bits.push('GW' + D.gw + ' live');
+  if (prov) bits.push('GW' + D.gw + ' at full time');
   let state;
   if (m.st.complete) state = UI.short(leader.t) + ' win it with ' + leader.banked;
-  else if (!m.anyBanked) state = played + ' of ' + m.gws.length + ' played · nothing banked yet';
+  else if (!m.anyBanked) state = played + ' of ' + m.gws.length + ' played · no points yet';
   else state = bits.join(', ') + ' · ' + UI.short(leader.t) + ' lead on ' + leader.banked;
-  const last = m.last ? perName(m.last.per) + ' went to ' + m.last.who.map(theShort).join(' and ') + ' (' + m.last.pts + ')' : '';
+  const last = m.last ? pn(m.last.per) + ' went to ' + m.last.who.map(theShort).join(' and ') + ' (' + m.last.pts + ')' : '';
   const maxV = Math.max(1, ...m.rows.map(r => r.hi)) * 1.04;
   const pc = v => Math.max(0, Math.min(100, v / maxV * 100)).toFixed(1);
   const favWin = Math.max(...m.rows.map(r => r.win));
-  const colHead = m.st.complete ? 'Points, ' + range : 'Projected, ' + range;
+  const colHead = byPts ? 'Points' + (live ? ' <em class="live-c">LIVE</em>' : prov ? ' <em>FT</em>' : '') : 'Projected';
   let h = '<section class="lg-hero lg-motm" aria-labelledby="lg-motm-h">'
-    + '<div class="lg-motm-top"><div class="hd"><div><span class="k">Manager of the Month</span><h2 id="lg-motm-h" class="wide">' + esc(perName(m.per)) + ' race</h2>'
-    + '<span class="sub">Most points in ' + range + ' · ' + esc(when) + '</span></div><span class="lg-cash n">' + money(PAY.motm) + '</span></div>'
+    + '<div class="lg-motm-top"><div class="hd"><div><span class="k">Manager of the Month</span><h2 id="lg-motm-h" class="wide">' + esc(pn(m.per)) + ' race</h2>'
+    + '<span class="sub">Most points in ' + range + ' · ' + esc(when) + '</span></div></div>'
     + '<div class="lg-pips" aria-label="' + played + ' of ' + m.gws.length + ' gameweeks played">' + pips + '</div>'
     + '<div class="lg-pipnote"><span>' + esc(state) + '</span>' + (last ? '<span>' + esc(last) + '</span>' : '') + '</div></div>'
-    + '<div class="lg-mh" aria-hidden="true"><span></span><span>' + esc(colHead) + '</span><span>' + (m.st.complete ? 'Pts' : 'Proj') + '</span><span>Win</span></div>';
+    + '<div class="lg-mh" aria-hidden="true"><span></span><span>' + range + '</span><span class="ph">' + colHead + '</span><span>Win</span></div>';
   m.rows.forEach((r, i) => {
     const you = r.t === me;
     const winTxt = r.win >= 0.995 && r.win < 1 ? '>99%' : r.win > 0 && r.win < 0.005 ? '<1%' : Math.round(r.win * 100) + '%';
-    const lab = r.t + ': ' + r.banked + ' banked, ' + Math.round(r.proj) + ' projected, likely ' + Math.round(r.lo) + ' to ' + Math.round(r.hi) + ', win chance ' + winTxt;
+    const main = byPts ? Math.round(r.banked) : Math.round(r.proj);
+    const lab = r.t + ': ' + Math.round(r.banked) + ' points, ' + Math.round(r.proj) + ' projected, likely ' + Math.round(r.lo) + ' to ' + Math.round(r.hi) + ', win chance ' + winTxt;
     h += '<div class="lg-mr' + (you ? ' you' : '') + '" style="--tc:' + UI.tc(r.t) + '"' + tap(r.t, lab) + '>'
       + '<span class="rk n">' + (i + 1) + '</span>' + UI.crest(r.t, 24)
       + '<span class="ln"><span class="tn">' + esc(r.t) + '</span><span class="lane" aria-hidden="true">'
@@ -100,10 +103,10 @@ export function motmBlock() {
       + (r.proj > r.banked + 0.05 ? '<span class="pj" style="left:' + pc(r.banked) + '%;width:' + (pc(r.proj) - pc(r.banked)).toFixed(1) + '%"></span>' : '')
       + (r.banked > 0 ? '<span class="bk" style="width:' + pc(r.banked) + '%"></span>' : '')
       + '<span class="mk" style="left:' + pc(r.proj) + '%"></span></span></span>'
-      + '<b class="n pr">' + Math.round(r.proj) + '</b><b class="n wn' + (r.win === favWin && r.win > 0 ? ' fav' : '') + '">' + winTxt + '</b></div>';
+      + '<span class="pv"><b class="n pr">' + main + '</b>' + (byPts && !m.st.complete ? '<small class="n sm">' + Math.round(r.proj) + ' proj</small>' : '') + '</span>'
+      + '<b class="n wn' + (r.win === favWin && r.win > 0 ? ' fav' : '') + '">' + winTxt + '</b></div>';
   });
-  h += '<div class="lg-key" aria-hidden="true"><span><i class="k-mk"></i>projected total</span><span><i class="k-rg"></i>likely range</span><span><i class="k-bk"></i>banked</span></div>'
-    + '<div class="lg-note">The bars fill with real points as each gameweek finishes' + (w.live || w.prov ? ' (GW' + D.gw + ' counts as it stands, scored like the scoreboard)' : '') + '. Projections use each XI’s projected points for the gameweeks left; the likely range is the middle 80% and win chance comes from 20,000 simulations.</div>'
+  h += '<div class="lg-key" aria-hidden="true"><span><i class="k-bk"></i>points</span><span><i class="k-mk"></i>projected</span><span><i class="k-rg"></i>likely range</span></div>'
     + '<div class="foot lg-foot"><a class="lg-more" href="#/league/money">Every month so far ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
   return h;
 }

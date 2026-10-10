@@ -9,7 +9,6 @@ export const VIEW = { lineup: 'pitch' };
 try { const v = localStorage.getItem('emt-tm-lview'); if (v === 'list' || v === 'pitch') VIEW.lineup = v; } catch (e) { }
 
 const ORDER = { GKP: 0, DEF: 1, MID: 2, FWD: 3 };
-const outLabel = p => { const s = p.Status; return s === 's' ? 'BANNED' : s === 'd' ? chanceTxt(p).toUpperCase() : 'OUT'; };
 
 /* lines from the back: GK, DEF, MID, FWD, one row per line; a five-man line stays on one row (Parker, 8 Oct 2026), the cards shrink to fit */
 function lines(xi) {
@@ -96,10 +95,10 @@ function benchBlock(L, asList) {
   const subLine = subs.length ? '<div class="tm-subs">' + subs.map(s => '<span><b>' + esc(s.inn.Player) + '</b> on for ' + esc(s.out.Player) + (s.kind === 'likely' ? ' <i class="doubt-c">if he misses out</i>' : '') + '</span>').join('') + '</div>' : '';
   const body = asList
     ? '<div class="card tm-list">' + slots.map(s => listRow(s.p, L, s.lab, s.swapped)).join('') + '</div>'
-    : '<div class="card tm-bench"><p class="sub">In auto-sub order. The keeper only replaces a keeper.</p><div class="tm-bslots">'
+    : '<div class="card tm-bench"><div class="tm-bslots">'
       + slots.map(s => {
-        const p = s.p, out = flaggedOut(p) && !s.swapped;
-        return '<div class="tm-bs"><span class="tm-bl n">' + (s.swapped ? (L.marks[s.p.Code] === 'outl' ? 'Likely off' : 'Off') : s.lab) + '</span><span class="tm-bc">' + plateMarked(p, 80, L.marks, true) + (out ? '<span class="chip out tm-bout">' + outLabel(p) + '</span>' : '') + '</span></div>';
+        const p = s.p;
+        return '<div class="tm-bs"><span class="tm-bl n">' + (s.swapped ? (L.marks[s.p.Code] === 'outl' ? 'Likely off' : 'Off') : s.lab) + '</span><span class="tm-bc">' + plateMarked(p, 80, L.marks, true) + '</span></div>';
       }).join('') + '</div>' + subLine + coverNote(L) + '</div>';
   return UI.sh('Bench') + (asList ? subLine.replace('tm-subs', 'tm-subs pad') : '') + body + (asList ? coverNote(L).replace(/tm-cover/g, 'tm-cover solo') : '');
 }
@@ -120,11 +119,11 @@ function listRow(p, L, lab, off) {
   const pn = UI.plateNum(p);
   pts = '<span class="tm-lpts n ' + pn.st + '" title="' + (pn.st === 'bk' ? 'Points' : pn.st === 'live' ? 'Live points' : 'Projected points') + '">' + pn.txt + '</span>';
   const mk = L.marks[p.Code] || '';
-  const tag = mk.startsWith('in') ? '<span class="chip ' + (mk.endsWith('l') ? 'doubt' : 'sub') + '">' + (mk.endsWith('l') ? 'LIKELY' : 'SUB') + '</span>' : mk.startsWith('out') ? '<span class="chip mute">OFF</span>' : '';
+  const tag = UI.subChip(mk) || UI.statusChip(p);   /* one chip: green SUB ON, amber LIKELY SUB, LIKELY OFF or the chance, red SUBBED OFF or OUT (Parker, 10 Oct 2026); a sub state outranks availability */
   return '<div class="row tap tm-lr' + (off ? ' off' : '') + '" data-open="player:' + esc(p.Code) + '" role="button" tabindex="0">'
     + (lab ? '<span class="tm-lslot n">' + esc(off ? 'Off' : lab) + '</span>' : '')
     + UI.face(p, 36, p.Status === 'd' ? { ring: 'var(--doubt)' } : flaggedOut(p) ? { ring: 'var(--loss)' } : {})
-    + '<span class="tm-lm"><b class="ell">' + esc(p.Player) + '</b><span class="sub tm-lmeta">' + POSN[p.Pos] + ' · ' + UI.badge(p.Club, CREST) + esc(p.Club) + tag + UI.statusChip(p) + '</span></span>'
+    + '<span class="tm-lm"><b class="ell">' + esc(p.Player) + '</b><span class="sub tm-lmeta">' + POSN[p.Pos] + ' · ' + UI.badge(p.Club, CREST) + esc(p.Club) + tag + '</span></span>'
     + '<span class="tm-lopp">' + opp + '</span>' + pts + '</div>';
 }
 
@@ -132,18 +131,13 @@ export function lineupPage(team) {
   const L = lineupData(team);
   if (!L.xi.length) return UI.empty('No lineup yet', 'Your squad shows here once the draft is in.');
   const asList = VIEW.lineup === 'list';
-  const live = L.st && (L.st.st === 'live' || L.st.st === 'prov' || L.st.st === 'ft');
-  let note;
-  if (asList) note = '';
-  else note = live ? 'Bubbles show live points, banked points once a match ends, and the projection for players still to play.' : 'Bubbles show projected points. Tap a card for the player sheet.';
-  const likely = !lineupsLocked() && !D.dlPassed ? '<p class="sub tm-pnote">Likely lineup until the deadline' + (UI.week().dl ? ' (' + esc(UI.dayHm(UI.week().dl)) + ')' : '') + ': FPL publishes picks then, and last week’s lineup carries forward until it does.</p>' : '';
+  const likely = !lineupsLocked() && !D.dlPassed ? '<p class="sub tm-pnote">Likely lineup until the deadline' + (UI.week().dl ? ' (' + esc(UI.dayHm(UI.week().dl)) + ')' : '') + '.</p>' : '';
   const body = asList
     ? '<div class="card tm-list">' + L.xi.map(p => listRow(p, L)).join('') + '</div>'
     : pitch(team, L);
   const call = safe(() => jiveCall(team), null);
   const callHtml = call ? safe(() => mediaHTML(call, false), '') : '';
-  return toolbar(team, L) + body
-    + (note ? '<p class="sub tm-pnote">' + note + '</p>' : '') + likely
+  return toolbar(team, L) + body + likely
     + benchBlock(L, asList)
     + (callHtml ? UI.sh('From Jive', { more: 'Messages', href: '#/feed/messages' }) + '<div class="tm-post">' + callHtml + '</div>' : '');
 }

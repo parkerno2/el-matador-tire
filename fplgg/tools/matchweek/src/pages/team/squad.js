@@ -75,6 +75,5 @@ export function squadPage(team) {
   const n = all.length;
   return healthBlock(team)
     + UI.sh('Squad', { aside: words(n).replace(/^./, c => c.toUpperCase()) + ' players' })
-    + seg + rows
-    + '<p class="sub tm-pnote">OVR is the card rating, moved by recent form (the arrow). Chips are the last five gameweeks; a dash means he didn’t play. Average is points per game played.</p>';
+    + seg + rows;
 }

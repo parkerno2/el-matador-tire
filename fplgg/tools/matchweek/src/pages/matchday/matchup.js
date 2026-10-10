@@ -2,7 +2,6 @@
 import * as UI from '../../ui.js';
 import * as M from './model.js';
 import { stateTag, nums, winBar, seriesText, resultLine, pairHTML, wdl } from './overview.js';
-import { shows } from '../../feed/index.js';
 
 const esc = UI.esc;
 export const ST = { tab: 'formation', xp: false, lines: new Set(), bench: false };
@@ -44,25 +43,22 @@ function header(m) {
 
 /* ---------- formation: both XIs on one pitch ---------- */
 const ICON_UP = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 L8.5 5.5 H6.2 V8.5 H3.8 V5.5 H1.5 Z" fill="#fff"/></svg>';
-const ICON_SW = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h7l-2-2M10 8H3l2 2"/></svg>';
 function token(x, T, mode) {
   const st = M.statusLine(x, true), b = M.bubble(x, mode);
   const sub = T.subs.find(s => String(s.inn.Code) === x.code);
-  let ic = '';
-  if (sub && sub.kind === 'locked') ic = '<span class="md-ic up" title="Auto-sub, on for ' + esc(sub.out.Player) + '">' + ICON_UP + '</span>';
-  else if (sub) ic = '<span class="md-ic sw" title="Likely sub for ' + esc(sub.out.Player) + '">' + ICON_SW + '</span>';
-  else if (x.out && !x.started) ic = '<span class="md-ic out" title="' + esc(x.news) + '">!</span>';
-  else if (x.doubt && !x.started) ic = '<span class="md-ic dt" title="' + esc(x.news) + '">!</span>';
-  const line = sub && sub.kind === 'likely' && !x.started ? 'likely sub' : st.t;
-  const label = x.p.Player + ', ' + (b.cls === 'pj' ? 'projected ' + b.txt : b.cls === 'xp' ? 'xP ' + b.txt : b.txt + ' points') + (line ? ', ' + line : '');
+  /* every player on a small Plate (Parker, 8 Oct 2026) with the one status badge (Parker, 10 Oct 2026: UI.plateStatus; a
+     sub outranks a doubt, and a doubt stops mattering once his match has started); the line under the card is only the
+     kick-off, the minute or FT */
+  const mark = sub ? (sub.kind === 'locked' ? 'in' : 'inl') : '';
+  const title = sub ? (sub.kind === 'locked' ? 'On for ' : 'Likely on for ') + sub.out.Player : '';
+  const badge = UI.plateStatus(x.p, mark, { title, flag: !x.started, dnp: !!st.dnp });
+  const line = st.t;
+  const label = x.p.Player + ', ' + (b.cls === 'pj' ? 'projected ' + b.txt : b.cls === 'xp' ? 'xP ' + b.txt : b.txt + ' points') + (badge ? ', ' + badge.t : '') + (line ? ', ' + line : '');
   /* a double-figure haul turns the bubble gold, a banked blank goes quiet */
   const pv = parseFloat(b.txt), tone = (b.cls === 'bk' || b.cls === 'lv') && pv >= 10 ? 'haul' : b.cls === 'bk' && pv <= 1 ? 'blank' : '';
-  /* every player on a small Plate (Parker, 8 Oct 2026): the card carries the name, the bubble and the auto-sub tag; the
-     doubt and out marks ride the card's corner as before, the kick-off, minute or FT line sits under it */
-  const mark = sub ? (sub.kind === 'locked' ? 'in' : 'inl') : '';
   return '<span class="md-tk" data-open="player:' + esc(x.code) + '" role="button" tabindex="0" aria-label="' + esc(label) + '"><span class="md-ph">'
-    + UI.plateMini(x.p, 64, { noOpen: true, mark, bubble: { st: b.cls, txt: b.txt, cls: tone, live: x.live } }) + ic + '</span>'
-    + '<span class="md-sl' + (st.live && !(sub && sub.kind === 'likely' && !x.started) ? ' lv' : '') + '">' + esc(line) + '</span></span>';
+    + UI.plateMini(x.p, 64, { noOpen: true, mark, title, flag: !x.started, dnp: !!st.dnp, bubble: { st: b.cls, txt: b.txt, cls: tone, live: x.live } }) + '</span>'
+    + '<span class="md-sl' + (st.live ? ' lv' : '') + '">' + esc(line) + '</span></span>';
 }
 function half(T, top, mode) {
   const order = top ? ['GKP', 'DEF', 'MID', 'FWD'] : ['FWD', 'MID', 'DEF', 'GKP'];
@@ -71,24 +67,18 @@ function half(T, top, mode) {
     return '<div class="md-row n' + Math.max(1, g.length) + '">' + g.map(x => token(x, T, mode)).join('') + '</div>';
   }).join('');
 }
+/* the xP switch sits in the top team bar (Parker, 10 Oct 2026: the legend row is gone, the pitch starts under the tabs);
+   a tap on it changes the bubbles and never opens the manager sheet (pages/matchday.js stops the tap there) */
+const xpSwitch = m => D.hasXP && (m.tl.done.length + m.tr.done.length) > 0 && !m.final;
 function teamBar(m, T, top, mode) {
   const you = m.me === T.t, sc = T.t === m.L ? m.sl : m.sr;
   const n = nums(m), big = T.t === m.L ? n.l : n.r;
   const xpv = mode === 'xp' && T.xpBlend !== null;
   const pj = m.final ? (T.xp !== null ? 'xP <b class="n">' + M.f1(T.xp) + '</b>' : '') : xpv ? 'xP + proj <b class="n">' + M.f1(T.xpBlend) + '</b>' : M.hasProj() ? 'proj <b class="n">' + M.f1(T.proj) + '</b>' : '';
+  const sw = top && xpSwitch(m) ? '<button type="button" class="md-xpt' + (ST.xp ? ' on' : '') + '" data-md-xp="' + (ST.xp ? '0' : '1') + '" aria-pressed="' + !!ST.xp + '" aria-label="Show xP in the bubbles">xP</button>' : '';
   return '<div class="md-tb ' + (top ? 'top' : 'bot') + '" data-open="manager:' + esc(T.t) + '" role="button" tabindex="0">' + UI.crest(T.t, 32)
     + '<div class="ell"><b>' + esc(T.t) + '</b><span class="sub">' + esc(M.who(m, T.t)) + ' · ' + esc(T.form) + '</span></div>'
-    + '<span class="sub md-tbp">' + pj + '</span><b class="n md-tbs' + (you ? ' you-c' : m.mine ? ' opp-c' : '') + '">' + (m.ph === 'pre' || m.ph === 'locked' ? '' : sc) + '</b></div>';
-}
-function legend(m) {
-  const xpOK = D.hasXP && (m.tl.done.length + m.tr.done.length) > 0 && !m.final;
-  const all = m.tl.players.concat(m.tr.players), has = k => all.some(k);
-  const haul = all.some(x => (x.finished || x.live) && parseFloat(M.bubble(x, 'pts').txt) >= 10);
-  return '<div class="md-leg">' + (has(x => x.finished) ? '<span><span class="pb bk">6</span>banked</span>' : '') + (haul ? '<span><span class="pb bk haul">10</span>haul</span>' : '') + (has(x => x.live) ? '<span><span class="pb lv">1</span>live</span>' : '')
-    + (has(x => !x.started) ? '<span><span class="pb pj">3.0</span>projected</span>' : '')
-    + (m.mine ? '<span><i class="md-ring"></i>you</span>' : '')
-    + '</div>'
-    + (xpOK ? '<div class="md-xprow"><span class="sub">Bubbles show</span><span class="seg md-xps" role="group" aria-label="Bubbles show"><button data-md-xp="0" class="' + (ST.xp ? '' : 'on') + '" aria-pressed="' + !ST.xp + '">Points</button><button data-md-xp="1" class="' + (ST.xp ? 'on' : '') + '" aria-pressed="' + ST.xp + '">xP</button></span></div>' : '');
+    + '<span class="sub md-tbp">' + pj + '</span>' + sw + '<b class="n md-tbs' + (you ? ' you-c' : m.mine ? ' opp-c' : '') + '">' + (m.ph === 'pre' || m.ph === 'locked' ? '' : sc) + '</b></div>';
 }
 function pitch(m) {
   const mode = ST.xp && D.hasXP ? 'xp' : 'pts';
@@ -96,18 +86,17 @@ function pitch(m) {
     + '<div class="md-pitch"><div class="md-lines" aria-hidden="true"><i class="hl"></i><i class="cc"></i><i class="cs"></i><i class="bx t"></i><i class="sx t"></i><i class="ar t"></i><i class="bx b"></i><i class="sx b"></i><i class="ar b"></i></div>'
     + '<div class="md-half t">' + half(m.tr, true, mode) + '</div><div class="md-half b">' + half(m.tl, false, mode) + '</div></div>'
     + teamBar(m, m.tl, false, mode) + '</div>'
-    + (mode === 'xp' ? '<p class="md-cap">Played: what the performance deserved (xP, bonus excluded). Yet to play: projected.</p>' : '<p class="md-cap">Tap a player for the Plate card and player sheet.</p>')
-    + (lineupsLocked() || m.ph !== 'pre' ? '' : '<p class="md-cap">Likely lineups. Managers can change them until the deadline' + (M.deadline() ? ', ' + esc(M.tFull(M.deadline())) : '') + '.</p>');
+    + (lineupsLocked() || m.ph !== 'pre' ? '' : '<p class="md-cap">Likely lineups until the deadline' + (M.deadline() ? ', ' + esc(M.tFull(M.deadline())) : '') + '.</p>');
 }
 
 /* ---------- head-to-head rows (List tab and the By line drawer) ---------- */
 function cell(x, T, r) {
   if (!x) return '<div class="md-hc' + (r ? ' r' : '') + ' none"><span class="sub">–</span></div>';
   const st = M.statusLine(x, true), sub = T.subs.find(s => String(s.inn.Code) === x.code);
-  const tag = sub ? '<span class="chip ' + (sub.kind === 'locked' ? 'md-on' : 'mute') + '">' + (sub.kind === 'locked' ? 'SUB ON' : 'LIKELY SUB') + '</span>' : (!x.started ? UI.statusChip(x.p) : '');
+  const tag = sub ? UI.subChip(sub.kind === 'locked' ? 'in' : 'inl') : (!x.started ? UI.statusChip(x.p) : st.dnp ? '<span class="chip out">DID NOT PLAY</span>' : '');
   const where = x.fx ? M.fxOpp(x.fx, x.club) : '';
   return '<div class="md-hc' + (r ? ' r' : '') + '" data-open="player:' + esc(x.code) + '" role="button" tabindex="0">' + UI.face(x.p, 32)
-    + '<div class="ell"><b>' + esc(x.p.Player) + '</b>' + tag + '<span class="sub">' + (where ? esc(where).replace(/ /g, '\u00a0') + ' · ' : '') + '<span class="' + (st.live ? 'live-c' : '') + '">' + esc(sub && sub.kind === 'likely' && !x.started ? 'likely sub' : st.t).replace(/ /g, '\u00a0') + '</span></span></div></div>';
+    + '<div class="ell"><b>' + esc(x.p.Player) + '</b>' + tag + '<span class="sub">' + (where ? esc(where).replace(/ /g, '\u00a0') + ' · ' : '') + '<span class="' + (st.live ? 'live-c' : '') + '">' + esc(st.t).replace(/ /g, '\u00a0') + '</span></span></div></div>';
 }
 function mid(x, y, m) {
   const v = x => { if (!x) return '<span class="md-hv"></span>'; const b = M.bubble(x); return '<span class="md-hv"><span class="pb ' + b.cls + '">' + b.txt + '</span>' + (x.started && !x.finished && M.hasProj() && !m.final ? '<small class="n">' + M.f1(x.final) + '</small>' : '') + '</span>'; };
@@ -140,8 +129,8 @@ function byLine(m) {
       + '<span class="v r"><b class="n' + (m.mine ? ' opp-c' : '') + '">' + big(b) + '</b><span class="n">' + small(b) + '</span></span>' + UI.icon('chev', 14, 'var(--tx3)') + '</button>'
       + (open ? '<div class="md-lx">' + pairRows(m, pos) + '</div>' : '');
   }).join('');
-  const lab = pre ? 'PREDICTED' : fin_ ? 'POINTS' : 'NOW · BAR SHOWS PROJECTED';
-  return UI.sh('By line', { aside: 'tap a line for the players' })
+  const lab = pre ? 'PREDICTED' : fin_ ? 'POINTS' : 'NOW';
+  return UI.sh('By line')
     + '<div class="card md-bl"><div class="md-blh"><span class="' + (m.mine ? 'you-c' : '') + '">' + esc(M.who(m, m.L).toUpperCase()) + '</span><span>' + lab + '</span><span class="' + (m.mine ? 'opp-c' : '') + '">' + esc(M.who(m, m.R).toUpperCase()) + '</span></div>' + rows + '</div>';
 }
 
@@ -176,31 +165,35 @@ function benchCol(m, T, r) {
   const outK = new Set(T.subs.filter(s => s.kind === 'likely').map(s => String(s.out.Code)));
   return '<div class="md-bc' + (r ? ' r' : '') + '">' + (T.bench.length ? T.bench.map(p => {
     const x = M.pl(p), c = String(p.Code);
-    const tag = outL.has(c) ? '<span class="chip mute">SUBBED OFF</span>' : outK.has(c) ? '<span class="chip mute">LIKELY OFF</span>' : UI.statusChip(p);
+    const tag = outL.has(c) ? UI.subChip('out') : outK.has(c) ? UI.subChip('outl') : UI.statusChip(p);
     const pts = x && x.started && x.mins > 0 ? '<span class="pb ' + (x.finished ? 'bk' : 'lv') + ' md-pbs">' + M.int(x.pts) + '</span>' : '';
     return '<div class="md-bp" data-open="player:' + esc(c) + '" role="button" tabindex="0">' + UI.face(p, 28) + '<div class="ell"><b>' + esc(p.Player) + '</b>' + tag + '</div>' + pts + '</div>';
   }).join('') : '<span class="sub">No bench</span>') + '</div>';
 }
 export function subLines(T, kind, opt = {}) {
   const L = T.subs.filter(s => s.kind === kind);
-  return L.map(s => '<div class="md-asr' + (kind === 'likely' ? ' lk' : '') + '">' + (opt.crest ? UI.crest(T.t, 18) : '') + '<span class="md-asi">' + (kind === 'locked' ? ICON_UP : ICON_SW) + '</span><span><b>' + esc(s.inn.Player) + '</b> ' + (kind === 'locked' ? 'on' : 'likely on') + ' for ' + esc(s.out.Player) + ' <span class="sub">(' + esc(M.subReason(s)) + ')</span></span></div>').join('');
+  return L.map(s => '<div class="md-asr' + (kind === 'likely' ? ' lk' : '') + '">' + (opt.crest ? UI.crest(T.t, 18) : '') + '<span class="md-asi">' + ICON_UP + '</span><span><b>' + esc(s.inn.Player) + '</b> ' + (kind === 'locked' ? 'on' : 'likely on') + ' for ' + esc(s.out.Player) + ' <span class="sub">(' + esc(M.subReason(s)) + ')</span></span></div>').join('');
+}
+/* a starter whose match finished without him and nobody came on (no fit cover on the bench) stays on the pitch with
+   the red "!"; the Bench card says it in words, under the auto-sub lines */
+export function dnpLines(T, opt = {}) {
+  return T.players.filter(x => x.finished && !(x.mins > 0)).map(x => '<div class="md-asr no">' + (opt.crest ? UI.crest(T.t, 18) : '') + '<span class="md-asi"><b>!</b></span><span><b>' + esc(x.p.Player) + '</b> did not play <span class="sub">(' + esc(M.fxLabel(x.fx)) + ' finished, no cover on the bench)</span></span></div>').join('');
 }
 function benches(m) {
   const any = k => m.tl.subs.concat(m.tr.subs).some(s => s.kind === k);
-  const notes = (any('locked') || any('likely')) ? '<div class="md-asl">' + subLines(m.tl, 'locked') + subLines(m.tr, 'locked') + subLines(m.tl, 'likely') + subLines(m.tr, 'likely')
-    + '<p class="sub">' + (any('locked') ? 'Locked auto-subs already count in the score. FPL makes them official when the gameweek ends. ' : '') + (any('likely') ? 'Likely subs assume a flagged starter misses out, so they count in the projection only.' : '') + '</p></div>' : '';
-  return UI.sh('Bench', { aside: 'in auto-sub order' }) + '<div class="card md-bench"><div class="md-bcs">' + benchCol(m, m.tl) + benchCol(m, m.tr, 1) + '</div>' + notes + '</div>';
+  const dnp = dnpLines(m.tl) + dnpLines(m.tr);
+  const notes = (any('locked') || any('likely') || dnp) ? '<div class="md-asl">' + subLines(m.tl, 'locked') + subLines(m.tr, 'locked') + subLines(m.tl, 'likely') + subLines(m.tr, 'likely') + dnp + '</div>' : '';
+  return UI.sh('Bench') + '<div class="card md-bench"><div class="md-bcs">' + benchCol(m, m.tl) + benchCol(m, m.tr, 1) + '</div>' + notes + '</div>';
 }
 
 /* ---------- tabs ---------- */
-function tabFormation(m) { return legend(m) + pitch(m) + byLine(m) + decides(m) + benches(m); }
+function tabFormation(m) { return pitch(m) + byLine(m) + decides(m) + benches(m); }
 function tabList(m) {
   const tot = T => ({ now: sumOf(T.players.filter(x => x.started), 'pts'), proj: T.proj });
   const a = tot(m.tl), b = tot(m.tr), pre = m.ph === 'pre' || m.ph === 'locked';
   const groups = ['GKP', 'DEF', 'MID', 'FWD'].map(pos => '<div class="md-lg">' + POSL[pos] + '</div>' + pairRows(m, pos)).join('');
   const totals = '<div class="md-h2h md-tot"><div class="md-hc"><b>Total</b></div><div class="md-hm"><span class="md-hv"><b class="n' + (m.mine ? ' you-c' : '') + '">' + (pre ? M.f1(a.proj) : m.sl) + '</b>' + (!pre && !m.final && M.hasProj() ? '<small class="n">' + M.f1(a.proj) + '</small>' : '') + '</span><span class="md-hv"><b class="n">' + (pre ? M.f1(b.proj) : m.sr) + '</b>' + (!pre && !m.final && M.hasProj() ? '<small class="n">' + M.f1(b.proj) + '</small>' : '') + '</span></div><div class="md-hc r"><b>Total</b></div></div>';
-  return '<p class="md-cap top">' + (pre ? 'Projected points per player. Bubbles turn live at kick-off.' : 'Points now, projected final underneath while a match is on.') + '</p>'
-    + '<div class="card md-list">' + groups + totals + '</div>' + benches(m);
+  return '<div class="card md-list">' + groups + totals + '</div>' + benches(m);
 }
 
 /* paired stat bars, FotMob style: the leader's number filled */
@@ -224,7 +217,7 @@ function tabStats(m) {
     r += statRow('Goals', a.goals, b.goals, d1) + statRow('Assists', a.assists, b.assists, d1) + statRow('Clean sheets', a.cs, b.cs, d1) + statRow('Appearance', a.app, b.app, d1)
       + statRow('Defensive contributions', a.defcon, b.defcon, d1) + statRow('Saves', a.saves, b.saves, d1) + statRow('Bonus', a.bonus, b.bonus, d1)
       + statRow('Goals conceded', a.gc, b.gc, d1) + statRow('Cards', a.cards, b.cards, d1);
-    out.push(sec('Where the prediction comes from', r, 'Projected points by source, summed over each likely XI. Goals conceded and cards count against.'));
+    out.push(sec('Where the prediction comes from', r, ''));
     out.push(sec('Minutes', statRow('Expected minutes', a.emin, b.emin) + statRow('Average chance to start', a.n ? 100 * a.ps / a.n : 0, b.n ? 100 * b.ps / b.n : 0, v => M.int(v) + '%'), ''));
   } else {
     const A = m.tl, B = m.tr, g = (T, k) => rowsSum(T, r => num(r[k]));
@@ -240,13 +233,13 @@ function tabStats(m) {
       + statRow('Yellow cards', g(A, 'YC'), g(B, 'YC'), null, { lowWins: true })
       + statRow('Minutes played', g(A, 'Mins'), g(B, 'Mins'));
     if (!m.final) r += statRow('Players still to play', A.toPlay.length, B.toPlay.length) + statRow('Playing now', A.playing.length, B.playing.length);
-    out.push(sec('This gameweek', r, Object.keys(D.pbonus || {}).length ? 'Bonus includes provisional bonus, estimated from live BPS until FPL adds it.' : ''));
+    out.push(sec('This gameweek', r, Object.keys(D.pbonus || {}).length ? 'Bonus includes provisional bonus until FPL confirms it.' : ''));
     if (D.hasXP && (A.done.length + B.done.length)) {
       /* the same lens as luckAgg(): effective XI (locked subs), GW Stats points minus bonus against xpOf() */
       const ax = T => { const rs = T.xiL.filter(p => fxStarted(p.Club)).map(p => (D.gwsCur || {})[String(p.Code)]).filter(r2 => r2 && num(r2.Mins) > 0); const act = rs.reduce((s, r2) => s + num(r2.Pts) - num(r2.Bonus), 0), xp = rs.reduce((s, r2) => s + xpOf(r2), 0); return { act, xp, n: rs.filter(r2 => num(r2.Mins) > 0).length }; };
       const a = ax(A), b = ax(B);
       const tile = (T, v, cls) => '<div class="md-t2"><span class="k">' + esc(M.who(m, T.t)) + '</span><b class="n ' + cls + '">' + M.signed(v.act - v.xp) + '</b><span class="sub">' + M.int(v.act) + ' actual · ' + M.f1(v.xp) + ' xP</span><span class="sub">' + v.n + ' played</span></div>';
-      out.push(UI.sh('Actual v expected') + '<div class="card pad"><div class="md-tiles2">' + tile(A, a, m.mine ? 'you-c' : '') + tile(B, b, m.mine ? 'opp-c' : '') + '</div><p class="sub md-p">Points scored by players who have played, bonus excluded, against what their performances deserved. Above zero means running hot. Switch the pitch bubbles to xP on the Formation tab.</p></div>');
+      out.push(UI.sh('Actual v expected') + '<div class="card pad"><div class="md-tiles2">' + tile(A, a, m.mine ? 'you-c' : '') + tile(B, b, m.mine ? 'opp-c' : '') + '</div></div>');
     }
   }
   /* minutes risk and who plays whom, from the engine's matchup block */
@@ -255,7 +248,7 @@ function tabStats(m) {
   if (d.risk) {
     const R = flipped ? [d.risk[1], d.risk[0]] : d.risk;
     const col = (L, t) => '<div class="md-rk">' + (L.length ? L.map(o => '<div class="md-rkr" data-open="player:' + esc(o.p.Code) + '" role="button" tabindex="0">' + UI.face(o.p, 26) + '<span class="ell">' + esc(o.p.Player) + '</span><b class="n">' + Math.round(o.ps * 100) + '%</b></div>').join('') : '<span class="sub">None</span>') + '</div>';
-    out.push(UI.sh('Minutes risk', { aside: 'chance to start' }) + '<div class="card md-rks"><div class="md-shd"><span>' + esc(short(m.L)) + '</span><span>' + esc(short(m.R)) + '</span></div><div class="md-rkc">' + col(R[0], m.L) + col(R[1], m.R) + '</div><div class="foot">Starters the model gives under a 70% chance to start, or carrying an FPL flag' + (m.ph === 'live' ? ', among those yet to kick off' : '') + '.</div></div>');
+    out.push(UI.sh('Minutes risk', { aside: 'chance to start' }) + '<div class="card md-rks"><div class="md-shd"><span>' + esc(short(m.L)) + '</span><span>' + esc(short(m.R)) + '</span></div><div class="md-rkc">' + col(R[0], m.L) + col(R[1], m.R) + '</div></div>');
   }
   if (d.clash) {
     out.push(UI.sh('Who plays whom') + '<div class="card md-clash">' + d.clash.map(o => {
@@ -263,7 +256,7 @@ function tabStats(m) {
       const L = flipped ? o.a : o.h, R = flipped ? o.h : o.a;
       const names = l => l.map(p => esc(p.Player)).join(', ');
       return '<div class="md-cl"><span class="l">' + UI.stack(L, 24, 3) + '<span class="sub">' + names(L) + '</span></span><b class="md-clm"><span>' + esc(x.Home) + ' <i>v</i> ' + esc(x.Away) + '</span><span class="sub' + (inPlay ? ' live-c' : '') + '">' + (inPlay ? Math.round(num(x.Mins)) + '’' : esc(M.tKo(M.koOf(x)))) + '</span></b><span class="r">' + UI.stack(R, 24, 3) + '<span class="sub">' + names(R) + '</span></span></div>';
-    }).join('') + '<div class="foot">Premier League games with starters from both sides.</div></div>');
+    }).join('') + '</div>');
   }
   return out.join('');
 }
@@ -313,14 +306,6 @@ function tabHistory(m) {
 }
 
 /* ---------- the page body ---------- */
-/* Malcolm's chapter on this matchup, when the Gameweek Show covers it */
-function watchChip(m) {
-  let s = null; try { s = shows().find(x => x.gw === D.gw); } catch (e) { }
-  if (!s || m.final) return '';
-  const ci = s.j.chapters.findIndex(c => (c.home === m.f.Home && c.away === m.f.Away) || (c.home === m.f.Away && c.away === m.f.Home));
-  if (ci < 0) return '';
-  return '<button class="md-watch" data-fx="showch:' + s.gw + '|' + ci + '">' + UI.icon('play', 13) + '<span>Watch Malcolm’s preview of this one</span></button>';
-}
 export function render(args) {
   const fx = M.gwFx();
   if (!fx.length) return '<div style="height:12px"></div>' + UI.empty('No matchups this gameweek', 'The fixtures for Gameweek ' + D.gw + ' aren’t in the sheet yet.');
@@ -329,7 +314,7 @@ export function render(args) {
   const m = M.mx(i);
   const tabs = [['formation', 'Formation'], ['list', 'List'], ['stats', 'Stats'], ['history', 'History']];
   const body = ST.tab === 'list' ? tabList(m) : ST.tab === 'stats' ? tabStats(m) : ST.tab === 'history' ? tabHistory(m) : tabFormation(m);
-  return fixtureChips(i) + header(m) + watchChip(m)
+  return fixtureChips(i) + header(m)
     + '<div class="seg md-seg" role="tablist">' + tabs.map(([k, l]) => '<button role="tab" data-md-tab="' + k + '" aria-selected="' + (ST.tab === k) + '" class="' + (ST.tab === k ? 'on' : '') + '">' + l + '</button>').join('') + '</div>'
     + '<div class="md-tab">' + body + '</div>';
 }
