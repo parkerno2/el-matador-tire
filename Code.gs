@@ -1,6 +1,6 @@
 /*******************************************************
  * EL MATADOR TIRE — FPL Draft League 45380 · 2026/27
- * Google Sheet + Apps Script · v3.31 (the Player of the Month month written as text) · v3.30 (the Player of the Month card fills itself) · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
+ * Google Sheet + Apps Script · v3.32 (the feed posts checked: complete, counted, true to the facts, no number jokes) · v3.31 (the Player of the Month month written as text) · v3.30 (the Player of the Month card fills itself) · v3.29 (the feed writer's daily floor) · v3.28 (the Gameweek Show in dry British commentary) · v3.27 (the voicing cap counts per script version) · v3.26 (the Gameweek Show on ElevenLabs v4 Turbo, with audio tags for emotion) · v3.25 (ElevenLabs credits guarded: balance, per-gameweek cap, no retries while out) · v3.24 (the Gameweek Show: only current takes, captions in sync) · v3.23 (the research gets its room and says when it ran out) · v3.22 (the Clubs tab mirrors FPL's difficulty ratings) · v3.21 (per-fixture BPS: provisional bonus in a double gameweek) · v3.20 (the writers and the Claude 5.5 models: no more cut-off replies) · v3.19 (waiver times and order in the sheet) · v3.18 (errors reported by phones) · v3.17 (?health=1 data: the last refresh, the live window) · v3.16 (self-update from the tested release branch) · v3.15 (facts without phones: the Facts bot) · v3.14 (articles publish themselves; live rewrites) · v3.13 (articles write themselves; model chains) · v3.12 (the show writes itself; Code.gs updates itself) · v3.11 (the Gameweek Show: voice clips from ElevenLabs) · v3.10 (the rumour mill; fewer, better AI posts) · v3.9 (the AI writer) · v3.8 (social: quotes, reactions, votes)
  *
  * SETUP (one time):
  *   1. Extensions → Apps Script → paste into Code.gs
@@ -9,6 +9,25 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.32 · 11 Oct 2026
+ *   The feed posts are checked before they are kept (P1, the polish pass; Parker, 11 Oct 2026, after the release-readiness
+ *   review of the demo's Feed: "Still agreed on the feed too"). The demo showed a voice post cut off mid-word ("Waivers
+ *   close in 15 hours. Expect movemen"), a post that said "Five free agents" and listed six names, Malcolm saying
+ *   "Neither has won this series yet" while the head-to-head he was given read 4-3, and Malcolm joking "put $30 on
+ *   October with a 9% model". aiWrite keeps a post only when aiPostProblem finds nothing wrong with it; a dropped post
+ *   is logged with its reason and counted in ?health=1 ai.last.dropped (the reasons in ai.last.drops). The voices'
+ *   characters, prompts and lanes are as they were; one rule (10) is added to the writer's system prompt saying the same.
+ *   1. Complete: a reply the token budget ended (stop_reason max_tokens) keeps nothing; a post must end a sentence
+ *      (. ! ? or a closing quote or bracket after one), so a text cut by the model or by the 300-character cap is dropped.
+ *   2. Counted: a count word before a plural noun ("five free agents", "3 managers") must match the names it introduces:
+ *      the names are the players, teams and managers from FACTS, counted in that sentence (and the next when the list
+ *      follows); two or more names that do not add up to the count drop the post.
+ *   3. True to the head-to-head: a post about a fixture whose FACTS carry the series (series_wins, series_draws) may not
+ *      say nobody has won, that it is the first meeting, or that it is level, when the series says otherwise; may not put
+ *      the side with fewer wins in the lead; and a score it gives for the series (4-3) must be the series' own.
+ *   4. No number jokes (the Gameweek Show's rule, TONE.md, now for every feed voice): a post never carries a percentage,
+ *      odds, a stake or a currency amount, or betting language (bet, odds, stake, wager, bookies, a fiver, a tenner).
+ *   5. An en dash in a post reads as a comma, as the em dash already did.
  * v3.31 · 10 Oct 2026
  *   The Player of the Month month is written as text (an outage fix). v3.30's first write put 'September 2026' into
  *   the Specials tab's 'POTM month' cell and Sheets parsed it into a date, so column B was typed as a date: gviz without
@@ -1877,6 +1896,7 @@ var EMT_AI_SYSTEM = [
   '7. Each post takes a different angle. Answer with JSON only: {"posts":[{"voice":"...","text":"...","teams":["exact team names"],"thumb":{...}}]}',
   '8. Fewer, better posts. The app already posts the plain facts (results, the table, deals), so only write what a sharp friend in the group chat would: a storyline, a receipt, a callback, a joke that lands. If nothing is worth it, return {"posts":[]}. Never pad.',
   '9. Rumours come from the rumour mill: managers make them up or pass them on. Always present one as a rumour (hearing, apparently, word is), never as fact, and never say who started or passed it unless FACTS names them.',
+  '10. Numbers are facts, never jokes: no joke built on a model percentage, odds, a score or a margin, and never a bet, a stake or a sum of money. A count you write ("five free agents") must match the list that follows it. Say about a head-to-head only what FACTS says: who leads it and by how much. Every post ends as a complete sentence.',
   ''
 ].concat(EMT_TONE_LINES).join('\n');
 
@@ -2159,6 +2179,113 @@ function emtModelParams(model, mode) {
 /* a 400 that names a thinking or effort parameter: the model does not take it; the call is made once more without */
 function emtParamRefused(code, msg) { return code === 400 && /thinking|output_config|effort/i.test(String(msg || '')); }
 
+/* ---------- v3.32: a post is kept only when nothing is wrong with it (P1, Parker, 11 Oct 2026) ---------- */
+var EMT_AI_COUNT_WORDS = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+var EMT_AI_COUNT_NOUNS = /^(?:(?:[a-z-]+\s+){0,2}?)(free agents?|players?|names?|managers?|teams?|sides?|moves?|claims?|pickups?|pick-ups?|signings?|picks?|transfers?|keepers?|goalkeepers?|defenders?|midfielders?|forwards?|strikers?|wingers?|options?|starters?|benchings?|absentees?|doubts?|flags?)\b/i;
+var EMT_AI_ODDS_RE = /(?:\d+(?:\.\d+)?\s?%|%\s?\d+|\bper ?cent\b|\bpercent(?:age)?\b|[$£€]\s?\d+(?:[.,]\d+)?|\d+\s?(?:dollars?|quid|pounds?|bucks?)\b|\bodds\b|\bbet(?:s|ting|ted)?\b|\bwager(?:s|ed)?\b|\bstakes?\b|\bbookies?\b|\bbookmakers?\b|\bpunt(?:s|ers?)?\b|\bacc(?:a|umulator)s?\b|\bparlays?\b|\ba fiver\b|\ba tenner\b)/i;
+/* every name in FACTS worth counting or matching: players, teams and managers (and the league's own teams and first names) */
+function aiFactNames(facts) {
+  var names = {}, keys = { player: 1, team: 1, manager: 1, 'in': 1, out: 1, home: 1, away: 1, started_by: 1, name: 1 };
+  var walk = function (v, k) {
+    if (v == null) return;
+    if (Array.isArray(v)) { v.forEach(function (x) { walk(x, k); }); return; }
+    if (typeof v === 'object') { Object.keys(v).forEach(function (kk) { walk(v[kk], kk); }); return; }
+    if (typeof v === 'string' && keys[k] && v.length > 1 && v.length < 40 && !/^\d+$/.test(v)) names[v] = 1;
+  };
+  walk(facts, '');
+  try { aiLeague().table.forEach(function (t) { names[t.team] = 1; if (t.manager) names[t.manager] = 1; }); } catch (e) { }
+  return Object.keys(names).sort(function (a, b) { return b.length - a.length; });
+}
+function aiNameRe(name) { return new RegExp('(?:^|[^A-Za-zÀ-ɏ])' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=$|[^A-Za-zÀ-ɏ])'); }
+/* the distinct names of the list found in a piece of text */
+function aiNamesIn(text, names) {
+  var t = ' ' + String(text || '') + ' ', found = [];
+  names.forEach(function (n) {
+    if (!aiNameRe(n).test(t)) return;
+    if (found.some(function (f) { return f !== n && f.indexOf(n) > -1; })) return;   /* "Parker" inside "Parker Nolan" counts once */
+    found.push(n); t = t.replace(aiNameRe(n), ' ');
+  });
+  return found;
+}
+/* 1. a post ends a sentence: . ! or ?, with a closing quote or bracket allowed after it */
+function aiSentenceOk(text) { return /[.!?…]["'”’)\]]?$/.test(String(text || '').trim()); }
+/* 2. a count word before a plural noun matches the names it introduces; '' when it does, else the problem */
+function aiCountProblem(text, names) {
+  var t = String(text || ''), re = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|[2-9]|1[0-2])\s+([a-z-]+(?:\s+[a-z-]+){0,2})/gi, m;
+  var sentences = [], sre = /[^.!?]+[.!?]*/g, sm;
+  while ((sm = sre.exec(t))) sentences.push({ at: sm.index, end: sm.index + sm[0].length });
+  while ((m = re.exec(t))) {
+    var nm = m[2].match(EMT_AI_COUNT_NOUNS); if (!nm) continue;                    /* the noun within three words of the count */
+    var n = EMT_AI_COUNT_WORDS[m[1].toLowerCase()] || Number(m[1]), seg = '', from = m.index + m[0].length - m[2].length + nm.index + nm[0].length;
+    for (var i = 0; i < sentences.length; i++) {
+      if (m.index < sentences[i].at || m.index >= sentences[i].end) continue;
+      seg = t.slice(from, sentences[i].end);                                        /* the rest of this sentence */
+      if (aiNamesIn(seg, names).length < 2 && sentences[i + 1]) seg += ' ' + t.slice(sentences[i + 1].at, sentences[i + 1].end);   /* the list may follow */
+      break;
+    }
+    var listed = aiNamesIn(seg, names);
+    if (listed.length >= 2 && listed.length !== n) return 'says ' + m[1] + ' ' + nm[1] + ' and names ' + listed.length + ' (' + listed.join(', ') + ')';
+  }
+  return '';
+}
+/* 3. a post agrees with the head-to-head it was given: the fixtures in FACTS that carry series_wins */
+function aiSeriesFixtures(facts) {
+  var out = [], walk = function (v) {
+    if (!v || typeof v !== 'object') return;
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    if (v.series_wins && typeof v.series_wins === 'object' && v.home && v.away) out.push(v);
+    Object.keys(v).forEach(function (k) { walk(v[k]); });
+  };
+  walk(facts); return out;
+}
+function aiSeriesProblem(text, facts) {
+  var fx = aiSeriesFixtures(facts); if (!fx.length) return '';
+  var t = String(text || ''), L = null, first = function (team) { try { L = L || aiLeague(); return L.first(team); } catch (e) { return team; } };
+  for (var i = 0; i < fx.length; i++) {
+    var f = fx[i], a = f.home, b = f.away, wa = Number(f.series_wins[a]) || 0, wb = Number(f.series_wins[b]) || 0, d = Number(f.series_draws) || 0;
+    var sides = [{ team: a, names: [a, first(a)], w: wa, o: wb }, { team: b, names: [b, first(b)], w: wb, o: wa }];
+    var named = sides.filter(function (sd) { return sd.names.some(function (n) { return n && aiNameRe(n).test(' ' + t + ' '); }); });
+    if (!named.length && fx.length > 1) continue;                         /* a post about another fixture */
+    var played = wa + wb + d, label = a + ' ' + wa + '-' + wb + ' ' + b + (d ? ' (' + d + ' drawn)' : '');
+    if (played && /\b(?:first(?: ever)? meeting|never (?:met|played(?: each other)?)|yet to meet|no history)\b/i.test(t)) return 'calls it a first meeting; the series is ' + label;
+    if ((wa || wb) && /\b(?:neither|nobody|no one|no-one|none of them|no side|neither side|neither of them)\b[^.!?]{0,40}\b(?:won|win|beaten|victory|wins)\b/i.test(t)) return 'says nobody has won; the series is ' + label;
+    if ((wa || wb) && /\b(?:winless|yet to (?:win|be won)|without a win(?:ner)?)\b/i.test(t) && !named.length) return 'says nobody has won; the series is ' + label;
+    if (wa !== wb && /\b(?:all square|honours even|level(?: pegging)?|dead level|tied|even stevens|deadlock(?:ed)?)\b[^.!?]{0,40}\b(?:series|head[- ]to[- ]head|h2h|record|meetings|history|between)\b|\b(?:series|head[- ]to[- ]head|h2h|record|history)\b[^.!?]{0,40}\b(?:all square|honours even|level|tied|even|deadlocked)\b/i.test(t)) return 'calls the series level; it is ' + label;
+    for (var k = 0; k < sides.length; k++) {
+      var sd = sides[k];
+      for (var q = 0; q < sd.names.length; q++) {
+        var n = sd.names[q]; if (!n) continue;
+        var esc = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (sd.w <= sd.o && new RegExp(esc + "(?:'s)?\\b[^.!?]{0,30}\\b(?:leads?|ahead|in front|has the edge|edges?|on top|owns?|unbeaten against|never lost to)\\b", 'i').test(t) && (sd.w < sd.o || /\b(?:leads?|ahead|in front|on top)\b/i.test(t))) return 'puts ' + n + ' in front; the series is ' + label;
+        if (sd.w > 0 && new RegExp(esc + "\\b[^.!?]{0,30}\\b(?:never (?:won|beaten)|yet to (?:win|beat)|winless|without a win|hasn't won|has not won|haven't won|have not won)\\b", 'i').test(t)) return 'says ' + n + ' has never won; the series is ' + label;
+      }
+    }
+    var pair, pre = /\b(\d{1,2})-(\d{1,2})\b/g;
+    while ((pair = pre.exec(t))) {
+      var st = t.lastIndexOf('.', pair.index), sent = t.slice(st < 0 ? 0 : st, t.indexOf('.', pair.index) < 0 ? t.length : t.indexOf('.', pair.index) + 1);
+      if (!/\b(?:series|head[- ]to[- ]head|h2h|record|meetings?|all[- ]time|leads?|lead|derby)\b/i.test(sent)) continue;
+      var x = Number(pair[1]), y = Number(pair[2]);
+      if (JSON.stringify(facts).indexOf(pair[0]) > -1) continue;               /* a match score FACTS carry (the last meeting) */
+      if (!((x === wa && y === wb) || (x === wb && y === wa))) return 'gives the series as ' + pair[0] + '; it is ' + label;
+    }
+  }
+  return '';
+}
+/* 4. no number jokes: a percentage, odds, a stake, money or betting language never appears in a post */
+function aiOddsProblem(text) { var m = String(text || '').match(EMT_AI_ODDS_RE); return m ? 'odds, money or a percentage (' + m[0].trim() + ')' : ''; }
+/* the one answer: '' when the post is fine, else why it is dropped */
+function aiPostProblem(text, ev, names) {
+  if (!aiSentenceOk(text)) return 'does not end a sentence';
+  return aiOddsProblem(text) || aiCountProblem(text, names) || aiSeriesProblem(text, ev && ev.facts) || '';
+}
+
+/* v3.32: a dropped post is logged with its reason and counted for ?health=1 ai.last (EMT_AI_DROPS is this run's list) */
+var EMT_AI_DROPS = [];
+function aiDrop(ev, why, text, raw) {
+  EMT_AI_DROPS.push(((ev && ev.voice) || (ev && ev.type) || 'post') + ': ' + why);
+  Logger.log(raw ? 'AI post dropped: ' + JSON.stringify(raw) + ' (' + why + ')' : 'AI post dropped (' + why + '): ' + String(text || '').slice(0, 300));
+}
+
 /* ---------- one call to Claude, checked before anything is kept ---------- */
 function aiWrite(ev) {
   var mem = aiMemory(ev), facts = JSON.stringify(ev.facts);
@@ -2185,17 +2312,20 @@ function aiWrite(ev) {
   }
   if (code !== 200) throw new Error('Claude API ' + code + ': ' + String(body).slice(0, 200));
   var j = JSON.parse(body), txt = ((j.content || []).filter(function (c) { return c.type === 'text'; })[0] || {}).text || '';
+  if (j.stop_reason === 'max_tokens') { aiDrop(ev, 'the reply was cut off by the token budget', txt.slice(-80)); return []; }   /* v3.32: nothing half-written is kept */
   var m = txt.match(/\{[\s\S]*\}/); if (!m) return [];
   var out = (JSON.parse(m[0]).posts || []).slice(0, ev.n);
-  var allowed = facts + '\n' + mem, teams = aiLeague().table.map(function (t) { return t.team; });
+  var allowed = facts + '\n' + mem, teams = aiLeague().table.map(function (t) { return t.team; }), names = aiFactNames(ev.facts);
   var numsOk = function (s) { return (String(s).match(/\d+(?:\.\d+)?/g) || []).every(function (n) { return allowed.indexOf(n) > -1; }); };
   return out.map(function (p) {
-    var voice = String(p.voice || '').toLowerCase(), text = emtClean(p.text, 300).replace(/—/g, ',');
-    if (EMT_AI_VOICES.indexOf(voice) < 0 || text.length < 15 || !numsOk(text) || (ev.voice && voice !== ev.voice)) { Logger.log('AI post dropped: ' + JSON.stringify(p)); return null; }   /* v3.29: a lane post is in its voice */
+    var voice = String(p.voice || '').toLowerCase(), text = emtClean(p.text, 300).replace(/[—–]/g, ',');
+    if (EMT_AI_VOICES.indexOf(voice) < 0 || text.length < 15 || !numsOk(text) || (ev.voice && voice !== ev.voice)) { aiDrop(ev, 'voice, length or a number not in FACTS', text, p); return null; }   /* v3.29: a lane post is in its voice */
+    var why = aiPostProblem(text, ev, names);                                      /* v3.32 */
+    if (why) { aiDrop(ev, why, text); return null; }
     var th = null;
     if (voice === 'clark' && p.thumb && p.thumb.t1) {
       th = { t1: emtClean(p.thumb.t1, 22).toUpperCase(), t2: emtClean(p.thumb.t2, 26).toUpperCase(), lo: emtClean(p.thumb.lo, 26).toUpperCase() };
-      if (!numsOk(th.t1 + ' ' + th.t2 + ' ' + th.lo)) th = null;
+      if (!numsOk(th.t1 + ' ' + th.t2 + ' ' + th.lo) || aiOddsProblem(th.t1 + ' ' + th.t2 + ' ' + th.lo)) th = null;
     }
     return { voice: voice, text: text, teams: (p.teams || []).filter(function (t) { return teams.indexOf(t) > -1; }).slice(0, 4), thumb: th };
   }).filter(Boolean);
@@ -2226,6 +2356,7 @@ function aiWriterTick() {
   try {
     var S = aiState(), day = new Date().toISOString().slice(0, 10);
     if (S.day !== day) { S.day = day; S.count = 0; }
+    EMT_AI_DROPS = [];                                                               /* v3.32 */
     aiSeedNotes();
     var evs = aiEvents(S).sort(function (a, b) { return a.at - b.at; }), made = 0, sh = emtPostsSheet(), err = '';
     for (var i = 0; i < evs.length; i++) {
@@ -2247,7 +2378,8 @@ function aiWriterTick() {
     var fl = aiFloorTick(S, made, err);
     made += fl.made; if (fl.error) err = err || fl.error;
     /* v3.25: the last run, for ?health=1 ai.last: a quiet day (no event due) and a broken writer read differently */
-    S.last = { at: new Date().toISOString(), events: evs.length, kinds: evs.map(function (e) { return e.type; }).join(','), made: made, error: err, floor: fl.why };
+    S.last = { at: new Date().toISOString(), events: evs.length, kinds: evs.map(function (e) { return e.type; }).join(','), made: made, error: err, floor: fl.why,
+      dropped: EMT_AI_DROPS.length, drops: EMT_AI_DROPS.slice(0, 4) };          /* v3.32: what the checks refused this run */
     aiSaveState(S);
   } finally { lock.releaseLock(); }
 }
@@ -3729,13 +3861,13 @@ function emtApiErr(body) {
  *      (draft, failed or dropped: rewritten with the note, 400 characters at most, from the stored research; v3.14 also
  *      a live article, except in review mode; 3 per article) or drop (a live one is taken down). → { ok, status } |
  *      { ok: false, error }.
- *      GET ?health=1 → { ok, version, self, show, articles: { mode, job, last }, ai: { day, count } }, no secrets.
+ *      GET ?health=1 → { ok, version, self, show, articles: { mode, job, last }, ai: { day, count, last: { ..., dropped, drops } } }, no secrets.
  *   Commissioner: Script Property EMT_COMMISH, else Cold Palmers. EMT_ARTICLES_PAUSED = yes pauses articleTick.
  *   Model: EMT_ARTICLE_MODEL, then claude-sonnet-5-5, claude-opus-5-5, claude-sonnet-4-5.
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.31';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.32';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
