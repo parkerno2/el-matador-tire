@@ -1,0 +1,486 @@
+From d54efbd391145b01f7325d9891104c37c85a65e1 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 11 Oct 2026 16:50:47 +0000
+Subject: [PATCH] Preview: pictures that stay put, the rating backing inside
+ the card, the club code only for a missing badge (Parker, 11 Oct 2026)
+
+Parker, 11 Oct 2026, on his iPhone during GW6, with a screenshot of a player sheet: "The images are still disappearing
+sporadically when I click into someone and when I scroll and what's this weird artifact by the rating area? Also some
+weird text poking through under the man city and Liverpool mini bubbles there."
+
+- BUGS #49: a live refresh redrew the page and the open sheet with innerHTML and threw every picture away (0 of 15 and
+  0 of 18 kept after one reload). src/swap.js swapHTML keeps every loaded <img> (15 of 15, 18 of 18); no filter on the
+  Plate photos; the sheet's Plate decodes its photo before it paints.
+- BUGS #50: the rating's backing reached the card's top edge and stuck out of its cut corner; it starts inside the
+  inner keyline now, its corner cut parallel to the card's, still covering the band the contrast audit reads. The light
+  beam behind the sheet's Plate fades out instead of ending in a line.
+- BUGS #51: the club code under a badge poked out at both sides; it shows only when the badge is missing or fails.
+
+Tests: tests/app-images.js (new), tests/app-contrast.js P3 and C16 updated; the browser half
+fplgg/tools/preview/check-images.js. Every suite passes; the contrast audit with the real fonts finds 0 offenders on 42
+screens. Run report: fplgg/tools/matchweek/docs/runs/2026-10-11-sheet-images.md
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JTueX5iCoHHVi1DWjPjRYc
+---
+ CLAUDE.md                                     |  2 +-
+ fplgg/tools/matchweek/docs/BUGS.md            |  4 +
+ fplgg/tools/matchweek/docs/ROADMAP.md         |  1 +
+ .../docs/runs/2026-10-11-sheet-images.md      | 46 +++++++++
+ .../tools/matchweek/src/css/02-components.css |  8 +-
+ fplgg/tools/matchweek/src/css/60-sheets.css   |  2 +
+ fplgg/tools/matchweek/src/main.js             |  5 +-
+ fplgg/tools/matchweek/src/sheets/kit.js       |  7 +-
+ fplgg/tools/matchweek/src/sheets/player.js    |  4 +-
+ fplgg/tools/matchweek/src/swap.js             | 32 ++++++
+ fplgg/tools/preview/check-images.js           | 67 +++++++++++++
+ tests/app-contrast.js                         |  4 +-
+ tests/app-images.js                           | 97 +++++++++++++++++++
+ 13 files changed, 270 insertions(+), 9 deletions(-)
+ create mode 100644 fplgg/tools/matchweek/docs/runs/2026-10-11-sheet-images.md
+ create mode 100644 fplgg/tools/matchweek/src/swap.js
+ create mode 100644 fplgg/tools/preview/check-images.js
+ create mode 100644 tests/app-images.js
+
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 2d657eb..fb10be2 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -39,7 +39,7 @@ The data lives in the public Google Sheet `1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZi
+ - **Testing before you push:**
+   - App: test changes with `cd fplgg/tools/matchweek && npm ci && bash ci-build.sh`.
+   - Code.gs: run `node tests/codegs/<file>.js` for v332, v331, v330, v329, v328, v327, v326, v325, v324, v323, v322, v321, v320, v319, v318, v317, v315, v314, v313, v312, show and test; all must print ALL PASS (test.js prints rows). The CI gate runs the same suites and only a passing commit reaches `release`, which the live script installs within the hour; a red run means the league keeps the previous Code.gs until main is fixed. The gate finds its suites by pattern (`tests/codegs/*.js` and `tests/*.js`, skipping `*harness*` and `*fixtures*`), so a new `tests/*.js` needs no registration anywhere; `tests/codegs/v315.js` checks that pattern, never a list of files.
+-  - App error reporting: `node tests/app-errors.js`. Sheet reader guard and stale banner: `node tests/app-tabs.js`. The data source behind the flag (`?data=supabase`, ROADMAP B3): `node tests/app-data.js`. The engine's provisional bonus (a double gameweek reads the `Fixture BPS` tab): `node tests/app-bonus.js`. The engine's fixture difficulty from the Clubs tab (Str H, Str A): `node tests/app-fdr.js`. Player images (an FPL photo is framed by the head, class `fpl` from the shared chain) and the small Plate (`UI.plateMini`, `UI.plateNum`): `node tests/app-faces.js`. The Lineup list view's club crests (the player's club and the opponent's, from the engine's `badgeImg`): `node tests/app-crests.js`. The Feed's Manager of the Month rules and an article leading only while fresh (`src/feed/curate.js`): `node tests/app-feed.js`. The Gameweek Show's audio contract (only current takes play), caption clock and the rule that a show appears only when every line is voiced (the commissioner sees one line until then): `node tests/app-show.js`. The bottom sheets (`src/sheets/lock.js`: the page behind a sheet locked in place and back at exactly its position; the sheet opaque on its own layer, no backdrop blur inside it, laid out before it slides in): `node tests/app-sheets.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/matchweek/tools/check-sheets.js` (a real scrolled page and a real sheet in Chromium at iPhone size), is not in the gate. The engine's auto-subs describing the XI they return, so a player appears exactly once per team view (BUGS #37): `node tests/app-subs.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/matchweek/tools/check-subs.js --team "Trophy Hunters"` (every matchup and a Lineup in Chromium at 390 px on the live data), is not in the gate. The league's config (`league.json`, `tools/league.js`, the engine's tables from `LEAGUE`, the UI's pot, ROADMAP C1): `node tests/app-league.js`. House ratings (`league.json` `ratings`: `house` rates every player from the FPL projection by his rank among his position and reads no EA tab, the demo's setting; `ea`, El Matador's, keeps the FC27 overall where there is one; ROADMAP C3): `node tests/app-ratings.js`. The demo league's data source, anonymiser and leak check (`src/data/tabs.js` with `__MW_DEMO__`, `fplgg/tools/demo/`): `node tests/app-demo.js`; the headless check of the built demo (`NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/demo/check-headless.js`) is not in the gate. The UI pass of 10 Oct 2026 (the one status badge on every Plate, `UI.plateStatus`; the list chips in three colours; the Matchup page without its legend; the player sheet's order, form colours and folds; the copy pass): `node tests/app-ui.js`. The polish pass of 11 Oct 2026 (P1: the subtitles gone, the one-time intro `src/intro.js`, the Feed's labelled reactions and the voice line, the demo's article cards opening real pages, content text at 11 px or larger, pinch-to-zoom on, the Q4 review's findings): `node tests/app-polish.js`. The design rules (`docs/DESIGN.md`: the tokens' contrast pairs, the stats scope, the Plate's text block, the Gameweek Show's stylesheet, the audit library and its CI wiring): `node tests/app-contrast.js`; the gallery's rules and its CI wiring (`fplgg/tools/gallery/`: the words NaN, undefined and null, the dash rule, a player twice in one team view, the index page, both browsers installed and the gallery run before the Preview and Build workflows publish anything): `node tests/app-gallery.js`; the gallery itself, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/gallery/gallery.js --dir /tmp/mw-demo --out /tmp/mw-gallery --browsers chromium` on a demo built as below (WebKit is not installable in the builder's environment, so the workflow run proves that half), is not in the gate; the headless contrast audit itself (every page, sub-tab and sheet of the built demo at 390 px, every visible text box read against the pixels behind it; `fplgg/tools/contrast/README.md`): `node fplgg/tools/demo/build-demo.js --data site/public/demo/data --out /tmp/mw-demo/demo && NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/contrast/audit.js --dir /tmp/mw-demo`, which the preview and league build workflows run and fail on; the headless check of a built preview on the live data (`NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-headless.js --dir <folder holding preview/> --shots <dir> --width 390`) is not in the gate. The League Overview of 10 Oct 2026 (Parker's Q6: the table with the columns #, crest, Team, W-D-L, PF, Pts, Title and no money, the Manager of the Month race led by the month's real points and updating on every live refresh through `heavy` and `settleHeavy` in `src/pages/league/data.js`): `node tests/app-overview.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-overview.js --dir <folder holding preview/> --width 390 [--shots <dir>]` (the table and the race on the live data, then a rewritten Rosters answer and `MW.reload` to prove the race changes without a page load), is not in the gate. The all-time manager stats of 10 Oct 2026 (Parker's Q5: the earlier seasons in `fplgg/tools/matchweek/history/<season>.json`, keyed by manager code, checked by `tools/history.js` (each manager's weekly scores sum to his PF, the fixtures reproduce the standings, the head-to-heads equal `league.json` `seeded`) and written as the `HISTORY` header after `LEAGUE` by `ci-build.sh`, the preview build and the demo build (anonymised); the model `src/alltime.js` (the history plus this season's finished matches, keyed by code, never by team name); League > All-time (one table sortable by P, W-D-L, Pts, PPM and Avg, the records) and the manager sheet's All-time tab (his line, records, finishes by season, his 2025/26 first pick and best player, his record against every manager he has met, equal to the Derbies series); a team name in the sheet's Seasons table takes two lines and is never cut): `node tests/app-alltime.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-alltime.js --width 360` (every manager sheet's Seasons table on the built demo, the names fully shown, no sideways scroll), is not in the gate. The preview build (`fplgg/tools/preview/build-preview.js`, `.github/workflows/preview.yml`: a push to the `preview` branch publishes that branch's app as `preview/` on main, served at `/el-matador-tire/preview/`; `sw.template.js` passes `/preview/` to the network; `PREVIEW` in `src/data/tabs.js` turns off the service worker, error reports and facts): `node tests/app-preview.js`. The preview build (`fplgg/tools/preview/build-preview.js`, `.github/workflows/preview.yml`: a push to the `preview` branch publishes that branch's app as `preview/` on main, served at `/el-matador-tire/preview/`; `sw.template.js` passes `/preview/` to the network; `PREVIEW` in `src/data/tabs.js` turns off the service worker, error reports and facts): `node tests/app-preview.js`. An engine change goes in `src-prod/` (`base.js`, `v10.js`, `v12.js`) and `core.gen.js` alike (the extractor `tools/extract.js` drops standalone comments, so keep the two files in step by hand). The operator docs (`docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`, the root README: every path, Script Property, function, action, tab, workflow and menu item they name exists in the code): `node tests/app-docs.js`. Monitor: `node tests/monitor.js`. Supabase parity report: `node tests/parity.js`. matchweek.gg's setup wizard and landing page (nothing called live, no link to the app, the beta promises as they are, no em or en dash in the copy; S1): `node tests/site.js`. The Supabase folder and the ingest's transform (the functions and config in step, no key, additive migrations, the tabs' columns): `node tests/supabase.js`. matchweek.gg Worker: `node tests/worker.js`. The status page (its script run against a crafted `?health=1`): `node tests/status.js`. The CI gate runs all of these too.
++  - App error reporting: `node tests/app-errors.js`. Sheet reader guard and stale banner: `node tests/app-tabs.js`. The data source behind the flag (`?data=supabase`, ROADMAP B3): `node tests/app-data.js`. The engine's provisional bonus (a double gameweek reads the `Fixture BPS` tab): `node tests/app-bonus.js`. The engine's fixture difficulty from the Clubs tab (Str H, Str A): `node tests/app-fdr.js`. Player images (an FPL photo is framed by the head, class `fpl` from the shared chain) and the small Plate (`UI.plateMini`, `UI.plateNum`): `node tests/app-faces.js`. The Lineup list view's club crests (the player's club and the opponent's, from the engine's `badgeImg`): `node tests/app-crests.js`. The Feed's Manager of the Month rules and an article leading only while fresh (`src/feed/curate.js`): `node tests/app-feed.js`. The Gameweek Show's audio contract (only current takes play), caption clock and the rule that a show appears only when every line is voiced (the commissioner sees one line until then): `node tests/app-show.js`. The bottom sheets (`src/sheets/lock.js`: the page behind a sheet locked in place and back at exactly its position; the sheet opaque on its own layer, no backdrop blur inside it, laid out before it slides in): `node tests/app-sheets.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/matchweek/tools/check-sheets.js` (a real scrolled page and a real sheet in Chromium at iPhone size), is not in the gate. Pictures that stay put (Parker, 11 Oct 2026, iPhone: photos disappearing on live refreshes and scroll, the rating backing sticking out of the Plate, the club code poking out beside a badge; BUGS #49 to #51): a redraw of the page or a sheet goes through `src/swap.js` `swapHTML`, which keeps every loaded `<img>` (never `innerHTML` straight onto the page or a sheet), no CSS filter on a Plate photo, the sheet's Plate decoded synchronously, the club code shown only for a missing badge, the rating backing inside the card's inner keyline: `node tests/app-images.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-images.js [--stub-images]` (a refresh on the built demo keeps every picture as the same element), is not in the gate. The engine's auto-subs describing the XI they return, so a player appears exactly once per team view (BUGS #37): `node tests/app-subs.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/matchweek/tools/check-subs.js --team "Trophy Hunters"` (every matchup and a Lineup in Chromium at 390 px on the live data), is not in the gate. The league's config (`league.json`, `tools/league.js`, the engine's tables from `LEAGUE`, the UI's pot, ROADMAP C1): `node tests/app-league.js`. House ratings (`league.json` `ratings`: `house` rates every player from the FPL projection by his rank among his position and reads no EA tab, the demo's setting; `ea`, El Matador's, keeps the FC27 overall where there is one; ROADMAP C3): `node tests/app-ratings.js`. The demo league's data source, anonymiser and leak check (`src/data/tabs.js` with `__MW_DEMO__`, `fplgg/tools/demo/`): `node tests/app-demo.js`; the headless check of the built demo (`NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/demo/check-headless.js`) is not in the gate. The UI pass of 10 Oct 2026 (the one status badge on every Plate, `UI.plateStatus`; the list chips in three colours; the Matchup page without its legend; the player sheet's order, form colours and folds; the copy pass): `node tests/app-ui.js`. The polish pass of 11 Oct 2026 (P1: the subtitles gone, the one-time intro `src/intro.js`, the Feed's labelled reactions and the voice line, the demo's article cards opening real pages, content text at 11 px or larger, pinch-to-zoom on, the Q4 review's findings): `node tests/app-polish.js`. The design rules (`docs/DESIGN.md`: the tokens' contrast pairs, the stats scope, the Plate's text block, the Gameweek Show's stylesheet, the audit library and its CI wiring): `node tests/app-contrast.js`; the gallery's rules and its CI wiring (`fplgg/tools/gallery/`: the words NaN, undefined and null, the dash rule, a player twice in one team view, the index page, both browsers installed and the gallery run before the Preview and Build workflows publish anything): `node tests/app-gallery.js`; the gallery itself, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/gallery/gallery.js --dir /tmp/mw-demo --out /tmp/mw-gallery --browsers chromium` on a demo built as below (WebKit is not installable in the builder's environment, so the workflow run proves that half), is not in the gate; the headless contrast audit itself (every page, sub-tab and sheet of the built demo at 390 px, every visible text box read against the pixels behind it; `fplgg/tools/contrast/README.md`): `node fplgg/tools/demo/build-demo.js --data site/public/demo/data --out /tmp/mw-demo/demo && NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/contrast/audit.js --dir /tmp/mw-demo`, which the preview and league build workflows run and fail on; the headless check of a built preview on the live data (`NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-headless.js --dir <folder holding preview/> --shots <dir> --width 390`) is not in the gate. The League Overview of 10 Oct 2026 (Parker's Q6: the table with the columns #, crest, Team, W-D-L, PF, Pts, Title and no money, the Manager of the Month race led by the month's real points and updating on every live refresh through `heavy` and `settleHeavy` in `src/pages/league/data.js`): `node tests/app-overview.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-overview.js --dir <folder holding preview/> --width 390 [--shots <dir>]` (the table and the race on the live data, then a rewritten Rosters answer and `MW.reload` to prove the race changes without a page load), is not in the gate. The all-time manager stats of 10 Oct 2026 (Parker's Q5: the earlier seasons in `fplgg/tools/matchweek/history/<season>.json`, keyed by manager code, checked by `tools/history.js` (each manager's weekly scores sum to his PF, the fixtures reproduce the standings, the head-to-heads equal `league.json` `seeded`) and written as the `HISTORY` header after `LEAGUE` by `ci-build.sh`, the preview build and the demo build (anonymised); the model `src/alltime.js` (the history plus this season's finished matches, keyed by code, never by team name); League > All-time (one table sortable by P, W-D-L, Pts, PPM and Avg, the records) and the manager sheet's All-time tab (his line, records, finishes by season, his 2025/26 first pick and best player, his record against every manager he has met, equal to the Derbies series); a team name in the sheet's Seasons table takes two lines and is never cut): `node tests/app-alltime.js`; the browser half, `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-alltime.js --width 360` (every manager sheet's Seasons table on the built demo, the names fully shown, no sideways scroll), is not in the gate. The preview build (`fplgg/tools/preview/build-preview.js`, `.github/workflows/preview.yml`: a push to the `preview` branch publishes that branch's app as `preview/` on main, served at `/el-matador-tire/preview/`; `sw.template.js` passes `/preview/` to the network; `PREVIEW` in `src/data/tabs.js` turns off the service worker, error reports and facts): `node tests/app-preview.js`. The preview build (`fplgg/tools/preview/build-preview.js`, `.github/workflows/preview.yml`: a push to the `preview` branch publishes that branch's app as `preview/` on main, served at `/el-matador-tire/preview/`; `sw.template.js` passes `/preview/` to the network; `PREVIEW` in `src/data/tabs.js` turns off the service worker, error reports and facts): `node tests/app-preview.js`. An engine change goes in `src-prod/` (`base.js`, `v10.js`, `v12.js`) and `core.gen.js` alike (the extractor `tools/extract.js` drops standalone comments, so keep the two files in step by hand). The operator docs (`docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`, the root README: every path, Script Property, function, action, tab, workflow and menu item they name exists in the code): `node tests/app-docs.js`. Monitor: `node tests/monitor.js`. Supabase parity report: `node tests/parity.js`. matchweek.gg's setup wizard and landing page (nothing called live, no link to the app, the beta promises as they are, no em or en dash in the copy; S1): `node tests/site.js`. The Supabase folder and the ingest's transform (the functions and config in step, no key, additive migrations, the tabs' columns): `node tests/supabase.js`. matchweek.gg Worker: `node tests/worker.js`. The status page (its script run against a crafted `?health=1`): `node tests/status.js`. The CI gate runs all of these too.
+   - Facts bot: `node tests/factsbot.js` (and `NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/factsbot/factsbot.js --out /tmp/facts` runs it for real against the live app).
+   - Run `node --check` on a `.js` copy of Code.gs.
+ 
+diff --git a/fplgg/tools/matchweek/docs/BUGS.md b/fplgg/tools/matchweek/docs/BUGS.md
+index 289465b..20eca7a 100644
+--- a/fplgg/tools/matchweek/docs/BUGS.md
++++ b/fplgg/tools/matchweek/docs/BUGS.md
+@@ -41,6 +41,9 @@ How to use it:
+ 
+ ## Closed
+ 
++- **#49 P1: player photos blanked on live refreshes and on scroll (iPhone).** Parker, 11 Oct 2026, 16:27 UTC, GW6 live (LIV v MCI at 45'), with a screenshot of Ndiaye's sheet: "The images are still disappearing sporadically when I click into someone and when I scroll." Cause, reproduced in Chromium on the built demo: while a match is on the app reloads every 90 s and `render` and `refreshSheet` (`src/main.js`) redrew the page and the open sheet with innerHTML, which threw away every `<img>`; after one `MW.reload` 0 of 15 pictures on the page and 0 of 18 in a player sheet were the same elements, so the phone fetched and decoded every photo, badge and flag again (the photos lazy or async, blank until decoded; on iOS sometimes until the next scroll). Two iOS costs on top: every Plate photo carried `filter: drop-shadow` (a compositing layer of its own per picture, thirty on a pitch; the same symptom on Rice in the old app was cured by dropping the sheet photo's filter), and the sheet's big Plate decoded its photo asynchronously as it slid in. Closed 11 Oct 2026, manager, on the `preview` branch: `src/swap.js` `swapHTML` moves each loaded picture into the matching slot of the new markup (same src; the new attributes copied over; src never set again), used for the page and the sheet (after one reload: 15 of 15 and 18 of 18 kept); `.fc .face img{filter:none}`; the sheet's Plate decodes synchronously. Tests: `tests/app-images.js`; browser half `fplgg/tools/preview/check-images.js`. Not reproducible off an iPhone: Parker's phone is the final check.
++- **#50 P2: the rating's backing stuck out of the Plate.** Parker, same screenshot: "what's this weird artifact by the rating area". The high-contrast pass (10 Oct) gave the rating a backing box reaching 6% of the card's width above the figure: its top sat at 3.8 cqw, on the card's top edge (4.0) and over its inner keyline (6.31), and its square corner stuck out past the card's cut top left corner. Closed 11 Oct 2026, manager, on the `preview` branch: the backing is `.fc .rt::before`, starting at 7.3 cqw (inside the keyline), its top left corner cut parallel to the card's; it still covers the band of the figure the contrast audit reads (from 8.2 cqw with Saira Condensed). The contrast audit passes on the demo with the real fonts (0 offenders, 42 screens). Also: the light beam behind the sheet's Plate ended in a hard line beside the card; it fades out now (`.ps-beam` mask).
++- **#51 P2: the club code poked out beside the badge in the sheet's chips.** Parker, same screenshot: "some weird text poking through under the man city and Liverpool mini bubbles". `cb` (`src/sheets/kit.js`) put the club code under the badge as a fallback; "MCI" is 21 px wide in an 18 px circle around a 13 px badge, so its letters showed at both sides. Closed 11 Oct 2026, manager, on the `preview` branch: the circle is marked `im` while it holds a badge and the code is hidden there (`.sk-cb.im em`); the badge's own error handler takes the mark off, so a failed badge still shows the code. Everywhere `cb` is used (the player and manager sheets' chips and lists).
+ - **#44 P3: at 360 px six texts were cut that the gallery's clipped-text rule fails (the gate ran at 390 px, where the app was clean).** Closed 11 Oct 2026, builder, on the `preview` branch with the commit "Preview: the polish pass (P1, Parker, 11 Oct 2026)": the search row's name wraps to two lines with its status chip on the line under it, the League > Stats leader line wraps, the auto-pick panel's team name takes two lines, the Feed thread rows' preview is a secondary line, the mini strip's label wraps, the Matchup list name keeps a word whole (the Q4 review's finding 1: "Donnarumm" / "a") with a long surname a size down; the gallery runs at 390 and 360 px in both workflows and fails a word broken across lines; `fplgg/tools/gallery/gallery.js --width 360` read GALLERY OK (84 screens, 0 findings) on the branch's demo build. The finding as it was: Found 11 Oct 2026 by the builder with the Q4 gallery (`fplgg/tools/gallery/gallery.js --width 360 --states snap`, Chromium, the committed demo snapshot of 10 Oct 21:38 UTC): Matchday overview, the Feed card's mini auto-pick strip `span.f-mono` "TEAM SHEETS" cut by 4 px; League > Stats, the leader line `div.top span.tx span` "Owen Whitlock · 2nd" (a fictional name) cut by 2 px; Feed > League, the auto-pick panel's team cell `.od-r .od-n` "Wirtz Case Scenario" cut by 8 px (a team name, Parker's never-cut rule); Feed > For you and Messages, the thread row `.fth-t span.ell` "Start a rumour. Archizio never names a source." cut by 23 px; Search, the result row's name `b.ell` "J.Rak-Sakyi" cut by 23 px. At 390 px the same run reads clean after the two fixes of 11 Oct (the Matchup list's name column and the Season row's team name, run report `docs/runs/2026-10-11-q4-gallery.md`). Fix: let the team name and the player name wrap to two lines as the League table does, and let the rumour prompt and the leader line wrap; then run the gallery at 360 px by hand (the review invariants hold at both widths) and consider adding `--width 360` to the workflows once it is clean. What would confirm it: `GALLERY OK` at 360 px.
+ - **#45 P1 (S1, 11 Oct 2026): the public demo exposed a real private person.** Found by the release-readiness review of 11 Oct: `site/public/demo/press/kmf-probe.png` was a real photo of a league member, shown under the editorial posts "HOW IS BAHA TOP?!" and "THE BAHA FILES" (`src/feed/editorial.js`, built in the demo with the fictional team name but the real picture), the market post and League > Money's market named him, a voice post's thumbnail read "PARKER'S OCTOBER" (the Posts tab's Media column was not a text column and the leak check was case-sensitive), the demo carried the league's own derby names (The Cumtown Derby, The Hasbulla Derby, The Mr. Marks Bowl...), "El Matador Tire" and the league id 45380 (which leads back to every real name through the FPL API), and the three static recap pages under `site/public` carried the derby names and the real short team names in their kickers. Fixed 11 Oct 2026 (commit 9cf3757, the derby kickers' bare forms in the second commit 7e2d790): `fplgg/tools/demo/names.js` matches in any case with capitals kept, bans the league's name, every derby name and the FPL id from `league.json` (`banMap`, `league.json` `fpl`), gives the demo neutral derby names (`DERBIES`) and no id, treats every Posts column as text, and exempts a footballer's first name only before his surname (`playerNames`); `build-demo.js` no longer copies `press/` and fails on any image under the demo off `IMAGE_ALLOW` or in a press folder (`imageScan`); the editorial posts, the market post and the Money page's market are not built with `__MW_DEMO__`; the demo rebuilt from a fresh snapshot and the recap pages passed through the same anonymiser. Tests: `tests/app-demo.js` (the committed site is scanned offline with the mapping from `league.json`). Live check: `docs/runs/2026-10-11-s1-privacy-security.md`.
+ - **#46 P1 (S1, 11 Oct 2026): the Supabase functions could be written to and read by anyone.** `supabase/config.toml` had every function without a JWT check and nothing else gating `ingest` (callable in a loop) or `seed-statics` (any `?sheet=` overwrote the global FC27, EA Map, Ratings and Specials tabs with the service-role key), and the public `tabs` function served every tab in `tab_snapshots`, FC27, EA Map and Specials among them, with `/league/{id}/config` carrying every manager's full name and picture file. Fixed 11 Oct 2026 (commit 9cf3757, the derby kickers' bare forms in the second commit 7e2d790): `ingest` and `seed-statics` require the shared secret (`x-ingest-secret`, the function secret `INGEST_SECRET`, 401 when wrong, 503 when unset, constant-time compare), `register-league` sends it on the kick, the pg_cron jobs send it from Vault (`migrations/20261011140000_ingest_secret.sql`, applied through the query endpoint), `tabs` serves `TAB_ALLOW` only (the app's `TABS` less `SHEET_ONLY` and the EA tabs, plus Meta; 403 otherwise) and a config without `manager`, `faqFace` or `legacyDatasource`; the parity report compares the served tabs (`UNSERVED`). The app reads none of the refused tabs from Supabase (`SHEET_ONLY` and `DEMO_EMPTY` in `src/data/tabs.js`), so nothing breaks. Tests: `tests/supabase.js`, `tests/parity.js`. Proof after the deploy: `docs/runs/2026-10-11-s1-privacy-security.md`.
+@@ -73,6 +76,7 @@ How to use it:
+   - Was: `gviz/tq?...&sheet=<Tab>` for a tab that does not exist returns the first sheet (the draft grades, header `Rank,Team,Manager,Grade,...`) with HTTP 200 instead of an error. Seen 8 Oct 2026: Articles, RecapFacts, ShowFacts and ShowScripts all returned the draft grades sheet, because none of those tabs had been created yet.
+ 
+ ## Audit log
++- **2026-10-11** (manager, 16:30 to 17:10 UTC, Parker's three findings on his iPhone during GW6): #49, #50 and #51 found, reproduced in Chromium on the built demo (stand-in images: this network reaches neither the PL CDN nor flagcdn) and fixed on the `preview` branch; every suite ALL PASS, `ci-build.sh` and the demo build clean, the contrast audit with the real fonts 0 offenders on 42 screens, `check-images.js` ALL PASS.
+ - **2026-10-11** (builder, the manager's item P1, the polish pass, 15:13 UTC on): health clean at 15:14 (no outage issue, `?health=1` ok at v3.31 equal to `release`, data 1 minute old inside GW6's live window (CRY-NFO), self current, no article job and the GW6 preview live, the GW6 show 22 of 22 clips, `ai.last` clean, 0 phone errors in 24 h, Build run 36, Code.gs run 49 and Preview run 20 green, the preview commit 2e602a1 naming origin/preview's head 6cba556); Step 1b skipped as instructed. Part 1 on main: Code.gs v3.32 (ab5c1ce), the feed posts checked before they are kept; Code.gs tests and release run 50 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38151097215), `release` at v3.32. Part 2 on the `preview` branch: the three Q4 review findings, the subtitles, the one-time intro, the Feed fixes, 11 px and pinch-to-zoom; 50 suites ALL PASS, node --check, ci-build.sh, the contrast audit at 0 offenders over 42 screens, the gallery OK at 390 and 360 px (Chromium here; WebKit on the runner); the Preview run 22 for 5df6ba4 red (WebKit page errors from a reload that cut late fetches short), the fix 642e3af and the Preview run 23 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38154588657), published as 55b114b on main, the shots page reading every check passed at both widths; the live script on v3.32 since 16:01 with `ai.last.dropped` 0. #44 closed on the branch; #43 (Parker), #26 (Parker), #29 (Parker), #48 unchanged.
+ - **2026-10-11** (builder, the manager's item S1, 14:00 to 15:10 UTC): health clean at 14:00 (no outage issue, `?health=1` ok at v3.31 equal to `release`, data 6 minutes old during CRY v NFO, show 22 of 22, the GW6 preview live, Preview run 20, Code.gs run 47 and Build run 34 green, the preview commit 2e602a1 naming origin/preview's head 6cba556); Step 1b skipped as instructed. S1 shipped straight to main as an outage-class fix (#45, #46, #47 closed; #48 opened): 9cf3757 and 7e2d790, 49 suites and `node --check`, `ci-build.sh`, the contrast audit at 0 offenders over 42 screens, the live checks in `docs/runs/2026-10-11-s1-privacy-security.md`.
+ - **2026-10-11** (builder, the 08:47 Chicago run, 13:48 to 14:15 UTC; the Sunday audit and REVIEW MODE on the preview branch's Q4 at 6cba556): health clean at 13:49: no outage issue, `?health=1` ok with data 3 minutes old (`live: true`, CRY-NFO, GW6's Sunday; the live window holds), the live script v3.31 equal to `release` (5d0604f) and `self` current, no article job and the GW6 preview live (the GW7 deadline 17 Oct 10:00 UTC, 140 h away), the GW6 show 22 of 22 clips, Build run 34, Code.gs run 47 and Preview run 20 green, the preview commit 2e602a1 naming origin/preview's head 6cba556; `potm.json` names September 2026. The audit: all 20 finished matches in /api/league/45380/details agree with H2H Fixtures and the Standings agree with /details for all 8 teams; the last 4 days' commits read for breaches (none: no emoji in the UI, no em dash outside comments, no secret); 47 suites ALL PASS, `node --check` and `ci-build.sh` on main at 6ee94a7, the six files restored; #43 and #26 still wait for Parker, #29's open lines unchanged. The review (`docs/runs/2026-10-11-review-q4.md`): FAIL, 3 findings (a surname broken mid-word in the runner's Chromium at 390 px, the gallery's first screen in different states per browser, 15 cuts at 360 px), written under ROADMAP "Review findings"; the gate itself (48 suites, the audit at 0 offenders, the gallery OK at 390 px, runs 17 and 18 red on the proof branch) holds. The stale Q4 claim removed from main's ROADMAP. `q4-broken` still on origin: the deleting push is cut off here too (needs Parker or the manager).
+diff --git a/fplgg/tools/matchweek/docs/ROADMAP.md b/fplgg/tools/matchweek/docs/ROADMAP.md
+index 552388d..287d75c 100644
+--- a/fplgg/tools/matchweek/docs/ROADMAP.md
++++ b/fplgg/tools/matchweek/docs/ROADMAP.md
+@@ -23,6 +23,7 @@ How items are worked:
+ - Items marked **(Parker)** need a decision or an account action from him.
+ 
+ ## Shipped on Parker's request (outside the lettered sections)
++- **Sheet images, 11 Oct 2026, on the `preview` branch with P1 part 2** (manager, Parker's three findings on his iPhone during GW6; BUGS #49 to #51; the run report `docs/runs/2026-10-11-sheet-images.md`): a live refresh keeps every loaded picture (`src/swap.js`), no filter on the Plate photos, the sheet's Plate decoded before it paints, the rating backing inside the card with its corner cut, the club code only for a missing badge, the beam behind the sheet's Plate fading out. Left: the preview's proof, Parker's word with P1 part 2.
+ - **P1 part 2, 11 Oct 2026, the app polish, as a PREVIEW** (builder, the manager's item P1 from Parker's notes after the release-readiness review, lane app, the `preview` branch, the commits 5df6ba4 and 642e3af; published at https://parkerno2.github.io/el-matador-tire/preview/ by the Preview Matchweek app run 23 (https://github.com/parkerno2/el-matador-tire/actions/runs/38154588657, the commit 55b114b "preview: matchweek app from 642e3af" on main), the screens at https://parkerno2.github.io/el-matador-tire/preview/shots/ (390 px) and /shots/360/ (360 px), every check passed in Chromium and WebKit; the run report `docs/runs/2026-10-11-p1-app-polish.md`; awaiting Parker's approval through REVIEW MODE). 1. The three Q4 review findings fixed and ticked (a surname never broken, the gallery's first screen in one state, the 360 px cuts; BUGS.md #44 closed on the branch; the gallery runs at both widths and fails a word broken across lines). 2. Every explanatory subtitle gone (17 strings, listed in the commit and the report), labels, data states and empty states kept. 3. The one-time intro (`src/intro.js`): three screens, one line each, only on a device that has never used the app, skippable, never again, nothing elsewhere; Parker sees it with `?intro=1` on the preview. 4. The Feed: the reactions labelled (a thumb down for Bin it), "Written by Claude for <voice>" alone, the demo's article cards open the three recap pages or are not shown. 5. No text under 11 px, pinch-to-zoom on. Left: Parker's word; the REVIEW MODE pass that merges it.
+ - **P1 part 1, 11 Oct 2026, the feed posts checked before they are kept (Code.gs v3.32)** (builder, the manager's item P1 from Parker's notes after the release-readiness review, lane backend, on main inside the GW6 live window as Parker allowed; the commit ab5c1ce; Code.gs tests and release run 50 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38151097215), `release` at v3.32; the run report `docs/runs/2026-10-11-p1-feed-checks.md`). A post is kept only when it ends a sentence, a count word matches the names it introduces, a head-to-head claim agrees with the series in its facts and it carries no percentage, odds, money or betting line; a reply the token budget cut keeps nothing; `?health=1` `ai.last.dropped` and `drops`; rule 10 in the writer's prompt, the voices and rules 1 to 9 unchanged (`tests/codegs/v332.js`). Part 2 (the app polish: the Q4 findings, the subtitles, the one-time intro, the Feed, 11 px and pinch-to-zoom) is on the `preview` branch for Parker's approval; its entry follows its proof.
+ - **S1, 11 Oct 2026, the privacy and security fixes from the release-readiness review** (builder, the manager's item, lanes app and backend, straight to main as an outage-class fix; the commits 9cf3757 and 7e2d790; Code.gs tests and release run 48 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097679), Supabase functions run 4 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097661), Build Matchweek app run 35 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097684), then Code.gs tests and release run 49 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147604953), Build Matchweek app run 36 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147604897); the three recap pages byte-identical to the committed ones at the edge at 14:33:28 UTC; the run report `docs/runs/2026-10-11-s1-privacy-security.md`; BUGS.md #45, #46, #47 closed). 1. The public demo identifies nobody: no `press/` photo (the real one deleted from `site/public/demo/`), no editorial or market post, neutral derby names, "Demo league" and no league id, the leak check case-insensitive and extended to the league's own strings, an image allowlist, the static recap pages anonymised. 2. Supabase: `ingest` and `seed-statics` behind a shared secret (the function secret and Vault; the cron jobs send it), `tabs` on an allowlist, the config without names. 3. The setup wizard and the landing page claim nothing is live. Left: nothing of the item; the Q4 claim of 01:51 UTC was already removed by the review run (its findings stand under Review findings for the next app-lane build), and BUGS.md #48 (the headless demo check's player-sheet steps in the builder's environment, pre-existing) is open.
+diff --git a/fplgg/tools/matchweek/docs/runs/2026-10-11-sheet-images.md b/fplgg/tools/matchweek/docs/runs/2026-10-11-sheet-images.md
+new file mode 100644
+index 0000000..3cce69c
+--- /dev/null
++++ b/fplgg/tools/matchweek/docs/runs/2026-10-11-sheet-images.md
+@@ -0,0 +1,46 @@
++# 11 Oct 2026: pictures that stay put, the rating backing, the club codes (BUGS #49 to #51)
++
++## The request
++Parker, 11 Oct 2026, 16:27 UTC, on his iPhone during GW6 (LIV v MCI at 45'), with a screenshot of Ndiaye's player sheet:
++"The images are still disappearing sporadically when I click into someone and when I scroll and what's this weird
++artifact by the rating area? Also some weird text poking through under the man city and Liverpool mini bubbles there.
++Take a look please"
++
++## What was wrong (reproduced in Chromium at 402 px on the built demo, stand-in images and the real fonts)
++1. **Photos blanking.** While a match is on the app reloads every 90 s, and `render` and `refreshSheet` redrew the page
++   and the open sheet with innerHTML. After one `MW.reload`, 0 of 15 pictures on the page and 0 of 18 in a player sheet
++   were the same elements: every photo, badge and flag was fetched and decoded again. On top, every Plate photo carried
++   `filter: drop-shadow` (a compositing layer per picture on iOS), and the sheet's big Plate decoded asynchronously as it
++   slid in.
++2. **The rating artifact.** The rating's backing (the contrast pass of 10 Oct) started at 3.8 cqw: on the card's top
++   edge (4.0) and over its inner keyline (6.31), with a square corner sticking out past the card's cut corner.
++3. **The text under the crests.** The club circle's fallback code sat under the badge; "MCI" is 21 px wide in an 18 px
++   circle around a 13 px badge.
++4. Seen on the way: the light beam behind the sheet's Plate ended in a hard horizontal line beside the card.
++
++## What changed
++- `src/swap.js` (new): `swapHTML(el, html)` keeps every loaded `<img>` across a redraw (same src, new attributes
++  copied, src never set again). `src/main.js` uses it for the page and the sheet.
++- `src/css/02-components.css`: `.fc .face img{filter:none}`; the rating backing is `.fc .rt::before`, from 7.3 cqw,
++  its top left corner cut parallel to the card's; the box's padding and margin 2.5% at the top (was 6%).
++- `src/sheets/player.js`: the sheet's Plate decodes its photo synchronously.
++- `src/sheets/kit.js` and `src/css/60-sheets.css`: the circle is marked `im` while it holds a badge and the code is
++  hidden there; the badge's error handler removes the mark, so a failed badge still shows the code. `.ps-beam` fades out.
++
++## How it was checked
++- `tests/app-images.js` (new, in the gate): swapHTML on a fake container (kept, redrawn, attributes, src never set
++  again), main.js uses it, no filter, sync decode, the circle markup and its error handler, the backing's geometry
++  against the keyline and the audited band, the beam's mask. It crashes on the old code (no swap.js).
++- `tests/app-contrast.js` P3 and C16 updated to the new backing rule.
++- Every `tests/*.js` and `tests/codegs/*.js` ALL PASS, `tests/codegs/test.js` exits 0, Code.gs syntax ok, `ci-build.sh`
++  and the demo build clean.
++- The contrast audit on the demo with Saira Condensed, Archivo and Barlow Condensed loaded: CONTRAST OK, 0 offenders,
++  42 screens, 7,602 text boxes.
++- `fplgg/tools/preview/check-images.js --stub-images` (new, the browser half): 14 club circles right, sync decode and no
++  filter, the backing at 7.30 cqw, a refresh keeps 15 of 15 page pictures and 18 of 18 sheet pictures, no page error.
++- Screenshots before and after, looked at: the backing inside the keyline with its cut corner, the chips without
++  letters at the sides, the beam fading.
++
++## Not certain
++The disappearing photos are an iPhone symptom this cloud cannot reproduce (no WebKit on iOS here). The refresh no longer
++replaces any picture, and the two iOS layer costs are gone; Parker's phone is the final check.
+diff --git a/fplgg/tools/matchweek/src/css/02-components.css b/fplgg/tools/matchweek/src/css/02-components.css
+index 814dd2e..1c17a6d 100644
+--- a/fplgg/tools/matchweek/src/css/02-components.css
++++ b/fplgg/tools/matchweek/src/css/02-components.css
+@@ -130,8 +130,14 @@
+    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
+    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
+    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
+-.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
++.fc .rt{padding:2.5% 3.5% 1.6%;margin:-2.5% -3.5% -1.6%}
++/* the rating's backing (Parker, 11 Oct 2026: "what's this weird artifact by the rating area"): it reached above the card's
++   top edge and its square corner stuck out past the card's cut corner. It now starts just inside the card's inner keyline
++   and its top left corner is cut parallel to the card's, while it still covers the part of the figure the contrast audit
++   reads (the middle 70% of the "88" glyph box, from 8.2 cqw down; the backing starts at 7.3 cqw) */
++.fc .rt::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--rtb);border-radius:2.6cqw;clip-path:polygon(4.6cqw 0,100% 0,100% 100%,0 100%,0 4.6cqw)}
+ .fc .rt span{color:var(--sub)}
++.fc .face img{filter:none}   /* no drop shadow on the photos (Parker, 11 Oct 2026, iPhone: photos disappearing on scroll): a filtered image is a layer of its own on iOS, and a pitch carries thirty of them */
+ .fc .rt .fdar{text-shadow:none}
+ .fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
+ .fc .pts{padding:4% 7.5% 3.5%}   /* room between the figure and the bubble's edge (a live bubble wears a green border) */
+diff --git a/fplgg/tools/matchweek/src/css/60-sheets.css b/fplgg/tools/matchweek/src/css/60-sheets.css
+index c83ba69..39a79cc 100644
+--- a/fplgg/tools/matchweek/src/css/60-sheets.css
++++ b/fplgg/tools/matchweek/src/css/60-sheets.css
+@@ -7,6 +7,7 @@
+ .sk-cb{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;background:#fff;overflow:hidden;vertical-align:middle}
+ .sk-cb em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 1em/1 var(--f-ui);font-style:normal;color:var(--base);letter-spacing:-.02em}
+ .sk-cb img{position:relative;display:block;width:auto;max-width:76%;object-fit:contain;background:#fff}
++.sk-cb.im em{visibility:hidden}   /* the code only stands in for a missing badge (Parker, 11 Oct 2026: its letters poked out beside the crest) */
+ .sk-pc{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:30px;height:28px;padding:0 6px;border-radius:8px;font:700 17px/1 var(--f-num)}
+ /* points chips (Parker, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
+ .sk-pc.p3{background:var(--win);color:var(--base)}
+@@ -30,6 +31,7 @@
+ .ps-hero{position:relative;margin-top:-17px;height:448px;overflow:hidden;
+   background:radial-gradient(ellipse 80% 60% at 50% 38%,color-mix(in oklab,var(--b700) 48%,var(--p900)) 0%,color-mix(in oklab,var(--p900) 55%,var(--base)) 45%,var(--base) 100%)}
+ .ps-beam{position:absolute;left:50%;top:-60px;width:520px;height:420px;transform:translateX(-50%);pointer-events:none;
++  -webkit-mask-image:linear-gradient(#000 62%,transparent);mask-image:linear-gradient(#000 62%,transparent);   /* the light fades out instead of ending in a hard line beside the card (11 Oct 2026) */
+   background:conic-gradient(from 160deg at 50% 0%,transparent 0deg,rgba(122,149,255,.18) 14deg,transparent 26deg,transparent 334deg,rgba(122,149,255,.18) 346deg,transparent 360deg)}
+ .ps-floor{position:absolute;left:50%;bottom:44px;width:250px;height:32px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55) 0%,transparent 70%);pointer-events:none}
+ .ps-top{position:relative;display:flex;align-items:center;padding:12px 56px 0 12px;min-height:46px}
+diff --git a/fplgg/tools/matchweek/src/main.js b/fplgg/tools/matchweek/src/main.js
+index 8dc5b8e..c47d8eb 100644
+--- a/fplgg/tools/matchweek/src/main.js
++++ b/fplgg/tools/matchweek/src/main.js
+@@ -10,6 +10,7 @@ import { articlesWanted } from './feed/articles.js';   /* new articles reach Mat
+ import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
+ import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport, DEMO, PREVIEW } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3), the demo (Q2) */
+ import { lockPage, unlockPage, pageY, setPageY, locked } from './sheets/lock.js';
++import { swapHTML } from './swap.js';   /* a redraw keeps the pictures that had loaded (Parker, 11 Oct 2026: photos disappearing on live refreshes) */
+ import { showIntro } from './intro.js';   /* the one-time intro on a device that has never used the app (P1, 11 Oct 2026) */   /* the page behind a sheet: locked in place, back exactly where it was */
+ if (!DEMO && !PREVIEW) installErrorReporting();   /* the demo has no backend to report to; the preview keeps its errors out of the league's count */
+ installReadTab();
+@@ -66,7 +67,7 @@ export function render(opt = {}) {
+   try { html = mod.render(r.sub, r.args); }
+   catch (e) { console.error(e); html = UI.pageHead(mod.title || '') + '<div class="err">Something went wrong drawing this page. ' + UI.esc(e.message) + '</div>'; }
+   const unread = PAGES.feed.unread ? PAGES.feed.unread() : 0;
+-  app.innerHTML = staleBanner() + demoTag() + html + UI.navBar(r.page, unread);
++  swapHTML(app, staleBanner() + demoTag() + html + UI.navBar(r.page, unread));
+   document.body.dataset.page = r.page; document.body.dataset.sub = r.sub;
+   document.title = (mod.title || 'Matchweek') + (DEMO ? ' · Matchweek demo' : PREVIEW ? ' · El Matador Tire · preview' : ' · El Matador Tire');
+   try { mod.mount && mod.mount(app, r.sub, r.args); } catch (e) { console.error(e); }
+@@ -124,7 +125,7 @@ function typingIn(sh) {
+ export function refreshSheet() {
+   const e = STACK[STACK.length - 1]; if (!e) return; const S = SHEETS[e.kind];
+   const t = typingIn(e.sh);
+-  try { const b = S.render(e.arg); e.sh.innerHTML = CHROME() + b; S.mount && S.mount(e.sh, e.arg); a11y(e.sh); } catch (er) { console.error(er); }
++  try { const b = S.render(e.arg); swapHTML(e.sh, CHROME() + b); S.mount && S.mount(e.sh, e.arg); a11y(e.sh); } catch (er) { console.error(er); }
+   const n = t && e.sh.querySelector(t.sel);
+   if (n) { if (n.value !== t.v) { n.value = t.v; n.dispatchEvent(new Event('input', { bubbles: true })); } n.focus({ preventScroll: true }); try { n.setSelectionRange(t.a, t.b); } catch (er) { } }
+ }
+diff --git a/fplgg/tools/matchweek/src/sheets/kit.js b/fplgg/tools/matchweek/src/sheets/kit.js
+index 10778ec..b923f24 100644
+--- a/fplgg/tools/matchweek/src/sheets/kit.js
++++ b/fplgg/tools/matchweek/src/sheets/kit.js
+@@ -79,9 +79,12 @@ export const rec = s => UI.rec(s);
+ export const recL = s => UI.recL(s);
+ 
+ /* ---------- visual atoms ---------- */
+-/* a PL club badge in a light circle, the code underneath in case the image is missing */
++/* a PL club badge in a light circle; the club's code shows only when there is no badge or it fails to load (Parker,
++   11 Oct 2026: behind a loaded badge the code's letters poked out at both sides of a narrow crest, "MCI" in an 18 px
++   circle is 21 px wide). Class im marks a circle with a badge; the badge's own error handler takes it off. */
+ export function cb(club, px = 28) {
+-  return '<span class="sk-cb" style="width:' + px + 'px;height:' + px + 'px;font-size:' + Math.max(6, Math.round(px * .3)) + 'px" title="' + esc(clubName(club)) + '"><em>' + esc(club || '') + '</em>' + UI.badge(club, Math.round(px * .72)) + '</span>';
++  const img = UI.badge(club, Math.round(px * .72)).replace(/onerror="([^"]*)"/, (m, a) => 'onerror="' + a + ';this.parentNode.classList.remove(\'im\')"');
++  return '<span class="sk-cb' + (img ? ' im' : '') + '" style="width:' + px + 'px;height:' + px + 'px;font-size:' + Math.max(6, Math.round(px * .3)) + 'px" title="' + esc(clubName(club)) + '"><em>' + esc(club || '') + '</em>' + img + '</span>';
+ }
+ /* points chip (Parker, 10 Oct 2026): green 6 points or more (p3), amber 3 to 5 (p2), red 0 to 2 (p1), grey for no minutes (z) */
+ export function ptsCls(v, dnp) { return dnp ? 'z' : v >= 6 ? 'p3' : v >= 3 ? 'p2' : 'p1'; }
+diff --git a/fplgg/tools/matchweek/src/sheets/player.js b/fplgg/tools/matchweek/src/sheets/player.js
+index 258b5e4..6cbb715 100644
+--- a/fplgg/tools/matchweek/src/sheets/player.js
++++ b/fplgg/tools/matchweek/src/sheets/player.js
+@@ -37,7 +37,9 @@ function ownerChip(x) {
+     + UI.crest(t, 20) + '<span class="ell">' + esc(t) + (w ? ' · ' + esc(w) : '') + '</span></button>';
+ }
+ function hero(x) {
+-  const plate = UI.plate(x.p, 230).replace(/ data-open="[^"]*"/, '').replace('<button class="fc', '<button tabindex="-1" aria-hidden="true" class="fc');
++  /* decoded before it paints (Parker, 11 Oct 2026, iPhone: the photo was sometimes missing when a sheet opened); the photo
++     is almost always in the cache already, from the pitch or list the sheet was opened from */
++  const plate = UI.plate(x.p, 230).replace(/ data-open="[^"]*"/, '').replace('<button class="fc', '<button tabindex="-1" aria-hidden="true" class="fc').replace(/ decoding="async"/g, ' decoding="sync"');
+   return '<header class="ps-hero"><i class="ps-beam" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>'
+     + '<div class="ps-top">' + ownerChip(x) + '</div>'
+     + '<div class="ps-plate">' + plate + '</div></header>';
+diff --git a/fplgg/tools/matchweek/src/swap.js b/fplgg/tools/matchweek/src/swap.js
+new file mode 100644
+index 0000000..6a8b4c8
+--- /dev/null
++++ b/fplgg/tools/matchweek/src/swap.js
+@@ -0,0 +1,32 @@
++/* swap.js — redraw a container without throwing its pictures away (Parker, 11 Oct 2026, on his iPhone during a live
++   gameweek: "The images are still disappearing sporadically when I click into someone and when I scroll").
++   While a match is on, the app reloads the data every 90 seconds and redraws the page and the open sheet with innerHTML.
++   That destroyed every <img> on screen, so the phone fetched and decoded every player photo, badge and flag again:
++   photos blanked for a moment on each refresh, and on iOS some stayed blank until the next scroll.
++   swapHTML(el, html) puts the new markup in, then moves each picture that had finished loading in the old markup into
++   the matching slot of the new one (same src), carrying the new element's attributes over, so a refresh reloads and
++   re-decodes nothing. A picture that had not loaded, or failed, is simply drawn anew. */
++export function swapHTML(el, html) {
++  const keep = new Map();
++  el.querySelectorAll('img').forEach(i => {
++    if (!i.complete || !i.naturalWidth) return;
++    const k = i.getAttribute('src'); if (!k) return;
++    if (!keep.has(k)) keep.set(k, []);
++    keep.get(k).push(i);
++  });
++  el.innerHTML = html;
++  if (!keep.size) return 0;
++  let kept = 0;
++  el.querySelectorAll('img').forEach(n => {
++    const list = keep.get(n.getAttribute('src'));
++    if (!list || !list.length) return;
++    const o = list.shift();
++    /* the new element's attributes win (class, style, alt, the fallback chain); src is equal, so it is never set again,
++       which is what would make the browser fetch it once more */
++    [...o.attributes].forEach(a => { if (!n.hasAttribute(a.name)) o.removeAttribute(a.name); });
++    [...n.attributes].forEach(a => { if (o.getAttribute(a.name) !== a.value) o.setAttribute(a.name, a.value); });
++    n.replaceWith(o);
++    kept++;
++  });
++  return kept;
++}
+diff --git a/fplgg/tools/preview/check-images.js b/fplgg/tools/preview/check-images.js
+new file mode 100644
+index 0000000..4d6db1f
+--- /dev/null
++++ b/fplgg/tools/preview/check-images.js
+@@ -0,0 +1,67 @@
++/* fplgg/tools/preview/check-images.js — the browser half of tests/app-images.js (Parker, 11 Oct 2026, iPhone, live
++   gameweek: photos disappearing on refresh and scroll, the rating backing's corner, the club code poking out beside the
++   badge). Opens a built app (the demo at /tmp/mw-demo by default, as the contrast audit builds it) in headless Chromium
++   at iPhone size, opens a player sheet and checks: every club circle with a loaded badge hides its code; the sheet's
++   Plate photo decodes synchronously and carries no filter; the rating backing starts inside the card's inner keyline
++   (6.31 cqw); a data refresh (MW.reload) keeps every loaded picture on the page and in the sheet as the same element,
++   so nothing is fetched or decoded again; no page error. --stub-images serves a stand-in PNG for the PL, flag and
++   favicon hosts (for a network that cannot reach them).
++       NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-images.js [--dir /tmp/mw-demo] [--path /demo/] [--width 402] [--stub-images] [--shot FILE]
++   Exits 1 on any failure. Not part of the CI gate (it needs a browser). */
++'use strict';
++const fs = require('fs'), path = require('path'), http = require('http');
++const arg = (k, d) => { const i = process.argv.indexOf(k); return i > -1 ? process.argv[i + 1] : d; };
++const DIR = path.resolve(arg('--dir', '/tmp/mw-demo')), APP = arg('--path', '/demo/'), width = +arg('--width', 402), shot = arg('--shot', ''), stub = process.argv.includes('--stub-images');
++const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webmanifest': 'application/manifest+json' };
++/* a 40 x 50 PNG, opaque, so a stand-in badge or photo has a natural size */
++const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAACgAAAAyCAIAAACh0Q7HAAAANklEQVR42u3NQQEAQAQAMC6vZjLpcjF4bAWW1RMbXiwRi8VisVgsFovFYrFYLBaLxWKx+EL8AdxDAljiFAjCAAAAAElFTkSuQmCC', 'base64');
++function serve() {
++  return new Promise(resolve => {
++    const srv = http.createServer((req, res) => {
++      let p = decodeURIComponent(req.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html';
++      const f = path.join(DIR, p);
++      if (!f.startsWith(DIR) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end('nf'); return; }
++      res.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); res.end(fs.readFileSync(f));
++    });
++    srv.listen(0, '127.0.0.1', () => resolve({ srv, port: srv.address().port }));
++  });
++}
++(async () => {
++  const { chromium } = require('playwright');
++  const { srv, port } = await serve();
++  const browser = await chromium.launch({ headless: true });
++  const page = await browser.newPage({ viewport: { width, height: 874 }, deviceScaleFactor: 3 });
++  if (stub) await page.route(/resources\.premierleague\.com|flagcdn\.com|google\.com\/s2\/favicons/, r => r.fulfill({ status: 200, contentType: 'image/png', body: PNG, headers: { 'cache-control': 'max-age=3600' } }));
++  const errors = []; page.on('pageerror', e => errors.push(String(e && e.message || e).slice(0, 200)));
++  let fails = 0;
++  const check = (label, cond, info) => { if (!cond) fails++; console.log((cond ? 'PASS ' : 'FAIL ') + label + (info ? '  ' + info : '')); };
++  const base = 'http://127.0.0.1:' + port + APP;
++  await page.goto(base + '#/matchday', { waitUntil: 'domcontentloaded' });
++  await page.waitForFunction(() => window.MW && !document.querySelector('.boot') && document.querySelector('.nav'), null, { timeout: 60000 });
++  await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(1500);
++  const code = await page.evaluate(() => { const p = document.querySelector('[data-open^="player:"]'); return p && p.dataset.open.split(':')[1]; });
++  check('a player to open', !!code);
++  await page.evaluate(c => MW.openSheet('player', c), code); await page.waitForTimeout(1500);
++  const s = await page.evaluate(() => {
++    window.__app = [...document.querySelectorAll('#app img')].filter(i => i.complete && i.naturalWidth);
++    const sh = document.querySelector('.sheet'); window.__sheet = [...sh.querySelectorAll('img')].filter(i => i.complete && i.naturalWidth);
++    const circles = [...sh.querySelectorAll('.sk-cb')].map(c => { const i = c.querySelector('img'); return { code: c.querySelector('em').textContent, loaded: !!(i && i.complete && i.naturalWidth && i.style.display !== 'none'), shown: getComputedStyle(c.querySelector('em')).visibility === 'visible' }; });
++    const face = sh.querySelector('.ps-plate .face img'), fc = sh.querySelector('.ps-plate .fc'), R = fc.getBoundingClientRect(), q = fc.querySelector('.rt').getBoundingClientRect();
++    return { circles, decoding: face && face.getAttribute('decoding'), filter: face && getComputedStyle(face).filter, rtTop: (q.top - R.top) / (R.width / 100), app: window.__app.length, sheet: window.__sheet.length };
++  });
++  const bad = s.circles.filter(c => c.loaded === c.shown);
++  check(s.circles.length + ' club circles: the code hidden behind a loaded badge and shown without one', s.circles.length > 0 && !bad.length, JSON.stringify(bad.slice(0, 3)));
++  check('the sheet\'s Plate photo decodes synchronously, with no filter', s.decoding === 'sync' && s.filter === 'none', s.decoding + ' ' + s.filter);
++  check('the rating backing starts inside the card\'s inner keyline (' + s.rtTop.toFixed(2) + ' cqw, keyline 6.31)', s.rtTop > 6.81 && s.rtTop <= 7.9);
++  if (shot) await page.screenshot({ path: shot });
++  await page.evaluate(() => MW.reload(true)); await page.waitForTimeout(3000);
++  const r = await page.evaluate(() => {
++    const now = [...document.querySelectorAll('#app img')], sh = [...document.querySelector('.sheet').querySelectorAll('img')];
++    return { app: window.__app.filter(i => now.includes(i)).length, sheet: window.__sheet.filter(i => sh.includes(i)).length };
++  });
++  check('a refresh keeps every loaded picture as the same element: page ' + r.app + ' of ' + s.app + ', sheet ' + r.sheet + ' of ' + s.sheet, s.app + s.sheet > 0 && r.app === s.app && r.sheet === s.sheet);
++  check('no page error', !errors.length, errors.join(' | '));
++  await browser.close(); srv.close();
++  console.log(fails ? fails + ' FAILED' : 'ALL PASS');
++  process.exit(fails ? 1 : 0);
++})().catch(e => { console.error(e); process.exit(1); });
+diff --git a/tests/app-contrast.js b/tests/app-contrast.js
+index 8e3bd21..ea9a65b 100644
+--- a/tests/app-contrast.js
++++ b/tests/app-contrast.js
+@@ -109,7 +109,7 @@ check('X17 the lineup list\'s status chip wraps under the club, never under the
+ console.log('--- P the Plate\'s text');
+ ['gold', 'silver'].forEach(t => check('P1 the ' + t + ' tier sets its text, position, arrow, backing, bubble and initials tokens', new RegExp('\\.fc\\.' + t + '\\{--tx:#[0-9A-F]{6};--sub:#[0-9A-F]{6};--up:#[0-9A-F]{6};--dn:#[0-9A-F]{6};--rtb:rgba\\([^)]*\\);--bub:#[0-9A-F]{6};--bubp:#[0-9A-F]{6};--bubpl:#[0-9A-F]{6};--bubpt:#[0-9A-F]{6};--nf:rgba', 'i').test(COMP)));
+ check('P2 the dark tiers (spec, elite, totw, potm) share a dark backing, a solid dark projection bubble with white figures and light arrows', /\.fc\.spec,\.fc\.elite,\.fc\.totw,\.fc\.potm\{--up:#5FE09A;--dn:#FFA3A5;--rtb:rgba\(8,6,12,\.62\);--bubp:#15111D;/.test(COMP));
+-check('P3 the rating and position sit on the backing box, the arrows take the tier\'s colour, the projection bubble is solid', /\.fc \.rt\{background:var\(--rtb\)/.test(COMP) && /\.fc \.rt \.fdar\.up\{color:var\(--up\)\} \.fc \.rt \.fdar\.dn\{color:var\(--dn\)\}/.test(COMP) && /\.fc \.pts\.proj\{background:var\(--bubp\);border:1\.5px dashed var\(--bubpl\)/.test(COMP) && /\.fc \.pts\.proj b,\.fc \.pts\.proj i\{color:var\(--bubpt\);opacity:1/.test(COMP));
++check('P3 the rating and position sit on the backing box, the arrows take the tier\'s colour, the projection bubble is solid', /\.fc \.rt::before\{[^}]*background:var\(--rtb\)/.test(COMP) && /\.fc \.rt \.fdar\.up\{color:var\(--up\)\} \.fc \.rt \.fdar\.dn\{color:var\(--dn\)\}/.test(COMP) && /\.fc \.pts\.proj\{background:var\(--bubp\);border:1\.5px dashed var\(--bubpl\)/.test(COMP) && /\.fc \.pts\.proj b,\.fc \.pts\.proj i\{color:var\(--bubpt\);opacity:1/.test(COMP));
+ check('P4 the initials circle takes the tier\'s fill; a banked blank is quiet in colour, not opacity', /\.fc \.noface\{background:var\(--nf\)/.test(COMP) && !/\.fc\.mini \.pts\.blank\{opacity/.test(COMP));
+ const tier = (t, k) => { const m = new RegExp('\\.fc\\.' + t + '\\{([^}]*)\\}').exec(COMP); const v = m && new RegExp('--' + k + ':(#[0-9A-Fa-f]{6})').exec(m[1]); return v ? v[1].toUpperCase() : null; };
+ const lumH = h => lum(h), rr = (a, b) => (Math.max(lumH(a), lumH(b)) + 0.05) / (Math.min(lumH(a), lumH(b)) + 0.05);
+@@ -171,7 +171,7 @@ check('C13 --no-photos refuses every off-site image so the initials fallback is
+ const TEAMCSS = strip(fs.readFileSync(MW + 'src/css/30-team.css', 'utf8')), UIJS = fs.readFileSync(MW + 'src/ui.js', 'utf8');
+ check('C14 a played or subbed-off face dims its picture, never its initials (the fallback reads --tx3 on the circle)', /\.tm-xif \.fc-i\.done\{background:var\(--raised\)\} \.tm-xif \.fc-i\.done img\{opacity:\.38\} \.tm-xif \.fc-i\.done \.ini\{color:var\(--tx3\)\}/.test(TEAMCSS) && !/\.tm-xif \.fc-i\.done\{opacity/.test(TEAMCSS) && !/\.tm-lr\.off \.fc-i,/.test(TEAMCSS) && /\.tm-lr\.off \.fc-i \.ini\{color:var\(--tx3\)\}/.test(TEAMCSS) && rx('tx3', 'raised') >= 4.5 && rx('tx3', 'top') >= 4.5);
+ check('C15 the face circle sets its font-size to its width, so the initials (.36em) scale with the circle', /style="width:' \+ px \+ 'px;height:' \+ px \+ 'px;font-size:' \+ px \+ 'px'/.test(UIJS) && /\.fc-i \.ini\{[^}]*font-size:\.36em\}/.test(COMP));
+-check('C16 the Plate rating\'s backing reaches the top of the figure\'s glyph box (6% of the card above the line box, the margin matching)', /\.fc \.rt\{background:var\(--rtb\);border-radius:2\.6cqw;padding:6% 3\.5% 1\.6%;margin:-6% -3\.5% -1\.6%\}/.test(COMP));
++check('C16 the Plate rating\'s backing covers the band of the figure the audit reads (from 8.2 cqw with Saira Condensed) and starts inside the card\'s inner keyline (6.31 cqw), its corner cut parallel to the card\'s (Parker, 11 Oct 2026: it stuck out of the card; tests/app-images.js has the geometry)', /\.fc \.rt\{padding:2\.5% 3\.5% 1\.6%;margin:-2\.5% -3\.5% -1\.6%\}/.test(COMP) && /\.fc \.rt::before\{content:'';position:absolute;inset:0;z-index:-1;background:var\(--rtb\);border-radius:2\.6cqw;clip-path:polygon\(4\.6cqw 0,100% 0,100% 100%,0 100%,0 4\.6cqw\)\}/.test(COMP));
+ check('C18 the player sheet\'s H or A marker rule is the direct child only, so the crest circle\'s letters stay dark on white when the crest fails to load', /\.ps-fc\.ps-nx > em\{/.test(strip(fs.readFileSync(MW + 'src/css/60-sheets.css', 'utf8'))) && !/\.ps-fc\.ps-nx em\{/.test(strip(fs.readFileSync(MW + 'src/css/60-sheets.css', 'utf8'))));
+ check('C19 the audit lets a scroll settle (a sticky bar through an observer and a transition) before it reads the covers', /waitForTimeout\(v \? 350 : 40\)/.test(AUD));
+ check('C17 the voice name in a post header is never cut against the voice\'s chip: the chips wrap under it', /\.fp-who b\{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;/.test(FEED));
+diff --git a/tests/app-images.js b/tests/app-images.js
+new file mode 100644
+index 0000000..333be4b
+--- /dev/null
++++ b/tests/app-images.js
+@@ -0,0 +1,97 @@
++// Pictures that stay put (Parker, 11 Oct 2026, on his iPhone during a live gameweek, with a screenshot of a player sheet:
++// "The images are still disappearing sporadically when I click into someone and when I scroll and what's this weird
++// artifact by the rating area? Also some weird text poking through under the man city and Liverpool mini bubbles").
++//  1. A live refresh (every 90 s while a match is on) redrew the page and the open sheet with innerHTML and threw every
++//     <img> away; src/swap.js swapHTML moves each finished picture into the matching slot of the new markup instead, and
++//     main.js uses it for the page and the sheet.
++//  2. The Plate photos carry no CSS filter (a filtered image is a compositing layer of its own on iOS) and the sheet's
++//     big Plate decodes its photo before it paints.
++//  3. The club circle (sheets/kit.js cb) shows the club code only when there is no badge or it fails to load.
++//  4. The rating's backing starts inside the card's inner keyline, its top left corner cut parallel to the card's, and
++//     still covers the part of the figure the contrast audit reads; the light beam behind the sheet's Plate fades out.
++// Plain Node: the functions run in a vm on small fakes, the CSS is read as source. The browser half (Chromium at
++// iPhone size on the built demo: a refresh keeps every picture, the codes hidden, the backing's geometry) is
++// fplgg/tools/matchweek/tools/check-images.js, not in the gate.   node tests/app-images.js
++const fs = require('fs'), vm = require('vm');
++let fails = 0;
++const check = (label, cond, info) => { if (!cond) fails++; console.log((cond ? 'PASS ' : 'FAIL ') + label + (!cond && info ? '  ' + info : '')); };
++const MW = __dirname + '/../fplgg/tools/matchweek/';
++const rd = f => fs.readFileSync(MW + f, 'utf8');
++const SWAP = rd('src/swap.js'), MAIN = rd('src/main.js'), KIT = rd('src/sheets/kit.js'), CORE = rd('core.gen.js'), PLAYER = rd('src/sheets/player.js');
++const COMP = rd('src/css/02-components.css'), SHEETS = rd('src/css/60-sheets.css');
++function lift(src, name) {
++  const i = src.search(new RegExp('^(export )?(function ' + name + '\\(|const ' + name + ' ?=)', 'm')); if (i < 0) throw new Error('no ' + name);
++  const start = src.slice(i).startsWith('export ') ? i + 7 : i;
++  let depth = 0, j = src.indexOf('{', src.indexOf(')', start));
++  for (; j < src.length; j++) { if (src[j] === '{') depth++; else if (src[j] === '}') { depth--; if (!depth) break; } }
++  return src.slice(start, j + 1) + '\n';
++}
++
++console.log('--- 1. a redraw keeps the pictures that had loaded');
++/* a fake container: innerHTML parses <img ...> tags into fake images, querySelectorAll('img') lists them in order */
++function fakeImg(attrs) {
++  const a = Object.assign({}, attrs);
++  const img = { complete: false, naturalWidth: 0, loads: 0,
++    get attributes() { return Object.keys(a).map(name => ({ name, value: a[name] })); },
++    getAttribute: k => (k in a ? a[k] : null), hasAttribute: k => k in a,
++    setAttribute: (k, v) => { if (k === 'src') img.loads++; a[k] = String(v); }, removeAttribute: k => { delete a[k]; },
++    replaceWith: o => { const L = img.parent.kids, i = L.indexOf(img); L[i] = o; o.parent = img.parent; }, _a: a };
++  return img;
++}
++function box() {
++  const el = { kids: [], set innerHTML(h) { el.kids = []; const re = /<img ([^>]*)>/g; let m; while ((m = re.exec(h))) { const at = {}; m[1].replace(/([\w-]+)="([^"]*)"/g, (x, k, v) => { at[k] = v; }); const i = fakeImg(at); i.parent = el; el.kids.push(i); } },
++    querySelectorAll: () => el.kids.slice() };
++  return el;
++}
++const ctx = { Map }; vm.createContext(ctx);
++vm.runInContext(SWAP.replace(/^export /gm, '') + '\n;this.swapHTML = swapHTML;', ctx);
++const el = box();
++el.innerHTML = '<img src="a.png" class="fpl" alt="A"><img src="b.png"><img src="c.png"><img src="a.png">';
++const [a1, b1, c1, a2] = el.kids;
++[a1, b1, a2].forEach(i => { i.complete = true; i.naturalWidth = 220; });   /* c.png is still loading */
++const kept = ctx.swapHTML(el, '<img src="a.png" alt="A2" style="x"><img src="c.png"><img src="d.png"><img src="a.png" class="fpl"><img src="b.png">');
++check('every loaded picture with a matching src is moved into the new markup (3 of 5 slots)', kept === 3 && el.kids[0] === a1 && el.kids[3] === a2 && el.kids[4] === b1, 'kept ' + kept);
++check('a picture still loading is drawn anew, and a new src is a new image', el.kids[1] !== c1 && el.kids[2].getAttribute('src') === 'd.png');
++check('the moved picture takes the new attributes (alt, style) and drops ones the new markup no longer has (class)', a1.getAttribute('alt') === 'A2' && a1.getAttribute('style') === 'x' && !a1.hasAttribute('class'));
++check('the second copy of the same src gets its own old element, with the new class', a2.getAttribute('class') === 'fpl');
++check('src is never set again on a kept picture (setting it is what makes the browser fetch it)', a1.loads === 0 && a2.loads === 0 && b1.loads === 0);
++const el2 = box(); el2.innerHTML = '<img src="x.png">';
++check('nothing loaded: the markup is simply replaced', ctx.swapHTML(el2, '<img src="x.png">') === 0 && el2.kids.length === 1);
++check('main.js redraws the page and the open sheet through swapHTML, not innerHTML',
++  /import \{ swapHTML \} from '\.\/swap\.js'/.test(MAIN) && /swapHTML\(app, staleBanner\(\) \+ demoTag\(\) \+ html \+ UI\.navBar\(r\.page, unread\)\)/.test(MAIN)
++  && /swapHTML\(e\.sh, CHROME\(\) \+ b\)/.test(MAIN) && !/app\.innerHTML = staleBanner/.test(MAIN) && !/e\.sh\.innerHTML = CHROME\(\) \+ b/.test(MAIN));
++
++console.log('--- 2. no filter on the Plate photos, the sheet\'s Plate decoded before it paints');
++check('the Plate photo has no CSS filter (an override after the generated plate CSS)', /\.fc \.face img\{filter:none\}/.test(COMP));
++check('the player sheet\'s Plate decodes its photo synchronously', /\.replace\(\/ decoding="async"\/g, ' decoding="sync"'\)/.test(PLAYER));
++
++console.log('--- 3. the club code only stands in for a missing badge');
++const kctx = { D: { clubs: { MCI: 43, LIV: 14 } }, CLUBDOM: {}, esc: s => String(s), clubName: c => ({ MCI: 'Man City', LIV: 'Liverpool' })[c] || c, Math, String };
++vm.createContext(kctx);
++vm.runInContext(lift(CORE, 'badgeImg') + '\n;this.badgeImg = badgeImg; this.UI = { badge: (c, px) => badgeImg(c, px) };', kctx);
++vm.runInContext(lift(KIT, 'cb') + '\n;this.cb = cb;', kctx);
++const city = kctx.cb('MCI', 18), none = kctx.cb('XXX', 18);
++check('a circle with a badge is marked im and still carries the code for a failed load', /class="sk-cb im"/.test(city) && /<em>MCI<\/em>/.test(city) && /<img class="crest"/.test(city), city);
++check('a club with no badge has no im mark, so its code shows', /class="sk-cb"/.test(none) && !/<img/.test(none));
++/* the badge's own error handler: hides the image and takes the mark off the circle */
++const cls = new Set(['sk-cb', 'im']), img = { style: {}, parentNode: { classList: { remove: c => cls.delete(c) } } };
++const h = /onerror="([^"]*)"/.exec(city)[1];
++const ectx = { __img: img }; vm.createContext(ectx); vm.runInContext('(function(){' + h + '}).call(__img)', ectx);
++check('a badge that fails to load hides itself and shows the code', img.style.display === 'none' && !cls.has('im'), h);
++check('the CSS hides the code inside a circle marked im', /\.sk-cb\.im em\{visibility:hidden\}/.test(SHEETS));
++
++console.log('--- 4. the rating backing inside the card, the beam fading out');
++/* card units: width 100 cqw, height 140 cqw (150 by 210). The rating box sits at top 7% of the height (9.8 cqw), left 12% */
++const rt = /\.fc \.rt\{padding:([\d.]+)% ([\d.]+)% ([\d.]+)%;margin:-([\d.]+)% -([\d.]+)% -([\d.]+)%\}/.exec(COMP);
++check('the rating box keeps its padding and margin in step', !!rt && rt[1] === rt[4] && rt[2] === rt[5] && rt[3] === rt[6], rt && rt[0]);
++const top = 9.8 - (rt ? +rt[1] : 0), left = 12 - (rt ? +rt[2] : 0);
++const KEY_TOP = (105 - 99 * .965) / 210 * 140;   /* the inner keyline: the plate path scaled .965 about its centre */
++check('the backing starts below the card\'s inner keyline (' + top.toFixed(2) + ' cqw against ' + KEY_TOP.toFixed(2) + ')', top > KEY_TOP + .5);
++check('and above the band of the figure the contrast audit reads (from 8.2 cqw with the real font)', top <= 7.9);
++const cut = /\.fc \.rt::before\{[^}]*background:var\(--rtb\)[^}]*clip-path:polygon\(([\d.]+)cqw 0,100% 0,100% 100%,0 100%,0 ([\d.]+)cqw\)/.exec(COMP);
++check('the backing is a ::before with its top left corner cut', !!cut && cut[1] === cut[2] && !/\.fc \.rt\{background:/.test(COMP));
++check('the cut keeps the corner inside the keyline\'s own cut corner', !!cut && left + top + +cut[1] > 19.7, cut && (left + top + +cut[1]).toFixed(2));
++check('the light beam behind the sheet\'s Plate fades out instead of ending in a line', /\.ps-beam\{[^}]*mask-image:linear-gradient\(#000 62%,transparent\)/.test(SHEETS));
++
++console.log(fails ? fails + ' FAILED' : 'ALL PASS');
++process.exit(fails ? 1 : 0);
+-- 
+2.43.0
+
