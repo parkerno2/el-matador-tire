@@ -96,8 +96,8 @@ BUGS.md #45, #46, #47 (Closed) and #48 (Open), ROADMAP.
 ## Proof of shipping and the live checks
 - The first push, 9cf3757 at 14:25 UTC: Code.gs tests and release run 48 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097679), Supabase functions run 4 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097661), Build Matchweek app run 35 green at 14:28:44 UTC (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097684). Cloudflare Workers Builds deployed
   the site on its own: the new demo build (20261011141631) was served at 14:26:05 UTC.
-- The second push, COMMIT_S1B: the derby names' bare forms (below), the three recap pages again, this report;
-  PROOF_S1B.
+- The second push, 7e2d790 at 14:32 UTC: the derby names' bare forms (below), the three recap pages again, this report;
+  Code.gs tests and release run 49 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147604953), Build Matchweek app run 36 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147604897); the three recap pages byte-identical to the committed ones at the edge at 14:33:28 UTC.
 - **Part 1, live on matchweek.gg** (curl, 14:26 to 14:28 UTC): `https://matchweek.gg/demo/press/kmf-probe.png`
   answers 404 (it was 200 with `cf-cache-status: HIT` at 14:25, before the deploy); `demo/data/posts.json` carries
   "DEC'S OCTOBER" and no "parker" in any case; `demo/app.js` carries the `if(!DEMO)` gate in front of the editorial
@@ -115,7 +115,7 @@ BUGS.md #45, #46, #47 (Closed) and #48 (Open), ROADMAP.
   and `seed-statics?sheet=x&league=45380` answer 401 `the secret is missing or wrong` without the header and with a
   wrong one; `tabs/league/45380/tab/FC27`, `EA Map`, `Managers`, `Social`, `Posts`, `Specials` and `Ratings` answer
   403; `tab/Standings` answers 200; `/league/45380/config` carries no `manager` or `faqFace` on any team and no
-  `legacyDatasource`. The cron with the secret from Vault: the `ingest-live` call of 14:30:00 UTC answered 200 with the function's own body `{"ok":true,"mode":"live","skipped":"no fixtures in a live window"}` (pg_net's reply log; a missing or wrong header answers 401 with `the secret is missing or wrong`, as the curls above show), so the header passes the gate; the 14:20 call, before the deploy, had run the full ingest (`ingest_runs` 1344 ok). The hourly run of 15:07 UTC, the first full ingest under the gate: CRON_PROOF_2
+  `legacyDatasource`. The cron with the secret from Vault: the `ingest-live` call of 14:30:00 UTC answered 200 with the function's own body `{"ok":true,"mode":"live","skipped":"no fixtures in a live window"}` (pg_net's reply log; a missing or wrong header answers 401 with `the secret is missing or wrong`, as the curls above show), so the header passes the gate; the 14:20 call, before the deploy, had run the full ingest (`ingest_runs` 1344 ok). The hourly run of 15:07 UTC, the first full ingest under the gate: `ingest_runs` 1347, started 15:07:01.882 UTC, finished 15:07:06.67, ok, no error; pg_net's reply 6973 at 15:07:00 is 200 with `{"ok":true,"started":"2026-10-11T15:07:01.882Z","leagues":[{"league":45380,"curEv":6,"tabs":18,...` (and the 15:00 live call ran in full the same way, `ingest_runs` 1346 ok). The cron ingest succeeds with the secret; nobody without it can run it.
 - **Part 3**: the live `setup.html` and `index.html` as above; the screenshots in `2026-10-11-s1/`.
 
 ## Unsure or left undone
