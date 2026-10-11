@@ -44,10 +44,10 @@ function duplicates(codes) {
 }
 
 /* ---------- the findings ---------- */
-/* a finding: { kind, screen, browser, state, detail }; kinds: duplicate, text, dash, overflow, clipped, console, ea, sheet, screen */
+/* a finding: { kind, screen, browser, state, detail }; kinds: duplicate, text, dash, overflow, clipped, broken, console, ea, sheet, screen */
 const KIND_WORDS = {
   duplicate: 'a player twice in one team view', text: 'NaN, undefined or null shown', dash: 'an em or en dash in UI text',
-  overflow: 'horizontal overflow', clipped: 'clipped text', console: 'a console error', ea: 'an EA asset requested',
+  overflow: 'horizontal overflow', clipped: 'clipped text', broken: 'a word broken across lines', console: 'a console error', ea: 'an EA asset requested',
   sheet: 'a sheet that did not render', screen: 'a screen that did not render',
 };
 /* the readable list: one line per finding, grouped by kind, the kinds in a fixed order */
@@ -95,6 +95,7 @@ function indexHtml(shots, meta) {
     + '</style></head><body><header><h1>Matchweek gallery</h1><div class="meta">'
     + 'build ' + esc(m.build || '') + (m.from ? ' from ' + esc(m.from) : '') + (m.branch ? ' (' + esc(m.branch) + ')' : '') + ' · snapshot ' + esc(m.snapshot || '') + ' · ' + esc(m.width || 390) + ' px · ' + browsers.map(esc).join(' and ')
     + '</div><div class="meta">Checks: <b class="' + (findings.length ? 'bad' : 'ok') + '">' + esc(verdict) + '</b></div></header>'
+    + (m.alt ? '<p class="alt"><a href="' + esc(m.alt) + '">The same screens at another width</a></p>' : '')
     + findingsHtml + notedHtml
     + '<nav>' + states.map(st => '<a href="#' + esc(st) + '">' + esc((m.stateLabels || {})[st] || st) + '</a>').join('') + '</nav>'
     + sections + '</body></html>\n';

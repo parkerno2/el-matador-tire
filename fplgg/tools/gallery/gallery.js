@@ -52,7 +52,7 @@ const PAGE_SRC = Object.keys(L.PAGE_FNS).map(k => {
 function collectSrc(rootSel) {
   return PAGE_SRC + `
   const root = ${JSON.stringify(rootSel || '')} ? document.querySelector(${JSON.stringify(rootSel || '')}) : document.body;
-  const out = { texts: 0, bad: [], dashes: [], codes: [], clipped: [], overflow: null };
+  const out = { texts: 0, bad: [], dashes: [], codes: [], clipped: [], broken: [], overflow: null };
   if (!root) return out;
   /* horizontal overflow: the page wider than the viewport, or the sheet's content wider than the sheet */
   out.overflow = root === document.body ? (document.documentElement.scrollWidth > innerWidth + 1 ? document.documentElement.scrollWidth + ' px wide in a ' + innerWidth + ' px viewport' : '') : (root.scrollWidth > root.clientWidth + 1 ? 'the sheet scrolls sideways: ' + root.scrollWidth + ' of ' + root.clientWidth + ' px' : '');
@@ -89,12 +89,24 @@ function collectSrc(rootSel) {
     const cs = style(el); if (cs.overflowX !== 'hidden' && cs.overflowX !== 'clip') return;
     if (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) out.clipped.push({ sel: sig(el), text: el.textContent.trim().replace(/\\s+/g, ' ').slice(0, 60), by: el.scrollWidth - el.clientWidth, designed: el.classList.contains('sub') });
   });
+  /* a word broken across lines: an element whose own text is one word (no space; a hyphen is a place a word may break)
+     and whose text sits on more than one line ("Donnarumm" / "a", the Q4 review's finding 1). A surname is one word. */
+  root.querySelectorAll('*').forEach(el => {
+    if (el.closest('script,style,noscript,template,svg,.sr,.fc-i,.fc')) return;
+    const nodes = [...el.childNodes].filter(n => n.nodeType === 3 && n.nodeValue.trim());
+    if (nodes.length !== 1 || [...el.childNodes].some(n => n.nodeType === 1 && n.textContent.trim())) return;
+    const word = nodes[0].nodeValue.trim(); if (/[\\s\\u00a0-]/.test(word) || word.length < 4) return;
+    if (!shown(el)) return;
+    const range = document.createRange(); range.selectNodeContents(nodes[0]);
+    const tops = [...new Set([...range.getClientRects()].filter(r => r.width > 0).map(r => Math.round(r.top)))];
+    if (tops.length > 1) out.broken.push({ sel: sig(el), text: word.slice(0, 60), lines: tops.length });
+  });
   return out;`;
 }
 
 (async () => {
   const dir = path.resolve(arg('--dir', path.join(ROOT, 'site', 'public'))), out = path.resolve(arg('--out', path.join(ROOT, 'preview', 'shots'))), width = +arg('--width', 390), quality = +arg('--quality', 70);
-  const browsers = arg('--browsers', 'chromium,webkit').split(',').map(s => s.trim()).filter(Boolean), only = arg('--only', '');
+  const browsers = arg('--browsers', 'chromium,webkit').split(',').map(s => s.trim()).filter(Boolean), only = arg('--only', ''), alt = arg('--alt', '');   /* --alt 360/index.html: a link on the index to the same screens at another width */
   const demo = path.join(dir, 'demo');
   if (!fs.existsSync(path.join(demo, 'index.html'))) { console.error('no demo at ' + demo + ' (build it: node fplgg/tools/demo/build-demo.js --data site/public/demo/data --out ' + demo + ')'); process.exit(2); }
   let index = {}; try { index = JSON.parse(fs.readFileSync(path.join(demo, 'data', 'index.json'), 'utf8')); } catch (e) { }
@@ -157,6 +169,7 @@ function collectSrc(rootSel) {
         r.bad.forEach(b => find('text', name, bname, st, '"' + b.word + '" in ' + b.sel + ': "' + b.text + '"'));
         r.dashes.forEach(d => { if (d.kind === 'fail') find('dash', name, bname, st, d.sel + ': "' + d.text + '"'); else noted.push({ screen: name + ' [' + bname + ', ' + st + ']', detail: d.sel + ': "' + d.text + '"' }); });
         L.duplicates(r.codes).forEach(d => { const nm = (r.codes.find(c => String(c.code) === d.code) || {}).name; find('duplicate', name, bname, st, 'code ' + d.code + (nm ? ' (' + nm + ')' : '') + ' on ' + d.where.join(' and ')); });
+        (r.broken || []).forEach(b => find('broken', name, bname, st, b.sel + ': "' + b.text + '" on ' + b.lines + ' lines'));
         r.clipped.forEach(c => { if (c.designed) noted.push({ screen: name + ' [' + bname + ', ' + st + ']', detail: 'a secondary line cut by ' + c.by + ' px, ' + c.sel + ': "' + c.text + '"' }); else find('clipped', name, bname, st, c.sel + ': "' + c.text + '" cut by ' + c.by + ' px'); });
         console.log('  ' + name + ' [' + bname + ', ' + st + ']: ' + r.texts + ' texts, ' + r.codes.length + ' players on team views');
       }
@@ -166,7 +179,10 @@ function collectSrc(rootSel) {
         await page.goto(base, { waitUntil: 'domcontentloaded' }); await settled();
         const team = await page.evaluate(() => (D.st && D.st[0] && D.st[0].Team) || Object.keys(TEAMS)[0]);
         await page.evaluate(t => { try { localStorage.setItem('emt-myteam', t); localStorage.setItem('emt-tm-lview', 'pitch'); } catch (e) { } }, team);
-        await page.goto(base + '#/matchday/overview', { waitUntil: 'domcontentloaded' }); await settled();
+        /* a hash change alone is a same-document navigation in Chromium (no reload, so the page kept the state nobody follows
+           while WebKit reloaded: the Q4 review's finding 2); the reload puts both browsers on the followed team */
+        await page.goto(base + '#/matchday/overview', { waitUntil: 'domcontentloaded' });
+        await page.reload({ waitUntil: 'domcontentloaded' }); await settled();
         const state = await page.evaluate(() => ({ gw: D.gw, phase: (window.MW && window.MW.UI && window.MW.UI.statePill && window.MW.UI.statePill().replace(/<[^>]+>/g, '')) || '', now: new Date().toISOString() }));
         console.log(' state ' + st + ' (' + S.label + '): page clock ' + state.now + ', GW' + state.gw + ' ' + state.phase + ', following ' + team);
         STATES[st].phase = state.phase; STATES[st].gw = state.gw;
@@ -225,7 +241,7 @@ function collectSrc(rootSel) {
 
   /* the preview's own build stamp when OUT is its shots/ folder (build-preview.js writes build.json beside it); else the demo's */
   let build = {}; try { build = JSON.parse(fs.readFileSync(path.join(out, '..', 'build.json'), 'utf8')); } catch (e) { }
-  const meta = { build: build.build || index.build || '', from: process.env.GITHUB_SHA ? process.env.GITHUB_SHA.slice(0, 7) : '', branch: process.env.GITHUB_REF_NAME || '', snapshot: taken, width, browsers, states, stateLabels: Object.fromEntries(states.map(s => [s, STATES[s].label + (STATES[s].gw ? ', GW' + STATES[s].gw : '')])), findings, noted };
+  const meta = { build: build.build || index.build || '', from: process.env.GITHUB_SHA ? process.env.GITHUB_SHA.slice(0, 7) : '', branch: process.env.GITHUB_REF_NAME || '', snapshot: taken, width, browsers, states, stateLabels: Object.fromEntries(states.map(s => [s, STATES[s].label + (STATES[s].gw ? ', GW' + STATES[s].gw : '')])), findings, noted, alt };
   fs.writeFileSync(path.join(out, 'index.html'), L.indexHtml(shots, meta));
   fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify({ at: new Date().toISOString(), snapshot: taken, width, browsers, states: meta.stateLabels, screens: screensAll, shots: shots.length, texts: textsAll, findings, noted }, null, 1));
   console.log('');

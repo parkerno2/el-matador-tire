@@ -92,7 +92,7 @@ function provBonus() {
 
 function provNote(ph) {
   if (ph !== 'prov') return '';
-  return '<div class="card pad md-prov"><b>All matches finished. Provisional full time.</b><span class="sub">' + (Object.keys(D.pbonus || {}).length ? 'Estimated bonus is counted. ' : '') + 'FPL usually confirms within a few hours; bonus and late stat changes can still move points, and the table updates when it does.</span></div>';
+  return '<div class="card pad md-prov"><b>All matches finished. Provisional full time.</b>' + (Object.keys(D.pbonus || {}).length ? '<span class="sub">Estimated bonus is counted.</span>' : '') + '</div>';
 }
 
 export function render() {

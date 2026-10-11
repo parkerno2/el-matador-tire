@@ -53,7 +53,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with: { name: contrast-report, path: /tmp/mw-contrast.json, if-no-files-found: ignore }
       - name: The gallery and the invariant checks (Parker's Q4) on the demo just built, Chromium and WebKit
-        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/gallery/gallery.js --dir site/public --out /tmp/mw-gallery
+        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/gallery/gallery.js --dir site/public --out /tmp/mw-gallery --alt 360/index.html
+      - name: The same gallery at 360 px
+        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/gallery/gallery.js --dir site/public --out /tmp/mw-gallery/360 --width 360 --alt ../index.html
       - name: Keep the gallery
         if: always()
         uses: actions/upload-artifact@v4

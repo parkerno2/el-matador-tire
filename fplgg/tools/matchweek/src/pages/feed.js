@@ -199,7 +199,7 @@ function articles(args) {
 /* ---------- Messages ---------- */
 function threadRow(t) {
   const V = VOICES[t.voice];
-  return '<a class="row tap fth-r" href="#/feed/messages/' + t.id + '">' + avatar(t.voice, 44) + '<span class="fth-t"><b>' + (t.id === 'rumours' ? 'The rumour mill <span class="ftag ftag-press">RUMOURS</span>' : esc(V.name) + (t.id === 'archizio' ? ' <span class="ftag ftag-press">PRESS CONFERENCE</span>' : '')) + '</b><span class="ell">' + esc(t.preview) + (t.time ? ' · ' + esc(t.time) : '') + '</span></span>' + (t.unread ? '<i class="fth-dot" aria-label="Unread"></i>' : UI.icon('chev', 16, 'var(--tx4)')) + '</a>';
+  return '<a class="row tap fth-r" href="#/feed/messages/' + t.id + '">' + avatar(t.voice, 44) + '<span class="fth-t"><b>' + (t.id === 'rumours' ? 'The rumour mill <span class="ftag ftag-press">RUMOURS</span>' : esc(V.name) + (t.id === 'archizio' ? ' <span class="ftag ftag-press">PRESS CONFERENCE</span>' : '')) + '</b><span class="sub ell">' + esc(t.preview) + (t.time ? ' · ' + esc(t.time) : '') + '</span></span>' + (t.unread ? '<i class="fth-dot" aria-label="Unread"></i>' : UI.icon('chev', 16, 'var(--tx4)')) + '</a>';
 }
 function messages(args) {
   const you = UI.you();

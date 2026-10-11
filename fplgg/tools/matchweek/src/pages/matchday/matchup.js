@@ -96,7 +96,7 @@ function cell(x, T, r) {
   const tag = sub ? UI.subChip(sub.kind === 'locked' ? 'in' : 'inl') : (!x.started ? UI.statusChip(x.p) : st.dnp ? '<span class="chip out">DID NOT PLAY</span>' : '');
   const where = x.fx ? M.fxOpp(x.fx, x.club) : '';
   return '<div class="md-hc' + (r ? ' r' : '') + '" data-open="player:' + esc(x.code) + '" role="button" tabindex="0">' + UI.face(x.p, 32)
-    + '<div class="ell"><b>' + esc(x.p.Player) + '</b>' + tag + '<span class="sub">' + (where ? esc(where).replace(/ /g, '\u00a0') + ' · ' : '') + '<span class="' + (st.live ? 'live-c' : '') + '">' + esc(st.t).replace(/ /g, '\u00a0') + '</span></span></div></div>';
+    + '<div class="ell"><b' + (String(x.p.Player).length >= 10 ? ' class="lng"' : '') + '>' + esc(x.p.Player) + '</b>' + tag + '<span class="sub">' + (where ? esc(where).replace(/ /g, '\u00a0') + ' · ' : '') + '<span class="' + (st.live ? 'live-c' : '') + '">' + esc(st.t).replace(/ /g, '\u00a0') + '</span></span></div></div>';
 }
 function mid(x, y, m) {
   const v = x => { if (!x) return '<span class="md-hv"></span>'; const b = M.bubble(x); return '<span class="md-hv"><span class="pb ' + b.cls + '">' + b.txt + '</span>' + (x.started && !x.finished && M.hasProj() && !m.final ? '<small class="n">' + M.f1(x.final) + '</small>' : '') + '</span>'; };

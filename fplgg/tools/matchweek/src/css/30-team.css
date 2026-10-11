@@ -53,7 +53,7 @@
 .tm-tdb{flex:1;min-width:0}
 .tm-tda{display:inline-flex;align-items:center;margin:0 0 -6px;min-height:40px;font-size:13px;font-weight:700}
 .tm-tdf{position:relative;flex:0 0 66px;display:inline-flex;justify-content:center;padding-bottom:4px}
-.tm-fchip{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);font-size:9px;box-shadow:0 0 0 2px var(--card)}
+.tm-fchip{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);font-size:11px;box-shadow:0 0 0 2px var(--card)}
 .tm-tds{display:inline-flex;flex:0 0 66px;justify-content:center;margin-top:4px}
 .tm-tds .fc-i{margin-left:-12px;box-shadow:0 0 0 2px var(--card)}
 .tm-tds .fc-i:first-child{margin-left:0}
@@ -143,14 +143,14 @@
 .tm-lpts{flex:none;min-width:34px;text-align:right;font-size:17px;font-weight:700;color:var(--tx)}
 .tm-lpts.proj{font-weight:500;color:var(--tx2)}
 .tm-lpts.live{color:var(--live)}
-.tm-dgw{font:800 9px/1 var(--f-ui);letter-spacing:.05em;color:var(--p300)}
+.tm-dgw{font:800 11px/1 var(--f-ui);letter-spacing:.05em;color:var(--p300)}
 
 /* difficulty chips (system palette: green-ish easy, neutral, red-ish hard) */
 .tm-fd{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:46px;height:24px;padding:0 6px;border-radius:6px;font:700 12px/1 var(--f-ui);white-space:nowrap}
 .tm-fd b{font-weight:800;letter-spacing:.02em}
-.tm-fd i{font-style:normal;font-size:10px;font-weight:700;opacity:.8}
+.tm-fd i{font-style:normal;font-size:11px;font-weight:700;opacity:.8}
 .tm-fd[class*=fd-],.tm-leg i[class*=fd-]{background:var(--fdb);color:var(--fdt)}
-.tm-fd.blank{background:none;box-shadow:inset 0 0 0 1px var(--line);color:var(--tx3);font-size:10px;letter-spacing:.05em}
+.tm-fd.blank{background:none;box-shadow:inset 0 0 0 1px var(--line);color:var(--tx3);font-size:11px;letter-spacing:.05em}
 
 /* ---------- Squad and free-agent rows ---------- */
 .tm-ctl{display:flex;align-items:center;gap:10px;padding:0 16px 10px;flex-wrap:wrap}
@@ -168,7 +168,7 @@
 .tm-nf .sub{font-size:11px}
 .tm-ovr{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:2px}
 .tm-ovr b{font-size:22px;line-height:1;font-weight:700}
-.tm-ovr span{font:800 10px/1 var(--f-ui);letter-spacing:.04em}
+.tm-ovr span{font:800 11px/1 var(--f-ui);letter-spacing:.04em}
 .tm-spt{flex:none;min-width:48px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding-top:2px}
 .tm-spt b{font-size:22px;line-height:1;font-weight:700}
 .tm-spt .sub{font-size:11px;white-space:nowrap}
@@ -220,7 +220,7 @@
 .tm-txm .sub{line-height:1.3}
 .tm-txio{flex:none;max-width:48%;display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:13px;font-weight:600}
 .tm-txio span{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tm-txio i{display:inline-block;font:800 9px/1 var(--f-ui);font-style:normal;letter-spacing:.06em;padding:3px 4px;border-radius:4px;margin-right:6px;vertical-align:1px}
+.tm-txio i{display:inline-block;font:800 11px/1 var(--f-ui);font-style:normal;letter-spacing:.06em;padding:3px 4px;border-radius:4px;margin-right:6px;vertical-align:1px}
 .tm-txio .in i{background:var(--win-bg);color:var(--win)}
 .tm-txio .out{color:var(--tx3)}
 .tm-txio .out i{background:var(--loss-bg);color:var(--loss)}
@@ -236,8 +236,8 @@
 .tm-gcl .bn{color:var(--tx4)}
 .tm-gc{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tm-gc .tm-fd{min-width:0;width:100%;height:36px;padding:0;flex-direction:column;gap:2px;font-size:11px}
-.tm-gc.dbl .tm-fd{height:17px;flex-direction:row;font-size:10px;gap:2px}
-.tm-gc.dbl .tm-fd i{font-size:8px}
+.tm-gc.dbl .tm-fd{height:17px;flex-direction:row;font-size:11px;gap:2px}
+.tm-gc.dbl .tm-fd i{font-size:11px}
 .tm-gc.blank{height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;box-shadow:inset 0 0 0 1px var(--top);color:var(--tx4)}
 .tm-leg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 12px;border-top:1px solid var(--hair);font-size:11px;color:var(--tx3)}
 .tm-leg span{display:inline-flex;align-items:center}
@@ -258,7 +258,7 @@
 .tm-tiles .cm{line-height:1.3}
 .tm-rl .row{width:100%;text-align:left;gap:10px;padding:10px 12px;min-height:54px}
 .tm-rg{width:34px;flex:none;font-size:13px;font-weight:700;color:var(--tx3)}
-.tm .fm.lv{width:auto;padding:0 5px;font-size:9px;letter-spacing:.04em;background:var(--live)}
+.tm .fm.lv{width:auto;padding:0 5px;font-size:11px;letter-spacing:.04em;background:var(--live)}
 .tm-rs{flex:none;min-width:54px;font-size:18px;font-weight:700}
 .tm-rs i{font-style:normal;color:var(--tx4);padding:0 2px}
 .tm-ro{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
@@ -266,7 +266,7 @@
 .tm-ro .sub{font-size:11px}
 .tm-rp{flex:none;display:flex;flex-direction:column;align-items:flex-end;min-width:34px}
 .tm-rp b{font-size:17px;line-height:1.1;font-weight:700}
-.tm-rp .sub{font-size:10px}
+.tm-rp .sub{font-size:11px}
 .tm-xch{padding:12px 12px 10px}
 .tm-xleg{display:flex;gap:16px;font-size:12px;color:var(--tx2);padding:0 2px 12px}
 .tm-xleg span{display:inline-flex;align-items:center}
@@ -295,7 +295,7 @@
 .tm-pos{padding:10px 8px 0}
 .tm-pos svg{display:block;overflow:visible}
 .tm-pos .foot{margin:6px -8px 0}
-.tm-ax{font:600 10px var(--f-ui);fill:var(--tx3)}
+.tm-ax{font:600 11px var(--f-ui);fill:var(--tx3)}
 .tm-axv{font:700 13px var(--f-num);fill:var(--tx)}
 .tm-star{display:flex;gap:14px;padding:14px;align-items:center}
 .tm-starc{flex:none;width:112px}
@@ -312,11 +312,11 @@
 .tm-snl b{font-size:14px}
 .tm-snv{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
 .tm-snv b{font-size:22px;font-weight:700;line-height:1.05}
-.tm-snv .sub{font-size:10px}
+.tm-snv .sub{font-size:11px}
 .tm-sn2.full{flex-direction:column;align-items:stretch}
 .tm-pcs4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .tm-pcs4 span{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--raised);border-radius:10px;padding:8px 0}
-.tm-pcs4 i{font-style:normal;font-size:10px;font-weight:800;color:var(--tx3);letter-spacing:.06em}
+.tm-pcs4 i{font-style:normal;font-size:11px;font-weight:800;color:var(--tx3);letter-spacing:.06em}
 .tm-pcs4 b{font-size:20px;font-weight:700}
 
 /* ---------- the club picker ---------- */
@@ -347,7 +347,7 @@
   .tm-crest svg{width:68px;height:auto}
   .tm-idt h1{font-size:26px}
   .tm-stt b{font-size:22px}
-  .tm-stt>span{font-size:10px}
+  .tm-stt>span{font-size:11px}
   .tm-score{font-size:31px}
   .tm-score span{padding:0 3px}
   .tm-side .cr svg{width:34px;height:auto}

@@ -255,7 +255,7 @@ function board(m) {
         + '<div class="fbd-m"><span class="fbd-t">' + crest(r.h, 22) + '<b>' + esc(short(r.h)) + '</b></span><span class="fbd-s">' + sc + '</span><span class="fbd-t r"><b>' + esc(short(r.a)) + '</b>' + crest(r.a, 22) + '</span></div>'
         + '<div class="fbd-w"><span class="n">' + r.w.h + '%</span>' + UI.wbar(r.w.h / 100, r.w.d / 100, r.w.a / 100, ch, ca, true) + '<span class="n">' + r.w.a + '%</span></div>'
         + (m.live ? '<div class="fbd-pf n">PROJ FINAL ' + f1(r.ph) + ' – ' + f1(r.pa) + '</div>' : '') + '</div>';
-    }).join('') + '<div class="fmb-ft">' + (m.live ? 'Bars show each side’s win chance now.' : 'Bars show each side’s win chance. Scores are the model’s projection.') + '</div></div>';
+    }).join('') + '</div>';
 }
 function results(m) {
   return '<div class="fmb res"><i class="fmb-edge"></i><div class="fmb-hd ftg"><b class="n">FULL TIME</b><span class="n">GAMEWEEK ' + m.gw + '</span></div>'
@@ -366,20 +366,21 @@ export function renderPost(post, opt = {}) {
     + (opt.noActs ? '' : '<div class="fp-acts">' + (post.share ? '<button class="fp-sh" data-fx="share:' + id + '">' + UI.icon('share', 15, 'currentColor', 1.9) + 'Share</button>' : '') + linkHTML + '</div>')
     + '</article>';
 }
-/* reactions: line icons, counts, yours lit. Words in the log, never emoji on screen */
+/* reactions: a line icon over its word, the count beside the icon, yours lit. Words in the log, never emoji on screen;
+   every button is labelled so its meaning is plain (P1, Parker, 11 Oct 2026) */
 const RX_ICON = {
   fire: '<path d="M12 3.2c.6 3-1.6 4.4-2.9 6.2-1.2 1.7-1.6 3.9-.6 5.8A5.3 5.3 0 0 0 12 20.8a5.4 5.4 0 0 0 5.4-5.6c-.1-2.6-1.8-4-2.6-6-.4 1.5-1.2 2.4-2.1 2.9.5-3.2-.1-6.3-.7-8.9z"/><path d="M12 20.8c-1.6 0-2.7-1.2-2.7-2.7 0-1.6 1.3-2.4 1.9-3.6.3 1 .9 1.5 1.5 1.8.1-.8.5-1.5 1-2 .6 1.2 1.1 2.2 1.1 3.6 0 1.6-1.2 2.9-2.8 2.9z"/>',
   laugh: '<circle cx="12" cy="12" r="8.6"/><path d="M8.2 10.2q1.1-1.4 2.2 0M13.6 10.2q1.1-1.4 2.2 0"/><path d="M7.8 13.4h8.4a4.2 4.2 0 0 1-8.4 0z"/>',
   clown: '<circle cx="12" cy="14.6" r="6.9"/><path d="M8.4 8.6 12 2.6l3.6 6"/><circle cx="12" cy="2.4" r=".9" fill="currentColor"/><circle cx="12" cy="15.2" r="1.9" class="rx-nose"/><path d="M9.3 12.6h.01M14.7 12.6h.01" stroke-width="2.4"/><path d="M9 17.6q3 2.2 6 0"/>',
   eyes: '<path d="M2.6 12s3.4-5.6 9.4-5.6 9.4 5.6 9.4 5.6-3.4 5.6-9.4 5.6S2.6 12 2.6 12z"/><circle cx="12" cy="12" r="2.6"/>',
-  bin: '<path d="M4 6.8h16"/><path d="M9.4 6.8V4.6h5.2v2.2"/><path d="M6.2 6.8l1 13.2h9.6l1-13.2"/><path d="M10 10.4v6.2M14 10.4v6.2"/>',
+  bin: '<path d="M17 3.6v10"/><path d="M17 13.6l-3.6 6.4a1.7 1.7 0 0 1-3.1-1.1L11 15H5.5a2.1 2.1 0 0 1-2.1-2.5l1.3-6.4A2.1 2.1 0 0 1 6.8 4.4H17"/>',   /* a thumb down: the trash can read as delete (P1, 11 Oct 2026) */
 };
 const rxIcon = k => '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + RX_ICON[k] + '</svg>';
 export function reactBar(post) {
   const R = reactions(post.id), id = esc(post.id);
   return '<div class="frx" data-rx="' + id + '">' + REACTS.map(x => {
     const n = R.who[x.k].length, on = R.mine.has(x.k);
-    return '<button class="frx-b rx-' + x.k + (on ? ' on' : '') + (n ? ' has' : '') + '" data-fx="rx:' + id + ':' + x.k + '" aria-pressed="' + on + '" aria-label="' + x.label + (n ? ', ' + n : '') + '">' + rxIcon(x.k) + (n ? '<b class="n">' + n + '</b>' : '') + '</button>';
+    return '<button class="frx-b rx-' + x.k + (on ? ' on' : '') + (n ? ' has' : '') + '" data-fx="rx:' + id + ':' + x.k + '" aria-pressed="' + on + '" aria-label="' + x.label + (n ? ', ' + n : '') + '"><span class="frx-i">' + rxIcon(x.k) + (n ? '<b class="n">' + n + '</b>' : '') + '</span><span class="frx-l">' + x.label + '</span></button>';
   }).join('') + '</div>';
 }
 /* compact media for rails: one strip per format, in the voice's own look */

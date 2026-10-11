@@ -15,7 +15,7 @@ export function aiPosts() {
     try { const x = r.Media ? JSON.parse(r.Media) : null; if (x && x.type === 'thumb' && x.t1) media = { type: 'thumb', t1: x.t1, t2: x.t2 || '', lo: x.lo || '', team: TEAMS[x.team] ? x.team : teams[0] || '', team2: '', chip: 'NEW', style: x.style || '', lock: !!x.lock }; if (teams.length > 1 && !x.lock) media.team2 = teams.find(t => t !== media.team) || ''; } catch (e) { }
     return {
       id: String(r.Id), voice, kind: 'ai', social: true, ts: at, time: relTime(at), gw: D.gw, teams, players: [], text, media,
-      facts: 'Written by Claude for ' + ({ archizio: 'Archizio', clark: 'Clark', malcolm: 'Malcolm' }[voice]) + (r.Facts ? ' · from ' + String(r.Facts) : ''),
+      facts: 'Written by Claude for ' + ({ archizio: 'Archizio', clark: 'Clark', malcolm: 'Malcolm' }[voice]),   /* the tabs the writer read stay in the sheet (P1, 11 Oct 2026) */
       detail: [], links: teams[0] ? [{ label: short(teams[0]), open: 'manager:' + teams[0] }] : [], share: String(r.Text),
     };
   }).filter(Boolean);

@@ -1,0 +1,10 @@
+/* ===== the one-time intro (src/intro.js; P1, 11 Oct 2026) ===== */
+.intro{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;padding:0 12px calc(16px + var(--safe-b));background:rgba(14,10,19,.74)}
+.intro-p{width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;padding:20px 18px 16px;border-radius:var(--r-xl);background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-2)}
+.intro-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.intro-t{margin:0;font-size:22px;font-weight:800;line-height:1.25;color:var(--tx);text-wrap:balance}
+.intro-f{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.intro-dots{display:flex;gap:6px}
+.intro-dots i{width:6px;height:6px;border-radius:50%;background:var(--top)}
+.intro-dots i.on{background:var(--p300)}
+.intro-b{display:flex;gap:8px}

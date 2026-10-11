@@ -42,15 +42,14 @@ function findClub(q) {
 function playerRow(p) {
   const own = ownerOf(p), status = (D.plr || []).find(x => String(x.Code) === String(p.Code)) || p;
   return '<button type="button" class="row tap sr-r" data-open="player:' + esc(p.Code) + '" data-rk="p" data-rv="' + esc(p.Code) + '">' + UI.face(p, 40)
-    + '<span class="sr-m"><b class="ell">' + esc(p.Player) + '</b><span class="sub ell">' + esc(p.Pos) + ' · ' + esc(K.clubName(p.Club)) + '</span></span>'
-    + UI.statusChip(status)
+    + '<span class="sr-m"><b>' + esc(p.Player) + '</b><span class="sr-m2">' + UI.statusChip(status) + '<span class="sub ell">' + esc(p.Pos) + ' · ' + esc(K.clubName(p.Club)) + '</span></span></span>'
     + (own ? '<span class="sr-o" title="' + esc(own) + '">' + UI.crest(own, 20) + '<i>' + esc(UI.short(own)) + '</i></span>' : '<span class="chip free">FREE</span>')
     + '<span class="sr-p"><b class="n">' + Math.round(num(p['Season pts'])) + '</b><i>pts</i></span></button>';
 }
 function teamRow(t) {
   const s = K.standOf(t);
   return '<button type="button" class="row tap sr-r" data-open="manager:' + esc(t) + '" data-rk="t" data-rv="' + esc(t) + '">' + UI.crest(t, 34)
-    + '<span class="sr-m"><b class="ell">' + esc(t) + '</b><span class="sub ell">' + esc(K.nameOf(t)) + (s.has ? ' · ' + K.ord(s.pos) + ' · ' + K.recL(s) : '') + '</span></span>'
+    + '<span class="sr-m"><b>' + esc(t) + '</b><span class="sub ell">' + esc(K.nameOf(t)) + (s.has ? ' · ' + K.ord(s.pos) + ' · ' + K.recL(s) : '') + '</span></span>'
     + '<span class="sr-ch">' + UI.icon('chev', 16, 'var(--tx3)') + '</span></button>';
 }
 function results(q) {

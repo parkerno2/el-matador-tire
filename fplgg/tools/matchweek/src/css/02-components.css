@@ -7,9 +7,9 @@
 .abar .lg{flex:0 1 auto;overflow:hidden;min-height:40px}
 /* the Matchweek plate, with the league in small caps under it */
 .abar .lg{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
-.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
+.abar .lg b{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
 .abar .mwm{display:block;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
-@media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:7.5px;letter-spacing:.07em}}
+@media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:11px;letter-spacing:.07em}}
 /* a longer state pill takes the league name's room rather than cutting it short */
 
 .abar .sp{margin-left:auto}
@@ -60,7 +60,7 @@
 .divider{height:1px;background:var(--hair);margin:0 14px}
 
 /* chips and tags */
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
 .chip.doubt{background:var(--doubt);color:var(--base)}
 .chip.out{background:var(--loss);color:var(--base)}
 .chip.on{background:var(--win);color:var(--base)}

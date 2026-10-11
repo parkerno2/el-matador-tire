@@ -76,7 +76,7 @@ function market() {
   return UI.sh('The Baha market', { aside: 'Resolves at GW38' })
     + '<div class="card lg-mkt-card"><div class="lg-mkt">'
     + '<div class="dial' + (hot ? ' hot' : '') + '" style="--v:' + Math.min(100, v).toFixed(1) + '" role="img" aria-label="' + esc(pctTxt(v)) + ' chance"><span class="in"><b class="n">' + (v > 0 && v < 1 ? '<1%' : pctTxt(v)) + '</b><span>chance</span></span></div>'
-    + '<div class="q"><b>Will Baha finish 8th?</b><span class="sub">The chance ' + esc(t) + ' ends the season bottom, from 5,000 simulated seasons. Most likely 8th: ' + esc(ranked[0]) + ', ' + pctTxt(od.last[ranked[0]]) + '.</span><span class="vd' + (hot ? ' hot' : '') + '">' + verdict + '</span></div></div>'
+    + '<div class="q"><b>Will Baha finish 8th?</b><span class="sub">Most likely 8th: ' + esc(ranked[0]) + ', ' + pctTxt(od.last[ranked[0]]) + '.</span><span class="vd' + (hot ? ' hot' : '') + '">' + verdict + '</span></div></div>'
     + '<div class="lg-odds">' + top.map(x => '<div class="r' + (x === t ? ' baha' : '') + (x === mine ? ' you' : '') + '" style="--tc:' + UI.tc(x) + '"' + tap(x, x + ', ' + pctTxt(od.last[x]) + ' to finish 8th') + '>' + UI.crest(x, 20) + '<span class="nm">' + esc(UI.short(x)) + '</span><span class="bar"><i style="width:' + Math.max(1.5, od.last[x] / mx * 100).toFixed(1) + '%"></i></span><b class="n">' + pctTxt(od.last[x]) + '</b></div>').join('') + '</div>'
     + '<div class="foot">Chance of finishing 8th.</div></div>';
 }
