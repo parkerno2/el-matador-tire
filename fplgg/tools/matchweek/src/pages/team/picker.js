@@ -16,10 +16,9 @@ export function pickerPage() {
   return UI.pageHead('My team')
     + '<section class="tm-pick">'
     + '<h2 class="wide">Which club is yours?</h2>'
-    + '<p class="sub">Pick once and My team opens on your club, in your colours. This phone remembers it.</p>'
     + '<div class="tm-pkg">' + tiles + '</div>'
     + '<div class="card tm-pkn2"><span class="tm-pkni" aria-hidden="true">' + UI.icon('lock', 18, 'var(--p300)', 2) + '</span>'
-    + '<span><b>Sign in to edit your club</b><span class="sub">Managers who sign in from the menu can change their club’s colours, crest and name. Everyone in the league sees it straight away.</span></span>'
+    + '<span><b>Sign in to edit your club</b></span>'
     + '<button class="btn ghost tm-pkmenu" data-open="menu">Menu</button></div>'
     + '</section>';
 }

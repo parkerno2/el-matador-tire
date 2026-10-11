@@ -103,7 +103,7 @@ html.gs-on{overflow:hidden}
 @keyframes gsDeal{from{opacity:0;transform:translateY(28px) scale(.55)}to{opacity:1;transform:none}}
 .gs-tk.star{width:78px;z-index:1;animation:gsDeal .45s var(--d,0s) cubic-bezier(.2,1.2,.3,1) both,gsStar .9s 2.1s ease-out both}
 .gs-tk.star .fc{filter:drop-shadow(0 0 2px #FFD23F) drop-shadow(0 0 12px rgba(255,210,63,.55))}
-.gs-st{margin-top:5px;font:800 9.5px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:#1a1200;background:#FFD23F;padding:3px 6px;border-radius:4px;animation:gsUp .4s 2.3s both}
+.gs-st{margin-top:5px;font:800 11px/1 var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:#1a1200;background:#FFD23F;padding:3px 6px;border-radius:4px;animation:gsUp .4s 2.3s both}
 @keyframes gsStar{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1.08)}}
 
 /* the faceoff */
@@ -124,7 +124,7 @@ html.gs-on{overflow:hidden}
 .gs-ser{font-size:14px;color:#D3CADF;font-weight:700;animation:gsUp .5s 1.15s both}
 .gs-q{display:flex;gap:10px;align-items:flex-start;text-align:left;background:rgba(0,0,0,.38);border:1px solid rgba(198,255,0,.45);border-radius:14px;padding:10px 12px;width:100%;animation:gsUp .5s 1.4s both}
 .gs-q span{display:flex;flex-direction:column;gap:4px;min-width:0}
-.gs-q em{font-style:normal;font:800 10.5px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:#C6FF00}
+.gs-q em{font-style:normal;font:800 11px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:#C6FF00}
 .gs-q b{font:700 14px/1.3 var(--f-ui)}
 
 @media (max-height:700px){

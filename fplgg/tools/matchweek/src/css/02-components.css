@@ -7,9 +7,9 @@
 .abar .lg{flex:0 1 auto;overflow:hidden;min-height:40px}
 /* the Matchweek plate, with the league in small caps under it */
 .abar .lg{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
-.abar .lg b{font-size:8.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
+.abar .lg b{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
 .abar .mwm{display:block;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
-@media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:7.5px;letter-spacing:.07em}}
+@media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:11px;letter-spacing:.07em}}
 /* a longer state pill takes the league name's room rather than cutting it short */
 
 .abar .sp{margin-left:auto}
@@ -60,7 +60,7 @@
 .divider{height:1px;background:var(--hair);margin:0 14px}
 
 /* chips and tags */
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:5px;line-height:1.35;white-space:nowrap}
 .chip.doubt{background:var(--doubt);color:var(--base)}
 .chip.out{background:var(--loss);color:var(--base)}
 .chip.on{background:var(--win);color:var(--base)}
@@ -130,8 +130,17 @@
    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
-.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
+/* the rating sits on the card itself, with no box behind it (Parker, 11 Oct 2026: "I don't know if I really want that box
+   above the rating. It's super unnecessary"). Gold and silver numbers read 7:1 on the card as they are. On the four dark
+   tiers the card's own fill is a mid tone (the elite blue gives cyan 4.3:1, white 6.4:1), so the card's top left corner
+   is shaded instead: a soft dark corner inside the inner keyline, no edges, under the photo and the figures, dark enough
+   for the figure to read 7:1 (the contrast audit reads the middle 70% of the figure's glyph box, all inside the shade's
+   solid part) */
+.fc.spec::before,.fc.elite::before,.fc.totw::before,.fc.potm::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 50% 36% at 19% 18%,rgba(8,6,12,.62) 58%,rgba(8,6,12,0) 100%);
+  clip-path:polygon(13.9% 5.21%,69.63% 5.21%,92.43% 21.5%,92.43% 91.17%,88.63% 93.88%,11.37% 93.88%,7.57% 91.17%,7.57% 9.74%)}
 .fc .rt span{color:var(--sub)}
+.fc .face img{filter:none}   /* no drop shadow on the photos (Parker, 11 Oct 2026, iPhone: photos disappearing on scroll): a filtered image is a layer of its own on iOS, and a pitch carries thirty of them */
 .fc .rt .fdar{text-shadow:none}
 .fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
 .fc .pts{padding:4% 7.5% 3.5%}   /* room between the figure and the bubble's edge (a live bubble wears a green border) */

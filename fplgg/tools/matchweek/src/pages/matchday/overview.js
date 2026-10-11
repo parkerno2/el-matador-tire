@@ -126,7 +126,7 @@ function finalBlock(m) {
   const pl = M.projLine(m);
   return '<div class="md-res"><b>' + resultLine(m) + '</b>'
     + (pl ? '<span class="sub">xP <b class="n">' + M.f1(pl.l) + '</b> – <b class="n">' + M.f1(pl.r) + '</b> · what the performances deserved</span>' : '')
-    + (m.ph === 'prov' ? '<span class="sub">Provisional. ' + (Object.keys(D.pbonus || {}).length ? 'Bonus is estimated from live BPS. ' : '') + 'FPL usually confirms within a few hours.</span>' : '')
+    + (m.ph === 'prov' ? '<span class="sub">Provisional.' + (Object.keys(D.pbonus || {}).length ? ' Bonus is estimated from live BPS.' : '') + '</span>' : '')
     + '</div>';
 }
 export function hero(m, featured) {

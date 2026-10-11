@@ -9,7 +9,9 @@ import { maybeSendFacts, maybeSendRecapFacts, computeFacts, computeRecapFacts } 
 import { articlesWanted } from './feed/articles.js';   /* new articles reach Matchday's card and the Feed's posts without a Feed visit */
 import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
 import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport, DEMO, PREVIEW } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3), the demo (Q2) */
-import { lockPage, unlockPage, pageY, setPageY, locked } from './sheets/lock.js';   /* the page behind a sheet: locked in place, back exactly where it was */
+import { lockPage, unlockPage, pageY, setPageY, locked } from './sheets/lock.js';
+import { swapHTML } from './swap.js';   /* a redraw keeps the pictures that had loaded (Parker, 11 Oct 2026: photos disappearing on live refreshes) */
+import { showIntro } from './intro.js';   /* the one-time intro on a device that has never used the app (P1, 11 Oct 2026) */   /* the page behind a sheet: locked in place, back exactly where it was */
 if (!DEMO && !PREVIEW) installErrorReporting();   /* the demo has no backend to report to; the preview keeps its errors out of the league's count */
 installReadTab();
 /* the demo league (Q2): nobody is signed in, whatever an older page on this origin left in localStorage; the engine's
@@ -18,6 +20,8 @@ if (DEMO) try { window.authRead = () => null; } catch (e) { }
 
 const PAGES = { matchday, team, league, feed };
 const app = document.getElementById('app');
+/* the one-time intro (src/intro.js): a device that has never used the app has no emt- key yet. Read before the first write below */
+const FRESH = (() => { try { return !Object.keys(localStorage).some(k => k.indexOf('emt-') === 0); } catch (e) { return false; } })();
 const LAST = {};
 try { Object.assign(LAST, JSON.parse(localStorage.getItem('emt-subs') || '{}')); } catch (e) { }
 /* 7 Oct: the Feed now opens on Everyone; forget a remembered For you once so every phone sees the change */
@@ -63,7 +67,7 @@ export function render(opt = {}) {
   try { html = mod.render(r.sub, r.args); }
   catch (e) { console.error(e); html = UI.pageHead(mod.title || '') + '<div class="err">Something went wrong drawing this page. ' + UI.esc(e.message) + '</div>'; }
   const unread = PAGES.feed.unread ? PAGES.feed.unread() : 0;
-  app.innerHTML = staleBanner() + demoTag() + html + UI.navBar(r.page, unread);
+  swapHTML(app, staleBanner() + demoTag() + html + UI.navBar(r.page, unread));
   document.body.dataset.page = r.page; document.body.dataset.sub = r.sub;
   document.title = (mod.title || 'Matchweek') + (DEMO ? ' · Matchweek demo' : PREVIEW ? ' · El Matador Tire · preview' : ' · El Matador Tire');
   try { mod.mount && mod.mount(app, r.sub, r.args); } catch (e) { console.error(e); }
@@ -121,7 +125,7 @@ function typingIn(sh) {
 export function refreshSheet() {
   const e = STACK[STACK.length - 1]; if (!e) return; const S = SHEETS[e.kind];
   const t = typingIn(e.sh);
-  try { const b = S.render(e.arg); e.sh.innerHTML = CHROME() + b; S.mount && S.mount(e.sh, e.arg); a11y(e.sh); } catch (er) { console.error(er); }
+  try { const b = S.render(e.arg); swapHTML(e.sh, CHROME() + b); S.mount && S.mount(e.sh, e.arg); a11y(e.sh); } catch (er) { console.error(er); }
   const n = t && e.sh.querySelector(t.sel);
   if (n) { if (n.value !== t.v) { n.value = t.v; n.dispatchEvent(new Event('input', { bubbles: true })); } n.focus({ preventScroll: true }); try { n.setSelectionRange(t.a, t.b); } catch (er) { } }
 }
@@ -170,7 +174,7 @@ export function reload(quiet) {
   BUSY = true;
   const meta = readMeta();   /* the Meta tab's refresh time, read alongside the data; never holds up the first paint */
   meta.then(t => { D.updated = t || 0; if (D.ro && D.ro.length && !RENDERING && !!document.querySelector('#app > .stale') !== !!staleBanner()) render({ keepScroll: true }); });
-  return loadData(quiet).then(() => { BUSY = false; flushErrors(); render({ keepScroll: true }); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); if (!DEMO && !PREVIEW) setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
+  return loadData(quiet).then(() => { BUSY = false; flushErrors(); render({ keepScroll: true }); showIntro(FRESH); if (STACK.length) refreshSheet(); scheduleEdge(); setTimeout(() => idle(warmImages), 2500); if (!DEMO && !PREVIEW) setTimeout(() => idle(() => { maybeSendRecapFacts(); maybeSendFacts(); articlesWanted(); }), 9000); return true; })
     .catch(e => {
       BUSY = false;
       if (D.ro && D.ro.length) return false;   /* keep what's on screen; the caller says so */
@@ -210,8 +214,7 @@ function boot() {
   reload(false);
 }
 window.MW = { render, openSheet, closeSheet, reload, refreshSheet, UI, facts: { preview: computeFacts, recap: computeRecapFacts }, data: { source: dataSource, report: dataReport } };
-/* no zoom at all. iOS ignores user-scalable=no, so its pinch gestures are stopped here; the CSS keeps panning only */
-['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+/* pinch-to-zoom is on (P1, 11 Oct 2026): no viewport cap, no gesture handler; touch-action:manipulation keeps double-tap quiet */
 /* warm the image cache once the first page is up: every club badge, every rostered player's flag and face (FC cutout or FPL photo, yours first).
    The service worker keeps them across deploys, so sheets and pitches draw at once */
 function warmImages() {

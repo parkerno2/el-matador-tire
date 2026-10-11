@@ -226,10 +226,10 @@ function previewHTML(team, d) {
       + '<div class="id-hd" style="background:' + band + '"><i class="ms-band" style="background:' + col.accent + '"></i>' + (pat ? '<i class="ms-pat" style="background:' + pat + '"></i>' : '')
       + '<span class="ms-cr">' + UI.glow(team, 'left', .5, 150) + UI.crest(team, 64) + '</span><div class="id-hn"><b class="wide">' + esc(team) + '</b><span>' + ph + esc(d.manager || TEAMS[team].mgr) + '</span><em>Live preview</em></div></div>'
       + '<div class="id-sizes"><span>' + UI.crest(team, 64) + '<i>64</i></span><span>' + UI.crest(team, 32) + '<i>32</i></span><span>' + UI.crest(team, 20) + '<i>20</i></span>'
-      + '<p>Under 32 px the crest turns into a simple shape in your accent, so it still reads in a list.</p></div>'
+      + '</div>'
       + '<div class="id-rows"><div class="id-trow" style="background:' + K.rgbaOf(col.accent, .12) + '"><b class="n">' + (st.has ? st.pos : '–') + '</b>' + UI.crest(team, 20) + '<span class="ell">' + esc(team) + '</span><b class="n">' + (st.has ? st.pts : '–') + '</b></div>'
       + '<div class="id-mchip">' + UI.crest(team, 22) + '<b class="ell">' + esc(UI.short(team).toUpperCase()) + '</b><b class="n you-c">' + proj + '</b></div></div>'
-      + '<p class="id-cap">Your header, a table row and a matchup chip, as the league will see them. In matchups you are always blue.</p></div>';
+      + '</div>';
   });
 }
 function shadesHTML(team, d) {
@@ -249,7 +249,7 @@ function clashHTML(team, d) {
     + (better ? '<div class="id-clr"><i class="sg" style="background:' + sg.accent + '"></i><span>Try this shade instead: the most distinct ' + esc(hueName(acc)) + ' left in your league.</span></div>'
       + '<div class="id-clb"><button type="button" class="btn" data-use="' + sg.hex + '">Use this shade</button><button type="button" class="btn line" data-keep>Keep mine</button></div>'
       : '<div class="id-clr"><span>No shade nearby is clearly more distinct. Try another colour, or keep this one.</span></div><div class="id-clb"><button type="button" class="btn line" data-keep>Keep mine</button></div>')
-    + '<span class="sub">Never blocked. Your crest and name always travel with your colour.</span></div>';
+    + '</div>';
 }
 function chipsHTML(team, d, which) {
   return withProfile(team, profFields(d), () => {
@@ -279,10 +279,9 @@ function editorView(team) {
     + UI.sh('Emblem') + '<div class="card id-grid2" data-r="emblems">' + chipsHTML(team, d, 'emblems') + '</div>'
     + UI.sh('Pattern', { aside: 'shows in your header' }) + '<div class="card id-grid5" data-r="patterns">' + chipsHTML(team, d, 'patterns') + '</div>'
     + UI.sh('Manager') + '<div class="card id-mg"><label class="id-nm"><span>Display name</span><input type="text" maxlength="40" autocomplete="off" data-in="manager" value="' + esc(d.manager) + '" placeholder="' + esc(TEAMS[team].mgr || '') + '"></label>'
-    + '<div class="id-ph"><span class="id-phi" data-r="photo">' + photoHTML(team, d) + '</span><div><b>Photo</b><span class="sub">Shows beside your name on your club’s page.</span><div class="id-phb"><button type="button" class="btn ghost" data-pick>Choose photo</button>'
+    + '<div class="id-ph"><span class="id-phi" data-r="photo">' + photoHTML(team, d) + '</span><div><b>Photo</b><div class="id-phb"><button type="button" class="btn ghost" data-pick>Choose photo</button>'
     + '<button type="button" class="id-link sm" data-rmphoto' + (d.photo ? '' : ' hidden') + '>Remove</button></div></div><input type="file" accept="image/*" data-file hidden></div></div>'
     + '<div class="id-save"><div class="id-stat" data-r="status" role="status"></div><button type="button" class="btn block" data-save>Save club identity</button></div>'
-    + '<p class="id-foot">Everyone in the league sees it on their next refresh. Change it whenever you like.</p>'
     + '<div class="id-out"><span class="sub">Signed in on this phone as ' + esc(team) + '.</span><button type="button" class="id-link" data-signout>Sign out</button></div></div>';
 }
 function photoHTML(team, d) { return d.photo ? '<span class="sk-av" style="width:52px;height:52px"><img src="' + esc(d.photo) + '" alt=""></span>' : withProfile(team, profFields(d), () => UI.crest(team, 48)); }

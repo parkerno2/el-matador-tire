@@ -7,7 +7,10 @@
 #   Cloudflare redeploys matchweek.gg on the commit. Touches nothing else: not classic.html, v12.html, Code.gs or any
 #   other file. The daily run refreshes the demo's snapshot, so its gameweek moves with the league's.
 #   Before the commit, the contrast audit (fplgg/tools/contrast/audit.js, docs/DESIGN.md) runs on the demo just built: an
-#   offender makes the run red and nothing is committed.
+#   offender makes the run red and nothing is committed. Then the gallery (fplgg/tools/gallery/gallery.js, Parker's Q4,
+#   10 Oct 2026) photographs every screen of that demo at 390 px in Chromium and WebKit and checks the invariants (no
+#   player twice in a team view, no NaN, undefined or null, no overflow or clipped text, no console error, no EA asset,
+#   no em or en dash in UI text): a finding makes the run red and nothing is committed; the gallery is the run's artifact.
 #   Details: fplgg/tools/matchweek/README.md and fplgg/tools/demo/README.md
 name: Build Matchweek app
 on:
@@ -38,17 +41,25 @@ jobs:
         run: bash fplgg/tools/matchweek/ci-build.sh
       - name: Build the demo league (site/public/demo)
         run: node fplgg/tools/demo/build-demo.js
-      - name: Install Playwright for the contrast audit (the Facts bot's pin)
+      - name: Install Playwright for the contrast audit and the gallery (the Facts bot's pin; WebKit for the gallery)
         working-directory: fplgg/tools/factsbot
         run: |
           npm ci --no-audit --no-fund
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps webkit chromium
       - name: The contrast audit (docs/DESIGN.md) on the demo just built
         run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/contrast/audit.js --dir site/public --report /tmp/mw-contrast.json
       - name: Keep the contrast report
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: contrast-report, path: /tmp/mw-contrast.json, if-no-files-found: ignore }
+      - name: The gallery and the invariant checks (Parker's Q4) on the demo just built, Chromium and WebKit
+        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/gallery/gallery.js --dir site/public --out /tmp/mw-gallery --alt 360/index.html
+      - name: The same gallery at 360 px
+        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/gallery/gallery.js --dir site/public --out /tmp/mw-gallery/360 --width 360 --alt ../index.html
+      - name: Keep the gallery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gallery, path: /tmp/mw-gallery, if-no-files-found: ignore }
       - name: Commit the build
         run: |
           FILES="index.html app.js app.css core.js sw.js manifest.webmanifest site/public/demo"

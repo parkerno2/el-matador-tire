@@ -68,11 +68,44 @@ darkest and the lightest part behind it, and the lower ratio counts.
 - No emoji in the UI. No em or en dashes in generated text.
 - A voice's name in a post header is never cut against the voice's chip: the chips wrap under the name when the row is
   tight (a viral post in a rail card).
+- The polish pass of 11 Oct 2026 (P1, Parker's notes after the release-readiness review): no subtitle explains a row, a
+  card or a control (the menu's rows carry their names alone; the team picker, the club identity sheet and the data card
+  too). The one-time intro (`src/intro.js`) is the only place the app introduces itself: three screens, one line each,
+  on the very first open of a device that has never used the app (no `emt-` key before the app's first write),
+  skippable, never shown again (`emt-intro`), never for a device that already uses the app, never in a headless browser
+  (`?intro=1` shows it on demand for a review); nothing is added anywhere else and How it works stays in the menu. The
+  Feed's reaction buttons carry their word under the icon (no trash can: the thumb down is Bin it), and the line under a
+  voice post is "Written by Claude for <voice>" alone.
+
+## 5. Readability
+
+- Content text is 11 px or larger: no `font-size` or `font` shorthand under 11 px in any stylesheet (`tests/app-polish.js`
+  R1). The glyph markers that scale with their mark are not text: the Plate's status glyph (a clamp from 10 px), the
+  12 px assist dot's letter, and the initials in a face circle (the photo's fallback, `.36em` of the circle).
+- Pinch-to-zoom is on: the viewport has no `maximum-scale` or `user-scalable=no`, no gesture handler stops it, and
+  `touch-action: manipulation` keeps only the double-tap zoom off.
+- A surname is one word and is never broken across lines (`overflow-wrap: normal; word-break: keep-all`); a long one
+  takes a smaller size where the column is tight (the Matchup list's `.lng`). A team name may take two lines and is
+  never cut (Parker's rule for the League table). A secondary line (class `sub`) may give way.
 
 ## Checking a change
 
 - `node tests/app-contrast.js`: the tokens' pairs, the stats scope, the Plate's text block, the Gameweek Show's
   stylesheet colours, this file's token names. In the CI gate.
+- `node fplgg/tools/gallery/gallery.js` (Parker's Q4, 10 Oct 2026; `fplgg/tools/gallery/README.md`): every page, sub-tab and
+  sheet of the built demo photographed at 390 px in headless Chromium and WebKit, before kick-off and at the snapshot's
+  own time, and on every screen the review invariants checked by a machine: no player twice in one team view (the
+  Matchup pitch, list and bench, the Lineup pitch, bench and list, the manager sheet's pitch and bench), no NaN,
+  undefined or null shown, no horizontal overflow of the page or a sheet, no clipped text on a primary line (a name, a
+  team, a figure; a secondary line may give way), no word broken across lines (a surname on two lines, the Q4 review of
+  11 Oct 2026), zero console errors, no EA asset requested, no em dash and no en dash
+  in prose (an en dash inside a figure is BUGS.md #43, noted until Parker decides). Both workflows run it at 390 px and
+  again at 360 px (the preview's `shots/360/`, linked from the shots page), with the followed team written before the
+  page's first script runs, so Chromium and WebKit photograph the same state. Runs in CI on the preview build and
+  the league build, after the contrast audit, and fails the run with a readable list on any finding. The preview's
+  screens are committed beside it as `preview/shots/` (https://parkerno2.github.io/el-matador-tire/preview/shots/, every
+  screen in order, the browsers side by side, the findings on top), so a change is reviewed by scrolling one page; the
+  league build keeps its gallery as the run's artifact. `tests/app-gallery.js` checks the rules and the wiring.
 - `node fplgg/tools/contrast/audit.js`: every page, sub-tab and sheet of the built demo in headless Chromium at 390 px,
   every visible text box read against the pixels behind it (see `fplgg/tools/contrast/README.md`); a sheet is read on
   its own layer once it has slid in, and one that reads no text fails the run. Runs in CI on the preview build and the

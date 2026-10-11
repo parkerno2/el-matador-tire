@@ -76,6 +76,17 @@ function faceHashes(faceDir) {
   fs.readdirSync(faceDir).filter(f => /\.(png|jpe?g|webp)$/i.test(f)).forEach(f => out.set(crypto.createHash('md5').update(fs.readFileSync(path.join(faceDir, f))).digest('hex'), f));
   return out;
 }
+/* the hand-built recap and preview pages (RECAPS, PREVIEWS in core.gen.js) live beside the league app, not in the demo:
+   in the demo an article card opens the page one folder up (site/public/recap-gwN.html, anonymised) when it exists,
+   and an article whose page is not there is not shown (P1, Parker, 11 Oct 2026: six cards led to 404s) */
+function demoArticles(core, publicDir) {
+  return core.replace(/const (RECAPS|PREVIEWS)=\[([\s\S]*?)\n\];/g, (all, name, body) => {
+    const items = body.split(/\n(?=\s*\{gw:)/).map(x => x.trim().replace(/,$/, '')).filter(Boolean);
+    const kept = items.filter(x => { const m = /href:'([^']+)'/.exec(x); return m && fs.existsSync(path.join(publicDir, m[1])); })
+      .map(x => x.replace(/href:'([^']+)'/, (h, f) => "href:'../" + f + "'"));
+    return 'const ' + name + '=[' + (kept.length ? '\n  ' + kept.join(',\n  ') + '\n' : '') + '];';
+  });
+}
 function faceCodes(core) { const m = /const FC_FACES=new Set\('([^']*)'\.split\(' '\)\)/.exec(core); return new Set(m ? m[1].split(' ') : []); }
 function eaScan(dir, faceDir, codes) {
   const hashes = faceHashes(faceDir === undefined ? path.join(ROOT, 'faces') : faceDir);
@@ -189,7 +200,7 @@ async function main(argv) {
     /* 3. the app with __MW_DEMO__ set; identifiers are kept so a name in a string is the only two-letter word that changes */
     run(path.join(APP, 'node_modules', '.bin', 'esbuild'), ['src/main.js', '--bundle', '--minify-whitespace', '--minify-syntax', '--format=iife', '--target=es2020', '--define:__MW_DEMO__=true', '--log-level=warning', '--legal-comments=none', '--outfile=' + path.join(tmp, 'app.js')], APP);
     const appJs = names.substituteCode(fs.readFileSync(path.join(tmp, 'app.js'), 'utf8'), m);
-    const coreJs = league.header(names.anonymiseLeague(cfg, m)) + history.header(history.anonymise(history.load(), m, cfg)) + names.substituteCode(demoCore(core), m);   /* the fictional league in front of the engine; no EA faces (9 Oct 2026) */
+    const coreJs = league.header(names.anonymiseLeague(cfg, m)) + history.header(history.anonymise(history.load(), m, cfg)) + names.substituteCode(demoArticles(demoCore(core), SITE), m);   /* the fictional league in front of the engine; no EA faces (9 Oct 2026) */
     const cssFiles = fs.readdirSync(path.join(APP, 'src', 'css')).filter(f => f.endsWith('.css')).sort();   /* name order, as ci-build.sh with LC_ALL=C */
     const appCss = names.substituteCode(cssFiles.map(f => fs.readFileSync(path.join(APP, 'src', 'css', f), 'utf8')).join(''), m);
     const index = demoIndex(fs.readFileSync(path.join(APP, 'index.template.html'), 'utf8'), build);
@@ -243,5 +254,5 @@ async function main(argv) {
   log('image check: clean (' + IMAGE_ALLOW.length + ' allowed)');
   return 0;
 }
-module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, IMAGE_ALLOW, IMAGE_RE, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, imageScan, demoIndex, walk, playerFile, leakScan, fromData, main };
+module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, IMAGE_ALLOW, IMAGE_RE, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, demoArticles, dropRatings, faceHashes, faceCodes, eaScan, imageScan, demoIndex, walk, playerFile, leakScan, fromData, main };
 if (require.main === module) main(process.argv.slice(2)).then(code => process.exit(code), e => { console.error('[demo] ' + (e && e.stack || e)); process.exit(1); });

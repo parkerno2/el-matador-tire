@@ -15,7 +15,7 @@ function ago() {
 }
 function clubCard() {
   const me = UI.you(), signed = UI.signedIn();
-  if (!me) return '<div class="card mn-club none"><div class="mn-cl"><span class="mn-q">' + UI.leagueCrest(40) + '</span><div><b>Pick your team</b><span class="sub">The app opens on your matchup, your lineup and your club’s colours.</span></div></div></div>';
+  if (!me) return '<div class="card mn-club none"><div class="mn-cl"><span class="mn-q">' + UI.leagueCrest(40) + '</span><div><b>Pick your team</b></div></div></div>';
   const s = K.standOf(me);
   return '<div class="card mn-club"><i class="mn-band" style="background:' + UI.teamColors(me).accent + '"></i><div class="mn-cl"><span class="ms-cr">' + UI.glow(me, 'left', .45, 140) + UI.crest(me, 48) + '</span>'
     + '<div><b>' + esc(me) + '</b><span class="sub">' + esc(K.nameOf(me)) + (s.has ? ' · ' + K.ord(s.pos) + ' · ' + K.recL(s) : '') + '</span>'
@@ -35,16 +35,15 @@ function rowLink(attr, icon, title, sub) {
   return '<button type="button" class="row tap mn-row" ' + attr + '><span class="mn-ic">' + UI.icon(icon, 18, 'var(--p300)') + '</span><span class="mn-rt"><b>' + title + '</b>' + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</span>' + UI.icon('chev', 16, 'var(--tx3)') + '</button>';
 }
 function mainView() {
-  const live = D && D.liveNow;
   return '<div class="mn-wrap"><div class="mn-top">' + UI.leagueCrest(28) + '<div><b>El Matador Tire</b><span class="sub">FPL Draft · 8 managers · 38 gameweeks</span></div></div>'
     + clubCard() + switcher()
     + UI.sh('The app') + '<div class="card">'
-    + rowLink('data-open="menu:how"', 'info', 'How it works', 'Cards, ratings, projections, auto-subs, luck and the money')
-    + rowLink('data-open="search"', 'search', 'Search', 'Any Premier League player, or a team')
+    + rowLink('data-open="menu:how"', 'info', 'How it works')
+    + rowLink('data-open="search"', 'search', 'Search')
     + '</div>'
-    + UI.sh('Data') + '<div class="card mn-data"><div class="mn-fr"><div><b data-ago>Updated ' + ago() + '</b><span class="sub">Refreshes every ' + (live ? '90 seconds while games are on' : '5 minutes, and every 90 seconds while games are on') + '. Live scores can trail the TV by a few minutes.</span></div>'
+    + UI.sh('Data') + '<div class="card mn-data"><div class="mn-fr"><div><b data-ago>Updated ' + ago() + '</b></div>'
     + '<button type="button" class="btn ghost mn-rf" data-refresh>' + UI.icon('refresh', 16, 'var(--tx)') + 'Refresh now</button></div></div>'
-    + (DEMO ? '' : '<div class="card mn-classic"><a class="row tap mn-row" href="classic.html" target="_blank" rel="noopener"><span class="mn-ic">' + UI.icon('share', 18, 'var(--p300)') + '</span><span class="mn-rt"><b>Open the classic app</b><span class="sub">The previous version, everything still in place</span></span>' + UI.icon('chev', 16, 'var(--tx3)') + '</a></div>')
+    + (DEMO ? '' : '<div class="card mn-classic"><a class="row tap mn-row" href="classic.html" target="_blank" rel="noopener"><span class="mn-ic">' + UI.icon('share', 18, 'var(--p300)') + '</span><span class="mn-rt"><b>Open the classic app</b></span>' + UI.icon('chev', 16, 'var(--tx3)') + '</a></div>')
     + '<p class="mn-foot">' + (DEMO ? 'The Matchweek demo league. No ads, no analytics.' : 'Matchweek for El Matador Tire. No ads, no analytics.') + '</p>'
     + '<nav class="mn-legal" aria-label="Legal"><a href="' + (DEMO ? '../' : '') + 'privacy.html" target="_blank" rel="noopener">Privacy</a><i aria-hidden="true"></i><a href="' + (DEMO ? '../' : '') + 'terms.html" target="_blank" rel="noopener">Terms</a></nav></div>';
 }
