@@ -201,7 +201,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
 .pb{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 6px;border-radius:11px;font:700 15px/1 var(--f-num)}
 .pb.bk{background:#fff;color:var(--base)}
 .pb.lv{background:var(--live);color:var(--base)}
-.pb.pj{background:rgba(14,10,19,.85);color:#fff;border:1.5px dashed rgba(255,255,255,.55)}
+.pb.Tom{background:rgba(14,10,19,.85);color:#fff;border:1.5px dashed rgba(255,255,255,.55)}
 
 /* faces and crests */
 .fc-i{display:inline-flex;flex:none;align-items:flex-end;justify-content:center;border-radius:50%;overflow:hidden;background:var(--top)}
@@ -402,8 +402,8 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-wl .md-dr{margin:0 auto}
 .md-wl .md-dr + b.opp{margin-left:0}
 .md-win .wbar{margin-top:7px}
-.md-pj{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
-.md-pj b{font-size:15px;color:#fff}
+.md-Tom{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
+.md-Tom b{font-size:15px;color:#fff}
 .md-tps{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--top)}
 .md-tp{display:flex;flex-direction:column;gap:6px;min-width:0}
 .md-tp.r{align-items:flex-end}
@@ -750,7 +750,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .md-pv2{flex:none;display:flex;flex-direction:column;align-items:center;min-width:30px;gap:1px}
 .md-pv2 b{font-size:16px;line-height:1}
 .md-pv2 i{font-style:normal;font-size:8px;font-weight:800;letter-spacing:.06em;color:var(--tx3)}
-.md-pv2.lv b{color:var(--live)} .md-pv2.pj b{color:var(--tx2)}
+.md-pv2.lv b{color:var(--live)} .md-pv2.Tom b{color:var(--tx2)}
 .md-all{font-size:13px;font-weight:600;color:var(--b300);min-height:40px;padding:0 2px}
 .md-snh{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx2)}
 .md-snh b{color:#fff;font-size:15px}
@@ -1339,7 +1339,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-mr .lane{--c:var(--p100);position:relative;display:block;height:10px;margin-top:5px;border-radius:5px;background:var(--raised)}
 .lg-mr.you .lane{--c:var(--you)}
 .lg-mr .lane .rg{position:absolute;top:0;bottom:0;border-radius:5px;background:var(--c);opacity:.22}
-.lg-mr .lane .pj{position:absolute;top:3px;height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--c) 0 5px,transparent 5px 8px)}
+.lg-mr .lane .Tom{position:absolute;top:3px;height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--c) 0 5px,transparent 5px 8px)}
 .lg-mr .lane .bk{position:absolute;left:0;top:2px;height:6px;border-radius:3px;background:var(--c)}
 .lg-mr .lane .mk{position:absolute;top:-2px;width:4px;height:14px;margin-left:-2px;border-radius:2px;background:var(--c)}
 .lg-mr .pv{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
@@ -1532,7 +1532,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 .lg-odds .r.you .nm{color:var(--you)}
 .lg-odds .bar{height:6px;border-radius:3px;background:var(--top);overflow:hidden}
 .lg-odds .bar i{display:block;height:100%;border-radius:3px;background:var(--tx3)}
-.lg-odds .r.baha .bar i{background:var(--p300)}
+.lg-odds .r.Callum .bar i{background:var(--p300)}
 .lg-odds .r b{font-size:16px;font-weight:700;text-align:right}
 .lg-pot .eq{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 6px}
 .lg-pot .eq b{font-size:26px;font-weight:700;line-height:1}
@@ -1711,7 +1711,7 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--safe-t)
 /* every club in its own colour: the title-chance bars, the month's race, the last-place market */
 .lg-tr .tb i{background:var(--tc,var(--p300))}
 .lg-mr .lane,.lg-mr.you .lane{--c:var(--tc,var(--p100))}
-.lg-odds .bar i,.lg-odds .r.baha .bar i{background:var(--tc,var(--tx3))}
+.lg-odds .bar i,.lg-odds .r.Callum .bar i{background:var(--tc,var(--tx3))}
 
 /* quiet numbers (DESIGN.md: 7:1): the series count on a derby, the pot's shares and periods, points for and against */
 .srl.n,.lg-hold .pz .k,.per .n,.lg-pot .rows em.n,.sc td.pa.n{color:var(--num2)}

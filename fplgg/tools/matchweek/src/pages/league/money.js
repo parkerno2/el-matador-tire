@@ -2,6 +2,7 @@
 import * as UI from '../../ui.js';
 import { table, halfway, motm, payouts, periodTotals, periodState, odds, oddsReady, pctTxt, bahaTeam, PAY, POT, money, perName, dayWord, koOf, words, curPeriodIdx, begun } from './data.js';
 import { tap } from './overview.js';
+import { DEMO } from '../../data/tabs.js';   /* the market is about a real person: not in the demo (S1, 11 Oct 2026) */
 
 const esc = UI.esc;
 
@@ -62,6 +63,7 @@ function motmHistory() {
 }
 
 function market() {
+  if (DEMO) return '';
   const t = bahaTeam(), ready = oddsReady(), od = ready ? odds() : null;
   if (!od) return UI.sh('The Baha market') + '<div class="card lg-mkt"><div class="dial wait"><span class="in"><b class="n">' + UI.waitN() + '</b><span>chance</span></span></div><div class="q"><b>Will Baha finish 8th?</b><span class="sub">Pricing 5,000 simulated seasons…</span></div></div>';
   const v = od.last[t] || 0, hot = v >= 25;

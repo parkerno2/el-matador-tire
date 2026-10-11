@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
   const id = Number(cfg?.league?.fplDraftLeagueId);
   if (!cfg || !Number.isInteger(id) || id <= 0) return json(400, { ok: false, error: 'config.league.fplDraftLeagueId must be a positive integer.' });
   const teams = cfg.teams ?? [];
-  if (teams.length < 4 || teams.length > 16) return json(400, { ok: false, error: 'config.teams must have 4–16 entries.' });
+  if (teams.length < 4 || teams.length > 16) return json(400, { ok: false, error: 'config.teams must have 4 to 16 entries.' });
   const monos = teams.map(t => t.monogram);
   if (new Set(monos).size !== monos.length) return json(400, { ok: false, error: 'Team monograms must be unique.' });
 
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   const d = await r.json().catch(() => null);
   const entries = d?.league_entries ?? [];
   const drafted = d?.league?.draft_status === 'post' || d?.league?.closed === true || (d?.matches ?? []).some((x: { started?: boolean }) => x.started);
-  if (!drafted) return json(422, { ok: false, error: 'This league has not drafted yet — register it once the draft is complete.' });
+  if (!drafted) return json(422, { ok: false, error: 'This league has not drafted yet. Register it once the draft is complete.' });
   if (entries.length !== teams.length) return json(422, { ok: false, error: `Config has ${teams.length} teams but FPL reports ${entries.length}. Re-run the setup wizard.` });
 
   // ---- register ----
@@ -66,10 +66,12 @@ Deno.serve(async (req) => {
 
   // ---- kick the first ingest so the clubhouse fills within ~2 minutes ----
   const ingestUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/ingest?league=${id}`;
-  const kick = fetch(ingestUrl).catch(() => {});
+  const kick = fetch(ingestUrl, { headers: { 'x-ingest-secret': Deno.env.get('INGEST_SECRET') ?? '' } }).catch(() => {});   // the ingest requires the secret (S1, 11 Oct 2026)
   // deno-lint-ignore no-explicit-any
   const rt = (globalThis as any).EdgeRuntime;
   if (rt?.waitUntil) rt.waitUntil(kick);
 
-  return json(200, { ok: true, appUrl: `${APP_URL}?league=${id}`, note: 'First data sync is running — the clubhouse fills in about two minutes.' });
+  // S1, 11 Oct 2026: the wizard no longer calls anything live (a second league cannot be served yet, ROADMAP C2 and B3);
+  // appUrl stays in the contract for the day it can, the note says what is true now, without an em dash.
+  return json(200, { ok: true, appUrl: `${APP_URL}?league=${id}`, note: 'Saved to the beta list. We will email you when the league is ready.' });
 });

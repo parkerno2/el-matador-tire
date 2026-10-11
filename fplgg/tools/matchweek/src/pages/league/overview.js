@@ -1,5 +1,6 @@
 /* League › Overview: the table (hero), the Manager of the Month race, the prize pool. Three blocks, nothing else. */
 import * as UI from '../../ui.js';
+import { DEMO } from '../../data/tabs.js';   /* no market in the demo (S1, 11 Oct 2026) */
 import { table, movement, tableSummary, odds, oddsReady, pctTxt, motm, payouts, halfway, wk, ord, money, perName, PAY, FINAL, POT, dayWord, dayMonth, koOf, begun } from './data.js';
 
 const esc = UI.esc;
@@ -159,7 +160,7 @@ export function poolBlock() {
     + '<div class="lg-pt"><span class="k">Halfway · GW19</span><b class="n">' + money(PAY.half) + '</b><span class="h">' + (on ? UI.crest(hw.team, 18) : '') + '<span>' + esc(hwTxt) + '</span></span></div>'
     + '<div class="lg-pt"><span class="k">Manager of the Month</span><b class="n">' + money(PAY.motm) + ' <small>× 9</small></b><span class="h">' + UI.crest(fav, 18) + '<span>' + esc(mTxt) + '</span></span></div>'
     + '</div>' + next
-    + '<div class="lg-pool-more"><a class="lg-more" href="#/league/money">Every prize and the Baha market ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div>'
+    + '<div class="lg-pool-more"><a class="lg-more" href="#/league/money">' + (DEMO ? 'Every prize ' : 'Every prize and the Baha market ') + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div>'
     + '</section>';
 }
 function periodStarted(p) { return D.gw > p[1] || (D.gw === p[1] && D.dlPassed) || D.gwsDone >= p[1]; }

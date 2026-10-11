@@ -20,8 +20,17 @@ const FICTIONAL = [
   { team: 'Isak Newton', mgr: 'Sam Okafor', ini: 'SO', short: 'Newton' },
 ];
 
+/* neutral derby names for the demo (S1, 11 Oct 2026: the league's own derby names are jokes about real people and
+   stay out of the public demo). Assigned to the league's derby pairs in sorted key order; a league with more derbies
+   than this list gets "The <A> and <B> Derby" from the fictional short names. */
+const DERBIES = ['The Harbour Derby', 'The Old Mill Derby', 'The Riverside Derby', 'The Hilltop Derby', 'The Market Square Derby',
+  'The Lighthouse Derby', 'The Viaduct Derby', 'The Orchard Derby', 'The Quarry Derby', 'The Canal Derby', 'The Bridge Derby',
+  'The Meadow Derby', 'The Clocktower Derby', 'The Pier Derby', 'The Station Derby', 'The Windmill Derby'];
+const DEMO_NAME = 'Demo league';
+
 const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const words = s => String(s || '').trim().split(/\s+/).filter(Boolean);
+const hasLetter = s => /\p{L}/u.test(s);
 
 /* the mapping from the Standings rows ({ Team, Manager } objects, or [team, manager] pairs):
    { teams: { real team: fictional team }, mgrs: { real full name: fictional }, first: { real first name: fictional },
@@ -59,15 +68,52 @@ function mapping(rows, inis, shorts, aliases) {
   return m;
 }
 
-/* one regex that matches every real name as a whole word, longest first (so a team name that contains a first name
-   wins over the first name); which: an array of the keys to include (teams, mgrs, first, sur) */
+/* the strings that identify the league itself, banned from the demo and replaced in its code (S1, 11 Oct 2026):
+   the league's name (and its name without the last word, when it has three or more: the two-word form people use),
+   every derby name of league.json (each mapped to a neutral one, by sorted key order, so the LEAGUE header, the
+   engine's article titles and any post agree) and the league's FPL id (league.json "fpl"; it leads back to every real
+   name through the FPL API). Returned as { real: fictional }, the shape the other maps have, kept as m.ban. */
+function banMap(cfg) {
+  cfg = cfg || {};
+  const out = {};
+  const name = String(cfg.name || '').trim();
+  if (name) { out[name] = DEMO_NAME; const w = words(name); if (w.length >= 3) out[w.slice(0, -1).join(' ')] = DEMO_NAME; }
+  const keys = Object.keys(cfg.derbies || {}).sort();
+  keys.forEach((k, i) => {
+    const real = String(cfg.derbies[k] || '').trim();
+    if (!real || real in out) return;
+    out[real] = DERBIES[i] || ('Derby ' + (i + 1));
+  });
+  if (cfg.fpl) out[String(cfg.fpl)] = '0';
+  return out;
+}
+const ALL_KEYS = ['teams', 'mgrs', 'first', 'sur', 'short', 'ban'];
+
+/* one regex that matches every real name as a whole word, whatever its case (PARKER'S OCTOBER on a thumbnail,
+   11 Oct 2026), longest first (so a team name that contains a first name wins over the first name); which: an array
+   of the keys to include (teams, mgrs, first, sur, short, ban) */
 function nameRegex(m, which) {
-  const keys = [].concat(...(which || ['teams', 'mgrs', 'first', 'sur', 'short']).map(k => Object.keys(m[k] || {}))).filter(Boolean);
+  const keys = [].concat(...(which || ALL_KEYS).map(k => Object.keys(m[k] || {}))).filter(Boolean);
   if (!keys.length) return null;
   const uniq = [...new Set(keys)].sort((a, b) => b.length - a.length || a.localeCompare(b));
-  return new RegExp('(?<![\\p{L}\\p{N}_])(?:' + uniq.map(esc).join('|') + ')(?![\\p{L}\\p{N}_])', 'gu');
+  return new RegExp('(?<![\\p{L}\\p{N}_])(?:' + uniq.map(esc).join('|') + ')(?![\\p{L}\\p{N}_])', 'giu');
 }
-function lookup(m, name) { return m.teams[name] || m.mgrs[name] || m.first[name] || m.sur[name] || m.short[name] || name; }
+/* the fictional form of a real name, in the order the maps take precedence, whatever the case the text wrote it in;
+   a word written in capitals comes back in capitals */
+function lookup(m, name) {
+  const lc = String(name).toLowerCase();
+  let hit, exact = false;
+  for (const k of ALL_KEYS) {
+    const map = m[k] || {};
+    if (name in map) { hit = map[name]; exact = true; break; }
+    const key = Object.keys(map).find(x => x.toLowerCase() === lc);
+    if (key !== undefined) { hit = map[key]; break; }
+  }
+  if (hit === undefined) return name;
+  /* written exactly as the real name is (PJ, a first name that is initials): the fictional name as given; written in
+     capitals otherwise (PARKER'S): the fictional name in capitals */
+  return (!exact && name === name.toUpperCase() && name !== name.toLowerCase() && hasLetter(name)) ? String(hit).toUpperCase() : String(hit);
+}
 /* every real name in a text replaced as a whole word, in one pass */
 function replaceNames(text, m, which) {
   const re = nameRegex(m, which); if (!re) return String(text);
@@ -78,7 +124,9 @@ function replaceNames(text, m, which) {
    footballer's (Ethan, Jacob, Lucas...), so the first-name rule is not applied to their cells or checked in their files */
 const PLAYER_TABS = ['Players', 'Rosters', 'GW Stats', 'GW Log', 'Predictions', 'Transactions', 'Fixture BPS', 'EA Map', 'FC27'];
 /* the columns that hold free text, where first names and surnames are replaced as whole words */
-const TEXT_COLS = ['Text', 'Facts', 'Teams', 'Notes', 'Value', 'Extra', 'Event', 'Players', 'Note', 'Title', 'Sub'];
+const TEXT_COLS = ['Text', 'Facts', 'Teams', 'Notes', 'Value', 'Extra', 'Event', 'Players', 'Note', 'Title', 'Sub', 'Media', 'Share', 'Links'];
+/* the tabs that are free text in every column (a voice's post: its text, its thumbnail's lines, its share line) */
+const TEXT_TABS = ['Posts'];
 
 /* the file name a tab's snapshot is written to, under the demo's data folder (the app computes the same name) */
 const slug = name => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.json';
@@ -94,7 +142,7 @@ function anonymiseTab(name, tab, m) {
   if (name === 'Specials') rows = rows.filter(r => String(r.Setting || '').trim() !== 'API URL');
   if (name === 'Social') rows = rows.filter(r => String(r.Kind || '') !== 'quote');
   if (name === 'Posts') rows = rows.filter(r => String(r.Kind || '') === 'ai');
-  const full = ['teams', 'mgrs'], text = ['teams', 'mgrs', 'first', 'sur', 'short'];
+  const full = ['teams', 'mgrs', 'ban'], text = ALL_KEYS;
   rows = rows.map(r => {
     const o = {};
     cols.forEach(c => {
@@ -104,7 +152,7 @@ function anonymiseTab(name, tab, m) {
         const t = v.trim();
         if (m.teams[t]) v = m.teams[t];
         else if (m.mgrs[t]) v = m.mgrs[t];
-        else v = replaceNames(v, m, TEXT_COLS.includes(c) ? text : full);
+        else v = replaceNames(v, m, (TEXT_COLS.includes(c) || TEXT_TABS.includes(name)) ? text : full);
       }
       o[c] = v === undefined ? '' : v;
     });
@@ -140,17 +188,41 @@ function substituteCode(src, m) {
    Set of first names a footballer in the Players tab shares (Jacob Ramsey, Ethan Nwaneri...), never checked as first
    names or short names, since the demo's player data and recaps name footballers in full. Returns [] when clean. */
 function leaks(text, m, skipFirst, exempt) {
-  const drop = o => Object.fromEntries(Object.entries(o || {}).filter(([k]) => !(exempt && exempt.has(k))));
+  const isMap = exempt instanceof Map;
+  const lcKeys = o => new Set(Object.keys(o || {}).map(k => k.toLowerCase()));
+  const exLc = isMap ? new Map([...exempt].map(([k, v]) => [k.toLowerCase(), new Set([...v].map(x => x.toLowerCase()))])) : exempt ? lcKeys(Object.fromEntries([...exempt].map(k => [k, 1]))) : new Set();
+  /* a Set exempts the first name wherever it appears (the old rule); a Map exempts it only before one of its surnames */
+  const drop = o => Object.fromEntries(Object.entries(o || {}).filter(([k]) => !(exLc.has(k.toLowerCase()) && !isMap)));
   const mm = skipFirst ? Object.assign({}, m, { first: {}, short: {} }) : Object.assign({}, m, { first: drop(m.first), short: drop(m.short) });
-  const re = nameRegex(mm, ['teams', 'mgrs', 'first', 'sur', 'short']);
+  const re = nameRegex(mm, ALL_KEYS);
   if (!re) return [];
-  const found = new Set(); let x; while ((x = re.exec(text))) found.add(x[0]);
+  const firstLc = lcKeys(m.first);
+  const found = new Set(); let x;
+  while ((x = re.exec(text))) {
+    const w = x[0], lc = w.toLowerCase();
+    if (isMap && firstLc.has(lc) && exLc.has(lc)) {
+      const tail = /^\s+(\S+)/.exec(text.slice(re.lastIndex));
+      if (tail && exLc.get(lc).has(tail[1].replace(/[^\p{L}\p{N}'’.-]+$/u, '').toLowerCase())) continue;   /* Jacob Ramsey: the footballer */
+    }
+    found.add(w);
+  }
   return [...found].sort();
 }
 /* the first names of the footballers in a Players tab ({ cols, rows }: Full name, else Player), for the check's exempt set */
 function playerFirstNames(players) {
   const out = new Set();
   ((players && players.rows) || []).forEach(r => { const w = words(r['Full name'] || ''); if (w.length > 1) out.add(w[0]); });
+  return out;
+}
+/* the same as a Map of first name to the surnames that follow it in the tab (Jacob to Ramsey and Murphy), so the
+   leak check allows a footballer's full name and still catches the first name on its own (S1, 11 Oct 2026) */
+function playerNames(players) {
+  const out = new Map();
+  ((players && players.rows) || []).forEach(r => {
+    const w = words(r['Full name'] || ''); if (w.length < 2) return;
+    if (!out.has(w[0])) out.set(w[0], new Set());
+    out.get(w[0]).add(w[w.length - 1]); if (w.length > 2) out.get(w[0]).add(w[1]);
+  });
   return out;
 }
 
@@ -171,15 +243,22 @@ function anonymiseLeague(cfg, m) {
       short: (m.shorts[t] && m.shorts[t].to) || m.short[x.short] || (words(f)[words(f).length - 1]),
     });
   });
+  const ban = m.ban || banMap(cfg);
   const derbies = {};
-  Object.keys(cfg.derbies || {}).forEach(k => { derbies[k.split('|').map(ini).join('|')] = replaceNames(cfg.derbies[k], m); });
+  Object.keys(cfg.derbies || {}).forEach(k => {
+    const real = String(cfg.derbies[k] || '').trim(), f = k.split('|').map(ini);
+    const shortOf = i => { const t = Object.keys(teams).find(x => teams[x].ini === i); return t ? teams[t].short : i; };
+    derbies[f.join('|')] = ban[real] || ('The ' + shortOf(f[0]) + ' and ' + shortOf(f[1]) + ' Derby');   /* neutral names, never the league's own (S1) */
+  });
   const seeded = {};
   Object.keys(cfg.seeded || {}).forEach(k => {
     const p = k.split('|').map(ini), v = (cfg.seeded[k] || []).slice();
     const sorted = p.slice().sort();
     seeded[sorted.join('|')] = sorted[0] === p[0] ? v : [v[1], v[0], v[2]];
   });
-  return Object.assign({}, cfg, { name: 'Demo league', ratings: 'house', teams, aliases: {}, derbies, seeded });   /* house ratings: no EA figure in the demo (ROADMAP C3) */
+  const out = Object.assign({}, cfg, { name: DEMO_NAME, ratings: 'house', teams, aliases: {}, derbies, seeded });   /* house ratings: no EA figure in the demo (ROADMAP C3) */
+  delete out.fpl;   /* no real league id in the demo (S1): it leads back to every real name through the FPL API */
+  return out;
 }
 
-module.exports = { FICTIONAL, PLAYER_TABS, TEXT_COLS, mapping, nameRegex, replaceNames, anonymiseTab, anonymiseTabs, anonymiseLeague, substituteCode, leaks, playerFirstNames, slug, words };
+module.exports = { FICTIONAL, DERBIES, DEMO_NAME, ALL_KEYS, PLAYER_TABS, TEXT_COLS, TEXT_TABS, mapping, banMap, nameRegex, replaceNames, anonymiseTab, anonymiseTabs, anonymiseLeague, substituteCode, leaks, playerFirstNames, playerNames, slug, words };

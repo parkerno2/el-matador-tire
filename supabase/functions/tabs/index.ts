@@ -27,6 +27,23 @@ const CACHE_S = Number(Deno.env.get('TABS_CACHE_SECONDS') ?? '60');
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY')!);
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, content-type' };
+
+/* The tabs this public function serves (S1, 11 Oct 2026): exactly what the app reads from Supabase behind
+ * ?data=supabase (src/data/tabs.js TABS less SHEET_ONLY and the EA tabs, plus Meta for the stale banner). Everything
+ * else is refused with 403: Managers (logins, tokens), Social and Posts (the web app's own tabs, never on Supabase),
+ * Specials (the web app's address; the app reads it from the Sheet), FC27 and EA Map (EA data), Ratings, Grades,
+ * Draft Board, MOTM. tests/supabase.js holds this list against the app's. */
+const TAB_ALLOW = new Set(['Rosters', 'Standings', 'H2H Fixtures', 'Matchweeks', 'Club Fixtures', 'Clubs', 'Transactions',
+  'Predictions', 'GW Stats', 'Players', 'GW Log', 'Fixture BPS', 'Meta']);
+/* the league config without anyone's full name or picture (S1): a team keeps its name, first name, monogram, colour,
+ * entry id and projection; manager and faqFace are dropped, and so is the legacy datasource block */
+function publicConfig(cfg: unknown): unknown {
+  if (!cfg || typeof cfg !== 'object') return cfg;
+  const c = { ...(cfg as Record<string, unknown>) };
+  delete c.legacyDatasource;
+  if (Array.isArray(c.teams)) c.teams = (c.teams as Record<string, unknown>[]).map(t => { const o = { ...t }; delete o.manager; delete o.faqFace; return o; });
+  return c;
+}
 const json = (code: number, body: unknown, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status: code, headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS, ...extra } });
 
@@ -75,7 +92,7 @@ Deno.serve(async (req) => {
       const { data, error } = await sb.from('leagues').select('name, fpl_league_id, config, status').eq('fpl_league_id', Number(mc[1])).eq('season', SEASON).maybeSingle();
       if (error) throw error;
       if (!data || data.status !== 'active') return json(404, { error: `no league ${mc[1]} for ${SEASON}` });
-      return json(200, { name: data.name, fplLeagueId: data.fpl_league_id, config: data.config }, { 'Cache-Control': 'public, max-age=300' });
+      return json(200, { name: data.name, fplLeagueId: data.fpl_league_id, config: publicConfig(data.config) }, { 'Cache-Control': 'public, max-age=300' });
     } catch (e) { return json(500, { error: String((e as Error).message ?? e) }); }
   }
 
@@ -96,6 +113,7 @@ Deno.serve(async (req) => {
   const m = path.match(/\/league\/(\d+)\/tab\/([^/]+)\/?$/);
   if (!m) return json(404, { error: 'expected /league/{fplDraftLeagueId}/tab/{name}, /league/{id}/config, or /health' });
   const fplId = Number(m[1]), tab = decodeURIComponent(m[2]);
+  if (!TAB_ALLOW.has(tab)) return json(403, { error: `the tab "${tab}" is not served` });
   try {
     const uuid = await leagueUuid(fplId);
     if (!uuid) return json(404, { error: `no league ${fplId} for ${SEASON}` });

@@ -9,8 +9,11 @@ const now = Date.parse('2026-10-10T14:30:00Z');
 
 /* ---------- the tab list stays in step with the app's sheet reader and the engine's alias ---------- */
 const tabsSrc = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/src/data/tabs.js', 'utf8');
-const appTabs = Object.keys(new Function(tabsSrc.replace(/^export (function|const|let)/gm, '$1') + '\n;return TABS;')());
-check('the tabs compared are exactly the tabs the app reads (src/data/tabs.js TABS)', P.TABS.join('|') === appTabs.join('|'), P.TABS.join('|') + ' vs ' + appTabs.join('|'));
+const tabsMod = new Function(tabsSrc.replace(/^export (function|const|let)/gm, '$1') + '\n;return { TABS, SHEET_ONLY, DEMO_EMPTY };')();
+const appTabs = Object.keys(tabsMod.TABS);
+const served = appTabs.filter(t => !tabsMod.SHEET_ONLY.includes(t) && !tabsMod.DEMO_EMPTY.includes(t));
+check('the tabs compared are exactly the tabs the app reads from Supabase (src/data/tabs.js TABS less SHEET_ONLY and the EA tabs; S1, 11 Oct 2026)', P.TABS.join('|') === served.join('|'), P.TABS.join('|') + ' vs ' + served.join('|'));
+check('UNSERVED names exactly the app\'s SHEET_ONLY and EA tabs, the ones the tabs function refuses', [...P.UNSERVED].sort().join('|') === [...tabsMod.SHEET_ONLY, ...tabsMod.DEMO_EMPTY].sort().join('|') && Object.keys(P.KEYS).length === appTabs.length, P.UNSERVED.join('|'));
 const league = JSON.parse(fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/league.json', 'utf8'));
 check('the alias is the league\'s aliases (league.json, the engine\'s TEAM_ALIAS)', JSON.stringify(league.aliases || {}) === JSON.stringify(P.ALIAS) && Object.keys(P.ALIAS).length >= 1, JSON.stringify(P.ALIAS));
 P.TABS.forEach(t => check('keys for ' + t + ' are columns the app requires or the tab has', P.KEYS[t].length > 0));
@@ -129,16 +132,16 @@ function world(opts) {
 (async () => {
   let w = world(), lines = [];
   let res = await P.main({ fetchText: w.fetchText, now: () => now, log: m => lines.push(m) });
-  check('all tabs read from both sides: exit 0, 18 tabs, the 4 absent ones missing, the rest agree', res.code === 0 && res.report.tabs.length === 18 && res.report.summary.missing === 4 && res.report.summary.same + res.report.summary.empty === 14 && res.report.summary.differs === 0, JSON.stringify(res.report.summary));
+  check('all tabs read from both sides: exit 0, 12 tabs, the absent one missing, the rest agree', res.code === 0 && res.report.tabs.length === 12 && res.report.summary.missing === 1 && res.report.summary.same + res.report.summary.empty === 11 && res.report.summary.differs === 0, JSON.stringify(res.report.summary));
   check('the report carries the time, the league, the freshness and the markdown', res.report.at === '2026-10-10T14:30:00Z' && res.report.league === 45380 && res.report.fresh.sheet === '2026-10-10T14:14:42Z' && res.report.fresh.supabase === '2026-10-10T14:07:03Z' && /^## Supabase parity/.test(res.report.md));
   check('every tab was asked of both sources, plus Meta and /health', P.TABS.every(t => w.urls.some(u => u === P.gvizUrl(t)) && w.urls.some(u => u === P.sbUrl(t))) && w.urls.some(u => /sheet=Meta/.test(u)) && w.urls.some(u => /\/health$/.test(u)));
-  check('one log line per tab and a closing line', lines.filter(l => /^(ok|DIFFERS|missing|ERROR)/.test(l)).length === 18 && /^compared 18 tabs: 0 differ, 4 not on Supabase, 14 agree$/.test(lines[lines.length - 1]), lines[lines.length - 1]);
+  check('one log line per tab and a closing line', lines.filter(l => /^(ok|DIFFERS|missing|ERROR)/.test(l)).length === 12 && /^compared 12 tabs: 0 differ, 1 not on Supabase, 11 agree$/.test(lines[lines.length - 1]), lines[lines.length - 1]);
   w = world({ sbScore: 44 }); lines = [];
   res = await P.main({ fetchText: w.fetchText, now: () => now, log: m => lines.push(m) });
   check('a score differing on Supabase: exit 0 still, the tab differs, the log says so', res.code === 0 && res.report.summary.differs === 1 && lines.some(l => /^DIFFERS H2H Fixtures: 1 \/ 1 rows, 1 differ$/.test(l)), lines.join('\n'));
   w = world({ sbDown: true }); lines = [];
   res = await P.main({ fetchText: w.fetchText, now: () => now, log: m => lines.push(m) });
-  check('Supabase down: every tab is an error, exit 1', res.code === 1 && res.report.summary.error === 18 && res.report.fresh.supabase === '' && /nothing could be compared/.test(lines[lines.length - 1]));
+  check('Supabase down: every tab is an error, exit 1', res.code === 1 && res.report.summary.error === 12 && res.report.fresh.supabase === '' && /nothing could be compared/.test(lines[lines.length - 1]));
   w = world({ sheetDown: true }); lines = [];
   res = await P.main({ fetchText: w.fetchText, now: () => now, log: m => lines.push(m) });
   check('the Sheet down: every tab is an error naming the Sheet, exit 1', res.code === 1 && res.report.tabs.every(t => t.status === 'error' && /the Sheet: ENOTFOUND/.test(t.error)));

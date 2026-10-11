@@ -56,6 +56,27 @@ run of the day ok, Standings and the live GW Stats block refreshed within the ho
 replacement answered that the function log tables do not exist for this project, so the function console logs
 were not read; the ingest's own log is `ingest_runs` plus pg_net's reply bodies, which say what each run did.
 
+## Who may call what (S1, 11 Oct 2026, after the release-readiness review)
+
+- **`ingest` and `seed-statics`** write with the service-role key, so they answer only a call that carries the shared
+  secret in the header `x-ingest-secret` (or as a Bearer token). The value lives in two places and nowhere else: the
+  function secret `INGEST_SECRET` (set through the Management API, `POST /v1/projects/{ref}/secrets`, by the session;
+  never in the repo, never printed) and Vault, as the secret `ingest_secret` (`select vault.create_secret(...)` through
+  the query endpoint), which the two pg_cron jobs read on every call (`migrations/20261011140000_ingest_secret.sql`,
+  `cron.alter_job`, the jobs keep their ids and schedules). A wrong or missing header is a 401; no secret set is a 503,
+  so a fresh project is closed until someone opens it on purpose. The comparison is constant time. To rotate: a new
+  `vault.update_secret` plus the same value in the function secret, in that order, and the next cron call carries it.
+- **`register-league`** (gated by the invite code) sends the secret when it kicks a league's first ingest.
+- **`tabs`** is public and read only, and serves only `TAB_ALLOW`: the tabs the app reads from Supabase behind
+  `?data=supabase` (`src/data/tabs.js` `TABS` less `SHEET_ONLY` and the EA tabs, plus Meta). Anything else is a 403:
+  FC27 and EA Map (EA data), Managers (logins), Social and Posts (the web app's own tabs, never on Supabase anyway),
+  Specials (the web app's address; the app reads it from the Sheet whatever the source), Ratings, Grades, Draft Board,
+  MOTM. `/league/{id}/config` serves the league config without `manager`, `faqFace` or `legacyDatasource`. The parity
+  report compares the served tabs only (`parity.js` `UNSERVED`).
+- **Running the ingest by hand** needs the secret: a session that holds it in a file sends
+  `curl -H "x-ingest-secret: $(cat FILE)" https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1/ingest`; without it the
+  function says so. Proof after the deploy of 11 Oct 2026: see `docs/runs/2026-10-11-s1-privacy-security.md`.
+
 ## Working on the project from a session (no PC)
 
 - **Read anything:** the Management API with the environment's network secret for `api.supabase.com` (the proxy
@@ -74,7 +95,7 @@ were not read; the ingest's own log is `ingest_runs` plus pg_net's reply bodies,
   BUGS.md. Take a backup first: `select * from public.<table>` as JSON under `supabase/backups/<date>/`.
 - **Check the result:** `node fplgg/tools/parity/parity.js` compares every tab with the Sheet now; the workflow
   Supabase parity does the same every 3 hours.
-- **Run the ingest now:** `GET https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1/ingest` (what the cron calls).
+- **Run the ingest now:** `GET https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1/ingest` with the header `x-ingest-secret` (what the cron calls; without the header it refuses, S1).
 
 ## Where the ingest and the Sheet differ (BUGS.md #29) and what fixes each
 

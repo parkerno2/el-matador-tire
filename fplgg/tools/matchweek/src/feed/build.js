@@ -13,6 +13,7 @@ import {
 } from './facts.js';
 import { socialPosts } from './social-posts.js';
 import { editorialPosts } from './editorial.js';
+import { DEMO } from '../data/tabs.js';   /* the demo builds no editorial post and no market post: they are about a real person (S1, 11 Oct 2026) */
 import { aiPosts } from './ai-posts.js';
 import { live as liveArticles, KIND as artKind, artHref } from './articles.js';
 
@@ -414,7 +415,7 @@ function archizio(out, you) {
       share: top + ' are title favourites at ' + oddsTxt(S0.title[top]) + '.',
     });
     const B = 'Kobbie Mainoo Fan';
-    if (S0.last[B] !== undefined) {
+    if (!DEMO && S0.last[B] !== undefined) {   /* the market post is about a real person: not in the demo (S1) */
       const p = posOf(B), v = S0.last[B], vT = esc(oddsTxt(v));
       const bp = prev && prev.last ? prev.last[B] : null;
       /* the gap to the bottom, not the table position: the table belongs to Malcolm */
@@ -1052,7 +1053,7 @@ export function build(you) {
   try { out.push(...jivePosts(you)); } catch (e) { console.error(e); }
   /* the league's own words: quotes, bold calls, receipts (Social tab) */
   try { out.push(...socialPosts(you)); } catch (e) { console.error(e); }
-  try { out.push(...editorialPosts()); } catch (e) { console.error(e); }
+  if (!DEMO) try { out.push(...editorialPosts()); } catch (e) { console.error(e); }
   try { out.push(...aiPosts()); } catch (e) { console.error(e); }
   out.forEach(p => { p.audience = p.audience || 'league'; p.teams = [...new Set(p.teams || [])]; p.players = p.players || []; });
   /* a viral receipt rides the top for two days; everything else newest first */
