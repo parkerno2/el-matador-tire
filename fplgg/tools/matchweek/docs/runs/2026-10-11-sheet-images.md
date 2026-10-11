@@ -55,3 +55,10 @@ Parker, on the preview: "I don't know if I really want that box above the rating
   The figure's audited band lies in its solid part (`tests/app-images.js` computes it).
 - Checked: every suite ALL PASS; the contrast audit with the real fonts 0 offenders on 42 screens; `check-images.js`
   ALL PASS; the six tiers rendered side by side with and without the box and looked at.
+- Applied by the builder (18:00 UTC) as a89db62 on `preview` from the manager's patch (sha256 f5ee013a205b94d2), main merged
+  as fd8da19. Gates on the merged tree: every suite ALL PASS, node --check, ci-build.sh, the demo build, the contrast audit
+  0 offenders on 42 screens, `check-images.js --stub-images` ALL PASS, the gallery in Chromium 84 shots OK. Preview
+  Matchweek app run 27 green, Chromium and WebKit at 390 and 360 px:
+  https://github.com/parkerno2/el-matador-tire/actions/runs/38161730221; published on main as 2517af3 ("preview:
+  matchweek app from fd8da19"). The published player sheet shots (`preview/shots/snap/{chromium,webkit}/29, 32, 33`):
+  no box behind the rating on the gold and silver cards, the elite card's figure on its corner shade with no edge.
