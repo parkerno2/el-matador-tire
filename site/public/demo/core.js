@@ -465,21 +465,14 @@ function nextFixture(club){
 }
 let BENCHOPEN=false,XPMODE=false,SUBMARK={};
 const RECAPS=[
-  {gw:1,href:'recap-gw1.html',title:'The Station Derby flips on Monday night, a 66 lands, and a penalty hits the post',
+  {gw:1,href:'../recap-gw1.html',title:'The Station Derby flips on Monday night, a 66 lands, and a penalty hits the post',
    sub:'Four matches, the numbers behind them, and the first waiver watch'},
-  {gw:2,href:'recap-gw2.html',title:'Bruno drops 23 in The Clocktower Derby, Watkins starts from Saudi Arabia, and Callum matches the 66',
+  {gw:2,href:'../recap-gw2.html',title:'Bruno drops 23 in The Clocktower Derby, Watkins starts from Saudi Arabia, and Callum matches the 66',
    sub:'Four matches, the numbers behind them, and the waiver watch'},
-  {gw:3,href:'recap-gw3.html',title:'The league’s first draw lands at 51 apiece, Richarlison starts from exile, and Thiaw scores at the wrong end',
+  {gw:3,href:'../recap-gw3.html',title:'The league’s first draw lands at 51 apiece, Richarlison starts from exile, and Thiaw scores at the wrong end',
    sub:'Four matches, the numbers behind them, and the waiver watch'}
 ];
-const PREVIEWS=[
-  {gw:2,href:'preview-gw2.html',title:'The Lighthouse Derby, seven City players in The Clocktower Derby, and Isak at Anfield',
-   sub:'Who owns whom in every real game, predicted scores, and the transfer clock'},
-  {gw:3,href:'preview-gw3.html',title:'El Jl\u00e1sico\u2019s 26-point gap, 22 starters in Arsenal\u2013Chelsea, and The Canal Derby\u2019s first meeting',
-   sub:'Who owns whom in every real game, predicted scores, and the last transfer clock of the window'},
-  {gw:4,href:'preview-gw4.html',title:'A 17-shirt Manchester derby, Gakpo\u2019s 9.3 as the whole margin, and Hull\u2019s zero',
-   sub:'Who owns whom in every real game, predicted scores, and the injury clock, now with Malcolm Tyre in the booth'}
-];
+const PREVIEWS=[];
 function gwDeadline(g){const w=D.mw.find(x=>num(x.GW)===g);return w?dt(w['Deadline (UTC)']):null}
 function mscore(f){
   const hp=num(f['Home pts']),ap=num(f['Away pts']);
