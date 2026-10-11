@@ -1,0 +1,33 @@
+# Run report, 11 Oct 2026: B2, the parity reports over GW6 and the classic feed's gaps in the Supabase ingest (lane backend)
+
+## The request
+ROADMAP B2's open sub-item, written on 10 Oct 2026 after Q8: "2. read the reports over GW6 (10 to 12 Oct 2026) for the live columns". BUGS.md #29 said the same: "the reports over GW6 (10 to 12 Oct 2026) also show whether the live columns keep up". The 14:47 Chicago run of 11 Oct (19:47 UTC) found Step 1 healthy, no review findings, Parker's queue done, and this as the first unchecked roadmap item whose open part needs no decision from Parker.
+
+## Health before building (19:48 UTC)
+No outage issue. `?health=1` ok at v3.32, equal to the first CHANGELOG version on `release` (58ee52b), `self` "current: v3.32"; data 37 minutes old with `live: false` (GW6's H2H Fixtures rows still open, so the live window holds until Monday 12 Oct's COV v NEW, 19:00 UTC, is finished); articles idle with the GW6 preview live (the GW7 deadline 17 Oct 10:00 UTC, 134 hours away; the failed row preview-gw6-90c43d of 8 Oct is the known one); the GW6 show 22 of 22 clips, 0 stale; `ai.last` clean, the daily floor off for the live gameweek; 0 phone errors in 24 hours; Build Matchweek app run 37, Code.gs tests and release run 51 and Preview Matchweek app run 29 green; the newest "preview: matchweek app from 9bf827e" commit on main (2205d88) names origin/preview's head, and the preview branch has nothing beyond main, so no REVIEW MODE. Step 1b: the 08:47 run did the Sunday audit; `potm.json` already names September 2026.
+
+## What the reports said
+- The Supabase parity run 12 (19:41 UTC, https://github.com/parkerno2/el-matador-tire/actions/runs/38169089849) and the tool run here at 19:51 (`node fplgg/tools/parity/parity.js`): 5 of 12 served tabs agree (Standings, H2H Fixtures, Matchweeks, Transactions, Fixture BPS), 7 differ. The Sheet was refreshed at 19:12:52, Supabase at 19:07:03, no match on.
+- The differences on Supabase alone: Clubs `Str H` and `Str A` blank for all 20 clubs; Players `EP next` blank for all 667; the GW7 Predictions block's `EP` blank for all 667 (GW2 to GW6 agree); Rosters `TOTW` blank for 7 players; Club Fixtures `Mins` 0 for the 59 finished fixtures (90 in the Sheet); plus the known GW1 cells of GW Stats (21 rows) and GW Log (6 rows each way, 17 cells).
+
+## The cause
+- pg_net's log of the ingest's replies (`net._http_response`, read through the Management API's query endpoint; 42 rows since 14:00 UTC, 21 of them full runs): the hourly runs of 14:07, 16:07 and 19:07 report `classicOverlay {used 0, seen 0}`; the hourly runs of 15:07, 17:07 and 18:07 and all 15 ten-minute live runs report `seen 667`. `seen` counts the players the classic live feed matched through the classic bootstrap, so 0 means the classic bootstrap did not arrive. `ingest_runs` shows every run ok, because `getJson` returned null for an optional feed on any error status, with no retry and no record of the status.
+- A run without the classic side rewrites Clubs, Players, Rosters and the next Predictions block from the draft feed alone (no `strength_overall_*`, no `ep_next`, no dream team) and Club Fixtures from the draft fixtures, whose `minutes` is always 0 (the transform prefers the classic fixtures when they arrive, as Code.gs reads them). The Sheet had every figure at 19:12 because Code.gs's refresh ran at another minute.
+- From this environment every classic endpoint (bootstrap-static, fixtures, dream-team/5, event/6/live) answered 200 in about 0.2 seconds with the function's own User-Agent, so the misses are time-bound (the :07 runs) and FPL's status for them is not on record yet.
+
+## What changed (the branch `claude/vigilant-euler-vu7rh7`, commit 7f2b8a6; not on main)
+- `supabase/functions/ingest/index.ts`: `getJson` asks a feed up to four times (waits of 1, 3 and 8 seconds) when FPL answers an error status or the fetch throws; a 4xx other than 429 is final. The last status and the number of tries are kept per URL, and the reply carries `classic: { boot, fixtures, dream, live }` with each feed's `{ status, tries }` (`null` for a feed not asked for), so pg_net's log says what FPL answered on the next miss. Nothing else in the function or the transform changed; the secret gate, the writes and the freeze discipline are as they were.
+- `tests/supabase.js`: the helper's text (the waits, the loop, the 4xx rule, the reply's shape) and its behaviour, run in a child node with a stubbed fetch: a 503 twice then a 200 returns the body on the third try; a 404 on an optional feed is final after one try and gives null; a 429 and a thrown fetch are tried again; four errors give null for an optional feed and an error naming the URL and the status for a required one; a URL never asked for reads null. On the old `index.ts` the suite prints 2 FAILED.
+
+## How it was verified
+- `node tests/supabase.js` ALL PASS (62 checks) on the branch; with origin/main's `index.ts` put back, 2 FAILED, so the test guards the change.
+- Every suite by the gate's pattern on the branch: 51 suites ALL PASS, `tests/codegs/test.js` exit 0; `cp Code.gs /tmp/codegs-check.js && node --check` ok; `cd fplgg/tools/matchweek && npm ci && bash ci-build.sh` built (20261011200113), the six root files restored; `node --experimental-strip-types --check` on `index.ts` ok (Deno is not installed here, so the TypeScript was checked with Node's type stripping; the Supabase functions workflow bundles it for real on the merge).
+- No screen changed (backend only), so no screenshots.
+
+## Not shipped, and why
+The GW6 live window: nothing merges into main until every H2H Fixtures row of GW6 is Finished (Monday 12 Oct's COV v NEW kicks off at 19:00 UTC), and an ingest fix for the second pipeline, which the league's app does not read, is not an outage fix. The branch is pushed; the merge, the Supabase functions run (the deploy) and the proof are the next run's first step once the window closes (ROADMAP B2, "Left", item 1). Until then nothing here is deployed.
+
+## What is left (ROADMAP B2)
+1. After the window: `git merge origin/claude/vigilant-euler-vu7rh7` into main, watch the Supabase functions workflow run green, then read the :07 replies (`select created, content->'classic' from net._http_response where content ? 'classic' order by id desc`) and the parity reports at :41. A 200 after two or more tries names a blip the retries cover; a 403 or 429 names FPL refusing the runner's address at :07, in which case the hourly job moves off :07 (`cron.alter_job`, a migration).
+2. The frozen GW1 blocks of GW Stats and GW Log (the two repair commands in ROADMAP B2; the manager or Parker).
+3. Managers, Social and Posts move with Code.gs's jobs in B3.

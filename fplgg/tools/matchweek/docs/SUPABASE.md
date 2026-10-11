@@ -108,6 +108,7 @@ were not read; the ingest's own log is `ingest_runs` plus pg_net's reply bodies,
 | Specials: no `API URL` row, POTM rows blank | the ingest keeps the rows it has, syncs POTM from `potm.json` on `release` as Code.gs v3.30 does, and the API URL row is a one-off repair |
 | Predictions GW2 missing, GW Stats and GW Log GW1 differing (written on 31 Aug from the then-current feed) | one-off repairs from the Sheet's rows (`supabase/repairs/`) |
 | Managers, Social, Posts | not the ingest's: the web app writes them (logins, social); they move with Code.gs's jobs later (B3) |
+| The classic feeds missing from an hourly run (11 Oct 2026: 14:07, 16:07, 19:07 UTC), which blanks Clubs `Str H` and `Str A`, Players `EP next`, the next Predictions block's `EP`, Rosters `TOTW` and sets Club Fixtures `Mins` to the draft feed's 0 | `getJson` asks a feed up to four times (waits of 1, 3 and 8 s) on an error status or a failed fetch, and the reply names each classic feed's last status and tries (the branch `claude/vigilant-euler-vu7rh7`, 7f2b8a6, for main after the GW6 window) |
 
 ## What was done on 10 Oct 2026 (Q8) and what is left
 
@@ -124,3 +125,16 @@ were not read; the ingest's own log is `ingest_runs` plus pg_net's reply bodies,
   `node supabase/repairs/sheet-block.js --tab "GW Log" --gw 1 --block 1 --final --league-key dfb6f97f-9dbf-419e-ac49-2f725cdf4423 --apply`;
   the builder's permission check refused a rewrite of existing rows in this run, so the manager or Parker runs them
   (without `--apply` the script prints the SQL). Managers, Social and Posts are the web app's tabs (B3).
+
+## What the reports over GW6 found (11 Oct 2026, B2)
+
+- The parity report of 19:41 UTC (run 12) read 5 of 12 served tabs agreeing. The new gaps all come from one cause: pg_net's log of the ingest's
+  replies (`select created, content::text from net._http_response where content::text like '%classicOverlay%' order by id desc`, through the
+  Management API's query endpoint) shows `classicOverlay {used 0, seen 0}` on the hourly runs of 14:07, 16:07 and 19:07 and seen 667 on every
+  other run of the day, so three hourly runs had no classic bootstrap, and `getJson` gave null for an optional feed on any error status without a
+  retry or a record of the status. `ingest_runs` shows every run ok.
+- The fix (the branch `claude/vigilant-euler-vu7rh7`, commit 7f2b8a6; `tests/supabase.js`): every feed is asked for up to four times (waits of
+  1, 3 and 8 s) on an error status or a failed fetch, a 4xx other than 429 is final, and the reply carries
+  `classic: { boot, fixtures, dream, live }` with each feed's last `status` and `tries` (`null` when it was not asked for). After the merge, the
+  :07 replies say what FPL answers; a 403 or 429 there means moving the hourly job off :07 (`cron.alter_job`, a migration).
+- To read the statuses: `select created, content->'classic' as classic from net._http_response where content ? 'classic' order by id desc limit 12`.
