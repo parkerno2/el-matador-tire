@@ -1,0 +1,593 @@
+--- a/fplgg/tools/matchweek/src/ui.js
++++ b/fplgg/tools/matchweek/src/ui.js
+@@ -356,19 +356,25 @@
+     + '<path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI' + i + ')" stroke="url(#mwE' + i + ')" stroke-width="7"/>'
+     + '<text x="270" y="99" text-anchor="middle" textLength="440" lengthAdjust="spacingAndGlyphs" style="font:900 62px Archivo,sans-serif;font-stretch:112%"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>';
+ }
++/* the page's one top row (Parker, 11 Oct 2026, "All" to the UI cleanup: the Matchweek plate row and the page title
++   row were two rows, a fifth of the phone before any content): the page title, then the state pill, search and your
++   crest. A page whose head carries its own hero passes it as body, under the row; its title in the row is then not the
++   page's h1 (the hero's name is). */
+ export function appbar(opt = {}) {
+   const me = you();
+-  const m = week().mode;
++  const m = week().mode, tag = opt.hero ? 'div' : 'h1';
+   return '<div class="abar' + (m === 'prov' || m === 'locked' ? ' wp' : '') + '">'
+-    + '<a class="lg" href="#/matchday" aria-label="Matchweek · El Matador Tire">' + mwMark(22) + '<b>El Matador Tire</b></a>'
++    + '<div class="pt">' + (opt.lead || '') + '<' + tag + ' class="pt-t">' + esc(opt.title || '') + '</' + tag + '></div>'
+     + '<span class="sp">' + statePill() + '</span>'
+     + '<button class="ib" data-open="search" aria-label="Search players">' + icon('search', 16, 'var(--tx2)', 2.2) + '</button>'
+     + '<button class="me" data-open="menu" aria-label="' + (me ? esc(me) + ', settings' : 'Settings') + '">' + (me ? crest(me, 32) : '<span class="ib">' + icon('gear', 16, 'var(--tx2)') + '</span>') + '</button>'
+     + '</div>';
+ }
++/* opt: bg (the head's background), under (decoration behind the row), lead (a crest before the title), body (a hero
++   or a back link under the row) */
+ export function pageHead(title, opt = {}) {
+-  return '<header class="phead"' + (opt.bg ? ' style="background:' + opt.bg + '"' : '') + '>' + (opt.under || '') + appbar()
+-    + (opt.body || '<div class="ttl"><h1>' + esc(title) + '</h1>' + (opt.aside ? '<span class="aside">' + opt.aside + '</span>' : '') + '</div>')
++  return '<header class="phead"' + (opt.bg ? ' style="background:' + opt.bg + '"' : '') + '>' + (opt.under || '')
++    + appbar({ title, lead: opt.lead, hero: /<h1[\s>]/.test(opt.body || '') }) + (opt.body || '')
+     + '</header>';
+ }
+ export function pills(items) {
+--- a/fplgg/tools/matchweek/src/main.js
++++ b/fplgg/tools/matchweek/src/main.js
+@@ -30,8 +30,9 @@
+ export function parse(h = location.hash) {
+   const parts = (h || '').replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+   let page = parts[0] && PAGES[parts[0]] ? parts[0] : 'matchday';
+-  let sub = parts[1] || '';
+   const mod = PAGES[page];
++  /* a sub-page folded into another keeps its old address (#/team/fixtures is now part of Season) */
++  let sub = parts[1] ? (mod.alias && mod.alias[parts[1]]) || parts[1] : '';
+   const subs = (mod.subs || []).map(s => s.id);
+   if (!sub || !subs.includes(sub)) sub = (!parts[1] && LAST[page] && subs.includes(LAST[page])) ? LAST[page] : subs[0];
+   return { page, sub, args: parts.slice(2) };
+--- a/fplgg/tools/matchweek/src/css/02-components.css
++++ b/fplgg/tools/matchweek/src/css/02-components.css
+@@ -1,17 +1,12 @@
+ /* ===== shared components ===== */
+ #app{min-height:100vh;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 24px)}
+ 
+-/* app bar */
+-.abar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:calc(12px + var(--safe-t)) 16px 12px}
+-.abar .lg{display:flex;align-items:center;gap:10px;min-width:0;color:var(--tx)}
+-.abar .lg{flex:0 1 auto;overflow:hidden;min-height:40px}
+-/* the Matchweek plate, with the league in small caps under it */
+-.abar .lg{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
+-.abar .lg b{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);white-space:nowrap;line-height:1;padding-left:2px}
+-.abar .mwm{display:block;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
+-@media (max-width:359px){.abar{gap:8px}.abar .lg b{font-size:11px;letter-spacing:.07em}}
+-/* a longer state pill takes the league name's room rather than cutting it short */
+-
++/* app bar: the page's one top row, the title then the state pill, search and your crest (11 Oct 2026) */
++.abar{position:relative;z-index:3;display:flex;align-items:center;gap:8px;padding:calc(10px + var(--safe-t)) 16px 8px;min-height:calc(58px + var(--safe-t))}
++.abar .pt{display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto}
++.abar .pt .cr{flex:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.3))}
++.abar .pt-t{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em;line-height:1.1;color:var(--tx);white-space:nowrap}
++@media (max-width:374px){.abar .pt-t{font-size:23px}}
+ .abar .sp{margin-left:auto}
+ .abar .ib{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex:none}
+ .abar .ib svg{stroke:var(--tx2)}
+@@ -31,11 +26,18 @@
+ .phead .ttl .cr{filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+ .phead .ttl h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+ .phead .ttl .aside{margin-left:auto;font-size:13px;color:var(--tx3)}
+-.pills{position:sticky;top:var(--safe-t);z-index:20;display:flex;gap:6px;padding:10px 16px 10px;overflow-x:auto;scrollbar-width:none;
++/* the sub-page switcher is one track that fits the phone (11 Oct 2026: six pills ran off the screen, the last one cut
++   in half): the segments share the width, the active one is the purple pill inside the track. A set too long for a
++   very narrow phone still scrolls sideways. */
++.pills{position:sticky;top:var(--safe-t);z-index:20;display:flex;gap:0;padding:8px 16px 10px;overflow-x:auto;scrollbar-width:none;
+   background:rgba(14,10,19,.86);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}
+ .pills::-webkit-scrollbar{display:none}
+-.pills a,.pills button{flex:none;padding:8px 15px;border-radius:999px;background:var(--raised);color:var(--tx2);font-size:13px;font-weight:600;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center;gap:6px}
+-.pills .on{background:var(--p500);color:#fff}
++.pills a,.pills button{position:relative;isolation:isolate;flex:1 0 auto;justify-content:center;padding:8px 7px;border-radius:0;background:var(--raised);color:var(--tx2);font-size:12px;font-weight:700;white-space:nowrap;min-height:40px;display:inline-flex;align-items:center;gap:5px}
++.pills>:first-child{border-radius:999px 0 0 999px;padding-left:10px}
++.pills>:last-child{border-radius:0 999px 999px 0;padding-right:10px}
++.pills>:only-child{border-radius:999px}
++.pills .on{color:#fff}
++.pills .on::before{content:'';position:absolute;inset:3px;z-index:-1;border-radius:999px;background:var(--p500)}
+ .pills .ct{font:700 11px/1 var(--f-num);padding:2px 5px;border-radius:6px;background:rgba(255,255,255,.18);color:#fff}
+ .pills .on .ct{background:#fff;color:var(--base)}   /* a count is a number: never on the purple of the active tab */
+ 
+@@ -234,7 +236,8 @@
+ .sheet .sheet-x{position:sticky;top:10px;z-index:25;display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:-7px 12px -29px auto;border-radius:50%;
+   background:rgba(14,10,19,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+ .sheet .sheet-x::after{content:'';position:absolute;inset:-4px}
+-.sheet .pills{padding-right:56px}
++.sheet .pills{padding-right:54px}
++.sheet .pills a,.sheet .pills button{padding-left:6px;padding-right:6px}
+ @media (min-width:700px){.sheet{left:50%;right:auto;width:560px;margin-left:-280px}}
+ 
+ /* toast */
+--- a/fplgg/tools/matchweek/src/css/30-team.css
++++ b/fplgg/tools/matchweek/src/css/30-team.css
+@@ -13,8 +13,7 @@
+ .tm-id{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:10px 16px 0}
+ .tm-crest{flex:none;display:flex;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35))}
+ .tm-idt{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+-.tm-kick{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:-4px}
+-.tm-kick .k{color:var(--tc-light)}
++.tm-mrow{display:flex;align-items:center;gap:8px;min-width:0;margin-top:2px}
+ .tm-clubbtn{position:relative;margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:0 12px;min-height:36px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid var(--tc-line);color:#fff;white-space:nowrap}
+ .tm-clubbtn:active{background:rgba(255,255,255,.18)}
+ .tm-clubbtn::after{content:"";position:absolute;inset:-4px}
+@@ -166,11 +165,13 @@
+ .tm-sc{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+ .tm-nf{display:inline-flex;align-items:center;gap:5px}
+ .tm-nf .sub{font-size:11px}
+-.tm-ovr{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:2px}
+-.tm-ovr b{font-size:22px;line-height:1;font-weight:700}
+-.tm-ovr span{font:800 11px/1 var(--f-ui);letter-spacing:.04em}
++.tm-ovr{flex:none;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 6px 4px;border-radius:8px;background:var(--raised);align-self:flex-start}
++.tm-ovr b{font-size:15px;line-height:1;font-weight:700;color:var(--tx)}
++.tm-ovr .k{font:800 11px/1 var(--f-ui);letter-spacing:.04em;color:var(--tx2);white-space:nowrap}
++.tm-ovr .k i{font-style:normal}
+ .tm-spt{flex:none;min-width:48px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding-top:2px}
+ .tm-spt b{font-size:22px;line-height:1;font-weight:700}
++.tm-spt b small{font:700 11px/1 var(--f-ui);color:var(--tx2);margin-left:3px;letter-spacing:.02em}
+ .tm-spt .sub{font-size:11px;white-space:nowrap}
+ .tm-pcs{display:inline-flex;gap:4px}
+ .tm-pc{display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:6px;font:700 13px/1 var(--f-num)}
+--- a/fplgg/tools/matchweek/src/css/40-league.css
++++ b/fplgg/tools/matchweek/src/css/40-league.css
+@@ -194,6 +194,8 @@
+ /* ---------- Results ---------- */
+ .lgx > .sh:first-child{padding-top:8px}
+ .lg-grid .sc{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
++/* a fade off the team names' edge: a column scrolling under them goes out of sight, never a stray letter */
++.lg-grid .tm::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:14px;pointer-events:none;background:linear-gradient(90deg,var(--card) 30%,rgba(23,18,29,0))}
+ .lg-grid .sc::-webkit-scrollbar{display:none}
+ .lg-grid table{border-collapse:collapse;border-spacing:0;min-width:100%}
+ .lg-grid th,.lg-grid td{font-weight:400;text-align:center;padding:0}
+--- a/fplgg/tools/matchweek/src/css/50-feed.css
++++ b/fplgg/tools/matchweek/src/css/50-feed.css
+@@ -596,10 +596,13 @@
+ .pq-go{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+ .pq-go .btn.block{width:100%;justify-content:center}
+ /* the Everyone call to action */
+-.fcta{display:flex;align-items:center;gap:12px;margin:12px var(--gutter) 4px;padding:12px 14px;border-radius:14px;background:#0A0A0A;border:1px solid #2A2A2A;color:#fff;font-size:13.5px;line-height:1.35}
++/* the press prompt is app UI, so the app's colours (11 Oct 2026): a neutral card, white text, a purple button. Lime
++   stays Archizio's own, inside his posts and his thread. */
++.fcta{display:flex;align-items:center;gap:12px;margin:12px var(--gutter) 4px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--tx);font-size:13.5px;line-height:1.35}
+ .fcta>span{flex:1;min-width:0}
+-.fcta>:first-child,.fcta .ftag{flex:none}
+-.fcta b{color:#C6FF00}
++.fcta>:first-child,.fcta .fcta-go{flex:none}
++.fcta b{color:var(--tx)}
++.fcta-go{font-style:normal;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;background:var(--p500);color:#fff;white-space:nowrap}
+ /* a call on the quote card, and the stamp once it settles */
+ .aq-call{position:absolute;left:5cqw;right:5cqw;bottom:21cqw;display:flex;align-items:center;gap:2.4cqw;font-size:3.4cqw;letter-spacing:.06em;color:#8A8A8A;white-space:nowrap;overflow:hidden}
+ .aq-call b{color:#0A0A0A;background:#C6FF00;padding:.8cqw 1.8cqw;border-radius:1cqw;font-weight:700}
+--- a/fplgg/tools/matchweek/src/pages/matchday.js
++++ b/fplgg/tools/matchweek/src/pages/matchday.js
+@@ -9,17 +9,7 @@
+ import * as Week from './matchday/week.js';
+ import { warm as warmFeed } from '../feed/index.js';
+ 
+-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'matchup', label: 'Matchup' }, { id: 'all', label: 'All matchups' }, { id: 'pl', label: 'Premier League' }, { id: 'week', label: 'Week' }];
+-
+-function aside() {
+-  const ph = M.phase(), g = 'GW' + D.gw;
+-  if (ph === 'live') return new Date().toLocaleDateString(undefined, { weekday: 'long' }) + ' · ' + g;
+-  if (ph === 'locked') return g + ' · locked';
+-  if (ph === 'prov') return g + ' · full time';
+-  if (ph === 'ft') return g + ' · final';
+-  const dl = M.deadline();
+-  return dl ? g + ' · deadline ' + M.tWd(dl) : g;
+-}
++const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'matchup', label: 'Matchup' }, { id: 'all', label: 'All matchups' }, { id: 'pl', label: 'PL' }, { id: 'week', label: 'Week' }];
+ 
+ let TIMER = 0, OBS = null;
+ function tick() {
+@@ -43,7 +33,7 @@
+       console.error(e);
+       body = '<div class="err">Something went wrong drawing this part of Matchday. ' + UI.esc(e.message) + '</div>';
+     }
+-    return '<div class="md">' + UI.pageHead('Matchday', { aside: UI.esc(aside()) })
++    return '<div class="md">' + UI.pageHead('Matchday')
+       + UI.pills(SUBS.map(s => ({ label: s.label, href: '#/matchday/' + s.id, on: s.id === sub })))
+       + body + '<div class="md-end"></div></div>';
+   },
+--- a/fplgg/tools/matchweek/src/pages/league.js
++++ b/fplgg/tools/matchweek/src/pages/league.js
+@@ -8,7 +8,7 @@
+ import { statsPage, mountStats } from './league/stats.js';
+ import { alltimePage, mountAlltime } from './league/alltime.js';
+ 
+-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'results', label: 'Results' }, { id: 'money', label: 'Money' }, { id: 'derbies', label: 'Derbies' }, { id: 'stats', label: 'Stats' }, { id: 'alltime', label: 'All-time' }];
++const SUBS = [{ id: 'overview', label: 'Table' }, { id: 'results', label: 'Results' }, { id: 'money', label: 'Money' }, { id: 'derbies', label: 'Derbies' }, { id: 'stats', label: 'Stats' }, { id: 'alltime', label: 'All-time' }];
+ const NEEDS_ODDS = { overview: 1, money: 1 };
+ 
+ function season() {
+@@ -18,17 +18,15 @@
+ }
+ /* sub-pages use the compact title row, like My team's: the league identity is the Overview's alone */
+ function compactHead() {
+-  const live = !!D.liveNow, prov = !!D.provOver, cur = live || prov;
+-  const aside = 'GW' + (cur ? D.gw : D.gwsDone) + ' of 38' + (live ? ' · live' : prov ? ' · full time' : '');
+-  return UI.pageHead('League', { bg: 'linear-gradient(180deg,var(--p900) 0%,#1A0B24 70%,var(--base) 100%)', body: '<div class="ttl lg-ttl">' + UI.leagueCrest(32) + '<h1>League</h1><span class="aside">' + UI.esc(aside) + '</span></div>' });
++  return UI.pageHead('League', { bg: 'linear-gradient(180deg,var(--p900) 0%,#1A0B24 70%,var(--base) 100%)', lead: UI.leagueCrest(28) });
+ }
+ function head() {
+   const md = UI.week().mode, done = D.gwsDone, live = md === 'live', prov = md === 'prov', cur = live || prov;
+   const label = 'GW' + (cur ? D.gw : done) + ' of 38';
+   const bar = '<div class="lg-prog"><div class="bar" role="img" aria-label="' + done + ' of 38 gameweeks played' + (cur ? ', gameweek ' + D.gw + (live ? ' live' : ' at full time') : '') + '"><i style="width:' + (done / 38 * 100).toFixed(2) + '%"></i>'
+-    + (cur ? '<i class="cur' + (live ? ' live' : '') + '" style="left:' + (done / 38 * 100).toFixed(2) + '%;width:' + (100 / 38).toFixed(2) + '%"></i>' : '') + '</div>'
+-    + '<span class="n">' + label + (live ? ' <em class="live-c">LIVE</em>' : prov ? ' <em>FT</em>' : '') + '</span></div>';
+-  const body = '<div class="lg-id">' + UI.leagueCrest(54) + '<div class="tx"><span class="k">League</span><h1 class="wide">El Matador Tire</h1>'
++    + (cur ? '<i class="cur" style="left:' + (done / 38 * 100).toFixed(2) + '%;width:' + (100 / 38).toFixed(2) + '%"></i>' : '') + '</div>'
++    + '<span class="n">' + label + '</span></div>';
++  const body = '<div class="lg-id">' + UI.leagueCrest(54) + '<div class="tx"><h1 class="wide">El Matador Tire</h1>'
+     + '<span class="meta">' + season() + ' · ' + Object.keys(TEAMS).length + ' managers · ' + money(POT) + ' pool</span></div></div>' + bar;
+   const wm = '<i class="lg-wm" aria-hidden="true">' + UI.leagueCrest(220) + '</i>';
+   return UI.pageHead('League', { body, under: wm, bg: 'linear-gradient(180deg,var(--p900) 0%,#1A0B24 60%,var(--base) 100%)' });
+--- a/fplgg/tools/matchweek/src/pages/team.js
++++ b/fplgg/tools/matchweek/src/pages/team.js
+@@ -1,4 +1,6 @@
+-/* My team: your club. Overview (club header, To do from Jive, this gameweek), Lineup, Squad, Transfers, Fixtures, Season. */
++/* My team: your club. Overview (club header, To do from Jive, this gameweek), Lineup, Squad, Transfers, Season.
++   Season opens with what is next (your clubs' next five, the next four matchups: the old Fixtures tab, folded in on
++   11 Oct 2026 so the five tabs fit the phone) and then the season so far. #/team/fixtures still lands on Season. */
+ import * as UI from '../ui.js';
+ import { frame, plateDefs, simCached, simRun, safe } from './team/bits.js';
+ import { clubHead, compactHead } from './team/head.js';
+@@ -10,10 +12,10 @@
+ import { seasonPage, SEL } from './team/season.js';
+ import { pickerPage } from './team/picker.js';
+ 
+-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'lineup', label: 'Lineup' }, { id: 'squad', label: 'Squad' }, { id: 'transfers', label: 'Transfers' }, { id: 'fixtures', label: 'Fixtures' }, { id: 'season', label: 'Season' }];
++const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'lineup', label: 'Lineup' }, { id: 'squad', label: 'Squad' }, { id: 'transfers', label: 'Transfers' }, { id: 'season', label: 'Season' }];
+ const PAGES = {
+   overview: t => todoBlock(t) + gwBlock(t) + switchLine(t),
+-  lineup: lineupPage, squad: squadPage, transfers: transfersPage, fixtures: fixturesPage, season: seasonPage,
++  lineup: lineupPage, squad: squadPage, transfers: transfersPage, season: t => fixturesPage(t) + seasonPage(t),
+ };
+ const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
+ const rerender = () => window.MW && window.MW.render({ keepScroll: true });
+@@ -70,6 +72,7 @@
+ export default {
+   title: 'My team',
+   subs: SUBS,
++  alias: { fixtures: 'season' },
+   render(sub, args) {
+     const team = UI.you();
+     if (!team) return pickerPage();
+--- a/fplgg/tools/matchweek/src/pages/feed.js
++++ b/fplgg/tools/matchweek/src/pages/feed.js
+@@ -316,7 +316,7 @@
+   const owed = P.replies.filter(r => !r.mine)[0];
+   if (P.mine && !owed) return '';
+   const tx = owed ? '<b>' + esc((TEAMS[owed.to.team] && TEAMS[owed.to.team].mgr) || owed.to.team) + ' said something.</b> Archizio wants your answer.' : '<b>Archizio wants a quote</b> before ' + esc(P.nm || 'GW' + P.g) + '. Everyone sees it.';
+-  return '<a class="fcta" href="#/feed/messages/archizio">' + avatar('archizio', 36) + '<span>' + tx + '</span><em class="ftag ftag-press">PRESS</em></a>';
++  return '<a class="fcta" href="#/feed/messages/archizio">' + avatar('archizio', 36) + '<span>' + tx + '</span><em class="fcta-go">Press</em></a>';
+ }
+ 
+ /* ---------- the page ---------- */
+--- a/fplgg/tools/matchweek/src/pages/matchday/all.js
++++ b/fplgg/tools/matchweek/src/pages/matchday/all.js
+@@ -50,7 +50,7 @@
+   const order = fx.map((f, i) => i).sort((a, b) => (b === yi) - (a === yi) || a - b);
+   const ms = order.map(M.mx);
+   const ph = M.phase();
+-  const lead = { pre: 'Predicted until the deadline' + (M.deadline() ? ', ' + M.tFull(M.deadline()) : '') + '.', locked: '', live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
++  const lead = { pre: '', locked: '',   /* pre: every card says PREDICTED (11 Oct 2026) */ live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
+   return UI.sh('Gameweek ' + D.gw, { aside: ms.length + ' matchups' }) + (lead ? '<p class="md-cap top">' + esc(lead) + '</p>' : '')
+     + '<div class="md-acs-list">' + ms.map(card).join('') + '</div>'
+     + nextGw();
+--- a/fplgg/tools/matchweek/src/pages/league/overview.js
++++ b/fplgg/tools/matchweek/src/pages/league/overview.js
+@@ -28,7 +28,7 @@
+   const ready = oddsReady(), od = ready ? odds() : null;
+   const maxT = od ? Math.max(1, ...rows.map(r => od.title[r.team] || 0)) : 1;
+   const after = w.basis ? 'After gameweek ' + w.basis + ' of 38' : 'Before gameweek 1 of 38';
+-  const tag = w.prov ? '<span class="lg-tag prov">Provisional</span>' : w.live ? '<span class="lg-tag live"><i></i>GW' + D.gw + ' live</span>' : '';
++  const tag = w.prov ? '<span class="lg-tag prov">Provisional</span>' : '';   /* live: the pill at the top says it, once (11 Oct 2026) */
+   let h = '<section class="lg-hero lg-tbl" aria-labelledby="lg-tbl-h">'
+     + '<div class="lg-tbl-hd"><div class="l"><h2 id="lg-tbl-h" class="wide">The table</h2><span>' + after + '</span>' + tag + '</div>'
+     + '<div class="r"><b class="n">' + esc(sum.big) + '</b><span>' + esc(sum.sub) + '</span></div></div>'
+--- a/fplgg/tools/matchweek/src/pages/league/results.js
++++ b/fplgg/tools/matchweek/src/pages/league/results.js
+@@ -1,6 +1,6 @@
+ /* League › Results: scores by gameweek, every gameweek's four results, season records. */
+ import * as UI from '../../ui.js';
+-import { table, grid, resultGws, scoreOf, records, wk } from './data.js';
++import { table, grid, resultGws, scoreOf, records } from './data.js';
+ import { tap } from './overview.js';
+ 
+ const esc = UI.esc;
+@@ -13,7 +13,7 @@
+ const nm2 = t => '<span class="t"><span class="full">' + esc(t) + '</span><span class="shrt">' + esc(UI.short(t)) + '</span></span>';
+ 
+ function gridCard() {
+-  const G = grid(), rows = table(), me = UI.you(), w = wk();
++  const G = grid(), rows = table(), me = UI.you();
+   if (!G.gws.length) return '';
+   const head = '<tr><th class="tm" scope="col">Team</th>' + G.gws.map(({ g, live, prov }) => '<th scope="col" class="' + (live ? (prov ? 'pv' : 'lv') : '') + '">' + (live ? '<em>' + (prov ? 'FT' : 'LIVE') + '</em>' : '') + 'GW' + g + '</th>').join('') + '<th scope="col" class="pf">PF</th><th scope="col" class="pf pa">PA</th></tr>';
+   const body = rows.map(r => {
+@@ -28,11 +28,9 @@
+     }).join('');
+     return '<tr class="' + (t === me ? 'you' : '') + '"><th scope="row" class="tm"' + tap(t, t + ', open the team') + '>' + UI.crest(t, 18) + '<span>' + esc(UI.short(t)) + '</span></th>' + tds + '<td class="pf n">' + r.pf + '</td><td class="pf pa n">' + r.pa + '</td></tr>';
+   }).join('');
+-  const lv = G.gws.find(x => x.live);
+-  return UI.sh('Scores by gameweek', { aside: G.gws.filter(x => !x.live).length + ' played' + (lv ? ' · GW' + lv.g + (lv.prov ? ' at full time' : ' live') : '') })
++  return UI.sh('Scores by gameweek', { aside: G.gws.filter(x => !x.live).length + ' played' })
+     + '<div class="card lg-grid"><div class="sc" tabindex="0" role="region" aria-label="Scores by gameweek, scrolls sideways"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>'
+     + '<div class="lg-legend"><span><i class="fm w">W</i>won</span><span><i class="fm d">D</i>drew</span><span><i class="fm l">L</i>lost</span><span><i class="rg hi"></i>week’s top</span><span><i class="rg lo"></i>week’s lowest</span></div>'
+-    + (w.live ? '<div class="foot">GW' + D.gw + ' scores are live and count once the gameweek is over.</div>' : w.prov ? '<div class="foot">GW' + D.gw + ' is provisional until FPL confirms it.</div>' : '')
+     + '</div>';
+ }
+ 
+@@ -91,8 +89,33 @@
+ export function mountResults(root) {
+   const sc = root.querySelector('.lg-grid .sc');
+   if (sc) {
+-    sc.scrollLeft = GRIDX == null ? sc.scrollWidth : GRIDX;
+-    sc.addEventListener('scroll', () => { GRIDX = sc.scrollLeft; }, { passive: true });
++    /* the grid opens on the latest gameweeks with a whole column against the team names, never a sliver of one
++       (11 Oct 2026: the half-hidden cells showed stray W and L letters beside the names): the last column gets just
++       enough room after it that the far end lines a column up with the names, so the latest weeks, PF and PA all show
++       whole */
++    const align = () => {
++      if (!sc.isConnected) return;
++      const tm = sc.querySelector('tbody .tm'), lasts = sc.querySelectorAll('tr > :last-child');
++      if (!tm) return;
++      lasts.forEach(c => { c.style.paddingRight = ''; });
++      const keep = GRIDX;
++      sc.scrollLeft = sc.scrollWidth;
++      const edge = tm.getBoundingClientRect().right, tds = [...tm.parentNode.querySelectorAll('td')];
++      /* a column's minimum width can swallow part of the added room, so measure again until nothing is cut */
++      for (let i = 0; i < 4; i++) {
++        sc.scrollLeft = sc.scrollWidth;
++        const cut = tds.find(td => { const r = td.getBoundingClientRect(); return r.left < edge - 1 && r.right > edge + 1; });
++        if (!cut) break;
++        const add = Math.ceil(cut.getBoundingClientRect().right - edge);
++        lasts.forEach(c => { c.style.paddingRight = (parseFloat(getComputedStyle(c).paddingRight) + add) + 'px'; });
++      }
++      sc.scrollLeft = keep == null ? sc.scrollWidth : keep;
++    };
++    /* measured now, on the next frame and once the fonts are in (the names' width moves the edge) */
++    align(); requestAnimationFrame(align);
++    if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
++    /* a position at the far end means "follow the latest weeks", not a fixed offset */
++    sc.addEventListener('scroll', () => { GRIDX = sc.scrollLeft >= sc.scrollWidth - sc.clientWidth - 2 ? null : sc.scrollLeft; }, { passive: true });
+   }
+   root.querySelectorAll('details.lg-gw').forEach(d => {
+     d.addEventListener('toggle', () => { const g = +d.dataset.gw; if (d.open) OPEN.add(g); else OPEN.delete(g); });
+--- a/fplgg/tools/matchweek/src/pages/league/chart.js
++++ b/fplgg/tools/matchweek/src/pages/league/chart.js
+@@ -1,5 +1,7 @@
+ /* league/chart.js — one clean SVG line chart for the Stats page.
+-   Grey for everyone not picked; picked managers in their team colour (you in you-blue), each labelled at its end.
++   Only the picked managers draw, in their comparison colours (you in you-blue), each labelled at its end (11 Oct 2026: the
++   seven grey context lines made one picked line hard to find). The scale still spans every manager, so it holds still
++   as picks change.
+    A readout above the plot shows the values at one gameweek (the latest by default); tap or drag to move it. */
+ import * as UI from '../../ui.js';
+ 
+@@ -37,12 +39,9 @@
+     const pts = s.vals.filter(v => xi[v.g] != null).map(v => [px(xi[v.g]), py(v.v), v]);
+     return pts;
+   };
+-  /* grey context first, then the picked lines on top */
+-  const order = o.series.slice().sort((a, b) => (a.on ? 1 : 0) - (b.on ? 1 : 0));
+-  order.forEach(s => {
++  o.series.filter(s => s.on).forEach(s => {
+     const p = path(s); if (!p.length) return;
+     const d = p.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('');
+-    if (!s.on) { g += p.length > 1 ? '<path d="' + d + '" class="ctx"/>' : '<circle cx="' + p[0][0].toFixed(1) + '" cy="' + p[0][1].toFixed(1) + '" r="2.5" class="ctxd"/>'; return; }
+     if (p.length > 1) g += '<path d="' + d + '" class="on" style="stroke:' + s.color + '"/>';
+     p.forEach((q, i) => { if (q[2].live || i === p.length - 1 || p.length === 1) g += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="4" class="' + (q[2].live ? 'lvd' : 'dot') + '" style="' + (q[2].live ? 'stroke:' : 'fill:') + s.color + '"/>'; });
+   });
+--- a/fplgg/tools/matchweek/src/pages/team/head.js
++++ b/fplgg/tools/matchweek/src/pages/team/head.js
+@@ -27,10 +27,9 @@
+   const body = '<div class="tm-id">'
+     + '<span class="tm-crest">' + UI.crest(team, 86) + '</span>'
+     + '<div class="tm-idt">'
+-    + '<div class="tm-kick"><span class="k">My team</span>'
+-    + '<button class="tm-clubbtn" data-open="identity" aria-label="Edit club identity">' + UI.icon('edit', 13, '#fff', 2.2) + 'Club</button></div>'
+     + '<h1 class="wide' + (long ? ' long' : '') + '">' + esc(name) + '</h1>'
+-    + '<span class="tm-mgr">' + esc(mgrName(team)) + '</span>'
++    + '<div class="tm-mrow"><span class="tm-mgr">' + esc(mgrName(team)) + '</span>'
++    + '<button class="tm-clubbtn" data-open="identity" aria-label="Edit club identity">' + UI.icon('edit', 13, '#fff', 2.2) + 'Club</button></div>'
+     + '</div></div>'
+     + '<a class="tm-glass" href="#/league/overview" aria-label="League table">'
+     + '<span class="tm-stt"><b class="n">' + (rec.pos && D.started ? ord(rec.pos) : '–') + '</b><span>in the table</span></span>'
+@@ -44,11 +43,10 @@
+         + '<span class="tm-lastres">' + esc(lastLine(last)) + '</span>'
+       : '<span class="tm-lastres first">No results yet. GW' + D.gw + ' is the first.</span>')
+     + '</div>';
+-  return '<div class="tm-head" style="' + F.vars + '">' + UI.pageHead('', { bg: F.head, under, body }) + '</div>';
++  return '<div class="tm-head" style="' + F.vars + '">' + UI.pageHead('My team', { bg: F.head, under, body }) + '</div>';
+ }
+ 
+ export function compactHead(team) {
+   const F = frame(team);
+-  const body = '<div class="ttl tm-ttl">' + UI.crest(team, 34) + '<h1>My team</h1></div>';
+-  return '<div class="tm-head tm-head-s" style="' + F.vars + '">' + UI.pageHead('My team', { bg: F.headS, body }) + '</div>';
++  return '<div class="tm-head tm-head-s" style="' + F.vars + '">' + UI.pageHead('My team', { bg: F.headS, lead: UI.crest(team, 30) }) + '</div>';
+ }
+--- a/fplgg/tools/matchweek/src/pages/team/squad.js
++++ b/fplgg/tools/matchweek/src/pages/team/squad.js
+@@ -36,7 +36,7 @@
+   const col = (rows, up) => '<div class="tm-hcol"><span class="tm-hk ' + (up ? 'win-c' : 'loss-c') + '">' + UI.icon('up', 12, 'currentColor', 2.6).replace('<svg', '<svg' + (up ? '' : ' style="transform:rotate(180deg)"')) + (up ? 'Trending up' : 'Trending down') + '</span>'
+     + (rows.length ? rows.map(r => '<button class="tm-hr" data-open="player:' + esc(r.p.Code) + '">' + UI.face(r.p, 26) + '<span class="tm-hn"><b class="ell">' + esc(r.p.Player) + '</b><span class="sub n">' + f1(r.l3) + ' a game</span></span><span class="tm-hd n ' + (up ? 'win-c' : 'loss-c') + '">' + sgn(r.d) + '</span></button>').join('')
+       : '<span class="sub tm-hnone">Nobody' + (up ? ' above' : ' below') + ' his usual</span>') + '</div>';
+-  return UI.sh('Squad health', { aside: H ? 'last ' + H.n + ' GW' + (H.n > 1 ? 's' : '') + ' v his average' : '' })
++  return UI.sh('Squad health')
+     + '<div class="card tm-health">' + avail + (H ? '<div class="tm-hcols">' + col(H.up, 1) + col(H.dn, 0) + '</div>' : '<p class="sub tm-hnone pad">Form trends show once two gameweeks are played.</p>') + '</div>';
+ }
+ 
+@@ -48,8 +48,10 @@
+     + '<div class="tm-sm"><div class="tm-sn"><b class="ell">' + esc(p.Player) + '</b>' + st + (bench ? '<span class="chip mute">BENCH</span>' : '') + '</div>'
+     + '<span class="sub">' + POSN[p.Pos] + ' · ' + esc(p.Club) + ' · <span class="n">' + m + '</span> min</span>'
+     + '<div class="tm-sc">' + chips(p, 5, 1) + '</div></div>'
+-    + '<div class="tm-ovr"><b class="n">' + o + '</b><span class="' + (fd > 0 ? 'win-c' : fd < 0 ? 'loss-c' : 'muted') + '">' + (fd ? (fd > 0 ? '▲' : '▼') + Math.abs(fd) : 'OVR') + '</span></div>'
+-    + '<div class="tm-spt"><b class="n">' + seasonPts(p) + '</b>' + (a ? '<span class="sub"><span class="n">' + f1(a) + '</span> a game</span>' : '<span class="sub">no games</span>') + '</div>'
++    /* two numbers, each labelled (11 Oct 2026: the rating and the points sat side by side in the same big type): the
++       rating small in its box, OVR always under it with the form arrow; the points big, marked pts */
++    + '<div class="tm-ovr"><b class="n">' + o + '</b><span class="k">OVR' + (fd ? ' <i class="' + (fd > 0 ? 'win-c' : 'loss-c') + '">' + (fd > 0 ? '▲' : '▼') + Math.abs(fd) + '</i>' : '') + '</span></div>'
++    + '<div class="tm-spt"><b class="n">' + seasonPts(p) + '<small>pts</small></b>' + (a ? '<span class="sub"><span class="n">' + f1(a) + '</span> a game</span>' : '<span class="sub">no games</span>') + '</div>'
+     + '</div>';
+ }
+ 
+--- a/fplgg/tools/matchweek/src/pages/team/transfers.js
++++ b/fplgg/tools/matchweek/src/pages/team/transfers.js
+@@ -86,20 +86,20 @@
+     const next = W.gw !== D.gw;   /* the gameweek is under way: claims made now wait for next week's run */
+     return {
+       head: (next ? 'GW' + W.gw + ' waivers' : 'Waivers') + ' close ' + UI.soonWhen(W.wv),
+-      sub: (next ? 'Claims made on FPL Draft now wait for that run, lowest in the table first'
+-        : dlText(W.wv).replace(/^./, c => c.toUpperCase()) + '. Claims go in on FPL Draft, lowest in the table first' + (W.pick ? ': you’re ' + ord(W.pick) + ' in the order' : ''))
+-        + '. After the run, free agents are instant pickups until the ' + (next ? 'GW' + W.gw + ' ' : '') + 'deadline.',
++      /* the state and its times only, no how-to (11 Oct 2026; the rules are on How it works) */
++      sub: next ? 'Claims made now wait for that run.'
++        : dlText(W.wv).replace(/^./, c => c.toUpperCase()) + (W.pick ? '. You’re ' + ord(W.pick) + ' in the order.' : '.'),
+     };
+   }
+-  if (W && W.phase === 'free') return { head: 'Free agency is open', sub: 'Waivers have run. Free agents are instant pickups on FPL Draft until the deadline, ' + UI.soonWhen(W.dl) + ' (' + dlText(W.dl) + ').' };
+-  return { head: 'Claims are made in FPL Draft', sub: 'Waivers and free-agent pickups go through the FPL Draft app or site. This page helps you choose.' };
++  if (W && W.phase === 'free') return { head: 'Free agency is open', sub: 'Until the deadline, ' + UI.soonWhen(W.dl) + ' (' + dlText(W.dl) + ').' };
++  return { head: 'Claims are made in FPL Draft', sub: '' };
+ }
+ export function transfersPage(team) {
+   const seg = (attr, cur, items, lab) => '<span class="seg" role="tablist" aria-label="' + lab + '">' + items.map(([k, l]) => '<button data-' + attr + '="' + k + '" role="tab" aria-selected="' + (cur === k) + '"' + (cur === k ? ' class="on"' : '') + '>' + l + '</button>').join('') + '</span>';
+   const C = claimText();
+   return '<a class="card tm-claim" href="' + DRAFT + '" target="_blank" rel="noopener">'
+     + '<span class="tm-claimi" aria-hidden="true">' + UI.icon('info', 18, 'var(--b300)', 2) + '</span>'
+-    + '<span><b>' + esc(C.head) + '</b><span class="sub">' + esc(C.sub) + '</span></span>'
++    + '<span><b>' + esc(C.head) + '</b>' + (C.sub ? '<span class="sub">' + esc(C.sub) + '</span>' : '') + '</span>'
+     + '<span class="tm-claimgo">Open ' + chev + '</span></a>'
+     + UI.sh('Free agents')
+     + '<div class="tm-fa"><label class="tm-search">' + UI.icon('search', 16, 'var(--tx3)', 2.2) + '<input type="search" id="tm-faq" placeholder="Search free agents" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(FA.q) + '" aria-label="Search free agents"></label>'
+--- a/fplgg/tools/matchweek/src/sheets/menu.js
++++ b/fplgg/tools/matchweek/src/sheets/menu.js
+@@ -82,7 +82,7 @@
+     + '</div>'
+     + UI.sh('The money', { aside: money(POT) }) + '<div class="card mn-ps">' + para('Prizes', moneyRows()) + '</div>'
+     + UI.sh('League rules') + '<div class="card mn-ps">'
+-    + para('Format', '<p>Head to head over 38 gameweeks: 3 points for a win, 1 for a draw. Points for breaks ties. Waivers are open all season, with no transfer or injury restrictions.</p>')
++    + para('Format', '<p>Head to head over 38 gameweeks: 3 points for a win, 1 for a draw. Points for breaks ties. Waivers are open all season, with no transfer or injury restrictions. Claims go in on FPL Draft and run before each deadline, lowest in the table first; after the run, free agents are instant pickups until the deadline.</p>')
+     + para('The data', '<p>Scores and lineups come from the FPL Draft API on a rolling refresh. The app re-reads them whenever you open it, every 5 minutes, and every 90 seconds during games.</p>')
+     + para('Privacy', '<p>No ads, no analytics. This phone remembers the team you follow and, if you signed in, your sign-in. A claimed team’s colours, crest, photo and display name are saved to the league’s Google Sheet, which anyone with the link can view. PINs are kept only as hashes on the league’s server.</p>')
+     + '</div></div>';
+--- a/fplgg/tools/contrast/audit.js
++++ b/fplgg/tools/contrast/audit.js
+@@ -275,7 +275,7 @@
+   await scan('team overview');
+   await go('#/team/lineup'); await tap('[data-lview="pitch"]'); await scan('team lineup pitch');
+   await tap('[data-lview="list"]'); await scan('team lineup list'); await tap('[data-lview="pitch"]');
+-  for (const s of ['squad', 'transfers', 'fixtures', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
++  for (const s of ['squad', 'transfers', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
+ 
+   /* League */
+   for (const s of ['overview', 'results', 'money', 'derbies', 'stats', 'alltime']) { await go('#/league/' + s); await scan('league ' + s); }
+--- a/fplgg/tools/gallery/gallery.js
++++ b/fplgg/tools/gallery/gallery.js
+@@ -206,7 +206,7 @@
+           await scan('team overview');
+           await go('#/team/lineup'); await tap('[data-lview="pitch"]'); await scan('team lineup pitch');
+           await tap('[data-lview="list"]'); await scan('team lineup list'); await tap('[data-lview="pitch"]');
+-          for (const s of ['squad', 'transfers', 'fixtures', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
++          for (const s of ['squad', 'transfers', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
+           for (const s of ['overview', 'results', 'money', 'derbies', 'stats', 'alltime']) { await go('#/league/' + s); await scan('league ' + s); }
+           for (const s of ['league', 'foryou', 'articles', 'messages']) { await go('#/feed/' + s); await scan('feed ' + s); }
+         }
+--- a/tests/app-contrast.js
++++ b/tests/app-contrast.js
+@@ -155,7 +155,7 @@
+ 
+ console.log('--- C the audit in CI');
+ const AUD = fs.readFileSync(__dirname + '/../fplgg/tools/contrast/audit.js', 'utf8');
+-check('C1 the audit walks every page and sub-tab, the sheets and the menu, with the clock fixed at the snapshot', ['#/matchday/matchup/', "'all', 'pl', 'week'", "'squad', 'transfers', 'fixtures', 'season'", "'overview', 'results', 'money', 'derbies', 'stats', 'alltime'", "'league', 'foryou', 'articles', 'messages'", "openSheet('player'", "openSheet('manager'", "openSheet('menu')", "openSheet('menu', 'how')", "openSheet('search')", "openSheet('identity')", "openSheet('post'", 'clock.setFixedTime'].every(x => AUD.includes(x)));
++check('C1 the audit walks every page and sub-tab, the sheets and the menu, with the clock fixed at the snapshot', ['#/matchday/matchup/', "'all', 'pl', 'week'", "'squad', 'transfers', 'season'", "'overview', 'results', 'money', 'derbies', 'stats', 'alltime'", "'league', 'foryou', 'articles', 'messages'", "openSheet('player'", "openSheet('manager'", "openSheet('menu')", "openSheet('menu', 'how')", "openSheet('search')", "openSheet('identity')", "openSheet('post'", 'clock.setFixedTime'].every(x => AUD.includes(x)));
+ check('C2 the audit hides the text, photographs the view and reads the pixels under every text box (darkest, lightest, median)', AUD.includes('color:transparent!important') && AUD.includes('getImageData') && /at\(0\.02\)/.test(AUD) && /at\(0\.98\)/.test(AUD));
+ check('C3 the audit clips a text box to its clipping ancestors and away from fixed and sticky covers', /overflowX !== 'visible'/.test(AUD) && /ps !== 'fixed' && ps !== 'sticky'/.test(AUD));
+ check('C4 the audit checks the manager line under the team name and the owner pill', /never the team name twice/.test(AUD) && /not Free agent/.test(AUD));
+--- a/tests/app-gallery.js
++++ b/tests/app-gallery.js
+@@ -54,7 +54,7 @@
+ console.log('--- G the walker and the CI wiring');
+ const G = rd('fplgg/tools/gallery/gallery.js'), PREV = rd('.github/workflows/preview.yml'), BUILD = rd('.github/workflows/matchweek.yml');
+ check('G1 the walker runs both browsers by default, two states where the data allows, and photographs as jpeg', /arg\('--browsers', 'chromium,webkit'\)/.test(G) && /STATES\.pre = /.test(G) && /type: 'jpeg'/.test(G));
+-check('G2 the walker visits the same screens as the contrast audit (every matchup, the team pages, the six League pages, the four Feed tabs, the sheets)', /matchup ' \+ \(i \+ 1\) \+ ' formation/.test(G) && /\['squad', 'transfers', 'fixtures', 'season'\]/.test(G) && /\['overview', 'results', 'money', 'derbies', 'stats', 'alltime'\]/.test(G) && /\['league', 'foryou', 'articles', 'messages'\]/.test(G) && /'player sheet, owned'/.test(G) && /'manager sheet'/.test(G) && /'menu'/.test(G) && /'search'/.test(G) && /'club identity'/.test(G) && /'feed post'/.test(G));
++check('G2 the walker visits the same screens as the contrast audit (every matchup, the team pages, the six League pages, the four Feed tabs, the sheets)', /matchup ' \+ \(i \+ 1\) \+ ' formation/.test(G) && /\['squad', 'transfers', 'season'\]/.test(G) && /\['overview', 'results', 'money', 'derbies', 'stats', 'alltime'\]/.test(G) && /\['league', 'foryou', 'articles', 'messages'\]/.test(G) && /'player sheet, owned'/.test(G) && /'manager sheet'/.test(G) && /'menu'/.test(G) && /'search'/.test(G) && /'club identity'/.test(G) && /'feed post'/.test(G));
+ check('G3 the checks: duplicates, the words, the dashes, overflow, clipped text, console errors, EA assets, a sheet that shows no text', /L\.duplicates\(r\.codes\)/.test(G) && /badWords\(text\)/.test(G) && /dashKind\(text\)/.test(G) && /find\('overflow'/.test(G) && /find\('clipped'/.test(G) && /find\('console'/.test(G) && /find\('ea'/.test(G) && /find\('sheet'/.test(G) && /EA_RE = \/\\\/faces\\\/\|fc27\|ea\[-_\]\?map\/i/.test(G));
+ check('G4 a finding makes the run red (exit 1) and the readable list is printed; the index and the report are written', /process\.exit\(findings\.length \? 1 : 0\)/.test(G) && /L\.lines\(findings\)/.test(G) && /'index\.html'\), L\.indexHtml\(shots, meta\)/.test(G) && /'report\.json'/.test(G));
+ check('G5 the preview workflow installs webkit and chromium, runs the gallery into the preview\'s shots/ after the audit and before the publish step', /playwright install --with-deps webkit chromium/.test(PREV) && /gallery\/gallery\.js --dir \/tmp\/mw-demo --out \/tmp\/mw-preview\/shots/.test(PREV) && PREV.indexOf('contrast/audit.js') < PREV.indexOf('gallery/gallery.js') && PREV.indexOf('gallery/gallery.js') < PREV.indexOf('Publish it as preview/ on main'));
+--- /dev/null
++++ b/tests/app-cleanup.js
+@@ -0,0 +1,71 @@
++// The UI cleanup of 11 Oct 2026 (Parker said "All" to eight fixes after a review of every screen at phone size):
++//  1. one top row: the page title, the state pill, search and your crest (the Matchweek plate row and the title row
++//     were two rows, a fifth of the phone before any content); a hero page keeps its own h1 under the row;
++//  2. one live signal: no "LIVE" on the League hero's progress, no live tag on the table, no live aside under titles;
++//  3. tabs that fit: the switcher is one track whose segments share the width; My team folds Fixtures into Season
++//     (#/team/fixtures still lands there), Matchday's Premier League is PL, League's Overview is Table;
++//  4. the Squad list labels its two numbers: the rating small in a box over OVR, the points marked pts;
++//  5. explainer copy gone: All matchups' "Predicted until the deadline", the Transfers how-to (now on How it works),
++//     the Squad health aside, the Results footnotes;
++//  6. the Results grid opens with a whole column against the team names and fades under the edge;
++//  7. the Stats chart draws only the picked managers;
++//  8. the Feed's press prompt in the app's colours (lime stays Archizio's own, in his posts and thread).
++// Plain Node, source checks.   node tests/app-cleanup.js
++const fs = require('fs');
++let fails = 0;
++const check = (label, cond, info) => { if (!cond) fails++; console.log((cond ? 'PASS ' : 'FAIL ') + label + (!cond && info ? '  ' + info : '')); };
++const MW = __dirname + '/../fplgg/tools/matchweek/';
++const rd = f => fs.readFileSync(MW + f, 'utf8');
++const UI = rd('src/ui.js'), MAIN = rd('src/main.js'), COMP = rd('src/css/02-components.css'), TEAMCSS = rd('src/css/30-team.css'), LGCSS = rd('src/css/40-league.css'), FEEDCSS = rd('src/css/50-feed.css');
++const MD = rd('src/pages/matchday.js'), LG = rd('src/pages/league.js'), TEAM = rd('src/pages/team.js'), FEED = rd('src/pages/feed.js');
++const ALL = rd('src/pages/matchday/all.js'), LOV = rd('src/pages/league/overview.js'), RES = rd('src/pages/league/results.js'), CHART = rd('src/pages/league/chart.js');
++const HEAD = rd('src/pages/team/head.js'), SQUAD = rd('src/pages/team/squad.js'), TX = rd('src/pages/team/transfers.js'), MENU = rd('src/sheets/menu.js');
++const fn = (src, name) => { const i = src.indexOf('export function ' + name + '('); return i < 0 ? '' : src.slice(i, src.indexOf('\n}\n', i) + 2); };
++
++console.log('--- 1. one top row');
++const bar = fn(UI, 'appbar'), ph = fn(UI, 'pageHead');
++check('the bar carries the title, then the state pill, search and the crest; no Matchweek plate, no league name', /class="pt"/.test(bar) && bar.indexOf('pt-t') < bar.indexOf('statePill()') && bar.indexOf('statePill()') < bar.indexOf('data-open="search"') && !/mwMark/.test(bar) && !/El Matador Tire/.test(bar));
++check('pageHead puts the row first and a hero or back link under it; the row\'s title is the h1 unless the hero has one', /appbar\(\{ title, lead: opt\.lead, hero: \/<h1\[\\s>\]\/\.test\(opt\.body \|\| ''\) \}\) \+ \(opt\.body \|\| ''\)/.test(ph) && /tag = opt\.hero \? 'div' : 'h1'/.test(bar) && !/aside/.test(ph));
++check('the row is one line: the title never wraps, a smaller title on a narrow phone', /\.abar \.pt-t\{[^}]*white-space:nowrap/.test(COMP) && /@media \(max-width:374px\)\{\.abar \.pt-t\{font-size:23px\}\}/.test(COMP) && !/\.abar \.lg/.test(COMP));
++check('My team: the title in the row, the crest before it on the sub-pages; the hero has the team name with the manager and the Club button under it, no "My team" kicker',
++  /UI\.pageHead\('My team', \{ bg: F\.head, under, body \}\)/.test(HEAD) && /UI\.pageHead\('My team', \{ bg: F\.headS, lead: UI\.crest\(team, 30\) \}\)/.test(HEAD) && /class="tm-mrow"><span class="tm-mgr">/.test(HEAD) && !/tm-kick/.test(HEAD));
++check('League: the crest before the title on the sub-pages, no aside; the hero without its "League" kicker', /pageHead\('League', \{ bg: [^}]*lead: UI\.leagueCrest\(28\) \}\)/.test(LG) && !/<span class="k">League<\/span>/.test(LG) && !/class="aside"/.test(LG));
++check('Matchday: the title alone, no gameweek aside under it', /UI\.pageHead\('Matchday'\)/.test(MD) && !/function aside\(/.test(MD));
++
++console.log('--- 2. one live signal');
++check('the League hero\'s progress says "GW6 of 38" without LIVE or FT, its current week does not blink', !/live-c">LIVE<\/em>' : prov \? ' <em>FT<\/em>'/.test(LG) && /'<i class="cur" style="left:'/.test(LG));
++check('the table carries no live tag (the provisional tag stays)', !/lg-tag live/.test(LOV) && /lg-tag prov">Provisional/.test(LOV));
++check('the Results heading counts the gameweeks played, no live aside', /UI\.sh\('Scores by gameweek', \{ aside: G\.gws\.filter\(x => !x\.live\)\.length \+ ' played' \}\)/.test(RES));
++
++console.log('--- 3. tabs that fit');
++check('the switcher is one track: no gaps, segments share the width, the active one a purple pill inside it', /\.pills\{[^}]*gap:0/.test(COMP) && /\.pills a,\.pills button\{[^}]*flex:1 0 auto;[^}]*font-size:12px/.test(COMP) && /\.pills \.on::before\{[^}]*inset:3px;[^}]*background:var\(--p500\)/.test(COMP) && /\.pills>:first-child\{border-radius:999px 0 0 999px/.test(COMP));
++check('My team has five tabs; Season opens with the old Fixtures page; #/team/fixtures is an alias of Season',
++  !/id: 'fixtures'/.test(TEAM) && /season: t => fixturesPage\(t\) \+ seasonPage\(t\)/.test(TEAM) && /alias: \{ fixtures: 'season' \}/.test(TEAM));
++check('the router follows a page\'s aliases before it checks the sub-page', /let sub = parts\[1\] \? \(mod\.alias && mod\.alias\[parts\[1\]\]\) \|\| parts\[1\] : '';/.test(MAIN));
++check('Matchday says PL, League says Table', /\{ id: 'pl', label: 'PL' \}/.test(MD) && /\{ id: 'overview', label: 'Table' \}/.test(LG));
++
++console.log('--- 4. the Squad list labels its numbers');
++check('the rating sits small in its box with OVR always under it (and the form arrow); the points carry pts',
++  /'<div class="tm-ovr"><b class="n">' \+ o \+ '<\/b><span class="k">OVR'/.test(SQUAD) && /seasonPts\(p\) \+ '<small>pts<\/small><\/b>'/.test(SQUAD)
++  && /\.tm-ovr\{[^}]*background:var\(--raised\)/.test(TEAMCSS) && /\.tm-ovr b\{font-size:15px/.test(TEAMCSS));
++
++console.log('--- 5. explainer copy gone, data states kept');
++check('All matchups: no "Predicted until the deadline" line (the cards say PREDICTED); the provisional line stays', !/Predicted until the deadline/.test(ALL) && /Provisional until FPL confirms/.test(ALL));
++check('Transfers: the state and its times, no how-to; the how-to is on How it works', !/instant pickups/.test(TX) && !/helps you choose/.test(TX) && /'Until the deadline, '/.test(TX) && /free agents are instant pickups until the deadline/.test(MENU));
++check('Squad health has no aside; the Results grid has no footnote', /UI\.sh\('Squad health'\)/.test(SQUAD) && !/count once the gameweek is over/.test(RES) && !/is provisional until FPL confirms it\.<\/div>/.test(RES));
++
++console.log('--- 6. the Results grid');
++check('it opens on the latest weeks with a whole column against the names and PF, PA whole at the far end, snaps to columns and fades under the edge',
++  /const add = Math\.ceil\(cut\.getBoundingClientRect\(\)\.right - edge\);/.test(RES) && /for \(let i = 0; i < 4; i\+\+\)/.test(RES) && /document\.fonts\.ready\.then\(align\)/.test(RES) && /c\.style\.paddingRight = \(parseFloat\(getComputedStyle\(c\)\.paddingRight\) \+ add\) \+ 'px'/.test(RES)
++  && /\.lg-grid \.tm::after\{[^}]*left:100%/.test(LGCSS));
++
++console.log('--- 7. the Stats chart');
++check('only the picked managers draw; no grey context lines', /o\.series\.filter\(s => s\.on\)\.forEach/.test(CHART) && !/class="ctx"/.test(CHART));
++
++console.log('--- 8. the press prompt in the app\'s colours');
++check('a neutral card, white text, a purple Press button; lime only in Archizio\'s own thread heads',
++  /<em class="fcta-go">Press<\/em>/.test(FEED) && /\.fcta\{[^}]*background:var\(--card\);border:1px solid var\(--line\)/.test(FEEDCSS) && /\.fcta b\{color:var\(--tx\)\}/.test(FEEDCSS) && /\.fcta-go\{[^}]*background:var\(--p500\)/.test(FEEDCSS));
++
++check('no emoji and no em or en dash in the copy this pass added', !/[\u{1F300}-\u{1FAFF}—–]/u.test(bar + fn(UI, 'pageHead') + (TX.match(/sub: [^\n]*/g) || []).join('')));
++console.log(fails ? fails + ' FAILED' : 'ALL PASS');
++process.exit(fails ? 1 : 0);
