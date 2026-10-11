@@ -37,7 +37,9 @@ function ownerChip(x) {
     + UI.crest(t, 20) + '<span class="ell">' + esc(t) + (w ? ' · ' + esc(w) : '') + '</span></button>';
 }
 function hero(x) {
-  const plate = UI.plate(x.p, 230).replace(/ data-open="[^"]*"/, '').replace('<button class="fc', '<button tabindex="-1" aria-hidden="true" class="fc');
+  /* decoded before it paints (Parker, 11 Oct 2026, iPhone: the photo was sometimes missing when a sheet opened); the photo
+     is almost always in the cache already, from the pitch or list the sheet was opened from */
+  const plate = UI.plate(x.p, 230).replace(/ data-open="[^"]*"/, '').replace('<button class="fc', '<button tabindex="-1" aria-hidden="true" class="fc').replace(/ decoding="async"/g, ' decoding="sync"');
   return '<header class="ps-hero"><i class="ps-beam" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>'
     + '<div class="ps-top">' + ownerChip(x) + '</div>'
     + '<div class="ps-plate">' + plate + '</div></header>';

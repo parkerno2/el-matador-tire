@@ -7,6 +7,7 @@
 .sk-cb{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;background:#fff;overflow:hidden;vertical-align:middle}
 .sk-cb em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 1em/1 var(--f-ui);font-style:normal;color:var(--base);letter-spacing:-.02em}
 .sk-cb img{position:relative;display:block;width:auto;max-width:76%;object-fit:contain;background:#fff}
+.sk-cb.im em{visibility:hidden}   /* the code only stands in for a missing badge (Parker, 11 Oct 2026: its letters poked out beside the crest) */
 .sk-pc{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:30px;height:28px;padding:0 6px;border-radius:8px;font:700 17px/1 var(--f-num)}
 /* points chips (Parker, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
 .sk-pc.p3{background:var(--win);color:var(--base)}
@@ -30,6 +31,7 @@
 .ps-hero{position:relative;margin-top:-17px;height:448px;overflow:hidden;
   background:radial-gradient(ellipse 80% 60% at 50% 38%,color-mix(in oklab,var(--b700) 48%,var(--p900)) 0%,color-mix(in oklab,var(--p900) 55%,var(--base)) 45%,var(--base) 100%)}
 .ps-beam{position:absolute;left:50%;top:-60px;width:520px;height:420px;transform:translateX(-50%);pointer-events:none;
+  -webkit-mask-image:linear-gradient(#000 62%,transparent);mask-image:linear-gradient(#000 62%,transparent);   /* the light fades out instead of ending in a hard line beside the card (11 Oct 2026) */
   background:conic-gradient(from 160deg at 50% 0%,transparent 0deg,rgba(122,149,255,.18) 14deg,transparent 26deg,transparent 334deg,rgba(122,149,255,.18) 346deg,transparent 360deg)}
 .ps-floor{position:absolute;left:50%;bottom:44px;width:250px;height:32px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55) 0%,transparent 70%);pointer-events:none}
 .ps-top{position:relative;display:flex;align-items:center;padding:12px 56px 0 12px;min-height:46px}

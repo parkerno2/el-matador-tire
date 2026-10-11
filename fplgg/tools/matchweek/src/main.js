@@ -10,6 +10,7 @@ import { articlesWanted } from './feed/articles.js';   /* new articles reach Mat
 import { installErrorReporting, flushErrors } from './errors.js';   /* phones report script errors to the backend (A4) */
 import { installReadTab, readMeta, staleInfo, matchOn, dataSource, dataReport, DEMO, PREVIEW } from './data/tabs.js';   /* the sheet reader with a header guard, the stale banner (A5), the data source behind a flag (B3), the demo (Q2) */
 import { lockPage, unlockPage, pageY, setPageY, locked } from './sheets/lock.js';
+import { swapHTML } from './swap.js';   /* a redraw keeps the pictures that had loaded (Parker, 11 Oct 2026: photos disappearing on live refreshes) */
 import { showIntro } from './intro.js';   /* the one-time intro on a device that has never used the app (P1, 11 Oct 2026) */   /* the page behind a sheet: locked in place, back exactly where it was */
 if (!DEMO && !PREVIEW) installErrorReporting();   /* the demo has no backend to report to; the preview keeps its errors out of the league's count */
 installReadTab();
@@ -66,7 +67,7 @@ export function render(opt = {}) {
   try { html = mod.render(r.sub, r.args); }
   catch (e) { console.error(e); html = UI.pageHead(mod.title || '') + '<div class="err">Something went wrong drawing this page. ' + UI.esc(e.message) + '</div>'; }
   const unread = PAGES.feed.unread ? PAGES.feed.unread() : 0;
-  app.innerHTML = staleBanner() + demoTag() + html + UI.navBar(r.page, unread);
+  swapHTML(app, staleBanner() + demoTag() + html + UI.navBar(r.page, unread));
   document.body.dataset.page = r.page; document.body.dataset.sub = r.sub;
   document.title = (mod.title || 'Matchweek') + (DEMO ? ' · Matchweek demo' : PREVIEW ? ' · El Matador Tire · preview' : ' · El Matador Tire');
   try { mod.mount && mod.mount(app, r.sub, r.args); } catch (e) { console.error(e); }
@@ -124,7 +125,7 @@ function typingIn(sh) {
 export function refreshSheet() {
   const e = STACK[STACK.length - 1]; if (!e) return; const S = SHEETS[e.kind];
   const t = typingIn(e.sh);
-  try { const b = S.render(e.arg); e.sh.innerHTML = CHROME() + b; S.mount && S.mount(e.sh, e.arg); a11y(e.sh); } catch (er) { console.error(er); }
+  try { const b = S.render(e.arg); swapHTML(e.sh, CHROME() + b); S.mount && S.mount(e.sh, e.arg); a11y(e.sh); } catch (er) { console.error(er); }
   const n = t && e.sh.querySelector(t.sel);
   if (n) { if (n.value !== t.v) { n.value = t.v; n.dispatchEvent(new Event('input', { bubbles: true })); } n.focus({ preventScroll: true }); try { n.setSelectionRange(t.a, t.b); } catch (er) { } }
 }

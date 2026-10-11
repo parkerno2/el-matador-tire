@@ -130,8 +130,14 @@
    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
-.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
+.fc .rt{padding:2.5% 3.5% 1.6%;margin:-2.5% -3.5% -1.6%}
+/* the rating's backing (Parker, 11 Oct 2026: "what's this weird artifact by the rating area"): it reached above the card's
+   top edge and its square corner stuck out past the card's cut corner. It now starts just inside the card's inner keyline
+   and its top left corner is cut parallel to the card's, while it still covers the part of the figure the contrast audit
+   reads (the middle 70% of the "88" glyph box, from 8.2 cqw down; the backing starts at 7.3 cqw) */
+.fc .rt::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--rtb);border-radius:2.6cqw;clip-path:polygon(4.6cqw 0,100% 0,100% 100%,0 100%,0 4.6cqw)}
 .fc .rt span{color:var(--sub)}
+.fc .face img{filter:none}   /* no drop shadow on the photos (Parker, 11 Oct 2026, iPhone: photos disappearing on scroll): a filtered image is a layer of its own on iOS, and a pitch carries thirty of them */
 .fc .rt .fdar{text-shadow:none}
 .fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
 .fc .pts{padding:4% 7.5% 3.5%}   /* room between the figure and the bubble's edge (a live bubble wears a green border) */

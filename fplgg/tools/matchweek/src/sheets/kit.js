@@ -79,9 +79,12 @@ export const rec = s => UI.rec(s);
 export const recL = s => UI.recL(s);
 
 /* ---------- visual atoms ---------- */
-/* a PL club badge in a light circle, the code underneath in case the image is missing */
+/* a PL club badge in a light circle; the club's code shows only when there is no badge or it fails to load (Parker,
+   11 Oct 2026: behind a loaded badge the code's letters poked out at both sides of a narrow crest, "MCI" in an 18 px
+   circle is 21 px wide). Class im marks a circle with a badge; the badge's own error handler takes it off. */
 export function cb(club, px = 28) {
-  return '<span class="sk-cb" style="width:' + px + 'px;height:' + px + 'px;font-size:' + Math.max(6, Math.round(px * .3)) + 'px" title="' + esc(clubName(club)) + '"><em>' + esc(club || '') + '</em>' + UI.badge(club, Math.round(px * .72)) + '</span>';
+  const img = UI.badge(club, Math.round(px * .72)).replace(/onerror="([^"]*)"/, (m, a) => 'onerror="' + a + ';this.parentNode.classList.remove(\'im\')"');
+  return '<span class="sk-cb' + (img ? ' im' : '') + '" style="width:' + px + 'px;height:' + px + 'px;font-size:' + Math.max(6, Math.round(px * .3)) + 'px" title="' + esc(clubName(club)) + '"><em>' + esc(club || '') + '</em>' + img + '</span>';
 }
 /* points chip (Parker, 10 Oct 2026): green 6 points or more (p3), amber 3 to 5 (p2), red 0 to 2 (p1), grey for no minutes (z) */
 export function ptsCls(v, dnp) { return dnp ? 'z' : v >= 6 ? 'p3' : v >= 3 ? 'p2' : 'p1'; }
