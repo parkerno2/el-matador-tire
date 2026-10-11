@@ -160,5 +160,24 @@ How it works, untouched.
   Preview run's.
 
 ## Proof of shipping
-Filled in after the push: the Preview Matchweek app run for the commit, and the "preview: matchweek app from <sha>"
-commit on main.
+- The branch's commits: 5df6ba4 (the polish pass, pushed 16:00 UTC) and 642e3af (the gallery's init script instead of
+  the reload, pushed 16:13 UTC), both on `preview`.
+- Preview Matchweek app run 22 for 5df6ba4 was red at the gallery (nine WebKit page errors from fetches the reload cut
+  short; https://github.com/parkerno2/el-matador-tire/actions/runs/38153614498); nothing was published from it.
+- Preview Matchweek app run 23 for 642e3af, green at 16:22 UTC:
+  https://github.com/parkerno2/el-matador-tire/actions/runs/38154588657 (the gate, the contrast audit, the gallery in
+  Chromium and WebKit at 390 px and at 360 px, every check passed).
+- The commit "preview: matchweek app from 642e3af (preview)" on main is 55b114b, and origin/preview's head is 642e3af.
+- Checked at the edge at 16:25 UTC: https://parkerno2.github.io/el-matador-tire/preview/shots/ reads "from 642e3af",
+  build 20261011161412, "every check passed", with the link to the 360 px screens
+  (https://parkerno2.github.io/el-matador-tire/preview/shots/360/, also "every check passed"); the preview's `app.js`
+  carries the intro and no removed subtitle, and its viewport is `width=device-width,initial-scale=1,viewport-fit=cover`.
+- A slip, recorded plainly: before 5df6ba4 a `git pull --rebase` against the preview branch stopped on a conflict and a
+  push sent its half-rebased HEAD (84a0676, main's commits replayed onto the old preview head, without the polish pass)
+  to `preview`; the Preview run 21 for it was green and published a preview without this change (f972996 on main) for
+  twelve minutes until run 23. The rebase was aborted and the state merged forward (no force-push); the branch's history
+  carries the replayed commits once more.
+
+For Parker: https://parkerno2.github.io/el-matador-tire/preview/ (the intro from a phone that already uses the app:
+https://parkerno2.github.io/el-matador-tire/preview/?intro=1), the screens on one page:
+https://parkerno2.github.io/el-matador-tire/preview/shots/.
