@@ -7,6 +7,11 @@
 #   fails a suite is not published (this run is red instead). Production gets a preview's changes only when its branch is
 #   merged into main by hand. Before publishing, the contrast audit (fplgg/tools/contrast/audit.js, docs/DESIGN.md)
 #   runs on the branch's app over the committed demo snapshot: an offender makes the run red and nothing is published.
+#   Then the gallery (fplgg/tools/gallery/gallery.js, Parker's Q4, 10 Oct 2026) photographs every page, sub-tab and sheet
+#   of that app at 390 px in Chromium and WebKit, before kick-off and at the snapshot's own time, and checks each screen
+#   (no player twice in a team view, no NaN, undefined or null, no horizontal overflow or clipped text, no console error,
+#   no EA asset, no em or en dash in UI text): a finding makes the run red; the screens are committed with the preview as
+#   preview/shots/ (https://parkerno2.github.io/el-matador-tire/preview/shots/) and kept as the run's artifact either way.
 name: Preview Matchweek app
 on:
   push:
@@ -53,11 +58,11 @@ jobs:
         run: bash fplgg/tools/matchweek/ci-build.sh && git checkout -- index.html app.js app.css core.js sw.js manifest.webmanifest
       - name: Build the preview
         run: node fplgg/tools/preview/build-preview.js /tmp/mw-preview
-      - name: Install Playwright for the contrast audit (the Facts bot's pin)
+      - name: Install Playwright for the contrast audit and the gallery (the Facts bot's pin; WebKit for the gallery)
         working-directory: fplgg/tools/factsbot
         run: |
           npm ci --no-audit --no-fund
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps webkit chromium
       - name: The contrast audit (docs/DESIGN.md) on this branch's app over the committed demo snapshot
         run: |
           node fplgg/tools/demo/build-demo.js --data site/public/demo/data --out /tmp/mw-demo/demo
@@ -66,6 +71,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: contrast-report, path: /tmp/mw-contrast.json, if-no-files-found: ignore }
+      - name: The gallery and the invariant checks (Parker's Q4) on this branch's app, Chromium and WebKit, into the preview's shots/
+        run: NODE_PATH=$PWD/fplgg/tools/factsbot/node_modules node fplgg/tools/gallery/gallery.js --dir /tmp/mw-demo --out /tmp/mw-preview/shots
+      - name: Keep the gallery (a red run still shows its screens)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: gallery, path: /tmp/mw-preview/shots, if-no-files-found: ignore }
       - name: Publish it as preview/ on main
         run: |
           set -e

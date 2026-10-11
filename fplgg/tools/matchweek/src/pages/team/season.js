@@ -32,7 +32,7 @@ function resultsBlock(team, R) {
       + '<span class="tm-rg n">GW' + r.g + '</span>' + chip
       + '<span class="tm-rs n">' + r.my + '<i>–</i>' + r.their + '</span>'
       + UI.crest(r.opp, 24)
-      + '<span class="tm-ro"><b class="ell">' + (r.home ? 'v ' : 'at ') + '<span class="tm-full">' + esc(r.opp) + '</span><span class="tm-short">' + esc(UI.short(r.opp)) + '</span></b>' + (r.nm ? '<span class="sub ell">' + esc(r.nm) + '</span>' : '') + '</span>'
+      + '<span class="tm-ro"><b>' + (r.home ? 'v ' : 'at ') + '<span class="tm-full">' + esc(r.opp) + '</span><span class="tm-short">' + esc(UI.short(r.opp)) + '</span></b>' + (r.nm ? '<span class="sub ell">' + esc(r.nm) + '</span>' : '') + '</span>'
       + '<span class="tm-rp"><b class="n">' + ord(r.pos) + (r.live ? '*' : '') + '</b><span class="sub">after</span></span></button>';
   }).join('');
   const anyLive = R.some(r => r.live);

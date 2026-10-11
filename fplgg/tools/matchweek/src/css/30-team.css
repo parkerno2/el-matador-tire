@@ -262,7 +262,7 @@
 .tm-rs{flex:none;min-width:54px;font-size:18px;font-weight:700}
 .tm-rs i{font-style:normal;color:var(--tx4);padding:0 2px}
 .tm-ro{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.tm-ro b{font-size:13px}
+.tm-ro b{font-size:13px;line-height:1.2;overflow-wrap:anywhere}   /* a team name takes two lines and is never cut (Q6 rule; Q4 gallery, 11 Oct 2026) */
 .tm-ro .sub{font-size:11px}
 .tm-rp{flex:none;display:flex;flex-direction:column;align-items:flex-end;min-width:34px}
 .tm-rp b{font-size:17px;line-height:1.1;font-weight:700}

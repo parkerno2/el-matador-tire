@@ -212,11 +212,11 @@
 .md-lr.open svg{transform:rotate(90deg)}
 .md-lx{background:var(--bar);border-top:1px solid var(--hair)}
 .md-lx .md-h2h:first-child{border-top:0}
-.md-h2h{display:grid;grid-template-columns:minmax(0,1fr) 88px minmax(0,1fr);align-items:center;gap:6px;padding:9px 12px;border-top:1px solid var(--hair)}
-.md-hc{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
+.md-h2h{display:grid;grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr);align-items:center;gap:6px;padding:9px 12px;border-top:1px solid var(--hair)}
+.md-hc{display:flex;align-items:center;gap:6px;min-width:0;cursor:pointer}
 .md-hc.r{flex-direction:row-reverse;text-align:right}
 .md-hc.none{cursor:default;justify-content:center}
-.md-hc b{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-hc b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:700;line-height:1.2;white-space:normal;overflow:hidden;overflow-wrap:anywhere}   /* a name takes two lines rather than a cut (Q4 gallery, 11 Oct 2026) */
 .md-hc .chip{margin:2px 0 1px;font-size:9px}
 .md-hc .sub{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:11px;line-height:1.3;overflow:hidden}
 .md-hm{display:flex;justify-content:space-between;gap:4px}
