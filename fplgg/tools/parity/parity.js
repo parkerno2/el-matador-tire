@@ -44,7 +44,11 @@ const KEYS = {
   Posts: ['Id'],
   'Fixture BPS': ['GW', 'Fixture', 'Code'],
 };
-const TABS = Object.keys(KEYS);
+/* the tabs the tabs function refuses since 11 Oct 2026 (S1): the web app's own (the Sheet alone has them, the app reads
+   them from the Sheet whatever the source: SHEET_ONLY in src/data/tabs.js) and the EA tabs (DEMO_EMPTY). Not compared:
+   the function answers 403 for them, so there is nothing on the Supabase side to agree with. */
+const UNSERVED = ['Specials', 'EA Map', 'FC27', 'Managers', 'Social', 'Posts'];
+const TABS = Object.keys(KEYS).filter(t => !UNSERVED.includes(t));
 /* the league's aliases (league.json, the engine's TEAM_ALIAS): the app maps every value through them, so both sides
    are compared as the app sees them (tests/parity.js keeps this in step with the config) */
 const ALIAS = Object.assign({}, require('../matchweek/league.json').aliases || {});
@@ -247,7 +251,7 @@ async function main(deps) {
   deps.log(compared ? ('compared ' + tabs.filter(t => t.status !== 'error').length + ' tabs: ' + rep.summary.differs + ' differ, ' + rep.summary.missing + ' not on Supabase, ' + (rep.summary.same + rep.summary.columns + rep.summary.empty) + ' agree') : 'nothing could be compared');
   return { code: compared ? 0 : 1, report: rep };
 }
-module.exports = { norm, parseGviz, parseSupabase, keyed, compareTab, groupKeys, summarise, markdown, freshness, main, KEYS, TABS, ALIAS, CLOCK, STATUS, gvizUrl, sbUrl, SB_BASE, LEAGUE };
+module.exports = { norm, parseGviz, parseSupabase, keyed, compareTab, groupKeys, summarise, markdown, freshness, main, KEYS, TABS, UNSERVED, ALIAS, CLOCK, STATUS, gvizUrl, sbUrl, SB_BASE, LEAGUE };
 if (require.main === module) {
   const a = process.argv.slice(2), arg = k => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : ''; };
   main().then(r => {

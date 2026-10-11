@@ -25,6 +25,20 @@ const SEASON = Deno.env.get('FPL_SEASON') ?? '2026/27';
 
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
+/* The shared secret (S1, 11 Oct 2026): this function writes with the service-role key, so it answers only a call that
+ * carries the secret the project holds as the function secret INGEST_SECRET (set through the Management API, never in
+ * the repo; the cron jobs read the same value from Vault, supabase/migrations/20261011140000_ingest_secret.sql). No
+ * secret set: every call is refused, so a fresh project is closed until someone opens it on purpose. */
+function secretOk(req: Request): { ok: true } | { ok: false; status: number; error: string } {
+  const want = Deno.env.get('INGEST_SECRET') ?? '';
+  if (!want) return { ok: false, status: 503, error: 'INGEST_SECRET is not set' };
+  const h = req.headers.get('x-ingest-secret') ?? (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
+  const a = new TextEncoder().encode(h), b = new TextEncoder().encode(want);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);   // constant time
+  return diff === 0 ? { ok: true } : { ok: false, status: 401, error: 'the secret is missing or wrong' };
+}
+
 async function getJson(url: string, optional = false) {
   const r = await fetch(url, { headers: { 'User-Agent': 'matchweek-ingest/0.1' } });
   if (!r.ok) { if (optional) return null; throw new Error(`${url} → ${r.status}`); }
@@ -165,6 +179,8 @@ async function ingestLeague(league: { id: string; fpl_league_id: number; config:
 }
 
 Deno.serve(async (req) => {
+  const gate = secretOk(req);
+  if (!gate.ok) return Response.json({ ok: false, error: gate.error }, { status: gate.status });
   const started = new Date().toISOString();
   const out: unknown[] = [];
   try {

@@ -15,8 +15,7 @@ check('five functions, each with an index.ts', FN.join() === 'ingest,league-look
 const cfg = read('supabase/config.toml');
 const cfgFns = (cfg.match(/^\[functions\.([a-z-]+)\]/gm) || []).map(l => l.replace(/^\[functions\.|\]$/g, '')).sort();
 check('config.toml names exactly those functions', cfgFns.join() === FN.join(), cfgFns.join());
-check('every function is public in config.toml (verify_jwt = false), as deployed', (cfg.match(/verify_jwt = false/g) || []).length === FN.length && !/verify_jwt = true/.test(cfg));
-check('the ingest imports its transform from the same folder', /from '\.\/transform\.esm\.js'/.test(read('supabase/functions/ingest/index.ts')) && exists('supabase/functions/ingest/transform.esm.js'));
+check('every function is called without a JWT in config.toml (verify_jwt = false), as deployed; each is gated in its own code', (cfg.match(/verify_jwt = false/g) || []).length === FN.length && !/verify_jwt = true/.test(cfg) && /INGEST_SECRET/.test(cfg) && /allowlist of tabs/.test(cfg));
 
 /* ---------- no key anywhere under supabase/ or in the workflow ---------- */
 const walk = d => fs.readdirSync(path.join(ROOT, d)).flatMap(f => { const p = d + '/' + f; return fs.statSync(path.join(ROOT, p)).isDirectory() ? walk(p) : [p]; });
@@ -25,6 +24,30 @@ const leaks = files.filter(f => { const t = read(f); return /sbp_[A-Za-z0-9]{20,
 check('no access token, API key, JWT or connection string in supabase/ or the workflow (' + files.length + ' files)', leaks.length === 0, leaks.join(', '));
 const envOnly = FN.every(f => { const t = read('supabase/functions/' + f + '/index.ts'); return !/SERVICE_ROLE_KEY\s*=|SUPABASE_URL\s*=\s*['"]/.test(t); });
 check('the functions read their keys from Deno.env only', envOnly);
+/* ---------- S1, 11 Oct 2026: the write functions require the shared secret, the read function serves an allowlist ---------- */
+const guardRe = /function secretOk\(req: Request\)[\s\S]*?Deno\.env\.get\('INGEST_SECRET'\)[\s\S]*?status: 503[\s\S]*?x-ingest-secret[\s\S]*?status: 401/;
+['ingest', 'seed-statics'].forEach(f => {
+  const t = read('supabase/functions/' + f + '/index.ts');
+  const serve = t.indexOf('Deno.serve(async (req) => {');
+  check(f + ': refuses without the secret (503 when none is set, 401 when wrong), compared in constant time, as the first thing Deno.serve does', guardRe.test(t) && /diff \|= \(a\[i\] \?\? 0\) \^ \(b\[i\] \?\? 0\)/.test(t) && serve > 0 && t.slice(serve, serve + 200).includes('const gate = secretOk(req);\n  if (!gate.ok) return Response.json({ ok: false, error: gate.error }, { status: gate.status });'));
+});
+const reg = read('supabase/functions/register-league/index.ts');
+check('register-league sends the secret when it kicks the first ingest, and its note claims nothing live and has no em dash', /fetch\(ingestUrl, \{ headers: \{ 'x-ingest-secret': Deno\.env\.get\('INGEST_SECRET'\) \?\? '' \} \}\)/.test(reg) && !/is live|goes live|fills in about two minutes/.test(reg) && !/[\u2013\u2014]/.test(reg.replace(/\/\/[^\n]*/g, '')));
+const tabsFn = read('supabase/functions/tabs/index.ts');
+const tabsSrc = read('fplgg/tools/matchweek/src/data/tabs.js');
+const appT = new Function(tabsSrc.replace(/^export (function|const|let)/gm, '$1') + '\n;return { TABS, SHEET_ONLY, DEMO_EMPTY };')();
+const servedWant = Object.keys(appT.TABS).filter(t => !appT.SHEET_ONLY.includes(t) && !appT.DEMO_EMPTY.includes(t)).concat('Meta').sort();
+const allowM = /const TAB_ALLOW = new Set\(\[([\s\S]*?)\]\);/.exec(tabsFn);
+const allowList = allowM ? allowM[1].split(',').map(x => x.trim().replace(/^'|'$/g, '')).filter(Boolean).sort() : [];
+check('tabs: TAB_ALLOW is exactly the tabs the app reads from Supabase (src/data/tabs.js TABS less SHEET_ONLY and the EA tabs) plus Meta; FC27, EA Map, Managers, Social, Posts, Specials and Ratings are not on it', allowList.join('|') === servedWant.join('|') && ['FC27', 'EA Map', 'Managers', 'Social', 'Posts', 'Specials', 'Ratings'].every(t => !allowList.includes(t)), allowList.join('|') + ' vs ' + servedWant.join('|'));
+check('tabs: a tab off the allowlist is refused with 403 before anything is read', /if \(!TAB_ALLOW\.has\(tab\)\) return json\(403/.test(tabsFn) && tabsFn.indexOf('if (!TAB_ALLOW.has(tab))') < tabsFn.indexOf('const uuid = await leagueUuid(fplId);'));
+check('tabs: the league config is served without manager names, pictures or the legacy datasource', /delete o\.manager; delete o\.faqFace;/.test(tabsFn) && /delete c\.legacyDatasource;/.test(tabsFn) && /config: publicConfig\(data\.config\)/.test(tabsFn));
+const secMig = 'supabase/migrations/20261011140000_ingest_secret.sql';
+const secSql = exists(secMig) ? read(secMig) : '';
+check('the migration teaches both cron jobs to send the secret from Vault, by cron.alter_job, and holds no secret itself', (secSql.match(/cron\.alter_job\(/g) || []).length === 2 && (secSql.match(/vault\.decrypted_secrets where name = 'ingest_secret'/g) || []).length === 2 && /ingest-hourly/.test(secSql) && /ingest-live/.test(secSql) && /x-ingest-secret/.test(secSql) && !/unschedule/.test(secSql) && !/[0-9a-f]{32,}/i.test(secSql));
+check('no function or file under supabase/ carries the secret\'s value (a 32-byte hex string or longer)', files.every(f => !/\b[0-9a-f]{48,}\b/i.test(read(f))));
+check('the ingest imports its transform from the same folder', /from '\.\/transform\.esm\.js'/.test(read('supabase/functions/ingest/index.ts')) && exists('supabase/functions/ingest/transform.esm.js'));
+
 
 /* ---------- migrations and repairs only add ---------- */
 const mig = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).filter(f => /\.sql$/.test(f)).sort();

@@ -1,6 +1,8 @@
 # The Supabase project vcokquhzqpqvwrybndnr (matchweek). Read by the Supabase CLI when .github/workflows/supabase.yml
-# deploys the functions; every function here is public (no JWT check), as deployed on 31 Aug 2026: the tabs function
-# is read only, the ingest is started by pg_cron, the wizard's calls are gated by the invite code.
+# deploys the functions; every function here is called without a JWT (verify_jwt off), as deployed on 31 Aug 2026, and
+# each is gated in its own code (S1, 11 Oct 2026): the tabs function is read only and serves an allowlist of tabs, the
+# ingest and seed-statics require the shared secret INGEST_SECRET (a function secret; pg_cron sends it from Vault), the
+# wizard's register-league is gated by the invite code and league-lookup only reads the FPL API.
 project_id = "matchweek"
 
 [functions.ingest]

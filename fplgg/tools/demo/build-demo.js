@@ -12,10 +12,16 @@
    app.css replaced by the fictional ones (names.js). The snapshot is taken from the live Sheet at build time and
    anonymised with a mapping derived from its own rows, so no real name is ever written to the repo; when the Sheet
    cannot be read the demo is left as it was (the root build must never fail for the demo's sake) unless --strict.
-   The leak check reads the real names from the live Standings tab and fails when one appears as a whole word anywhere
-   under site/public: team names, full names, first names, surnames and the engine's short names (SHORTOF). A first name
-   a footballer in the Players tab shares (Jacob Ramsey, Ethan Nwaneri) is not checked, and no first or short name is
-   checked in the data files of the player tabs; team names, full names and surnames always are.
+   The leak check reads the real names from the live Standings tab and fails when one appears as a whole word, in any
+   case, anywhere under site/public: team names, full names, first names, surnames, the engine's short names (SHORTOF),
+   and the strings that identify the league itself (league.json: its name, every derby name, its FPL id; names.banMap).
+   A first name a footballer in the Players tab shares (Jacob Ramsey, Ethan Nwaneri) passes only in front of that
+   footballer's surname, and no first or short name is checked in the data files of the player tabs; team names, full
+   names, surnames and the league's own strings always are (S1, 11 Oct 2026).
+   Images (S1): the demo carries only the files on IMAGE_ALLOW (the app icons and the four fictional voices' pictures);
+   any other image under site/public/demo fails the build, so a photo of a real person (press/, 7 to 11 Oct 2026) can
+   never ship with it again. press/ is not copied, and the editorial posts that used it are not built in the demo
+   (src/feed/build.js, DEMO).
    No EA assets (Parker, 9 Oct 2026): the demo uses FPL photos and initials only. faces/ is not copied and the demo's
    core.js has an empty FC_FACES, so every player goes through FPL's photo and then initials; the EA Map and FC27 tabs are
    not read or written, and the Rosters OVR column (an EA-based rating) is blanked, so the engine's rating derived from the
@@ -33,7 +39,12 @@ const history = require(path.join(APP, 'tools', 'history.js'));   /* the earlier
 const SITE = path.join(ROOT, 'site', 'public');
 const OUT = path.join(SITE, 'demo');
 const TEXT_EXT = /\.(html?|js|mjs|css|json|jsonc|webmanifest|txt|md|svg|xml|csv)$/i;
-const ASSET_DIRS = ['icons', 'voices', 'press'];   /* press/: the editorial posts' pictures; never faces/ (EA renders, 9 Oct 2026) */
+const ASSET_DIRS = ['icons', 'voices'];   /* never faces/ (EA renders, 9 Oct 2026), never press/ (a real photo, S1, 11 Oct 2026) */
+/* every image the demo may carry, by exact path under site/public/demo: the app icons and the four fictional voices'
+   pictures (voices/README.md: original AI-made faces). Anything else with an image extension fails the build. */
+const IMAGE_ALLOW = ['icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-32.png', 'icons/icon-512.png',
+  'voices/archizio.jpg', 'voices/clark.jpg', 'voices/jive.jpg', 'voices/malcolm.jpg'];
+const IMAGE_RE = /\.(png|jpe?g|webp|gif|svg|avif|ico|bmp|tiff?)$/i;
 const EA_TABS = ['EA Map', 'FC27'];                /* the EA tabs: not read, not written (9 Oct 2026) */
 const EA_FILE_RE = /(^|[\\/])(fc27|ea[-_ ]?map)[^\\/]*$/i;   /* a data file named after them, anywhere, any extension */
 
@@ -78,6 +89,23 @@ function eaScan(dir, faceDir, codes) {
       else if (EA_FILE_RE.test(r)) found[r] = 'an EA data file by name';
       else if (/^\d+\.png$/i.test(e.name) && codes.has(e.name.replace(/\.png$/i, ''))) found[r] = 'an FC face by code';
       else if (/\.(png|jpe?g|webp)$/i.test(e.name) && hashes.size) { const h = crypto.createHash('md5').update(fs.readFileSync(path.join(dir, r))).digest('hex'); if (hashes.has(h)) found[r] = 'byte-identical to faces/' + hashes.get(h); }
+    }
+  };
+  walkAll('');
+  return found;
+}
+/* the image check over a demo folder: { file: why } for every file with an image extension that is not on the
+   allowlist (by its path relative to the folder, forward slashes), plus any file inside a press/ folder */
+function imageScan(dir, allow) {
+  allow = new Set(allow || IMAGE_ALLOW);
+  const found = {};
+  if (!fs.existsSync(dir)) return found;
+  const walkAll = rel => {
+    for (const e of fs.readdirSync(path.join(dir, rel), { withFileTypes: true })) {
+      const r = rel ? rel + '/' + e.name : e.name;
+      if (e.isDirectory()) { walkAll(r); continue; }
+      if (/(^|\/)press\//.test(r)) found[r] = 'in a press folder';
+      else if (IMAGE_RE.test(e.name) && !allow.has(r)) found[r] = 'an image not on the allowlist';
     }
   };
   walkAll('');
@@ -152,6 +180,7 @@ async function main(argv) {
     return 0;
   }
   const m = names.mapping(shot.tabs.Standings.rows, leagueInitials(cfg), leagueShorts(cfg), cfg.aliases);
+  m.ban = names.banMap(cfg);   /* the league's own name, derby names and FPL id: replaced in the code, banned from the site (S1) */
   if (!checkOnly) {
     /* 2. the anonymised data (with --data: already anonymised, copied file by file below) */
     const tabs = dataDir ? null : dropRatings(names.anonymiseTabs(shot.tabs, m));   /* no EA ratings in the demo (9 Oct 2026) */
@@ -185,7 +214,7 @@ async function main(argv) {
     log('written' + (out !== OUT ? ' to ' + out : '') + ': ' + (dataDir ? dataFiles.length + ' tabs from ' + dataDir + ' (snapshot ' + shot.taken + ')' : Object.keys(tabs).length + ' tabs' + (Object.keys(shot.skipped).length ? ' (skipped: ' + Object.keys(shot.skipped).join(', ') + ')' : '')) + ', app ' + (appJs.length / 1024 | 0) + ' KB, core ' + (coreJs.length / 1024 | 0) + ' KB, build ' + build);
   }
   /* 5. the leak check, over the whole site (and over the out folder when it is elsewhere) */
-  const exempt = names.playerFirstNames(shot.tabs.Players);
+  const exempt = names.playerNames(shot.tabs.Players);   /* a footballer's first name passes only before his surname (S1) */
   const found = leakScan(SITE, m, exempt);
   if (out !== OUT && !out.startsWith(SITE + path.sep)) Object.assign(found, leakScan(out, m, exempt));
   const files = Object.keys(found);
@@ -203,7 +232,16 @@ async function main(argv) {
     return 1;
   }
   log('EA check: clean');
+  /* 7. the image check: nothing under the demo but the icons and the voices' pictures, no press/ (S1, 11 Oct 2026) */
+  const img = imageScan(OUT);
+  if (out !== OUT) Object.assign(img, imageScan(out));
+  const imgFiles = Object.keys(img);
+  if (imgFiles.length) {
+    console.error('[demo] an image the demo may not carry is in it: ' + imgFiles.slice(0, 20).map(f => f + ' (' + img[f] + ')').join(', ') + (imgFiles.length > 20 ? ' and ' + (imgFiles.length - 20) + ' more' : ''));
+    return 1;
+  }
+  log('image check: clean (' + IMAGE_ALLOW.length + ' allowed)');
   return 0;
 }
-module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, demoIndex, walk, playerFile, leakScan, fromData, main };
+module.exports = { ROOT, APP, SITE, OUT, TEXT_EXT, ASSET_DIRS, IMAGE_ALLOW, IMAGE_RE, EA_TABS, EA_FILE_RE, leagueInitials, leagueShorts, demoCore, dropRatings, faceHashes, faceCodes, eaScan, imageScan, demoIndex, walk, playerFile, leakScan, fromData, main };
 if (require.main === module) main(process.argv.slice(2)).then(code => process.exit(code), e => { console.error('[demo] ' + (e && e.stack || e)); process.exit(1); });

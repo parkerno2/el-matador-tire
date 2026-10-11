@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Matchweek · Create your league</title>
-<meta name="description" content="Turn an FPL Draft league into a Matchweek clubhouse: paste the league id, name the rivalries, set the pot, download the config.">
+<meta name="description" content="Set up an FPL Draft league for Matchweek: paste the league id, name the rivalries, set the pot, download the config and join the list for the beta.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Chakra+Petch:wght@500;600;700&display=swap">
 <!--
@@ -133,7 +133,7 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
     <!-- ============ STEP 0: connect ============ -->
     <section class="step" data-step="0">
       <h1>Connect your FPL Draft league</h1>
-      <p class="sub">Matchweek reads the league straight from FPL — team names, managers and rosters come from there. You only decide how it looks and what it plays for.</p>
+      <p class="sub">Matchweek reads the league straight from FPL: team names, managers and rosters come from there. You only decide how it looks and what it plays for.</p>
       <div class="tabs" role="tablist">
         <button class="on" data-pane="lookup">League id</button>
         <button data-pane="paste">Paste JSON</button>
@@ -141,7 +141,7 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
       </div>
       <div class="pane on" id="pane-lookup">
         <label class="f">League id or URL
-          <input type="text" id="lid" placeholder="e.g. 45380 — or paste draft.premierleague.com/league/45380/…" inputmode="numeric" autocomplete="off">
+          <input type="text" id="lid" placeholder="e.g. 12345, or paste draft.premierleague.com/league/12345/..." inputmode="numeric" autocomplete="off">
         </label>
         <p class="hint">Find it in the address bar on draft.premierleague.com while viewing your league. The draft must be complete.</p>
         <div class="row"><button class="btn gold" id="lookupBtn">Look up league</button>
@@ -155,7 +155,7 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
         <div class="row"><button class="btn gold" id="pasteBtn">Use this league</button></div>
       </div>
       <div class="pane" id="pane-demo">
-        <p>An 8-team synthetic league — the same one Matchweek's own test harness uses. Real player universe, made-up numbers.</p>
+        <p>An 8-team synthetic league, the same one Matchweek's own test harness uses. Real player universe, made-up numbers.</p>
         <div class="row"><button class="btn gold" id="demoBtn">Load the demo league</button></div>
       </div>
       <div id="connectMsg"></div>
@@ -165,7 +165,7 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
     <!-- ============ STEP 1: teams ============ -->
     <section class="step" data-step="1" hidden>
       <h1>Teams &amp; colors</h1>
-      <p class="sub">Names and managers come from FPL. Pick a monogram and a color for each team — Matchweek auto-assigns distinct ones you can keep or change. Mark who runs the league.</p>
+      <p class="sub">Names and managers come from FPL. Pick a monogram and a color for each team. Matchweek auto-assigns distinct ones you can keep or change. Mark who runs the league.</p>
       <div class="tabwrap"><table id="teamsTable">
         <thead><tr><th></th><th>Team</th><th>Manager</th><th>First name</th><th>Monogram</th><th>Color</th><th>Commissioner</th></tr></thead>
         <tbody></tbody>
@@ -178,7 +178,7 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
     <!-- ============ STEP 2: rivalries ============ -->
     <section class="step" data-step="2" hidden>
       <h1>Rivalries</h1>
-      <p class="sub">Give any matchup a derby name and it shows on the scoreboard every time those two meet. Optional — unnamed fixtures just show the team names.</p>
+      <p class="sub">Give any matchup a derby name and it shows on the scoreboard every time those two meet. Optional: unnamed fixtures just show the team names.</p>
       <div class="row"><label class="f">Filter pairs <input type="text" id="pairFilter" placeholder="type a monogram or team"></label><div class="hint stat" id="pairCount"></div></div>
       <div class="pairs" id="pairs"></div>
     </section>
@@ -213,7 +213,7 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
     <!-- ============ STEP 4: periods ============ -->
     <section class="step" data-step="4" hidden>
       <h1>Season periods</h1>
-      <p class="sub">Manager of the Month is decided per period. Periods must run in order and cover gameweeks 1–38 with no gaps or overlaps.</p>
+      <p class="sub">Manager of the Month is decided per period. Periods must run in order and cover gameweeks 1 to 38 with no gaps or overlaps.</p>
       <div class="tabs"><button data-preset="monthly" class="on">Monthly (9)</button><button data-preset="quarters">Quarters (4)</button><button data-preset="halves">Halves (2)</button><button data-preset="none">No MOTM</button></div>
       <div class="list" id="periods"></div>
       <div class="row"><button class="btn ghost sm" id="addPeriod">+ Add a period</button></div>
@@ -251,15 +251,15 @@ pre{background:#14101A;color:#EDE6F2;border-radius:8px;padding:14px;font-size:.7
     <!-- ============ STEP 6: review ============ -->
     <section class="step" data-step="6" hidden>
       <h1>Review &amp; download</h1>
-      <p class="sub">This is the whole league in one file. With an invite code, Create puts it live at its own Matchweek link right now; the JSON download is your backup copy.</p>
+      <p class="sub">This is the whole league in one file. With an invite code, Create saves it to the beta list; the JSON download is your own copy.</p>
       <div class="sum" id="summary"></div>
       <div id="reviewMsg"></div>
       <div class="card" id="createCard">
-        <h2 style="margin-top:0">Create it on Matchweek</h2>
-        <p class="hint">Beta is invite-only. Enter your invite code and your clubhouse goes live — the first data sync takes about two minutes.</p>
+        <h2 style="margin-top:0">Join the beta with this league</h2>
+        <p class="hint">Beta is invite-only. Enter your invite code and Create saves this setup to the list. Leagues are switched on by hand, one at a time, and we email you when yours is ready. Nothing is switched on from this page.</p>
         <div class="row">
           <label class="f">Invite code <input type="text" id="inviteCode" autocomplete="off" placeholder="from Matchweek"></label>
-          <button class="btn gold" id="createBtn">Create league</button>
+          <button class="btn gold" id="createBtn">Create</button>
         </div>
         <div id="createMsg"></div>
       </div>
@@ -294,7 +294,7 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pairKey = (a, b) => [a, b].sort().join('|');
 
-/* 16 distinct team colors, in a fixed order (the El Matador eight first — they are known to read apart on cards). */
+/* 16 distinct team colors, in a fixed order (the first league's eight first; they are known to read apart on cards). */
 const PALETTE = ['#2E5BFF', '#8E44AD', '#00A88F', '#D6001C', '#F0B323', '#E8710A', '#795548', '#B5179E', '#0B7285', '#5C940D', '#E64980', '#364FC7', '#862E9C', '#087F5B', '#C92A2A', '#3B5BDB'];
 
 /* ---------- color distance (CIE Lab ΔE76 — plenty for "can I tell these apart on a card") ---------- */
@@ -337,9 +337,9 @@ function fromDetails(d) {
   // NOTE 31 Aug 2026: FPL regressed draft_status — it reads 'pre' for every drafted league (it read
   // 'post' on 25 Aug). Drafted = status post OR league closed OR any H2H match already started.
   const drafted = d.league.draft_status === 'post' || d.league.closed === true || (d.matches || []).some(x => x.started);
-  if (!drafted) throw new Error('This league has not drafted yet — come back once the draft is complete.');
-  if (n < 4 || n > 16) throw new Error('Matchweek supports 4–16 teams; this league has ' + n + '.');
-  if (n % 2) warnings.push(n + ' teams is an odd number — one team sits out each gameweek (FPL handles the bye; Matchweek shows it).');
+  if (!drafted) throw new Error('This league has not drafted yet. Come back once the draft is complete.');
+  if (n < 4 || n > 16) throw new Error('Matchweek supports 4 to 16 teams; this league has ' + n + '.');
+  if (n % 2) warnings.push(n + ' teams is an odd number: one team sits out each gameweek (FPL handles the bye; Matchweek shows it).');
   if (d.league.scoring !== 'h') warnings.push('This league uses points scoring, not head-to-head; matchup features will be hidden.');
   return { league: { id: d.league.id, name: d.league.name, size: n, scoring: d.league.scoring, draftStatus: d.league.draft_status },
     teams: d.league_entries.map(e => ({ fplEntryId: e.entry_id, name: e.entry_name, manager: ((e.player_first_name || '') + ' ' + (e.player_last_name || '')).trim(), firstName: e.player_first_name || '' })), warnings };
@@ -369,7 +369,7 @@ $('#lookupBtn').onclick = async () => {
   const raw = $('#lid').value.trim(); const m = raw.match(/league\/(\d+)/) || raw.match(/^(\d+)$/);
   if (!m) return msg('#connectMsg', 'err', 'Enter the league id (a number) or the league URL.');
   const base = ($('#lookupBase').value.trim() || window.LOOKUP_BASE || 'https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1').replace(/\/$/, '');
-  if (!base) return msg('#connectMsg', 'warn', 'No lookup service configured for this build — use "Paste JSON" (open the /details URL in a tab and paste it here) or try the demo league.');
+  if (!base) return msg('#connectMsg', 'warn', 'No lookup service configured for this build. Use "Paste JSON" (open the /details URL in a tab and paste it here) or try the demo league.');
   msg('#connectMsg', 'ok', 'Looking up league ' + m[1] + '…');
   try {
     const r = await fetch(base + '/league-lookup?id=' + m[1]); const j = await r.json();
@@ -377,7 +377,7 @@ $('#lookupBtn').onclick = async () => {
     setSource({ league: { id: j.league.id, name: j.league.name, size: j.league.size, scoring: j.league.scoring, draftStatus: j.league.draftStatus }, teams: j.teams, warnings: j.warnings || [] });
   } catch (e) { msg('#connectMsg', 'err', e.message); }
 };
-$('#pasteBtn').onclick = () => { try { setSource(fromDetails(JSON.parse($('#pasteJson').value))); } catch (e) { msg('#connectMsg', 'err', e instanceof SyntaxError ? 'That is not valid JSON — copy the whole page from the /details URL.' : e.message); } };
+$('#pasteBtn').onclick = () => { try { setSource(fromDetails(JSON.parse($('#pasteJson').value))); } catch (e) { msg('#connectMsg', 'err', e instanceof SyntaxError ? 'That is not valid JSON. Copy the whole page from the /details URL.' : e.message); } };
 $('#demoBtn').onclick = () => setSource(fromDetails(DEMO_DETAILS));
 
 /* ===================== step 1: teams ===================== */
@@ -397,9 +397,9 @@ function buildTeams() {
 }
 function validateTeams() {
   const errs = [], warns = [], seen = {};
-  S.teams.forEach(t => { if (t.monogram.length < 2) errs.push(t.name + ': monogram needs 2–3 letters.'); (seen[t.monogram] = seen[t.monogram] || []).push(t.name); if (!t.firstName.trim()) warns.push(t.name + ': no first name — the app uses it in matchup copy.'); });
+  S.teams.forEach(t => { if (t.monogram.length < 2) errs.push(t.name + ': monogram needs 2 to 3 letters.'); (seen[t.monogram] = seen[t.monogram] || []).push(t.name); if (!t.firstName.trim()) warns.push(t.name + ': no first name; the app uses it in matchup copy.'); });
   Object.entries(seen).forEach(([m, names]) => { if (names.length > 1) errs.push('Monogram ' + m + ' is used by ' + names.join(' and ') + '.'); });
-  for (let i = 0; i < S.teams.length; i++) for (let j = i + 1; j < S.teams.length; j++) { const d = dE(S.teams[i].color, S.teams[j].color); if (d < CLASH) warns.push(S.teams[i].name + ' and ' + S.teams[j].name + ' colors are hard to tell apart (ΔE ' + d.toFixed(0) + ') — pick a different shade for one.'); }
+  for (let i = 0; i < S.teams.length; i++) for (let j = i + 1; j < S.teams.length; j++) { const d = dE(S.teams[i].color, S.teams[j].color); if (d < CLASH) warns.push(S.teams[i].name + ' and ' + S.teams[j].name + ' colors are hard to tell apart (ΔE ' + d.toFixed(0) + '). Pick a different shade for one.'); }
   msg('#teamsMsg', errs.length ? 'err' : warns.length ? 'warn' : 'ok', errs.length ? 'Fix before continuing:' : warns.length ? 'Worth a look:' : 'All ' + S.teams.length + ' teams have unique monograms and distinct colors.', errs.concat(warns));
   return !errs.length;
 }
@@ -455,7 +455,7 @@ function buildPeriods() {
   renderPeriods();
 }
 function renderPeriods() {
-  $('#periods').innerHTML = S.periods.map((p, i) => '<div class="item per"><input type="text" data-i="' + i + '" data-k="label" placeholder="Label" value="' + esc(p.label) + '"><input type="number" data-i="' + i + '" data-k="fromGw" min="1" max="38" value="' + p.fromGw + '" title="From GW"><input type="number" data-i="' + i + '" data-k="toGw" min="1" max="38" value="' + p.toGw + '" title="To GW"><button class="x" data-i="' + i + '" title="Remove">×</button></div>').join('') || '<p class="hint">No Manager of the Month periods — the race card is hidden.</p>';
+  $('#periods').innerHTML = S.periods.map((p, i) => '<div class="item per"><input type="text" data-i="' + i + '" data-k="label" placeholder="Label" value="' + esc(p.label) + '"><input type="number" data-i="' + i + '" data-k="fromGw" min="1" max="38" value="' + p.fromGw + '" title="From GW"><input type="number" data-i="' + i + '" data-k="toGw" min="1" max="38" value="' + p.toGw + '" title="To GW"><button class="x" data-i="' + i + '" title="Remove">×</button></div>').join('') || '<p class="hint">No Manager of the Month periods: the race card is hidden.</p>';
   $('#periods').oninput = e => { const i = +e.target.dataset.i, k = e.target.dataset.k; if (!k) return; S.periods[i][k] = k === 'label' ? e.target.value : +e.target.value || 0; validatePeriods(); syncMoney(); };
   $('#periods').onclick = e => { if (e.target.classList.contains('x')) { S.periods.splice(+e.target.dataset.i, 1); renderPeriods(); } };
   validatePeriods(); syncMoney();
@@ -463,8 +463,8 @@ function renderPeriods() {
 function validatePeriods() {
   const errs = []; let expect = 1;
   S.periods.forEach((p, i) => { if (!p.label.trim()) errs.push('Period ' + (i + 1) + ' needs a label.'); if (p.fromGw !== expect) errs.push((p.label || 'Period ' + (i + 1)) + ' starts at GW' + p.fromGw + ' but the previous one ends at GW' + (expect - 1) + '.'); if (p.toGw < p.fromGw) errs.push((p.label || 'Period ' + (i + 1)) + ' ends before it starts.'); expect = p.toGw + 1; });
-  if (S.periods.length && expect !== 39) errs.push('Periods cover GW1–' + (expect - 1) + '; they must end at GW38.');
-  msg('#periodMsg', errs.length ? 'err' : 'ok', errs.length ? 'Fix before continuing:' : (S.periods.length ? S.periods.length + ' periods cover GW1–38 with no gaps.' : ''), errs);
+  if (S.periods.length && expect !== 39) errs.push('Periods cover GW1 to ' + (expect - 1) + '; they must end at GW38.');
+  msg('#periodMsg', errs.length ? 'err' : 'ok', errs.length ? 'Fix before continuing:' : (S.periods.length ? S.periods.length + ' periods cover GW1 to 38 with no gaps.' : ''), errs);
   return !errs.length;
 }
 
@@ -494,7 +494,7 @@ function parseSeeds() {
     const k = pairKey(m[1], m[2]); const [w, l2, d] = [+m[3], +m[4], +m[5]];
     out[k] = k.startsWith(m[1] + '|') ? [w, l2, d] : [l2, w, d]; });   // stored from the alphabetically-first team's side
   S.extras.seeded = out;
-  msg('#seedMsg', bad.length ? 'warn' : (Object.keys(out).length ? 'ok' : ''), bad.length ? 'Could not read ' + bad.length + ' line(s) — use "MW DR 5 2 0" with monograms from step 2:' : Object.keys(out).length ? Object.keys(out).length + ' series imported.' : '', bad);
+  msg('#seedMsg', bad.length ? 'warn' : (Object.keys(out).length ? 'ok' : ''), bad.length ? 'Could not read ' + bad.length + ' line(s). Use "MW DR 5 2 0" with monograms from step 2:' : Object.keys(out).length ? Object.keys(out).length + ' series imported.' : '', bad);
 }
 
 /* ===================== step 6: review ===================== */
@@ -536,25 +536,24 @@ let lastJson = '';
 function buildReview() {
   const c = buildConfig(), v = validateConfig(c); lastJson = JSON.stringify(c, null, 2);
   $('#summary').innerHTML = '<div>League<b>' + esc(c.league.name) + '</b></div><div>Teams<b>' + c.teams.length + '</b></div><div>Rivalries named<b>' + Object.keys(c.derbies).length + '</b></div><div>Pot<b>' + c.pot.total + ' ' + c.pot.currency + '</b></div><div>MOTM periods<b>' + c.motmPeriods.length + '</b></div><div>Overrides<b>' + Object.keys(c.ratings.ovrOverrides).length + '</b></div>';
-  msg('#reviewMsg', v.errs.length ? 'err' : v.warns.length ? 'warn' : 'ok', v.errs.length ? 'The config has problems — go back and fix them:' : v.warns.length ? 'Ready, with notes:' : 'Ready. This config passes every contract check.', v.errs.concat(v.warns));
+  msg('#reviewMsg', v.errs.length ? 'err' : v.warns.length ? 'warn' : 'ok', v.errs.length ? 'The config has problems. Go back and fix them:' : v.warns.length ? 'Ready, with notes:' : 'Ready. This config passes every contract check.', v.errs.concat(v.warns));
   $('#dlBtn').disabled = !!v.errs.length; $('#copyBtn').disabled = !!v.errs.length; $('#jsonOut').textContent = lastJson;
   window.__WIZARD_CONFIG = c; window.__WIZARD_VALID = v;  // for the headless test
 }
 const REG_BASE = window.REG_BASE || 'https://vcokquhzqpqvwrybndnr.supabase.co/functions/v1';
-const APP_HOME = window.APP_HOME || 'https://www.matchweek.gg/app.html';
 $('#createBtn').onclick = async () => {
   const codeInp = $('#inviteCode').value.trim();
   if (!codeInp) return msg('#createMsg', 'err', 'Enter your invite code.');
   const c = buildConfig(), v = validateConfig(c);
   if (v.errs.length) return msg('#createMsg', 'err', 'Fix the config problems above first.');
-  $('#createBtn').disabled = true; msg('#createMsg', 'ok', 'Creating your league…');
+  $('#createBtn').disabled = true; msg('#createMsg', 'ok', 'Saving your league...');
   try {
     const r = await fetch(REG_BASE + '/register-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inviteCode: codeInp, config: c }) });
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || ('HTTP ' + r.status));
-    const url = j.appUrl || (APP_HOME + '?league=' + c.league.fplDraftLeagueId);
-    $('#createMsg').innerHTML = '<div class="msg ok"><b>' + esc(c.league.name) + ' is live.</b> ' + esc(j.note || '') +
-      '<br><a href="' + esc(url) + '">' + esc(url) + '</a><br>Send that link to your league — bookmark it, Add to Home Screen, done.</div>';
+    /* honest until a second league can really be served (ROADMAP C2 and B3; S1, 11 Oct 2026): nothing is live, no
+       link to the app, and the beta list is where the invite came from */
+    $('#createMsg').innerHTML = '<div class="msg ok"><b>' + esc(c.league.name) + ' is on the list.</b> We will email you when your league is ready. Until then the demo league shows what every manager gets: <a href="demo/">matchweek.gg/demo</a>.</div>';
   } catch (e) { msg('#createMsg', 'err', e.message); $('#createBtn').disabled = false; }
 };
 $('#dlBtn').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lastJson], { type: 'application/json' })); a.download = (S.src.league.name || 'league').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.league.json'; document.body.appendChild(a); a.click(); a.remove(); };

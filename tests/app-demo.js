@@ -140,12 +140,12 @@ const gwRow = (code, owner, mins) => { const o = {}; GWS.forEach(c => { o[c] = '
     aliases: { 'Old Bob': 'Team Bob' }, derbies: { 'BS|PJ': 'The Stone Derby', 'PJ|AQ': 'The Quill Cup' }, seeded: { 'BS|PJ': [5, 2, 1], 'AQ|PJ': [1, 4, 0] }, periods: [['Aug', 1, 38]], pot: { buyin: 10, first: 20, second: 5, third: 2, half: 2, motm: 1 } };
   const anon = names.anonymiseLeague(testCfg, m2), aT = Object.keys(anon.teams), F1 = names.FICTIONAL[1], F0 = names.FICTIONAL[0], F2 = names.FICTIONAL[2];
   check('anonymiseLeague: fictional team keys, managers, first names, initials and short names; colours and priors kept', aT.join() === [F1.team, F0.team, F2.team].join() && anon.teams[F1.team].mgr === F1.mgr && anon.teams[F1.team].first === names.words(F1.mgr)[0] && anon.teams[F1.team].ini === F1.ini && anon.teams[F1.team].short === F1.short && anon.teams[F1.team].col === '#111111' && anon.teams[F1.team].xi === 1000, JSON.stringify(anon.teams));
-  check('anonymiseLeague: derby keys follow the initials, derby names lose the real names, the aliases are dropped', anon.derbies[F1.ini + '|' + F0.ini] === 'The ' + names.words(F0.mgr)[1] + ' Derby' && anon.derbies[F0.ini + '|' + F2.ini] === 'The ' + names.words(F2.mgr)[1] + ' Cup' && JSON.stringify(anon.aliases) === '{}', JSON.stringify(anon.derbies));
+  check('anonymiseLeague: derby keys follow the initials, derby names become the neutral list in sorted key order (S1), the aliases are dropped', anon.derbies[F1.ini + '|' + F0.ini] === names.DERBIES[0] && anon.derbies[F0.ini + '|' + F2.ini] === names.DERBIES[1] && JSON.stringify(anon.aliases) === '{}', JSON.stringify(anon.derbies));
   const sk = [F1.ini, F0.ini].sort().join('|'), sk2 = [F2.ini, F0.ini].sort().join('|');
   check('anonymiseLeague: a seeded pair is re-sorted by the new initials and its wins swapped when the order flips', JSON.stringify(anon.seeded[sk]) === JSON.stringify(sk.split('|')[0] === F1.ini ? [5, 2, 1] : [2, 5, 1]) && JSON.stringify(anon.seeded[sk2]) === JSON.stringify(sk2.split('|')[0] === F2.ini ? [1, 4, 0] : [4, 1, 0]), JSON.stringify(anon.seeded));
   check('anonymiseLeague: the result passes the config check and leaks nothing', league.problems(anon).length === 0 && names.leaks(JSON.stringify(anon), m2).length === 0, league.problems(anon).join('; ') + ' ' + names.leaks(JSON.stringify(anon), m2).join());
   check('the demo build writes the fictional LEAGUE header in front of the engine, and takes the aliases into the mapping', /league\.header\(names\.anonymiseLeague\(cfg, m\)\) \+ history\.header\(history\.anonymise\(history\.load\(\), m, cfg\)\) \+ names\.substituteCode\(demoCore\(core\), m\)/.test(read('fplgg/tools/demo/build-demo.js')) && /names\.mapping\(shot\.tabs\.Standings\.rows, leagueInitials\(cfg\), leagueShorts\(cfg\), cfg\.aliases\)/.test(read('fplgg/tools/demo/build-demo.js')));
-  check('build-demo writes into site/public/demo and copies the icons, voices and press folders, never faces/ (9 Oct 2026)', build.OUT.replace(/\\/g, '/').endsWith('site/public/demo') && build.ASSET_DIRS.join() === 'icons,voices,press' && !build.ASSET_DIRS.includes('faces'));
+  check('build-demo writes into site/public/demo and copies the icons and voices folders, never faces/ (9 Oct 2026) and never press/ (S1)', build.OUT.replace(/\\/g, '/').endsWith('site/public/demo') && build.ASSET_DIRS.join() === 'icons,voices' && !build.ASSET_DIRS.includes('faces'));
 
   /* ---------- no EA assets in the demo (Parker, 9 Oct 2026) ---------- */
   check('the EA tabs are named and left out of the snapshot the build takes', build.EA_TABS.join() === 'EA Map,FC27' && /snap\.snapshot\(undefined, checkOnly \? null : log, EA_TABS\)/.test(read('fplgg/tools/demo/build-demo.js')));
@@ -201,6 +201,60 @@ const gwRow = (code, owner, mins) => { const o = {}; GWS.forEach(c => { o[c] = '
   const landing = read('site/public/index.html');
   check('the landing page links reach the demo', (landing.match(/href="demo\/"/g) || []).length >= 2 && !/href="demo\.html"/.test(landing));
   check('CLAUDE.md and the tests README name this suite', /tests\/app-demo\.js/.test(read('CLAUDE.md')) && /app-demo\.js/.test(read('tests/README.md')));
+
+  /* ---------- S1, 11 Oct 2026: nothing in the public demo identifies or mocks a real person ---------- */
+  check('leaks: a real name is found whatever its case (PARKER\'S OCTOBER on a thumbnail)', names.leaks('TEAM BOB beat zeta zebras, said ALICE; stone agreed', m).join() === 'ALICE,TEAM BOB,stone,zeta zebras', names.leaks('TEAM BOB beat zeta zebras, said ALICE; stone agreed', m).join());
+  check('replaceNames: a name in capitals comes back as the fictional name in capitals, the rest as written', names.replaceNames("ALICE'S OCTOBER, Alice, Team Bob and TEAM BOB", m) === names.words(F[2].mgr)[0].toUpperCase() + "'S OCTOBER, " + names.words(F[2].mgr)[0] + ', ' + F[1].team + ' and ' + F[1].team.toUpperCase(), names.replaceNames("ALICE'S OCTOBER, Alice, Team Bob and TEAM BOB", m));
+  const ban = names.banMap({ name: 'Big Tyre Co', derbies: { 'BS|AQ': 'The Rude Derby', 'AQ|PJ': 'The Other Derby' }, fpl: 12345 });
+  check('banMap: the league\'s name and its two-word form, every derby name to a neutral one in sorted key order, the FPL id to 0', ban['Big Tyre Co'] === names.DEMO_NAME && ban['Big Tyre'] === names.DEMO_NAME && ban['The Other Derby'] === names.DERBIES[0] && ban['The Rude Derby'] === names.DERBIES[1] && ban['12345'] === '0', JSON.stringify(ban));
+  check('banMap: a derby name without its "The" and without its dots is banned too, to the neutral name in the same form (a kicker reads "MR MARKS BOWL")', ban['Rude Derby'] === names.DERBIES[1].replace(/^The /, '') && ban['Other Derby'] === names.DERBIES[0].replace(/^The /, '') && Object.keys(ban).length === 7 && names.banMap({ derbies: { 'A|B': "The Mr. O'Hara Bowl" } })['Mr OHara Bowl'] === names.DERBIES[0].replace(/^The /, '') && /MR MARKS BOWL$/.test(names.leaks('the MR MARKS BOWL is on', Object.assign({}, m, { ban: names.banMap({ derbies: { 'A|B': 'The Mr. Marks Bowl' } }) })).join()), JSON.stringify(ban));
+  check('the neutral derby names are 16, distinct, and none is a test name', names.DERBIES.length === 16 && new Set(names.DERBIES).size === 16 && names.DERBIES.every(d => /^The .+ Derby$/.test(d)) && names.leaks(names.DERBIES.join(' '), m).length === 0);
+  const mb = Object.assign({}, m, { ban });
+  check('leaks: the banned strings count, in any case, as whole words', names.leaks('the rude derby at BIG TYRE, league 12345, not 123456 or Big Tyres', mb).join() === '12345,BIG TYRE,the rude derby', names.leaks('the rude derby at BIG TYRE, league 12345, not 123456 or Big Tyres', mb).join());
+  const subB = names.substituteCode("title:'Bruno in the Rude Derby',league:12345,name:'BIG TYRE CO',x:'Big Tyre'", mb);
+  check('substituteCode: a derby name, the league id and the league name in any case are replaced in the code', subB === "title:'Bruno in " + names.DERBIES[1] + "',league:0,name:'" + names.DEMO_NAME.toUpperCase() + "',x:'" + names.DEMO_NAME + "'", subB);
+  const bCfg = Object.assign({}, testCfg, { name: 'Big Tyre Co', fpl: 12345, derbies: { 'BS|PJ': 'The Rude Derby', 'PJ|AQ': 'The Quill Cup' } });
+  const mb2 = Object.assign({}, m2, { ban: names.banMap(bCfg) });
+  const anonB = names.anonymiseLeague(bCfg, mb2);
+  check('anonymiseLeague: the demo league is named Demo league, carries no fpl id, and its derbies are the neutral names (a league with more derbies than the list gets "The A and B Derby")', anonB.name === names.DEMO_NAME && !('fpl' in anonB) && anonB.derbies[F1.ini + '|' + F0.ini] === names.DERBIES[0] && anonB.derbies[F0.ini + '|' + F2.ini] === names.DERBIES[1] && names.leaks(JSON.stringify(anonB), mb2).length === 0 && league.problems(anonB).length === 0, JSON.stringify(anonB.derbies) + ' ' + names.leaks(JSON.stringify(anonB), mb2).join());
+  const manyCfg = Object.assign({}, bCfg, { derbies: Object.fromEntries([['BS|PJ', 'D1'], ['PJ|AQ', 'D2']].concat(names.DERBIES.map((d, i) => ['BS|AQ', 'D' + (i + 3)]).slice(0, 1))) });
+  const bigBan = names.banMap({ name: 'X', derbies: Object.fromEntries(Array.from({ length: 18 }, (_, i) => ['K' + String(i).padStart(2, '0'), 'Real ' + i])) });
+  check('banMap: beyond the list a derby gets a numbered name, so the real one never passes through', bigBan['Real 16'] === 'Derby 17' && bigBan['Real 17'] === 'Derby 18' && bigBan['Real 0'] === names.DERBIES[0], JSON.stringify(bigBan));
+  void manyCfg;
+  const postTab = names.anonymiseTab('Posts', { cols: ['Id', 'Kind', 'Media', 'Share'], rows: [{ Id: 'p1', Kind: 'ai', Media: '{"t1":"ALICE\'S OCTOBER","lo":"THE STONE FILES"}', Share: 'Alice said so. Via Team Bob' }] }, m);
+  check('Posts: every column is free text, so a first name or surname on a thumbnail or a share line is replaced, capitals kept', postTab.rows[0].Media === '{"t1":"' + names.words(F[2].mgr)[0].toUpperCase() + '\'S OCTOBER","lo":"THE ' + names.words(F[0].mgr)[1].toUpperCase() + ' FILES"}' && postTab.rows[0].Share === names.words(F[2].mgr)[0] + ' said so. Via ' + F[1].team, postTab.rows[0].Media + ' | ' + postTab.rows[0].Share);
+  check('TEXT_COLS carry Media, Share and Links; TEXT_TABS is Posts', ['Media', 'Share', 'Links'].every(c => names.TEXT_COLS.includes(c)) && names.TEXT_TABS.join() === 'Posts');
+  const pn = names.playerNames({ rows: [{ 'Full name': 'Alice Ramsey' }, { 'Full name': 'Alice Jo Murphy' }, { 'Full name': 'Solo' }] });
+  check('playerNames: first name to the surnames that follow it in the Players tab', pn.get('Alice') && [...pn.get('Alice')].sort().join() === 'Jo,Murphy,Ramsey' && !pn.has('Solo'));
+  check('leaks: with the Map a footballer\'s first name passes only in front of his surname, in any case, and is a leak on its own', names.leaks('Alice Ramsey scored, ALICE MURPHY too; Alice agreed; alice.', m, false, pn).join() === 'Alice,alice', names.leaks('Alice Ramsey scored, ALICE MURPHY too; Alice agreed; alice.', m, false, pn).join());
+  check('leaks: a Set still exempts the first name everywhere (the old rule, kept for callers)', names.leaks('Alice agreed and Stone too', m, false, new Set(['Alice'])).join() === 'Stone');
+  /* the image allowlist and no press folder */
+  const tmpI = fs.mkdtempSync(path.join(require('os').tmpdir(), 'mw-demo-img-'));
+  ['icons', 'voices', 'press', 'data'].forEach(d => fs.mkdirSync(path.join(tmpI, d)));
+  fs.writeFileSync(path.join(tmpI, 'icons', 'icon-32.png'), 'x'); fs.writeFileSync(path.join(tmpI, 'voices', 'clark.jpg'), 'x');
+  fs.writeFileSync(path.join(tmpI, 'press', 'someone.png'), 'x'); fs.writeFileSync(path.join(tmpI, 'photo.JPG'), 'x'); fs.writeFileSync(path.join(tmpI, 'data', 'x.json'), '{}'); fs.writeFileSync(path.join(tmpI, 'icons', 'extra.svg'), '<svg/>');
+  const img = build.imageScan(tmpI);
+  check('imageScan: an image off the allowlist (any case of extension) and anything in a press folder fail, the allowed icon and voice and a data file pass', JSON.stringify(img) === JSON.stringify({ 'data': undefined, 'icons/extra.svg': 'an image not on the allowlist', 'photo.JPG': 'an image not on the allowlist', 'press/someone.png': 'in a press folder' }.constructor === Object ? Object.fromEntries(Object.entries(img).sort()) : {}) && Object.keys(img).sort().join() === 'icons/extra.svg,photo.JPG,press/someone.png' && img['press/someone.png'] === 'in a press folder' && img['photo.JPG'] === 'an image not on the allowlist', JSON.stringify(img));
+  fs.rmSync(tmpI, { recursive: true, force: true });
+  check('IMAGE_ALLOW is the four icons and the four voices, and press/ is no longer copied', build.IMAGE_ALLOW.length === 8 && build.IMAGE_ALLOW.every(f => /^(icons\/icon-(180|192|32|512)\.png|voices\/(archizio|clark|jive|malcolm)\.jpg)$/.test(f)) && build.ASSET_DIRS.join() === 'icons,voices');
+  const bsrc = read('fplgg/tools/demo/build-demo.js');
+  check('the build bans the league\'s own strings, exempts a footballer only with his surname, and runs the image check after the EA check, in --check mode too', /m\.ban = names\.banMap\(cfg\);/.test(bsrc) && /const exempt = names\.playerNames\(shot\.tabs\.Players\);/.test(bsrc) && bsrc.indexOf('const img = imageScan(OUT);') > bsrc.indexOf("log('EA check: clean');") && /an image the demo may not carry is in it/.test(bsrc));
+  /* the committed demo, offline: the mapping and the ban list from league.json, the footballers from the committed snapshot */
+  const realCfg = league.load();
+  check('league.json carries the league\'s FPL id (a positive whole number), so the demo build can ban it', Number.isInteger(realCfg.fpl) && realCfg.fpl > 0);
+  const realRows = Object.keys(realCfg.teams).map(t => ({ Team: t, Manager: realCfg.teams[t].mgr }));
+  const realM = names.mapping(realRows, build.leagueInitials(realCfg), build.leagueShorts(realCfg), realCfg.aliases);
+  realM.ban = names.banMap(realCfg);
+  const realPlayers = JSON.parse(read('site/public/demo/data/players.json'));
+  const realLeaks = build.leakScan(path.join(ROOT, 'site', 'public'), realM, names.playerNames(realPlayers));
+  check('the committed site carries none of the league\'s names, derby names, league name or id, in any case (' + Object.keys(realLeaks).length + ' files)', Object.keys(realLeaks).length === 0, Object.keys(realLeaks).map(f => f + ': ' + realLeaks[f].length).join(', '));
+  check('the committed demo carries no image off the allowlist and no press folder', Object.keys(build.imageScan(build.OUT)).length === 0 && !fs.existsSync(path.join(build.OUT, 'press')), JSON.stringify(build.imageScan(build.OUT)));
+  /* the app: no editorial post, no market post, no market block in the demo */
+  const fb = read('fplgg/tools/matchweek/src/feed/build.js');
+  check('feed/build.js: the editorial posts and the market post are not built in the demo', /import \{ DEMO \} from '\.\.\/data\/tabs\.js';/.test(fb) && /if \(!DEMO\) try \{ out\.push\(\.\.\.editorialPosts\(\)\); \}/.test(fb) && /if \(!DEMO && S0\.last\[B\] !== undefined\)/.test(fb));
+  check('League > Money shows no market in the demo and the Overview link does not name it', /if \(DEMO\) return '';\n  const t = bahaTeam\(\)/.test(read('fplgg/tools/matchweek/src/pages/league/money.js')) && /\(DEMO \? 'Every prize ' : 'Every prize and the Baha market '\)/.test(read('fplgg/tools/matchweek/src/pages/league/overview.js')));
+  const demoApp = read('site/public/demo/app.js');
+  check('the committed demo app gates the editorial posts and the market post on DEMO (the modules are bundled, never called)', /if\(!DEMO\)try\{out\.push\(\.\.\.editorialPosts\(\)\)\}/.test(demoApp) && /if\(!DEMO&&S0\.last\[B\]!==void 0\)|if\(!DEMO&&S0\.last\[B\]!==undefined\)/.test(demoApp), (demoApp.match(/.{20}editorialPosts\(\).{10}/) || [])[0]);
 
   console.log(fails ? fails + ' FAILED' : 'ALL PASS');
   process.exit(fails ? 1 : 0);
