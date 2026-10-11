@@ -82,7 +82,13 @@ function banMap(cfg) {
   keys.forEach((k, i) => {
     const real = String(cfg.derbies[k] || '').trim();
     if (!real || real in out) return;
-    out[real] = DERBIES[i] || ('Derby ' + (i + 1));
+    const neutral = DERBIES[i] || ('Derby ' + (i + 1));
+    out[real] = neutral;
+    /* the forms a kicker or a post writes it in: without the leading "The", without its dots and apostrophes
+       ("HASBULLA DERBY", "MR MARKS BOWL"), each to the neutral name in the same form */
+    const bare = real.replace(/^The\s+/i, ''), nBare = neutral.replace(/^The\s+/i, '');
+    const plain = x => x.replace(/[.'’]/g, '');
+    [[bare, nBare], [plain(real), neutral], [plain(bare), nBare]].forEach(([v, n]) => { if (v && v !== real && !(v in out) && words(v).length >= 2) out[v] = n; });
   });
   if (cfg.fpl) out[String(cfg.fpl)] = '0';
   return out;

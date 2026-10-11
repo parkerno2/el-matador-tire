@@ -94,7 +94,29 @@ BUGS.md #45, #46, #47 (Closed) and #48 (Open), ROADMAP.
   Overview and Money pages say no "market"; step 7 says nothing "is live" and carries the on-the-list copy.
 
 ## Proof of shipping and the live checks
-PROOF_PLACEHOLDER
+- The first push, 9cf3757 at 14:25 UTC: Code.gs tests and release run 48 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097679), Supabase functions run 4 green (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097661), Build Matchweek app run 35 green at 14:28:44 UTC (https://github.com/parkerno2/el-matador-tire/actions/runs/38147097684). Cloudflare Workers Builds deployed
+  the site on its own: the new demo build (20261011141631) was served at 14:26:05 UTC.
+- The second push, COMMIT_S1B: the derby names' bare forms (below), the three recap pages again, this report;
+  PROOF_S1B.
+- **Part 1, live on matchweek.gg** (curl, 14:26 to 14:28 UTC): `https://matchweek.gg/demo/press/kmf-probe.png`
+  answers 404 (it was 200 with `cf-cache-status: HIT` at 14:25, before the deploy); `demo/data/posts.json` carries
+  "DEC'S OCTOBER" and no "parker" in any case; `demo/app.js` carries the `if(!DEMO)` gate in front of the editorial
+  posts; `demo/core.js` is byte-identical to the committed one (no derby name, no league name, no id); `setup.html`
+  carries the on-the-list copy and `index.html` the "switched on by hand" line (both answered fresh, `MISS`). The
+  edge kept the old `recap-gw1.html`, `recap-gw2.html` and `recap-gw3.html` for a while (`HIT`; the pages carry
+  `cache-control: public, max-age=0, must-revalidate`, so a revalidation follows the next request after the edge's
+  copy expires; Cloudflare's static assets are re-keyed per deploy, and the second push redeploys them). What the
+  first fetch of those pages also showed: their kickers write a derby name without its "The" and without its dots
+  ("HASBULLA DERBY", "MR MARKS BOWL"), which the whole-name ban did not match; `banMap` now bans those forms too
+  (the second commit), the pages were passed through the anonymiser again and the leak check is clean.
+  The site answers a `.html` URL with a 307 to the extensionless path, which is why a cache-busted fetch of a page
+  came back empty: fetched with redirects followed, every page above is as described.
+- **Part 2, live on the project** (curl, 14:26 UTC, after Supabase functions run 4): `ingest`, `ingest?mode=live`
+  and `seed-statics?sheet=x&league=45380` answer 401 `the secret is missing or wrong` without the header and with a
+  wrong one; `tabs/league/45380/tab/FC27`, `EA Map`, `Managers`, `Social`, `Posts`, `Specials` and `Ratings` answer
+  403; `tab/Standings` answers 200; `/league/45380/config` carries no `manager` or `faqFace` on any team and no
+  `legacyDatasource`. The cron with the secret from Vault: the `ingest-live` call of 14:30:00 UTC answered 200 with the function's own body `{"ok":true,"mode":"live","skipped":"no fixtures in a live window"}` (pg_net's reply log; a missing or wrong header answers 401 with `the secret is missing or wrong`, as the curls above show), so the header passes the gate; the 14:20 call, before the deploy, had run the full ingest (`ingest_runs` 1344 ok). The hourly run of 15:07 UTC, the first full ingest under the gate: CRON_PROOF_2
+- **Part 3**: the live `setup.html` and `index.html` as above; the screenshots in `2026-10-11-s1/`.
 
 ## Unsure or left undone
 - The Cloudflare edge may keep an old copy of `demo/press/kmf-probe.png` and the demo's `app.js` for a while after
