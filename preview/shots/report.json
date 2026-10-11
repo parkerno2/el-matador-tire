@@ -1,6 +1,6 @@
 {
- "at": "2026-10-11T02:45:18.508Z",
- "snapshot": "2026-10-10T21:38:45.817Z",
+ "at": "2026-10-11T16:05:04.236Z",
+ "snapshot": "2026-10-11T13:26:28.281Z",
  "width": 390,
  "browsers": [
   "chromium",
@@ -8,7 +8,7 @@
  ],
  "states": {
   "pre": "Before kick-off (2 h before the deadline of 2026-10-10 10:00 UTC), GW6",
-  "snap": "At the snapshot (2026-10-10 21:38 UTC), GW6"
+  "snap": "At the snapshot (2026-10-11 13:26 UTC), GW6"
  },
  "screens": [
   "matchday overview",
@@ -55,7 +55,7 @@
   "feed post"
  ],
  "shots": 168,
- "texts": 26133,
+ "texts": 26283,
  "findings": [],
  "noted": [
   {
@@ -92,11 +92,11 @@
   },
   {
    "screen": "matchday overview [chromium, pre]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"28–21\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–28\""
   },
   {
    "screen": "matchday overview [chromium, pre]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–24\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–25\""
   },
   {
    "screen": "matchday overview [chromium, pre]",
@@ -187,6 +187,10 @@
    "detail": "a secondary line cut by 6 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
   },
   {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 2 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
+  },
+  {
    "screen": "matchup 1 stats [chromium, pre]",
    "detail": "nav.md-fxs span.n i: \"–\""
   },
@@ -240,7 +244,7 @@
   },
   {
    "screen": "matchup 1 history [chromium, pre]",
-   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"37.8–45.2\""
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"37.2–47.0\""
   },
   {
    "screen": "matchup 1 history [chromium, pre]",
@@ -435,6 +439,14 @@
    "detail": "span.md-pm b.n.md-ps i: \"–\""
   },
   {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
    "screen": "team overview [chromium, pre]",
    "detail": "a.tm-glass span.tm-stt b.n: \"3–1–1\""
   },
@@ -464,7 +476,7 @@
   },
   {
    "screen": "team overview [chromium, pre]",
-   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–50.1\""
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–52.5\""
   },
   {
    "screen": "team lineup list [chromium, pre]",
@@ -480,7 +492,15 @@
   },
   {
    "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
    "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
   },
   {
    "screen": "team lineup list [chromium, pre]",
@@ -516,6 +536,14 @@
   },
   {
    "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
    "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
   },
   {
@@ -772,7 +800,7 @@
   },
   {
    "screen": "league derbies [chromium, pre]",
-   "detail": "div.meta span.m.now b.n: \"39–13\""
+   "detail": "div.meta span.m.now b.n: \"43–15\""
   },
   {
    "screen": "league derbies [chromium, pre]",
@@ -780,7 +808,7 @@
   },
   {
    "screen": "league derbies [chromium, pre]",
-   "detail": "div.meta span.m.now b.n: \"28–21\""
+   "detail": "div.meta span.m.now b.n: \"29–28\""
   },
   {
    "screen": "league derbies [chromium, pre]",
@@ -932,11 +960,11 @@
   },
   {
    "screen": "league derbies [chromium, pre]",
-   "detail": "div.meta span.m.now b.n: \"24–30\""
+   "detail": "div.meta span.m.now b.n: \"25–30\""
   },
   {
    "screen": "league derbies [chromium, pre]",
-   "detail": "div.meta span.m.now b.n: \"14–20\""
+   "detail": "div.meta span.m.now b.n: \"18–20\""
   },
   {
    "screen": "league derbies [chromium, pre]",
@@ -1124,11 +1152,11 @@
   },
   {
    "screen": "feed league [chromium, pre]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"28–21\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–28\""
   },
   {
    "screen": "feed league [chromium, pre]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed league [chromium, pre]",
@@ -1144,7 +1172,7 @@
   },
   {
    "screen": "feed league [chromium, pre]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model\""
   },
   {
    "screen": "feed league [chromium, pre]",
@@ -1164,7 +1192,7 @@
   },
   {
    "screen": "feed league [chromium, pre]",
-   "detail": "div.fstamp span.fstamp-b b.f-anton: \"38–59%\""
+   "detail": "div.fstamp span.fstamp-b b.f-anton: \"39–57%\""
   },
   {
    "screen": "feed league [chromium, pre]",
@@ -1208,11 +1236,11 @@
   },
   {
    "screen": "feed foryou [chromium, pre]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"39–13\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–15\""
   },
   {
    "screen": "feed foryou [chromium, pre]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed foryou [chromium, pre]",
@@ -1228,7 +1256,7 @@
   },
   {
    "screen": "feed foryou [chromium, pre]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model\""
   },
   {
    "screen": "feed foryou [chromium, pre]",
@@ -1320,7 +1348,7 @@
   },
   {
    "screen": "manager sheet [chromium, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet [chromium, pre]",
@@ -1328,7 +1356,7 @@
   },
   {
    "screen": "manager sheet [chromium, pre]",
-   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–50.1 · Callum leads 5–2\""
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–52.5 · Callum leads 5–2\""
   },
   {
    "screen": "manager sheet, season [chromium, pre]",
@@ -1340,7 +1368,7 @@
   },
   {
    "screen": "manager sheet, season [chromium, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, season [chromium, pre]",
@@ -1372,7 +1400,7 @@
   },
   {
    "screen": "manager sheet, squad [chromium, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, all-time [chromium, pre]",
@@ -1384,7 +1412,7 @@
   },
   {
    "screen": "manager sheet, all-time [chromium, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "menu [chromium, pre]",
@@ -1448,11 +1476,11 @@
   },
   {
    "screen": "matchday overview [chromium, snap]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"28–21\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–28\""
   },
   {
    "screen": "matchday overview [chromium, snap]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–24\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–25\""
   },
   {
    "screen": "matchday overview [chromium, snap]",
@@ -1460,7 +1488,7 @@
   },
   {
    "screen": "matchday overview [chromium, snap]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"28–21\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–28\""
   },
   {
    "screen": "matchday overview [chromium, snap]",
@@ -1532,23 +1560,7 @@
   },
   {
    "screen": "matchup 1 list [chromium, snap]",
-   "detail": "a secondary line cut by 6 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [chromium, snap]",
-   "detail": "a secondary line cut by 7 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [chromium, snap]",
-   "detail": "a secondary line cut by 7 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [chromium, snap]",
-   "detail": "a secondary line cut by 6 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [chromium, snap]",
-   "detail": "a secondary line cut by 6 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+   "detail": "a secondary line cut by 2 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
   },
   {
    "screen": "matchup 1 stats [chromium, snap]",
@@ -1604,7 +1616,7 @@
   },
   {
    "screen": "matchup 1 history [chromium, snap]",
-   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"28–21\""
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"29–28\""
   },
   {
    "screen": "matchup 1 history [chromium, snap]",
@@ -1708,7 +1720,7 @@
   },
   {
    "screen": "matchday all [chromium, snap]",
-   "detail": "a.card.md-ac.md-mine div.md-acf b.n: \"41.3–50.1\""
+   "detail": "a.card.md-ac.md-mine div.md-acf b.n: \"41.3–52.5\""
   },
   {
    "screen": "matchday all [chromium, snap]",
@@ -1728,7 +1740,7 @@
   },
   {
    "screen": "matchday all [chromium, snap]",
-   "detail": "a.card.md-ac div.md-acf b.n: \"37.8–45.2\""
+   "detail": "a.card.md-ac div.md-acf b.n: \"37.2–47.0\""
   },
   {
    "screen": "matchday all [chromium, snap]",
@@ -1748,7 +1760,7 @@
   },
   {
    "screen": "matchday all [chromium, snap]",
-   "detail": "a.card.md-ac div.md-acf b.n: \"46.6–36.8\""
+   "detail": "a.card.md-ac div.md-acf b.n: \"46.6–36.2\""
   },
   {
    "screen": "matchday all [chromium, snap]",
@@ -1764,7 +1776,7 @@
   },
   {
    "screen": "matchday all [chromium, snap]",
-   "detail": "a.card.md-ac div.md-acf b.n: \"31.6–34.7\""
+   "detail": "a.card.md-ac div.md-acf b.n: \"31.6–34.1\""
   },
   {
    "screen": "matchday all [chromium, snap]",
@@ -1789,6 +1801,14 @@
   {
    "screen": "matchday all [chromium, snap]",
    "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
   },
   {
    "screen": "matchday pl [chromium, snap]",
@@ -1884,7 +1904,7 @@
   },
   {
    "screen": "team overview [chromium, snap]",
-   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–50.1\""
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–52.5\""
   },
   {
    "screen": "team lineup list [chromium, snap]",
@@ -1900,7 +1920,15 @@
   },
   {
    "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
    "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
   },
   {
    "screen": "team lineup list [chromium, snap]",
@@ -1936,6 +1964,14 @@
   },
   {
    "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
    "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
   },
   {
@@ -2192,7 +2228,7 @@
   },
   {
    "screen": "league derbies [chromium, snap]",
-   "detail": "div.meta span.m.now b.n: \"39–13\""
+   "detail": "div.meta span.m.now b.n: \"43–15\""
   },
   {
    "screen": "league derbies [chromium, snap]",
@@ -2200,7 +2236,7 @@
   },
   {
    "screen": "league derbies [chromium, snap]",
-   "detail": "div.meta span.m.now b.n: \"28–21\""
+   "detail": "div.meta span.m.now b.n: \"29–28\""
   },
   {
    "screen": "league derbies [chromium, snap]",
@@ -2352,11 +2388,11 @@
   },
   {
    "screen": "league derbies [chromium, snap]",
-   "detail": "div.meta span.m.now b.n: \"24–30\""
+   "detail": "div.meta span.m.now b.n: \"25–30\""
   },
   {
    "screen": "league derbies [chromium, snap]",
-   "detail": "div.meta span.m.now b.n: \"14–20\""
+   "detail": "div.meta span.m.now b.n: \"18–20\""
   },
   {
    "screen": "league derbies [chromium, snap]",
@@ -2532,19 +2568,11 @@
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"28–21\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–28\""
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"30–24\""
-  },
-  {
-   "screen": "feed league [chromium, snap]",
-   "detail": "div.fbd-m span.fbd-s i: \"–\""
-  },
-  {
-   "screen": "feed league [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"30–25\""
   },
   {
    "screen": "feed league [chromium, snap]",
@@ -2552,7 +2580,7 @@
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.8\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed league [chromium, snap]",
@@ -2560,7 +2588,7 @@
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.2\""
   },
   {
    "screen": "feed league [chromium, snap]",
@@ -2568,15 +2596,23 @@
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.7\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"28–21\""
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.1\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–28\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed league [chromium, snap]",
@@ -2592,7 +2628,7 @@
   },
   {
    "screen": "feed league [chromium, snap]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model now\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model now\""
   },
   {
    "screen": "feed league [chromium, snap]",
@@ -2636,11 +2672,11 @@
   },
   {
    "screen": "feed foryou [chromium, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"39–13\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–15\""
   },
   {
    "screen": "feed foryou [chromium, snap]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed foryou [chromium, snap]",
@@ -2656,7 +2692,7 @@
   },
   {
    "screen": "feed foryou [chromium, snap]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model now\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model now\""
   },
   {
    "screen": "feed foryou [chromium, snap]",
@@ -2736,7 +2772,7 @@
   },
   {
    "screen": "manager sheet [chromium, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet [chromium, snap]",
@@ -2744,7 +2780,7 @@
   },
   {
    "screen": "manager sheet [chromium, snap]",
-   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–50.1 · Callum leads 5–2\""
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–52.5 · Callum leads 5–2\""
   },
   {
    "screen": "manager sheet, season [chromium, snap]",
@@ -2756,7 +2792,7 @@
   },
   {
    "screen": "manager sheet, season [chromium, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, season [chromium, snap]",
@@ -2788,7 +2824,7 @@
   },
   {
    "screen": "manager sheet, squad [chromium, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, all-time [chromium, snap]",
@@ -2800,7 +2836,7 @@
   },
   {
    "screen": "manager sheet, all-time [chromium, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "menu [chromium, snap]",
@@ -2828,19 +2864,11 @@
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"28–21\""
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"29–28\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"30–24\""
-  },
-  {
-   "screen": "feed post [chromium, snap]",
-   "detail": "div.fbd-m span.fbd-s i: \"–\""
-  },
-  {
-   "screen": "feed post [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"30–25\""
   },
   {
    "screen": "feed post [chromium, snap]",
@@ -2848,7 +2876,7 @@
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.8\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed post [chromium, snap]",
@@ -2856,7 +2884,7 @@
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.2\""
   },
   {
    "screen": "feed post [chromium, snap]",
@@ -2864,55 +2892,63 @@
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.7\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"28–21\""
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"37.8–45.2\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.1\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"25–72%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–28\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"30–24\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"37.2–47.0\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"46.6–36.8\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"17–81%\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"80–17%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"30–25\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"13–39\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"46.6–36.2\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"41.3–50.1\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"83–15%\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"23–75%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"15–43\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"20–14\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"41.3–52.5\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"31.6–34.7\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"16–82%\""
   },
   {
    "screen": "feed post [chromium, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"38–59%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"20–18\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"31.6–34.1\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"39–57%\""
   },
   {
    "screen": "matchday overview [webkit, pre]",
@@ -2952,11 +2988,11 @@
   },
   {
    "screen": "matchday overview [webkit, pre]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"28–21\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–28\""
   },
   {
    "screen": "matchday overview [webkit, pre]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–24\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–25\""
   },
   {
    "screen": "matchday overview [webkit, pre]",
@@ -3047,6 +3083,10 @@
    "detail": "a secondary line cut by 10 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
   },
   {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 4 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
+  },
+  {
    "screen": "matchup 1 stats [webkit, pre]",
    "detail": "nav.md-fxs span.n i: \"–\""
   },
@@ -3100,7 +3140,7 @@
   },
   {
    "screen": "matchup 1 history [webkit, pre]",
-   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"37.8–45.2\""
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"37.2–47.0\""
   },
   {
    "screen": "matchup 1 history [webkit, pre]",
@@ -3295,6 +3335,14 @@
    "detail": "span.md-pm b.n.md-ps i: \"–\""
   },
   {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
    "screen": "team overview [webkit, pre]",
    "detail": "a.tm-glass span.tm-stt b.n: \"3–1–1\""
   },
@@ -3324,7 +3372,7 @@
   },
   {
    "screen": "team overview [webkit, pre]",
-   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–50.1\""
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–52.5\""
   },
   {
    "screen": "team lineup list [webkit, pre]",
@@ -3340,7 +3388,15 @@
   },
   {
    "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
    "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
   },
   {
    "screen": "team lineup list [webkit, pre]",
@@ -3376,6 +3432,14 @@
   },
   {
    "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
    "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
   },
   {
@@ -3636,7 +3700,7 @@
   },
   {
    "screen": "league derbies [webkit, pre]",
-   "detail": "div.meta span.m.now b.n: \"39–13\""
+   "detail": "div.meta span.m.now b.n: \"43–15\""
   },
   {
    "screen": "league derbies [webkit, pre]",
@@ -3644,7 +3708,7 @@
   },
   {
    "screen": "league derbies [webkit, pre]",
-   "detail": "div.meta span.m.now b.n: \"28–21\""
+   "detail": "div.meta span.m.now b.n: \"29–28\""
   },
   {
    "screen": "league derbies [webkit, pre]",
@@ -3796,11 +3860,11 @@
   },
   {
    "screen": "league derbies [webkit, pre]",
-   "detail": "div.meta span.m.now b.n: \"24–30\""
+   "detail": "div.meta span.m.now b.n: \"25–30\""
   },
   {
    "screen": "league derbies [webkit, pre]",
-   "detail": "div.meta span.m.now b.n: \"14–20\""
+   "detail": "div.meta span.m.now b.n: \"18–20\""
   },
   {
    "screen": "league derbies [webkit, pre]",
@@ -3988,11 +4052,11 @@
   },
   {
    "screen": "feed league [webkit, pre]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"28–21\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–28\""
   },
   {
    "screen": "feed league [webkit, pre]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed league [webkit, pre]",
@@ -4008,7 +4072,7 @@
   },
   {
    "screen": "feed league [webkit, pre]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model\""
   },
   {
    "screen": "feed league [webkit, pre]",
@@ -4028,7 +4092,7 @@
   },
   {
    "screen": "feed league [webkit, pre]",
-   "detail": "div.fstamp span.fstamp-b b.f-anton: \"38–59%\""
+   "detail": "div.fstamp span.fstamp-b b.f-anton: \"39–57%\""
   },
   {
    "screen": "feed league [webkit, pre]",
@@ -4072,11 +4136,11 @@
   },
   {
    "screen": "feed foryou [webkit, pre]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"39–13\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–15\""
   },
   {
    "screen": "feed foryou [webkit, pre]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed foryou [webkit, pre]",
@@ -4092,7 +4156,7 @@
   },
   {
    "screen": "feed foryou [webkit, pre]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model\""
   },
   {
    "screen": "feed foryou [webkit, pre]",
@@ -4184,7 +4248,7 @@
   },
   {
    "screen": "manager sheet [webkit, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet [webkit, pre]",
@@ -4192,7 +4256,7 @@
   },
   {
    "screen": "manager sheet [webkit, pre]",
-   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–50.1 · Callum leads 5–2\""
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–52.5 · Callum leads 5–2\""
   },
   {
    "screen": "manager sheet, season [webkit, pre]",
@@ -4204,7 +4268,7 @@
   },
   {
    "screen": "manager sheet, season [webkit, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, season [webkit, pre]",
@@ -4236,7 +4300,7 @@
   },
   {
    "screen": "manager sheet, squad [webkit, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, all-time [webkit, pre]",
@@ -4248,7 +4312,7 @@
   },
   {
    "screen": "manager sheet, all-time [webkit, pre]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "menu [webkit, pre]",
@@ -4308,11 +4372,11 @@
   },
   {
    "screen": "matchday overview [webkit, snap]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"28–21\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–28\""
   },
   {
    "screen": "matchday overview [webkit, snap]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–24\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"30–25\""
   },
   {
    "screen": "matchday overview [webkit, snap]",
@@ -4320,7 +4384,7 @@
   },
   {
    "screen": "matchday overview [webkit, snap]",
-   "detail": "div.fpc-b div.fpc-tx span.nw: \"28–21\""
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–28\""
   },
   {
    "screen": "matchday overview [webkit, snap]",
@@ -4392,23 +4456,7 @@
   },
   {
    "screen": "matchup 1 list [webkit, snap]",
-   "detail": "a secondary line cut by 10 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [webkit, snap]",
-   "detail": "a secondary line cut by 10 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [webkit, snap]",
-   "detail": "a secondary line cut by 10 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [webkit, snap]",
-   "detail": "a secondary line cut by 10 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
-  },
-  {
-   "screen": "matchup 1 list [webkit, snap]",
-   "detail": "a secondary line cut by 10 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+   "detail": "a secondary line cut by 4 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
   },
   {
    "screen": "matchup 1 stats [webkit, snap]",
@@ -4464,7 +4512,7 @@
   },
   {
    "screen": "matchup 1 history [webkit, snap]",
-   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"28–21\""
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"29–28\""
   },
   {
    "screen": "matchup 1 history [webkit, snap]",
@@ -4568,7 +4616,7 @@
   },
   {
    "screen": "matchday all [webkit, snap]",
-   "detail": "a.card.md-ac.md-mine div.md-acf b.n: \"41.3–50.1\""
+   "detail": "a.card.md-ac.md-mine div.md-acf b.n: \"41.3–52.5\""
   },
   {
    "screen": "matchday all [webkit, snap]",
@@ -4588,7 +4636,7 @@
   },
   {
    "screen": "matchday all [webkit, snap]",
-   "detail": "a.card.md-ac div.md-acf b.n: \"37.8–45.2\""
+   "detail": "a.card.md-ac div.md-acf b.n: \"37.2–47.0\""
   },
   {
    "screen": "matchday all [webkit, snap]",
@@ -4608,7 +4656,7 @@
   },
   {
    "screen": "matchday all [webkit, snap]",
-   "detail": "a.card.md-ac div.md-acf b.n: \"46.6–36.8\""
+   "detail": "a.card.md-ac div.md-acf b.n: \"46.6–36.2\""
   },
   {
    "screen": "matchday all [webkit, snap]",
@@ -4624,7 +4672,7 @@
   },
   {
    "screen": "matchday all [webkit, snap]",
-   "detail": "a.card.md-ac div.md-acf b.n: \"31.6–34.7\""
+   "detail": "a.card.md-ac div.md-acf b.n: \"31.6–34.1\""
   },
   {
    "screen": "matchday all [webkit, snap]",
@@ -4649,6 +4697,14 @@
   {
    "screen": "matchday all [webkit, snap]",
    "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
   },
   {
    "screen": "matchday pl [webkit, snap]",
@@ -4744,7 +4800,7 @@
   },
   {
    "screen": "team overview [webkit, snap]",
-   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–50.1\""
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 41.3–52.5\""
   },
   {
    "screen": "team lineup list [webkit, snap]",
@@ -4760,7 +4816,15 @@
   },
   {
    "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
    "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"0–0\""
   },
   {
    "screen": "team lineup list [webkit, snap]",
@@ -4796,6 +4860,14 @@
   },
   {
    "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
    "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
   },
   {
@@ -5056,7 +5128,7 @@
   },
   {
    "screen": "league derbies [webkit, snap]",
-   "detail": "div.meta span.m.now b.n: \"39–13\""
+   "detail": "div.meta span.m.now b.n: \"43–15\""
   },
   {
    "screen": "league derbies [webkit, snap]",
@@ -5064,7 +5136,7 @@
   },
   {
    "screen": "league derbies [webkit, snap]",
-   "detail": "div.meta span.m.now b.n: \"28–21\""
+   "detail": "div.meta span.m.now b.n: \"29–28\""
   },
   {
    "screen": "league derbies [webkit, snap]",
@@ -5216,11 +5288,11 @@
   },
   {
    "screen": "league derbies [webkit, snap]",
-   "detail": "div.meta span.m.now b.n: \"24–30\""
+   "detail": "div.meta span.m.now b.n: \"25–30\""
   },
   {
    "screen": "league derbies [webkit, snap]",
-   "detail": "div.meta span.m.now b.n: \"14–20\""
+   "detail": "div.meta span.m.now b.n: \"18–20\""
   },
   {
    "screen": "league derbies [webkit, snap]",
@@ -5396,19 +5468,11 @@
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"28–21\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–28\""
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"30–24\""
-  },
-  {
-   "screen": "feed league [webkit, snap]",
-   "detail": "div.fbd-m span.fbd-s i: \"–\""
-  },
-  {
-   "screen": "feed league [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"30–25\""
   },
   {
    "screen": "feed league [webkit, snap]",
@@ -5416,7 +5480,7 @@
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.8\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed league [webkit, snap]",
@@ -5424,7 +5488,7 @@
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.2\""
   },
   {
    "screen": "feed league [webkit, snap]",
@@ -5432,15 +5496,23 @@
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.7\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"28–21\""
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.1\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–28\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed league [webkit, snap]",
@@ -5456,7 +5528,7 @@
   },
   {
    "screen": "feed league [webkit, snap]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model now\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model now\""
   },
   {
    "screen": "feed league [webkit, snap]",
@@ -5500,11 +5572,11 @@
   },
   {
    "screen": "feed foryou [webkit, snap]",
-   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"39–13\""
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–15\""
   },
   {
    "screen": "feed foryou [webkit, snap]",
-   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed foryou [webkit, snap]",
@@ -5520,7 +5592,7 @@
   },
   {
    "screen": "feed foryou [webkit, snap]",
-   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 23–2–75 · the model now\""
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 16–2–82 · the model now\""
   },
   {
    "screen": "feed foryou [webkit, snap]",
@@ -5600,7 +5672,7 @@
   },
   {
    "screen": "manager sheet [webkit, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet [webkit, snap]",
@@ -5608,7 +5680,7 @@
   },
   {
    "screen": "manager sheet [webkit, snap]",
-   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–50.1 · Callum leads 5–2\""
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 41.3–52.5 · Callum leads 5–2\""
   },
   {
    "screen": "manager sheet, season [webkit, snap]",
@@ -5620,7 +5692,7 @@
   },
   {
    "screen": "manager sheet, season [webkit, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, season [webkit, snap]",
@@ -5652,7 +5724,7 @@
   },
   {
    "screen": "manager sheet, squad [webkit, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "manager sheet, all-time [webkit, snap]",
@@ -5664,7 +5736,7 @@
   },
   {
    "screen": "manager sheet, all-time [webkit, snap]",
-   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 13–39 v Newton, live\""
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 15–43 v Newton, live\""
   },
   {
    "screen": "menu [webkit, snap]",
@@ -5688,19 +5760,11 @@
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"28–21\""
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"29–28\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"30–24\""
-  },
-  {
-   "screen": "feed post [webkit, snap]",
-   "detail": "div.fbd-m span.fbd-s i: \"–\""
-  },
-  {
-   "screen": "feed post [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.8 – 45.2\""
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"30–25\""
   },
   {
    "screen": "feed post [webkit, snap]",
@@ -5708,7 +5772,7 @@
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.8\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 37.2 – 47.0\""
   },
   {
    "screen": "feed post [webkit, snap]",
@@ -5716,7 +5780,7 @@
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 50.1\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 36.2\""
   },
   {
    "screen": "feed post [webkit, snap]",
@@ -5724,55 +5788,63 @@
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.7\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 41.3 – 52.5\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"28–21\""
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"37.8–45.2\""
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 34.1\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"25–72%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–28\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"30–24\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"37.2–47.0\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"46.6–36.8\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"17–81%\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"80–17%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"30–25\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"13–39\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"46.6–36.2\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"41.3–50.1\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"83–15%\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"23–75%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"15–43\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"20–14\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"41.3–52.5\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"31.6–34.7\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"16–82%\""
   },
   {
    "screen": "feed post [webkit, snap]",
-   "detail": "div.card.ps-facts div.ps-r span.nw: \"38–59%\""
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"20–18\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"31.6–34.1\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"39–57%\""
   }
  ]
 }
