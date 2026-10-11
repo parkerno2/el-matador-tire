@@ -223,8 +223,9 @@ function collectSrc(rootSel) {
   }
   srv.close();
 
-  let build = {}; try { build = JSON.parse(fs.readFileSync(path.join(demo, '..', '..', 'build.json'), 'utf8')); } catch (e) { }
-  const meta = { build: index.build || build.build || '', from: process.env.GITHUB_SHA ? process.env.GITHUB_SHA.slice(0, 7) : '', branch: process.env.GITHUB_REF_NAME || '', snapshot: taken, width, browsers, states, stateLabels: Object.fromEntries(states.map(s => [s, STATES[s].label + (STATES[s].gw ? ', GW' + STATES[s].gw : '')])), findings, noted };
+  /* the preview's own build stamp when OUT is its shots/ folder (build-preview.js writes build.json beside it); else the demo's */
+  let build = {}; try { build = JSON.parse(fs.readFileSync(path.join(out, '..', 'build.json'), 'utf8')); } catch (e) { }
+  const meta = { build: build.build || index.build || '', from: process.env.GITHUB_SHA ? process.env.GITHUB_SHA.slice(0, 7) : '', branch: process.env.GITHUB_REF_NAME || '', snapshot: taken, width, browsers, states, stateLabels: Object.fromEntries(states.map(s => [s, STATES[s].label + (STATES[s].gw ? ', GW' + STATES[s].gw : '')])), findings, noted };
   fs.writeFileSync(path.join(out, 'index.html'), L.indexHtml(shots, meta));
   fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify({ at: new Date().toISOString(), snapshot: taken, width, browsers, states: meta.stateLabels, screens: screensAll, shots: shots.length, texts: textsAll, findings, noted }, null, 1));
   console.log('');
