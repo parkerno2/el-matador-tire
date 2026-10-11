@@ -245,12 +245,15 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
-.fc .rt{padding:2.5% 3.5% 1.6%;margin:-2.5% -3.5% -1.6%}
-/* the rating's backing (Parker, 11 Oct 2026: "what's this weird artifact by the rating area"): it reached above the card's
-   top edge and its square corner stuck out past the card's cut corner. It now starts just inside the card's inner keyline
-   and its top left corner is cut parallel to the card's, while it still covers the part of the figure the contrast audit
-   reads (the middle 70% of the "88" glyph box, from 8.2 cqw down; the backing starts at 7.3 cqw) */
-.fc .rt::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--rtb);border-radius:2.6cqw;clip-path:polygon(4.6cqw 0,100% 0,100% 100%,0 100%,0 4.6cqw)}
+/* the rating sits on the card itself, with no box behind it (Parker, 11 Oct 2026: "I don't know if I really want that box
+   above the rating. It's super unnecessary"). Gold and silver numbers read 7:1 on the card as they are. On the four dark
+   tiers the card's own fill is a mid tone (the elite blue gives cyan 4.3:1, white 6.4:1), so the card's top left corner
+   is shaded instead: a soft dark corner inside the inner keyline, no edges, under the photo and the figures, dark enough
+   for the figure to read 7:1 (the contrast audit reads the middle 70% of the figure's glyph box, all inside the shade's
+   solid part) */
+.fc.spec::before,.fc.elite::before,.fc.totw::before,.fc.potm::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 50% 36% at 19% 18%,rgba(8,6,12,.62) 58%,rgba(8,6,12,0) 100%);
+  clip-path:polygon(13.9% 5.21%,69.63% 5.21%,92.43% 21.5%,92.43% 91.17%,88.63% 93.88%,11.37% 93.88%,7.57% 91.17%,7.57% 9.74%)}
 .fc .rt span{color:var(--sub)}
 .fc .face img{filter:none}   /* no drop shadow on the photos (Parker, 11 Oct 2026, iPhone: photos disappearing on scroll): a filtered image is a layer of its own on iOS, and a pitch carries thirty of them */
 .fc .rt .fdar{text-shadow:none}
