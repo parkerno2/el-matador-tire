@@ -1,0 +1,5886 @@
+{
+ "at": "2026-10-11T16:22:46.006Z",
+ "snapshot": "2026-10-11T14:32:52.227Z",
+ "width": 360,
+ "browsers": [
+  "chromium",
+  "webkit"
+ ],
+ "states": {
+  "pre": "Before kick-off (2 h before the deadline of 2026-10-10 10:00 UTC), GW6",
+  "snap": "At the snapshot (2026-10-11 14:32 UTC), GW6"
+ },
+ "screens": [
+  "matchday overview",
+  "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes)",
+  "matchup 1 list",
+  "matchup 1 stats",
+  "matchup 1 history",
+  "matchup 2 formation (Palmer Violets v Bruno Mars FC)",
+  "matchup 3 formation (Haaland Oates v Isak Newton)",
+  "matchup 4 formation (Rice Rice Baby v The Gakpo Gang)",
+  "matchday all",
+  "matchday pl",
+  "matchday week",
+  "team overview",
+  "team lineup pitch",
+  "team lineup list",
+  "team squad",
+  "team transfers",
+  "team fixtures",
+  "team season",
+  "league overview",
+  "league results",
+  "league money",
+  "league derbies",
+  "league stats",
+  "league alltime",
+  "feed league",
+  "feed foryou",
+  "feed articles",
+  "feed messages",
+  "player sheet, owned",
+  "player sheet, owned, matches",
+  "player sheet, owned, ratings",
+  "player sheet, free agent",
+  "player sheet, a doubt",
+  "manager sheet",
+  "manager sheet, season",
+  "manager sheet, squad",
+  "manager sheet, all-time",
+  "menu",
+  "menu, how it works",
+  "search",
+  "club identity",
+  "feed post"
+ ],
+ "shots": 168,
+ "texts": 26728,
+ "findings": [],
+ "noted": [
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.md-sc div.n.md-big.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.md-sc div.sub.md-ser span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.md-hin div.md-last b.n: \"49–31\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.md-msc div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.md-msc div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.md-msc div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [chromium, pre]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 13 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 14 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 14 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 13 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 13 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 9 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, pre]",
+   "detail": "a secondary line cut by 7 px, div.md-hc div.ell span.sub: \"v NFO · not on yet\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.md-tab div.card.md-ser2 div.foot: \"7 meetings before this season (3–4, scores not recorded), none yet this season.\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"34.5–39.0\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"3–0–2\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.md-sr.md-rec div.md-sc2 span: \"Won–drawn–lost\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, pre]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"0–0–5\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "a.card.md-ac.md-mine div.md-acf span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"5th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "a.card.md-ac div.md-acf span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"4th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"2nd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "a.card.md-ac div.md-acf span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"7th · 2⁠–⁠0⁠–⁠3 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"6th · 2⁠–⁠1⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-mr.md-nx.md-mine div.sub.md-nxs span.md-nw: \"5–3\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-mr.md-nx div.sub.md-nxs span.md-nw: \"4–4\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "a.tm-glass span.tm-stt b.n: \"3–1–1\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "a.tm-glass span.tm-stt span: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "header.phead div.tm-formrow span.tm-lastres: \"Won 49–31 at Bruno Mars FC\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "div.tm-gwin div.tm-gwt span.sub: \"Callum leads 5–2\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "div.tm-gwr div.tm-score.n span: \"–\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "button.tm-side.them span.sub span.n: \"3–0–2\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "div.tm-gwr button.tm-side.them span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [chromium, pre]",
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 38.2–48.6\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–2\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"5–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–5\""
+  },
+  {
+   "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"45.1–42.1\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"46.8–46.8\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"42.1–45.3\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"47.3–45.2\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "a secondary line cut by 7 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Sat, Oct 17 · The Bridge Derby\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "a secondary line cut by 6 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Fri, Oct 23 · The Station Derby\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "a secondary line cut by 16 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Sat, Oct 31 · The Harbour Derby\""
+  },
+  {
+   "screen": "team fixtures [chromium, pre]",
+   "detail": "a secondary line cut by 3 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Fri, Nov 6 · The Old Mill Derby\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.tm-body div.sh span.aside: \"3–1–1 W–D–L\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.tiles.tm-lks div.tile.tm-lk span.cm: \"You beat 22 of 42 scores. Close games 1–1–0 (W–D–L).\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.tm-body div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "team season [chromium, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 66–36 v Newton, GW1\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 37–36 v Potatoes, GW3\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Oates · 26–25 v Rice, GW4\""
+  },
+  {
+   "screen": "league results [chromium, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 34–33 v Gang, GW5\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.won span.per b: \"Aug–Sep\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.won span.per span.n: \"GW1–5\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.cur span.per span.n: \"GW6–9\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW10–12\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW13–18\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW19–23\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW24–27\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW28–30\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW31–33\""
+  },
+  {
+   "screen": "league money [chromium, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW34–38\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–2\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m.now b.n: \"43–17\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m.now b.n: \"29–25\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"36–66\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"66–36\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"8–1\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"43–66\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"66–43\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"47–57\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"57–47\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"7–2\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"0–0 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"51–51\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"26–36\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"36–26\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"31–49\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"49–31\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m.now b.n: \"34–30\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m.now b.n: \"21–20\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–4\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"33–45\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"45–33\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"41–49\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"49–41\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"6–2\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"53–65\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"65–53\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"32–54\""
+  },
+  {
+   "screen": "league derbies [chromium, pre]",
+   "detail": "div.meta span.m span.n: \"54–32\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt.you div.st b.n: \"3–1–1\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt.you div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"2–1–2\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"2–0–3\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st b.n: \"0–0–5\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Newton · GW3–5\""
+  },
+  {
+   "screen": "league stats [chromium, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 53–65 v Mars, GW4\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"3–5\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "div.fmb.vn div.vn-bug span.vb-w.n: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"Projected XIs · win chance · H2H Fixtures GW3–5 · Tarkowski 5.6\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"4–3\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"5–2\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"WIRTZ V POTATOES · TOM LEADS 4–3\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"OATES V NEWTON · CALLUM LEADS 5–2\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "div.fstamp span.fstamp-b b.f-anton: \"48–48%\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"H2H Fixtures · Potatoes 0–0–5 W–D–L\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"3–5\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"Projected XIs · win chance · H2H Fixtures GW3–5\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"GW5 · Kostoulas 10 on the bench · The Gakpo Gang 33–34\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"66–40\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"34–33\""
+  },
+  {
+   "screen": "feed league [chromium, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-ft span.fp-facts: \"H2H Fixtures · finished GW1–5\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–17\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"3–5\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "div.fmb.vn div.vn-bug span.vb-w.n: \"–\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"Projected XIs · win chance · H2H Fixtures GW3–5 · Tarkowski 5.6\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"4–3\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"5–2\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"WIRTZ V POTATOES · TOM LEADS 4–3\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"OATES V NEWTON · CALLUM LEADS 5–2\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"H2H Fixtures · GW3–5 · 3 for a win, 1 for a draw\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "article.fp.v-clark div.fp-ft span.fp-facts: \"GW2 · Mukiele 9 on the bench · Palmer Violets 43–66\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "a secondary line cut by 2 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Wants a quote before The Riverside Derby\""
+  },
+  {
+   "screen": "feed foryou [chromium, pre]",
+   "detail": "a secondary line cut by 25 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "feed messages [chromium, pre]",
+   "detail": "a secondary line cut by 2 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Wants a quote before The Riverside Derby\""
+  },
+  {
+   "screen": "feed messages [chromium, pre]",
+   "detail": "a secondary line cut by 25 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "player sheet, owned [chromium, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned [chromium, pre]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 2–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.mn div.l2 span.sk-res.w: \"W 5–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, pre]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–2\""
+  },
+  {
+   "screen": "player sheet, owned, ratings [chromium, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, free agent [chromium, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [chromium, pre]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [chromium, pre]",
+   "detail": "div.ps-cells div.ps-cell.mute b.n: \"–\""
+  },
+  {
+   "screen": "manager sheet [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet [chromium, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet [chromium, pre]",
+   "detail": "div.ms-mid div.ms-sc i: \"–\""
+  },
+  {
+   "screen": "manager sheet [chromium, pre]",
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 38.2–48.6 · Callum leads 5–2\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "div.sheet.sk-manager div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, pre]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, squad [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [chromium, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, all-time [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, all-time [chromium, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, all-time [chromium, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "menu [chromium, pre]",
+   "detail": "div.card.mn-club div.mn-cl span.sub: \"Callum Ferris · 1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "menu, how it works [chromium, pre]",
+   "detail": "div.card.mn-ps div.mn-p p: \"Manager of the Month goes to the most points scored in each period: Aug–Sep (GW1\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Sam Okafor · 3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Tom Hazeldine · 8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "a secondary line cut by 30 px, span.sr-m span.sr-m2 span.sub.ell: \"GKP · Chelsea\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "a secondary line cut by 29 px, span.sr-m span.sr-m2 span.sub.ell: \"DEF · Chelsea\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "a secondary line cut by 61 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Crystal Palace\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "a secondary line cut by 13 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Spurs\""
+  },
+  {
+   "screen": "search [chromium, pre]",
+   "detail": "a secondary line cut by 40 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Aston Villa\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"58–2\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r b: \"–40% (\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"42.8–38.6\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–4\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r b: \"–67% (proj final\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"34.5–39.0\""
+  },
+  {
+   "screen": "feed post [chromium, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.md-sc div.n.md-big i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.md-sc div.sub.md-ser span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.md-msc div.md-ms.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.md-msc div.md-ms.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.md-msc div.md-ms.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [chromium, snap]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "a secondary line cut by 9 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
+  },
+  {
+   "screen": "matchup 1 list [chromium, snap]",
+   "detail": "a secondary line cut by 7 px, div.md-hc div.ell span.sub: \"v NFO · not on yet\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.md-tab div.card.md-ser2 div.foot: \"7 meetings before this season (3–4, scores not recorded), none yet this season.\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"29–25\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"3–0–2\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.md-sr.md-rec div.md-sc2 span: \"Won–drawn–lost\""
+  },
+  {
+   "screen": "matchup 1 history [chromium, snap]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"0–0–5\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [chromium, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs span.sub span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "a.card.md-ac.md-mine div.md-acf b.n: \"38.2–48.6\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"5th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs span.sub span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "a.card.md-ac div.md-acf b.n: \"34.5–39.0\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"4th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs span.sub span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"2nd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "a.card.md-ac div.md-acf b.n: \"46.6–43.1\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"7th · 2⁠–⁠0⁠–⁠3 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"6th · 2⁠–⁠1⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "a.card.md-ac div.md-acf b.n: \"31.6–31.6\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-mr.md-nx.md-mine div.sub.md-nxs span.md-nw: \"5–3\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-mr.md-nx div.sub.md-nxs span.md-nw: \"4–4\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [chromium, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [chromium, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-th span: \"W–D–L\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"4–0–2\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.md-mv: \"–\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"4–0–2\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"4–0–2\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr.me span.n.sub: \"3–1–2\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"3–1–2\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"3–0–3\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.md-mv: \"–\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"2–0–4\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.md-mv: \"–\""
+  },
+  {
+   "screen": "matchday week [chromium, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"0–0–6\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "a.tm-glass span.tm-stt b.n: \"3–1–1\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "a.tm-glass span.tm-stt span: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "header.phead div.tm-formrow span.tm-lastres: \"Won 49–31 at Bruno Mars FC\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "div.tm-gwin div.tm-gwt span.sub: \"Callum leads 5–2\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "div.tm-gwr div.tm-score.n span: \"–\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "button.tm-side.them span.sub span.n: \"3–0–2\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "div.tm-gwr button.tm-side.them span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [chromium, snap]",
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 38.2–48.6\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–2\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"5–1\""
+  },
+  {
+   "screen": "team lineup list [chromium, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–5\""
+  },
+  {
+   "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [chromium, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"45.1–42.1\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"46.8–46.8\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"42.1–45.3\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"47.3–45.2\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "a secondary line cut by 7 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Sat, Oct 17 · The Bridge Derby\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "a secondary line cut by 6 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Fri, Oct 23 · The Station Derby\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "a secondary line cut by 16 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Sat, Oct 31 · The Harbour Derby\""
+  },
+  {
+   "screen": "team fixtures [chromium, snap]",
+   "detail": "a secondary line cut by 3 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Fri, Nov 6 · The Old Mill Derby\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.tm-body div.sh span.aside: \"3–1–1 W–D–L\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.tiles.tm-lks div.tile.tm-lk span.cm: \"You beat 22 of 42 scores. Close games 1–1–0 (W–D–L).\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.tm-body div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "team season [chromium, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 66–36 v Newton, GW1\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 37–36 v Potatoes, GW3\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Oates · 26–25 v Rice, GW4\""
+  },
+  {
+   "screen": "league results [chromium, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 34–33 v Gang, GW5\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.won span.per b: \"Aug–Sep\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.won span.per span.n: \"GW1–5\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.cur span.per span.n: \"GW6–9\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW10–12\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW13–18\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW19–23\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW24–27\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW28–30\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW31–33\""
+  },
+  {
+   "screen": "league money [chromium, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW34–38\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–2\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m.now b.n: \"43–17\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m.now b.n: \"29–25\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"36–66\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"66–36\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"8–1\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"43–66\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"66–43\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"47–57\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"57–47\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"7–2\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"0–0 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"51–51\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"26–36\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"36–26\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"31–49\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"49–31\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m.now b.n: \"34–30\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m.now b.n: \"21–20\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–4\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"33–45\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"45–33\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"41–49\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"49–41\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"6–2\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"53–65\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"65–53\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"32–54\""
+  },
+  {
+   "screen": "league derbies [chromium, snap]",
+   "detail": "div.meta span.m span.n: \"54–32\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt.you div.st b.n: \"3–1–1\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt.you div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"2–1–2\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"2–0–3\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st b.n: \"0–0–5\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Newton · GW3–5\""
+  },
+  {
+   "screen": "league stats [chromium, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 53–65 v Mars, GW4\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 43.1\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 31.6\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model now\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"GW5 · Kostoulas 10 on the bench · The Gakpo Gang 33–34\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.fp-media div.fct.fct-zoom span.fct-chip: \"GW1–5\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Started points excl. bonus v xP · GW1–5\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"66–40\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"34–33\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "article.fp.v-archizio.unread div.fp-ft span.fp-facts: \"H2H Fixtures · finished GW1–5\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.ftb div.ftb-r span.ftb-m: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.ftb div.ftb-r span.ftb-m: \"–\""
+  },
+  {
+   "screen": "feed league [chromium, snap]",
+   "detail": "div.ftb div.ftb-r span.ftb-m: \"–\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–17\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model now\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "article.fp.v-clark div.fp-ft span.fp-facts: \"GW2 · Mukiele 9 on the bench · Palmer Violets 43–66\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "article.fp.v-archizio div.fp-ft span.fp-facts: \"H2H Fixtures · finished GW1–2\""
+  },
+  {
+   "screen": "feed foryou [chromium, snap]",
+   "detail": "a secondary line cut by 25 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "feed messages [chromium, snap]",
+   "detail": "a secondary line cut by 25 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "player sheet, owned [chromium, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned [chromium, snap]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 2–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.mn div.l2 span.sk-res.w: \"W 5–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [chromium, snap]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–2\""
+  },
+  {
+   "screen": "player sheet, owned, ratings [chromium, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, free agent [chromium, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [chromium, snap]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [chromium, snap]",
+   "detail": "div.ps-cells div.ps-cell.mute b.n: \"–\""
+  },
+  {
+   "screen": "manager sheet [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet [chromium, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet [chromium, snap]",
+   "detail": "div.ms-mid div.ms-sc i: \"–\""
+  },
+  {
+   "screen": "manager sheet [chromium, snap]",
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 38.2–48.6 · Callum leads 5–2\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "div.sheet.sk-manager div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "manager sheet, season [chromium, snap]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, squad [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [chromium, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, all-time [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, all-time [chromium, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, all-time [chromium, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "menu [chromium, snap]",
+   "detail": "div.card.mn-club div.mn-cl span.sub: \"Callum Ferris · 1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "menu, how it works [chromium, snap]",
+   "detail": "div.card.mn-ps div.mn-p p: \"Manager of the Month goes to the most points scored in each period: Aug–Sep (GW1\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Sam Okafor · 3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Tom Hazeldine · 8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "a secondary line cut by 30 px, span.sr-m span.sr-m2 span.sub.ell: \"GKP · Chelsea\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "a secondary line cut by 29 px, span.sr-m span.sr-m2 span.sub.ell: \"DEF · Chelsea\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "a secondary line cut by 61 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Crystal Palace\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "a secondary line cut by 13 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Spurs\""
+  },
+  {
+   "screen": "search [chromium, snap]",
+   "detail": "a secondary line cut by 40 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Aston Villa\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 43.1\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 31.6\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"34.5–39.0\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–67%\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"30–34\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"46.6–43.1\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"61–35%\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"17–43\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"38.2–48.6\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"15–83%\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"20–21\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"31.6–31.6\""
+  },
+  {
+   "screen": "feed post [chromium, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"48–48%\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.md-sc div.n.md-big.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.md-sc div.sub.md-ser span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.md-hin div.md-last b.n: \"49–31\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.md-msc div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.md-msc div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.md-msc div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [webkit, pre]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 17 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 17 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 17 px, div.md-hc div.ell span.sub: \"v MCI · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 17 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 17 px, div.md-hc div.ell span.sub: \"at LIV · Sun 3:30pm\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 11 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, pre]",
+   "detail": "a secondary line cut by 8 px, div.md-hc div.ell span.sub: \"v NFO · not on yet\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.md-tab div.card.md-ser2 div.foot: \"7 meetings before this season (3–4, scores not recorded), none yet this season.\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"34.5–39.0\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"3–0–2\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.md-sr.md-rec div.md-sc2 span: \"Won–drawn–lost\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, pre]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"0–0–5\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, pre]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, pre]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, pre]",
+   "detail": "div.md-mhc div.n.md-mbig.dec i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, pre]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "a.card.md-ac.md-mine div.md-acf span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"5th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "a.card.md-ac div.md-acf span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"4th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"2nd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "a.card.md-ac div.md-acf span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"7th · 2⁠–⁠0⁠–⁠3 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acs div.n.md-acb.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"6th · 2⁠–⁠1⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-mr.md-nx.md-mine div.sub.md-nxs span.md-nw: \"5–3\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-mr.md-nx div.sub.md-nxs span.md-nw: \"4–4\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, pre]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, pre]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "a.tm-glass span.tm-stt b.n: \"3–1–1\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "a.tm-glass span.tm-stt span: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "header.phead div.tm-formrow span.tm-lastres: \"Won 49–31 at Bruno Mars FC\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "div.tm-gwin div.tm-gwt span.sub: \"Callum leads 5–2\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "div.tm-gwr div.tm-score.n span: \"–\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "button.tm-side.them span.sub span.n: \"3–0–2\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "div.tm-gwr button.tm-side.them span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [webkit, pre]",
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 38.2–48.6\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–2\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"5–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, pre]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–5\""
+  },
+  {
+   "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, pre]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team fixtures [webkit, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"45.1–42.1\""
+  },
+  {
+   "screen": "team fixtures [webkit, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"46.8–46.8\""
+  },
+  {
+   "screen": "team fixtures [webkit, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"42.1–45.3\""
+  },
+  {
+   "screen": "team fixtures [webkit, pre]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"47.3–45.2\""
+  },
+  {
+   "screen": "team fixtures [webkit, pre]",
+   "detail": "a secondary line cut by 10 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Sat, Oct 31 · The Harbour Derby\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.tm-body div.sh span.aside: \"3–1–1 W–D–L\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.tiles.tm-lks div.tile.tm-lk span.cm: \"You beat 22 of 42 scores. Close games 1–1–0 (W–D–L).\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.tm-body div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "team season [webkit, pre]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 66–36 v Newton, GW1\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 37–36 v Potatoes, GW3\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Oates · 26–25 v Rice, GW4\""
+  },
+  {
+   "screen": "league results [webkit, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 34–33 v Gang, GW5\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.won span.per b: \"Aug–Sep\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.won span.per span.n: \"GW1–5\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.cur span.per span.n: \"GW6–9\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW10–12\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW13–18\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW19–23\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW24–27\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW28–30\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW31–33\""
+  },
+  {
+   "screen": "league money [webkit, pre]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW34–38\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–2\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m.now b.n: \"43–17\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m.now b.n: \"29–25\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"36–66\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"66–36\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"8–1\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"43–66\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"66–43\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"47–57\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"57–47\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"7–2\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"0–0 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"51–51\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"26–36\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"36–26\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"31–49\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"49–31\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m.now b.n: \"34–30\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m.now b.n: \"21–20\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"4–4\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"33–45\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"45–33\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"41–49\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"49–41\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"6–2\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"53–65\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"65–53\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"32–54\""
+  },
+  {
+   "screen": "league derbies [webkit, pre]",
+   "detail": "div.meta span.m span.n: \"54–32\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt.you div.st b.n: \"3–1–1\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt.you div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"2–1–2\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"2–0–3\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st b.n: \"0–0–5\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Newton · GW3–5\""
+  },
+  {
+   "screen": "league stats [webkit, pre]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 53–65 v Mars, GW4\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"3–5\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "div.fmb.vn div.vn-bug span.vb-w.n: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"Projected XIs · win chance · H2H Fixtures GW3–5 · Tarkowski 5.6\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"4–3\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"5–2\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"WIRTZ V POTATOES · TOM LEADS 4–3\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"OATES V NEWTON · CALLUM LEADS 5–2\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "div.fstamp span.fstamp-b b.f-anton: \"48–48%\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"H2H Fixtures · Potatoes 0–0–5 W–D–L\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"3–5\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"Projected XIs · win chance · H2H Fixtures GW3–5\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"GW5 · Kostoulas 10 on the bench · The Gakpo Gang 33–34\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"66–40\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"34–33\""
+  },
+  {
+   "screen": "feed league [webkit, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-ft span.fp-facts: \"H2H Fixtures · finished GW1–5\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–17\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"3–5\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "div.fmb.vn div.vn-bug span.vb-w.n: \"–\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"Projected XIs · win chance · H2H Fixtures GW3–5 · Tarkowski 5.6\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"4–3\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-archizio.unread div.fp-tx span.nw: \"5–2\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"WIRTZ V POTATOES · TOM LEADS 4–3\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "div.dby span.dby-t span.f-mono: \"OATES V NEWTON · CALLUM LEADS 5–2\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-ft span.fp-facts: \"H2H Fixtures · GW3–5 · 3 for a win, 1 for a draw\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "article.fp.v-clark div.fp-ft span.fp-facts: \"GW2 · Mukiele 9 on the bench · Palmer Violets 43–66\""
+  },
+  {
+   "screen": "feed foryou [webkit, pre]",
+   "detail": "a secondary line cut by 23 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "feed messages [webkit, pre]",
+   "detail": "a secondary line cut by 23 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "player sheet, owned [webkit, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned [webkit, pre]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 2–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.mn div.l2 span.sk-res.w: \"W 5–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, pre]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–2\""
+  },
+  {
+   "screen": "player sheet, owned, ratings [webkit, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, free agent [webkit, pre]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [webkit, pre]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [webkit, pre]",
+   "detail": "div.ps-cells div.ps-cell.mute b.n: \"–\""
+  },
+  {
+   "screen": "manager sheet [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet [webkit, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet [webkit, pre]",
+   "detail": "div.ms-mid div.ms-sc i: \"–\""
+  },
+  {
+   "screen": "manager sheet [webkit, pre]",
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 38.2–48.6 · Callum leads 5–2\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "div.sheet.sk-manager div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, pre]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, squad [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [webkit, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, all-time [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, all-time [webkit, pre]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, all-time [webkit, pre]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "menu [webkit, pre]",
+   "detail": "div.card.mn-club div.mn-cl span.sub: \"Callum Ferris · 1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "menu, how it works [webkit, pre]",
+   "detail": "div.card.mn-ps div.mn-p p: \"Manager of the Month goes to the most points scored in each period: Aug–Sep (GW1\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Sam Okafor · 3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Tom Hazeldine · 8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "a secondary line cut by 25 px, span.sr-m span.sr-m2 span.sub.ell: \"GKP · Chelsea\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "a secondary line cut by 24 px, span.sr-m span.sr-m2 span.sub.ell: \"DEF · Chelsea\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "a secondary line cut by 55 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Crystal Palace\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "a secondary line cut by 10 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Spurs\""
+  },
+  {
+   "screen": "search [webkit, pre]",
+   "detail": "a secondary line cut by 35 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Aston Villa\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"58–2\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r b: \"–40% (\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"42.8–38.6\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–4\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r b: \"–67% (proj final\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"34.5–39.0\""
+  },
+  {
+   "screen": "feed post [webkit, pre]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.md-sc div.n.md-big i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.md-sc div.sub.md-ser span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.md-msc div.md-ms.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.md-msc div.md-ms.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.md-msc div.md-ms.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.fpc-b div.fpc-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "matchday overview [webkit, snap]",
+   "detail": "div.mini-bug span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 formation (Wirtz Case Scenario v Saka Potatoes) [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "div.md-h2h div.md-hc.none span.sub: \"–\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "a secondary line cut by 11 px, div.md-hc div.ell span.sub: \"at CRY · not on yet\""
+  },
+  {
+   "screen": "matchup 1 list [webkit, snap]",
+   "detail": "a secondary line cut by 8 px, div.md-hc div.ell span.sub: \"v NFO · not on yet\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 stats [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.md-tab div.card.md-ser2 div.foot: \"7 meetings before this season (3–4, scores not recorded), none yet this season.\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.row.md-now span.ell.md-mtx b.n.md-scr: \"29–25\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"3–0–2\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.md-sr.md-rec div.md-sc2 span: \"Won–drawn–lost\""
+  },
+  {
+   "screen": "matchup 1 history [webkit, snap]",
+   "detail": "div.card.md-stats div.md-sr.md-rec b.n.md-sv: \"0–0–5\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 2 formation (Palmer Violets v Bruno Mars FC) [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 3 formation (Haaland Oates v Isak Newton) [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, snap]",
+   "detail": "a.md-mine span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, snap]",
+   "detail": "nav.md-fxs span.n i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, snap]",
+   "detail": "div.md-mhc div.n.md-mbig i: \"–\""
+  },
+  {
+   "screen": "matchup 4 formation (Rice Rice Baby v The Gakpo Gang) [webkit, snap]",
+   "detail": "div.md-pinin span.n.md-pins i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs span.sub span.md-nw: \"5–2\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "a.card.md-ac.md-mine div.md-acf b.n: \"38.2–48.6\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"5th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs span.sub span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "a.card.md-ac div.md-acf b.n: \"34.5–39.0\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"4th · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs span.sub span.md-nw: \"4–3\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"2nd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "a.card.md-ac div.md-acf b.n: \"46.6–43.1\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"7th · 2⁠–⁠0⁠–⁠3 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acs div.n.md-acb i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-acv div.md-as span.sub.n: \"6th · 2⁠–⁠1⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "a.card.md-ac div.md-acf b.n: \"31.6–31.6\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-mr.md-nx.md-mine div.sub.md-nxs span.md-nw: \"5–3\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-mr.md-nx div.sub.md-nxs span.md-nw: \"4–4\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday all [webkit, snap]",
+   "detail": "div.md-mg div.md-ms.n.dec i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday pl [webkit, snap]",
+   "detail": "span.md-pm b.n.md-ps i: \"–\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-th span: \"W–D–L\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"4–0–2\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.md-mv: \"–\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"4–0–2\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"4–0–2\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr.me span.n.sub: \"3–1–2\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"3–1–2\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"3–0–3\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.md-mv: \"–\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"2–0–4\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.md-mv: \"–\""
+  },
+  {
+   "screen": "matchday week [webkit, snap]",
+   "detail": "div.card.md-tbl div.md-tr span.n.sub: \"0–0–6\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "a.tm-glass span.tm-stt b.n: \"3–1–1\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "a.tm-glass span.tm-stt span: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "header.phead div.tm-formrow span.tm-lastres: \"Won 49–31 at Bruno Mars FC\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "div.tm-gwin div.tm-gwt span.sub: \"Callum leads 5–2\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "div.tm-gwr div.tm-score.n span: \"–\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "button.tm-side.them span.sub span.n: \"3–0–2\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "div.tm-gwr button.tm-side.them span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team overview [webkit, snap]",
+   "detail": "section.card.tm-gw div.tm-gwin div.tm-wlc.sub: \"win chance · draw 2% · proj final 38.2–48.6\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"2–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–2\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"5–1\""
+  },
+  {
+   "screen": "team lineup list [webkit, snap]",
+   "detail": "span.tm-lopp span.tm-lsc span.n: \"1–5\""
+  },
+  {
+   "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team squad [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team transfers [webkit, snap]",
+   "detail": "div.tm-sc span.tm-pcs span.tm-pc.dnp.sm: \"–\""
+  },
+  {
+   "screen": "team fixtures [webkit, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"45.1–42.1\""
+  },
+  {
+   "screen": "team fixtures [webkit, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"46.8–46.8\""
+  },
+  {
+   "screen": "team fixtures [webkit, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"42.1–45.3\""
+  },
+  {
+   "screen": "team fixtures [webkit, snap]",
+   "detail": "button.row.tap.tm-nmr span.tm-nmp span.sub.n: \"47.3–45.2\""
+  },
+  {
+   "screen": "team fixtures [webkit, snap]",
+   "detail": "a secondary line cut by 10 px, button.row.tap.tm-nmr span.tm-nmm span.sub.ell: \"Sat, Oct 31 · The Harbour Derby\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.tm-body div.sh span.aside: \"3–1–1 W–D–L\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "button.row.tap.tm-rr span.tm-rs.n i: \"–\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.tiles.tm-lks div.tile.tm-lk span.cm: \"You beat 22 of 42 scores. Close games 1–1–0 (W–D–L).\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.tm-body div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "team season [webkit, snap]",
+   "detail": "div.row.tm-sn2 span.tm-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.lg-res span.sc i: \"–\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 66–36 v Newton, GW1\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Mars · 37–36 v Potatoes, GW3\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Oates · 26–25 v Rice, GW4\""
+  },
+  {
+   "screen": "league results [webkit, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 34–33 v Gang, GW5\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.won span.per b: \"Aug–Sep\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.won span.per span.n: \"GW1–5\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.cur span.per span.n: \"GW6–9\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW10–12\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW13–18\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW19–23\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW24–27\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW28–30\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW31–33\""
+  },
+  {
+   "screen": "league money [webkit, snap]",
+   "detail": "div.lg-mrow.up span.per span.n: \"GW34–38\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–2\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m.now b.n: \"43–17\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m.now b.n: \"29–25\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"36–66\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"66–36\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"8–1\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"46–36\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"43–66\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"66–43\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"47–57\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"57–47\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"7–2\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"40–31\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"37–36\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"0–0 (1 drawn)\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"51–51\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"26–36\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"36–26\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"39–35\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"6–3\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"31–49\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"49–31\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"66–40\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"34–33\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–3\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m.now b.n: \"34–30\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m.now b.n: \"21–20\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"4–4\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"34–25\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"33–45\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"45–33\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"41–49\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"49–41\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"53–34\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"1–0\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"26–25\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"6–2\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"48–38\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–3\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"53–65\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"65–53\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.vs div.mid span.rec.n: \"5–4\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"32–54\""
+  },
+  {
+   "screen": "league derbies [webkit, snap]",
+   "detail": "div.meta span.m span.n: \"54–32\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt.you div.st b.n: \"3–1–1\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt.you div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"3–0–2\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"2–1–2\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"2–0–3\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st b.n: \"0–0–5\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.lg-mt div.st i: \"W–D–L\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Newton · GW3–5\""
+  },
+  {
+   "screen": "league stats [webkit, snap]",
+   "detail": "div.tile.lg-rec span.w span: \"Wirtz · 53–65 v Mars, GW4\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 43.1\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 31.6\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model now\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"GW5 · Kostoulas 10 on the bench · The Gakpo Gang 33–34\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.fp-media div.fct.fct-zoom span.fct-chip: \"GW1–5\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Started points excl. bonus v xP · GW1–5\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"66–40\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"34–33\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "article.fp.v-archizio.unread div.fp-ft span.fp-facts: \"H2H Fixtures · finished GW1–5\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.ftb div.ftb-r span.ftb-m: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.ftb div.ftb-r span.ftb-m: \"–\""
+  },
+  {
+   "screen": "feed league [webkit, snap]",
+   "detail": "div.ftb div.ftb-r span.ftb-m: \"–\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"43–17\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "div.fp-media div.fmb div.fsb-proj.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "article.fp.v-clark.unread div.fp-ft span.fp-facts: \"Win chance 15–2–83 · the model now\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "article.fp.v-malcolm.unread div.fp-tx span.nw: \"49–31\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "article.fp.v-clark div.fp-ft span.fp-facts: \"GW2 · Mukiele 9 on the bench · Palmer Violets 43–66\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "article.fp.v-archizio div.fp-ft span.fp-facts: \"H2H Fixtures · finished GW1–2\""
+  },
+  {
+   "screen": "feed foryou [webkit, snap]",
+   "detail": "a secondary line cut by 23 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "feed messages [webkit, snap]",
+   "detail": "a secondary line cut by 23 px, a.row.tap.fth-r span.fth-t span.sub.ell: \"Start a rumour. Archizio never names a source.\""
+  },
+  {
+   "screen": "player sheet, owned [webkit, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned [webkit, snap]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 1–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–1\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.mn div.l2 span.sk-res.d: \"D 2–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.mn div.l2 span.sk-res.w: \"W 5–2\""
+  },
+  {
+   "screen": "player sheet, owned, matches [webkit, snap]",
+   "detail": "div.mn div.l2 span.sk-res.l: \"L 0–2\""
+  },
+  {
+   "screen": "player sheet, owned, ratings [webkit, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 1–1\""
+  },
+  {
+   "screen": "player sheet, free agent [webkit, snap]",
+   "detail": "div.ps-chips span.ps-fc.ps-nx em: \"FT 2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [webkit, snap]",
+   "detail": "div.ps-fx div.ps-mid b.n: \"2–1\""
+  },
+  {
+   "screen": "player sheet, free agent [webkit, snap]",
+   "detail": "div.ps-cells div.ps-cell.mute b.n: \"–\""
+  },
+  {
+   "screen": "manager sheet [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet [webkit, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet [webkit, snap]",
+   "detail": "div.ms-mid div.ms-sc i: \"–\""
+  },
+  {
+   "screen": "manager sheet [webkit, snap]",
+   "detail": "div.sheet.sk-manager div.card.ms-nx.tap div.foot: \"Projected final 38.2–48.6 · Callum leads 5–2\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "div.sheet.sk-manager div.sh span.aside: \"GW1–5\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"21–2–19\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "div.row.ms-sn span.ms-snv b.n: \"1–1–0\""
+  },
+  {
+   "screen": "manager sheet, season [webkit, snap]",
+   "detail": "div.row.ms-sn span.ms-snv span.sub: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, squad [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, squad [webkit, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "manager sheet, all-time [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass b.n: \"3⁠–⁠1⁠–⁠1\""
+  },
+  {
+   "screen": "manager sheet, all-time [webkit, snap]",
+   "detail": "header.ms-hd div.ms-glass span: \"W–D–L\""
+  },
+  {
+   "screen": "manager sheet, all-time [webkit, snap]",
+   "detail": "header.ms-hd div.ms-form span.sub.ms-last: \"Trailing 17–43 v Newton, live\""
+  },
+  {
+   "screen": "menu [webkit, snap]",
+   "detail": "div.card.mn-club div.mn-cl span.sub: \"Callum Ferris · 1st · 3⁠–⁠1⁠–⁠1 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "menu, how it works [webkit, snap]",
+   "detail": "div.card.mn-ps div.mn-p p: \"Manager of the Month goes to the most points scored in each period: Aug–Sep (GW1\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Sam Okafor · 3rd · 3⁠–⁠0⁠–⁠2 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "button.row.tap.sr-r span.sr-m span.sub.ell: \"Tom Hazeldine · 8th · 0⁠–⁠0⁠–⁠5 W⁠–⁠D⁠–⁠L\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "a secondary line cut by 25 px, span.sr-m span.sr-m2 span.sub.ell: \"GKP · Chelsea\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "a secondary line cut by 24 px, span.sr-m span.sr-m2 span.sub.ell: \"DEF · Chelsea\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "a secondary line cut by 55 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Crystal Palace\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "a secondary line cut by 10 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Spurs\""
+  },
+  {
+   "screen": "search [webkit, snap]",
+   "detail": "a secondary line cut by 35 px, span.sr-m span.sr-m2 span.sub.ell: \"MID · Aston Villa\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "article.fp.v-malcolm.big div.fp-tx span.nw: \"34–30\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 34.5 – 39.0\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 46.6 – 43.1\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 38.2 – 48.6\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fbd-m span.fbd-s i: \"–\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.fmb div.fbd-r div.fbd-pf.n: \"PROJ FINAL 31.6 – 31.6\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–25\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"34.5–39.0\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"29–67%\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"30–34\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"46.6–43.1\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"61–35%\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"17–43\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"38.2–48.6\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"15–83%\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"20–21\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"31.6–31.6\""
+  },
+  {
+   "screen": "feed post [webkit, snap]",
+   "detail": "div.card.ps-facts div.ps-r span.nw: \"48–48%\""
+  }
+ ]
+}
