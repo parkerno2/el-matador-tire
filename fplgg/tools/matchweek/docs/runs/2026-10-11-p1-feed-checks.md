@@ -72,4 +72,8 @@ Tests in `tests/codegs/v332.js` that fail before the fix; the voices' characters
   series, so a build-up post cannot be checked against one; it has no series to misquote either.
 
 ## Proof of shipping
-Filled in after the push: the "Code.gs tests and release" run for the commit, and the `release` branch at v3.32.
+- The commit ab5c1ce on main, pushed 15:23:51 UTC.
+- "Code.gs tests and release" run 50 for ab5c1ce, green at 15:24:11 UTC:
+  https://github.com/parkerno2/el-matador-tire/actions/runs/38151097215
+- The `release` branch's Code.gs reads v3.32 as its first CHANGELOG version (checked at 15:27 UTC), so the script's hourly
+  self-update installs it within the hour; `?health=1` will read `version: v3.32` once it has.
