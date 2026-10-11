@@ -156,6 +156,40 @@ const statics = { fc27: {}, fc26: {}, existingRatings: {}, ratingsVersion: null,
   const idx = read('supabase/functions/ingest/index.ts');
   check('the ingest writes Fixture BPS as a global block, syncs Specials per league and reads potm.json from the release branch', /writeBlock\(null, 'Fixture BPS', 'all'/.test(idx) && /syncSpecials\(league\.id/.test(idx) && idx.includes("raw.githubusercontent.com/parkerno2/el-matador-tire/release/fplgg/tools/matchweek/data/potm.json") && /Ingest\.pulsePlayersUrl\(season, page\)/.test(idx));
 
+  /* B2, 11 Oct 2026: a feed is asked for again when FPL answers an error or the fetch fails, and the reply says what the
+     classic feeds answered. The helper is cut out of index.ts and run in a child node with a stubbed fetch. */
+  check('the ingest asks a feed again on an error status or a failed fetch (waits of 1, 3 and 8 s), a 4xx other than 429 is final, and the reply names the classic feeds\' answers', /const WAITS = \[1000, 3000, 8000\];/.test(idx) && /for \(let i = 0; i <= WAITS\.length; i\+\+\)/.test(idx) && /r\.status >= 400 && r\.status < 500 && r\.status !== 429\) break;/.test(idx) && /boot: feed\(`\$\{CLASSIC\}bootstrap-static\/`\), fixtures: feed\(`\$\{CLASSIC\}fixtures\/`\)/.test(idx) && /Response\.json\(\{ ok: true, started, classic, leagues: out \}\)/.test(idx));
+  const helper = /const WAITS = [\s\S]*?function feed\(url: string\) \{[^\n]*\}\n/.exec(idx);
+  check('the retry helper (WAITS, fetched, getJson, feed) is one block of index.ts', !!helper);
+  if (helper) {
+    const os = require('os'), cp = require('child_process');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mw-ingest-'));
+    const script = helper[0].replace('const WAITS = [1000, 3000, 8000];', 'const WAITS = [0, 0, 0];') + `
+const log = [];
+let answers = [];
+globalThis.fetch = async (url) => { const a = answers.shift(); log.push(url); if (a instanceof Error) throw a; return { ok: a === 200, status: a, json: async () => ({ got: url }) }; };
+const out = {};
+answers = [503, 503, 200]; out.thirdTry = { json: await getJson('u1'), f: feed('u1') };
+answers = [404]; out.notFound = { json: await getJson('u2', true), f: feed('u2') };
+answers = [429, 200]; out.rateLimited = { json: await getJson('u3'), f: feed('u3') };
+answers = [new Error('boom'), 200]; out.threw = { json: await getJson('u4'), f: feed('u4') };
+answers = [500, 500, 500, 500, 200]; out.optionalGivesUp = { json: await getJson('u5', true), f: feed('u5') };
+answers = [500, 500, 500, 500]; try { await getJson('u6'); out.required = 'no throw'; } catch (e) { out.required = String(e.message); }
+out.never = feed('u7');
+console.log(JSON.stringify(out));
+`;
+    const file = path.join(dir, 'retry.mts');
+    fs.writeFileSync(file, script);
+    let r = null, err = '';
+    try { r = JSON.parse(cp.execFileSync(process.execPath, ['--experimental-strip-types', '--no-warnings', file], { encoding: 'utf8', timeout: 30000 }).trim()); }
+    catch (e) { err = String(e.stderr || e.message); }
+    fs.rmSync(dir, { recursive: true, force: true });
+    check('getJson: a 503 twice then a 200 returns the body on the third try', !!r && r.thirdTry.json.got === 'u1' && r.thirdTry.f.status === 200 && r.thirdTry.f.tries === 3, err.slice(0, 300));
+    check('getJson: a 404 on an optional feed is final after one try and gives null', !!r && r.notFound.json === null && r.notFound.f.status === 404 && r.notFound.f.tries === 1);
+    check('getJson: a 429 is tried again; a fetch that throws is tried again', !!r && r.rateLimited.f.tries === 2 && r.rateLimited.json.got === 'u3' && r.threw.f.tries === 2 && r.threw.json.got === 'u4');
+    check('getJson: four errors give up: null for an optional feed, an error naming the URL and the status for a required one; a URL never asked for reads null', !!r && r.optionalGivesUp.json === null && r.optionalGivesUp.f.tries === 4 && r.optionalGivesUp.f.status === 500 && r.required === 'u6 → 500' && r.never === null);
+  }
+
   const plan = Ingest.fetchPlan(45380, boot, details, statics);
   check('the fetch plan asks for the choices, the element status, the transactions, every gameweek\'s fixtures and the live feed', plan.curEv === 2 && plan.plan.some(p => p.key === 'choices') && plan.plan.some(p => p.key === 'estat') && plan.plan.some(p => p.key === 'transactions') && plan.plan.filter(p => p.key === 'fixtures').length === 2 && plan.plan.some(p => p.key === 'gwLive'));
 

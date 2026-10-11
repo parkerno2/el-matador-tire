@@ -3,6 +3,10 @@
 // hand. Deployed from this repo by .github/workflows/supabase.yml (docs/SUPABASE.md). The pure pipeline is
 // ./transform.esm.js (tests/supabase.js runs it); everything Supabase-specific is in this file.
 //
+// 11 Oct 2026 (B2, BUGS.md #29): every feed is retried on an error status or a failed fetch (getJson), and the reply
+// names what the classic feeds answered, because three hourly runs of 11 Oct lost the classic side and rewrote the
+// classic columns blank.
+//
 // 10 Oct 2026 (Q8, BUGS.md #29): the nation top-up reads pulselive's season players list (the endpoints the first
 // version called answer empty since September, so nation_cache stayed empty); the Fixture BPS tab is written every
 // run; the Specials tab keeps its rows and syncs the Player of the Month from the repo's potm.json on the release
@@ -39,11 +43,35 @@ function secretOk(req: Request): { ok: true } | { ok: false; status: number; err
   return diff === 0 ? { ok: true } : { ok: false, status: 401, error: 'the secret is missing or wrong' };
 }
 
+/* A feed is asked for up to four times (waits of 1, 3 and 8 s between the tries) when FPL answers with an error status or
+ * the fetch itself fails; a 4xx other than 429 is final, since waiting will not change it. 11 Oct 2026 (BUGS.md #29,
+ * ROADMAP B2): the parity report over GW6 found the classic feeds (bootstrap-static, fixtures, dream-team, event live)
+ * missing from three of the day's six hourly runs (14:07, 16:07 and 19:07 UTC; every 10-minute live run had them), and
+ * each such run rewrote four tabs without the classic columns (Clubs Str H and Str A, Players EP next, the next
+ * gameweek's Predictions EP, Rosters TOTW) and the Club Fixtures minutes from the draft feed, which reports 0. The
+ * status of the last try is kept per URL (`fetched`), and the reply names it for the classic feeds, so pg_net's log
+ * (net._http_response) says what FPL answered. */
+const WAITS = [1000, 3000, 8000];
+const fetched: Record<string, { status: number | string; tries: number }> = {};
 async function getJson(url: string, optional = false) {
-  const r = await fetch(url, { headers: { 'User-Agent': 'matchweek-ingest/0.1' } });
-  if (!r.ok) { if (optional) return null; throw new Error(`${url} → ${r.status}`); }
-  return r.json();
+  let status: number | string = 0;
+  let tries = 0;
+  for (let i = 0; i <= WAITS.length; i++) {
+    if (i) await new Promise((res) => setTimeout(res, WAITS[i - 1]));
+    tries = i + 1;
+    try {
+      const r = await fetch(url, { headers: { 'User-Agent': 'matchweek-ingest/0.1' } });
+      status = r.status;
+      if (r.ok) { fetched[url] = { status, tries }; return await r.json(); }
+      if (r.status >= 400 && r.status < 500 && r.status !== 429) break;   // a 403 or 404 is an answer, not a blip
+    } catch (e) { status = String(e); }
+  }
+  fetched[url] = { status, tries };
+  if (optional) return null;
+  throw new Error(`${url} → ${status}`);
 }
+/** What the last fetch of a URL answered, for the reply: { status, tries } or null when it was never asked for. */
+function feed(url: string) { return fetched[url] ?? null; }
 
 type Row = unknown[];
 interface Tab { header: string[] | null; rows: Row[]; blocks?: { gw: number; final: boolean; rows: Row[] }[]; gw?: number | null; version?: string }
@@ -213,12 +241,17 @@ Deno.serve(async (req) => {
     const curEvG = (evs.find((e: { finished: boolean }) => !e.finished) ?? {}).id ?? null;
     const clive = curEvG ? await getJson(`${CLASSIC}event/${curEvG}/live/`, true) : null;
     const global = { boot, classic: { boot: cboot, fixtures: cfx, dream, live: clive } };
+    // what the classic feeds answered on their last try (the reply is logged by pg_net, so a missing feed is on record)
+    const classic = {
+      boot: feed(`${CLASSIC}bootstrap-static/`), fixtures: feed(`${CLASSIC}fixtures/`),
+      dream: lastDone ? feed(`${CLASSIC}dream-team/${lastDone}/`) : null, live: curEvG ? feed(`${CLASSIC}event/${curEvG}/live/`) : null,
+    };
     for (const lg of leagues ?? []) {
       try { out.push(await ingestLeague(lg, global)); }
       catch (e) { out.push({ league: lg.fpl_league_id, error: String(e) }); }
     }
     await sb.from('ingest_runs').insert({ started_at: started, finished_at: new Date().toISOString(), ok: true, error: null });
-    return Response.json({ ok: true, started, leagues: out });
+    return Response.json({ ok: true, started, classic, leagues: out });
   } catch (e) {
     await sb.from('ingest_runs').insert({ started_at: started, finished_at: new Date().toISOString(), ok: false, error: String(e) });
     return Response.json({ ok: false, error: String(e), leagues: out }, { status: 500 });
