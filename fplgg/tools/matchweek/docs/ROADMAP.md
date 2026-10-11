@@ -9,6 +9,7 @@ Unchecked lines are what a REVIEW MODE pass found on the preview branch; the nex
 
 ## In progress
 One line per claim: "- <item id and title>: <who> started <ISO UTC time>". A builder skips anything claimed here in the last 4 hours, or committed in the last 3 hours without being ticked, and removes its line in the commit that ships the item.
+- S1 privacy and security fixes from the release-readiness review of 11 Oct (the demo, the Supabase functions, the setup wizard; lanes app and backend, straight to main as an outage-class fix on the manager's item): builder started 2026-10-11T14:20:00Z
 
 The agreed direction (assessment 6 Oct, Parker's decisions since):
 - **Everything runs in the cloud.** Nothing needs Parker's computer, and Cowork isn't used for shipping.
