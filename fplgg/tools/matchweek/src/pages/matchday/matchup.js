@@ -163,7 +163,7 @@ function decides(m) {
 function benchCol(m, T, r) {
   const outL = new Set(T.subs.filter(s => s.kind === 'locked').map(s => String(s.out.Code)));
   const outK = new Set(T.subs.filter(s => s.kind === 'likely').map(s => String(s.out.Code)));
-  return '<div class="md-bc' + (r ? ' r' : '') + '">' + (T.bench.length ? T.bench.map(p => {
+  return '<div class="md-bc' + (r ? ' r' : '') + '">' + (T.bench.length ? T.bench.concat(T.bench.slice(0, 1)).map(p => {
     const x = M.pl(p), c = String(p.Code);
     const tag = outL.has(c) ? UI.subChip('out') : outK.has(c) ? UI.subChip('outl') : UI.statusChip(p);
     const pts = x && x.started && x.mins > 0 ? '<span class="pb ' + (x.finished ? 'bk' : 'lv') + ' md-pbs">' + M.int(x.pts) + '</span>' : '';
@@ -183,7 +183,7 @@ function benches(m) {
   const any = k => m.tl.subs.concat(m.tr.subs).some(s => s.kind === k);
   const dnp = dnpLines(m.tl) + dnpLines(m.tr);
   const notes = (any('locked') || any('likely') || dnp) ? '<div class="md-asl">' + subLines(m.tl, 'locked') + subLines(m.tr, 'locked') + subLines(m.tl, 'likely') + subLines(m.tr, 'likely') + dnp + '</div>' : '';
-  return UI.sh('Bench') + '<div class="card md-bench"><div class="md-bcs">' + benchCol(m, m.tl) + benchCol(m, m.tr, 1) + '</div>' + notes + '</div>';
+  return UI.sh('Bench \u2014 the subs') + '<div class="card md-bench"><div class="md-bcs">' + benchCol(m, m.tl) + benchCol(m, m.tr, 1) + '</div>' + notes + '</div>';
 }
 
 /* ---------- tabs ---------- */
