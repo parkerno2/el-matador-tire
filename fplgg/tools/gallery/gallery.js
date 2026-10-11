@@ -113,6 +113,8 @@ function collectSrc(rootSel) {
   const taken = index.taken || new Date().toISOString();
   /* the states the data allows: the snapshot's own time always; before kick-off when a deadline has passed by then */
   let mw = []; try { mw = JSON.parse(fs.readFileSync(path.join(demo, 'data', 'matchweeks.json'), 'utf8')).rows || []; } catch (e) { }
+  let teamOnDisk = ''; try { const st = JSON.parse(fs.readFileSync(path.join(demo, 'data', 'standings.json'), 'utf8')).rows || []; teamOnDisk = (st[0] && st[0].Team) || ''; } catch (e) { }
+  if (!teamOnDisk) { console.error('no team in ' + path.join(demo, 'data', 'standings.json')); process.exit(2); }
   const passed = mw.map(r => Date.parse(r['Deadline (UTC)'])).filter(d => d && d <= Date.parse(taken)).sort((a, b) => b - a);
   const deadline = passed[0] ? new Date(passed[0]).toISOString() : '';
   const STATES = { snap: { at: taken, label: 'At the snapshot (' + taken.slice(0, 16).replace('T', ' ') + ' UTC)' } };
@@ -134,7 +136,13 @@ function collectSrc(rootSel) {
     console.log(bname + ' ' + (browser.version ? browser.version() : ''));
     for (const st of states) {
       const S = STATES[st];
-      const page = await browser.newPage({ viewport: { width, height: 844 }, deviceScaleFactor: 1 });
+      /* the followed team is written before the page's first script runs (an init script on the context), so both browsers
+         load the followed state once, with no reload: a hash change alone is a same-document navigation in Chromium and a
+         reload in WebKit (the Q4 review's finding 2), and a reload after the first load cut WebKit's late fetches short
+         (pageerrors on managers.json, posts.json, show/gw6.json: the Preview run 22). The team is the Standings' first row. */
+      const context = await browser.newContext({ viewport: { width, height: 844 }, deviceScaleFactor: 1 });
+      await context.addInitScript(t => { try { if (t && !localStorage.getItem('emt-myteam')) localStorage.setItem('emt-myteam', t); localStorage.setItem('emt-tm-lview', 'pitch'); } catch (e) { } }, teamOnDisk);
+      const page = await context.newPage();
       const errors = [], ea = [], offsite = [];
       const screenState = { name: 'boot' };
       page.on('console', m => { if (m.type() !== 'error') return; const loc = (m.location() || {}).url || ''; if (/\/show\/gw\d+\.json$/.test(loc)) return; if (/^https?:/.test(loc) && !loc.startsWith(base) && /Failed to load resource/.test(m.text())) { offsite.push(loc.slice(0, 80)); return; } errors.push({ screen: screenState.name, text: (loc ? loc.slice(-50) + ': ' : '') + m.text().slice(0, 160) }); });
@@ -176,13 +184,10 @@ function collectSrc(rootSel) {
 
       /* boot: follow the first team in the table, so My team and the Matchup open on a team */
       try {
-        await page.goto(base, { waitUntil: 'domcontentloaded' }); await settled();
-        const team = await page.evaluate(() => (D.st && D.st[0] && D.st[0].Team) || Object.keys(TEAMS)[0]);
-        await page.evaluate(t => { try { localStorage.setItem('emt-myteam', t); localStorage.setItem('emt-tm-lview', 'pitch'); } catch (e) { } }, team);
-        /* a hash change alone is a same-document navigation in Chromium (no reload, so the page kept the state nobody follows
-           while WebKit reloaded: the Q4 review's finding 2); the reload puts both browsers on the followed team */
-        await page.goto(base + '#/matchday/overview', { waitUntil: 'domcontentloaded' });
-        await page.reload({ waitUntil: 'domcontentloaded' }); await settled();
+        await page.goto(base + '#/matchday/overview', { waitUntil: 'domcontentloaded' }); await settled();
+        const team = await page.evaluate(() => { try { return localStorage.getItem('emt-myteam') || ''; } catch (e) { return ''; } }) || teamOnDisk;
+        const followed = await page.evaluate(() => !!document.querySelector('.md-you, .tm-pk.on') || !/Pick your team to make this page yours/.test(document.body.textContent));
+        if (!followed) find('screen', 'matchday overview', bname, st, 'the page opened in the state nobody follows (the init script did not take)');
         const state = await page.evaluate(() => ({ gw: D.gw, phase: (window.MW && window.MW.UI && window.MW.UI.statePill && window.MW.UI.statePill().replace(/<[^>]+>/g, '')) || '', now: new Date().toISOString() }));
         console.log(' state ' + st + ' (' + S.label + '): page clock ' + state.now + ', GW' + state.gw + ' ' + state.phase + ', following ' + team);
         STATES[st].phase = state.phase; STATES[st].gw = state.gw;
@@ -233,7 +238,7 @@ function collectSrc(rootSel) {
       errors.forEach(e => find('console', e.screen, bname, st, e.text));
       ea.forEach(e => find('ea', e.screen, bname, st, e.url));
       if (offsite.length) console.log('  note: ' + offsite.length + ' third-party image or font requests failed on this network (a crest, flag or font host): ' + [...new Set(offsite.map(u => u.replace(/^https?:\/\/([^/]+).*/, '$1')))].join(', '));
-      await page.close();
+      await context.close();
     }
     await browser.close();
   }

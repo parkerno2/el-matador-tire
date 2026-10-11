@@ -100,8 +100,8 @@ darkest and the lightest part behind it, and the lower ratio counts.
   team, a figure; a secondary line may give way), no word broken across lines (a surname on two lines, the Q4 review of
   11 Oct 2026), zero console errors, no EA asset requested, no em dash and no en dash
   in prose (an en dash inside a figure is BUGS.md #43, noted until Parker decides). Both workflows run it at 390 px and
-  again at 360 px (the preview's `shots/360/`, linked from the shots page), after one reload with the followed team
-  written, so Chromium and WebKit photograph the same state. Runs in CI on the preview build and
+  again at 360 px (the preview's `shots/360/`, linked from the shots page), with the followed team written before the
+  page's first script runs, so Chromium and WebKit photograph the same state. Runs in CI on the preview build and
   the league build, after the contrast audit, and fails the run with a readable list on any finding. The preview's
   screens are committed beside it as `preview/shots/` (https://parkerno2.github.io/el-matador-tire/preview/shots/, every
   screen in order, the browsers side by side, the findings on top), so a change is reviewed by scrolling one page; the

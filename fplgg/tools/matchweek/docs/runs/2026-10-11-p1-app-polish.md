@@ -30,9 +30,12 @@ REVIEW MODE pass and his word. Screenshots in `2026-10-11-p1-polish/`.
   runner's wider fonts; Gibbs-White and J.Rak-Sakyi may break at their hyphen, which is a word boundary. The gallery
   now fails **a word broken across lines** as a finding kind of its own (`fplgg/tools/gallery/gallery.js`: an element
   whose own text is one word drawn on more than one line box; `lib.js` names it in the list).
-- **The gallery's first screen** (`gallery.js`): after writing the followed team to localStorage the walker reloads the
-  page, because a hash change alone is a same-document navigation in Chromium and a reload in WebKit; both browsers now
-  photograph the followed team.
+- **The gallery's first screen** (`gallery.js`): the followed team (the Standings' first row, read from the demo's
+  `standings.json`) is written by an init script on the browser context before the page's first script runs, so both
+  browsers load the followed state once. The first push did it with a reload after the first load, and the Preview run
+  22 was red on it: WebKit reported the fetches the reload cut short (managers.json, posts.json, show/gw6.json, "due
+  to access control checks") as page errors, nine findings. A page that still opens in the state nobody follows is now a
+  finding of its own.
 - **The 360 px cuts** (BUGS.md #44, closed on the branch): the search row's name wraps to two lines with its status
   chip on the line under it (`src/sheets/search.js`, `60-sheets.css` `.sr-m b`, `.sr-m2`), the League > Stats leader
   line wraps (`40-league.css` `.lg-mt .tx span`), the Feed's auto-pick panel team name takes two lines (`50-feed.css`
