@@ -245,8 +245,14 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:tex
    card art and the photo behind it. The rating and position sit on a backing box (light on gold and silver, dark on
    the dark tiers); the projection bubble is solid, not a wash over the photo; the arrows, the position and the
    initials take a colour per tier. The tiers' own art (00-plate.gen.css, generated) is untouched. */
-.fc .rt{background:var(--rtb);border-radius:2.6cqw;padding:6% 3.5% 1.6%;margin:-6% -3.5% -1.6%}   /* the backing reaches the top of the figure's glyph box (the numeric font's ascent runs about 5% of the card above the .9 line box; the audit read the art there on the dark tiers, 4.3:1) */
+.fc .rt{padding:2.5% 3.5% 1.6%;margin:-2.5% -3.5% -1.6%}
+/* the rating's backing (Parker, 11 Oct 2026: "what's this weird artifact by the rating area"): it reached above the card's
+   top edge and its square corner stuck out past the card's cut corner. It now starts just inside the card's inner keyline
+   and its top left corner is cut parallel to the card's, while it still covers the part of the figure the contrast audit
+   reads (the middle 70% of the "88" glyph box, from 8.2 cqw down; the backing starts at 7.3 cqw) */
+.fc .rt::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--rtb);border-radius:2.6cqw;clip-path:polygon(4.6cqw 0,100% 0,100% 100%,0 100%,0 4.6cqw)}
 .fc .rt span{color:var(--sub)}
+.fc .face img{filter:none}   /* no drop shadow on the photos (Parker, 11 Oct 2026, iPhone: photos disappearing on scroll): a filtered image is a layer of its own on iOS, and a pitch carries thirty of them */
 .fc .rt .fdar{text-shadow:none}
 .fc .rt .fdar.up{color:var(--up)} .fc .rt .fdar.dn{color:var(--dn)}
 .fc .pts{padding:4% 7.5% 3.5%}   /* room between the figure and the bubble's edge (a live bubble wears a green border) */
@@ -2866,6 +2872,7 @@ html.gs-on{overflow:hidden}
 .sk-cb{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;background:#fff;overflow:hidden;vertical-align:middle}
 .sk-cb em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 1em/1 var(--f-ui);font-style:normal;color:var(--base);letter-spacing:-.02em}
 .sk-cb img{position:relative;display:block;width:auto;max-width:76%;object-fit:contain;background:#fff}
+.sk-cb.im em{visibility:hidden}   /* the code only stands in for a missing badge (Parker, 11 Oct 2026: its letters poked out beside the crest) */
 .sk-pc{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:30px;height:28px;padding:0 6px;border-radius:8px;font:700 17px/1 var(--f-num)}
 /* points chips (Parker, 10 Oct 2026): green 6 or more, amber 3 to 5, red 0 to 2, grey for no minutes */
 .sk-pc.p3{background:var(--win);color:var(--base)}
@@ -2889,6 +2896,7 @@ html.gs-on{overflow:hidden}
 .ps-hero{position:relative;margin-top:-17px;height:448px;overflow:hidden;
   background:radial-gradient(ellipse 80% 60% at 50% 38%,color-mix(in oklab,var(--b700) 48%,var(--p900)) 0%,color-mix(in oklab,var(--p900) 55%,var(--base)) 45%,var(--base) 100%)}
 .ps-beam{position:absolute;left:50%;top:-60px;width:520px;height:420px;transform:translateX(-50%);pointer-events:none;
+  -webkit-mask-image:linear-gradient(#000 62%,transparent);mask-image:linear-gradient(#000 62%,transparent);   /* the light fades out instead of ending in a hard line beside the card (11 Oct 2026) */
   background:conic-gradient(from 160deg at 50% 0%,transparent 0deg,rgba(122,149,255,.18) 14deg,transparent 26deg,transparent 334deg,rgba(122,149,255,.18) 346deg,transparent 360deg)}
 .ps-floor{position:absolute;left:50%;bottom:44px;width:250px;height:32px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55) 0%,transparent 70%);pointer-events:none}
 .ps-top{position:relative;display:flex;align-items:center;padding:12px 56px 0 12px;min-height:46px}
