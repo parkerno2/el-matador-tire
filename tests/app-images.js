@@ -7,10 +7,12 @@
 //  2. The Plate photos carry no CSS filter (a filtered image is a compositing layer of its own on iOS) and the sheet's
 //     big Plate decodes its photo before it paints.
 //  3. The club circle (sheets/kit.js cb) shows the club code only when there is no badge or it fails to load.
-//  4. The rating's backing starts inside the card's inner keyline, its top left corner cut parallel to the card's, and
-//     still covers the part of the figure the contrast audit reads; the light beam behind the sheet's Plate fades out.
+//  4. The rating sits on the card with no box behind it (Parker, later the same day: "I don't know if I really want that
+//     box above the rating. It's super unnecessary"); on the four dark tiers the card's top left corner is shaded instead,
+//     and the band of the figure the contrast audit reads lies in the shade's solid part; the light beam behind the
+//     sheet's Plate fades out.
 // Plain Node: the functions run in a vm on small fakes, the CSS is read as source. The browser half (Chromium at
-// iPhone size on the built demo: a refresh keeps every picture, the codes hidden, the backing's geometry) is
+// iPhone size on the built demo: a refresh keeps every picture, the codes hidden, no box behind the rating) is
 // fplgg/tools/matchweek/tools/check-images.js, not in the gate.   node tests/app-images.js
 const fs = require('fs'), vm = require('vm');
 let fails = 0;
@@ -80,17 +82,22 @@ const ectx = { __img: img }; vm.createContext(ectx); vm.runInContext('(function(
 check('a badge that fails to load hides itself and shows the code', img.style.display === 'none' && !cls.has('im'), h);
 check('the CSS hides the code inside a circle marked im', /\.sk-cb\.im em\{visibility:hidden\}/.test(SHEETS));
 
-console.log('--- 4. the rating backing inside the card, the beam fading out');
-/* card units: width 100 cqw, height 140 cqw (150 by 210). The rating box sits at top 7% of the height (9.8 cqw), left 12% */
-const rt = /\.fc \.rt\{padding:([\d.]+)% ([\d.]+)% ([\d.]+)%;margin:-([\d.]+)% -([\d.]+)% -([\d.]+)%\}/.exec(COMP);
-check('the rating box keeps its padding and margin in step', !!rt && rt[1] === rt[4] && rt[2] === rt[5] && rt[3] === rt[6], rt && rt[0]);
-const top = 9.8 - (rt ? +rt[1] : 0), left = 12 - (rt ? +rt[2] : 0);
-const KEY_TOP = (105 - 99 * .965) / 210 * 140;   /* the inner keyline: the plate path scaled .965 about its centre */
-check('the backing starts below the card\'s inner keyline (' + top.toFixed(2) + ' cqw against ' + KEY_TOP.toFixed(2) + ')', top > KEY_TOP + .5);
-check('and above the band of the figure the contrast audit reads (from 8.2 cqw with the real font)', top <= 7.9);
-const cut = /\.fc \.rt::before\{[^}]*background:var\(--rtb\)[^}]*clip-path:polygon\(([\d.]+)cqw 0,100% 0,100% 100%,0 100%,0 ([\d.]+)cqw\)/.exec(COMP);
-check('the backing is a ::before with its top left corner cut', !!cut && cut[1] === cut[2] && !/\.fc \.rt\{background:/.test(COMP));
-check('the cut keeps the corner inside the keyline\'s own cut corner', !!cut && left + top + +cut[1] > 19.7, cut && (left + top + +cut[1]).toFixed(2));
+console.log('--- 4. no box behind the rating; the dark tiers shade the card\'s corner; the beam fades out');
+check('the rating has no box: no background, padding or ::before on .fc .rt', !/\.fc \.rt\{[^}]*(background|padding)/.test(COMP) && !/\.fc \.rt::before/.test(COMP));
+const sh = /\.fc\.spec::before,\.fc\.elite::before,\.fc\.totw::before,\.fc\.potm::before\{[^}]*z-index:1;[^}]*background:radial-gradient\(ellipse ([\d.]+)% ([\d.]+)% at ([\d.]+)% ([\d.]+)%,rgba\(8,6,12,\.62\) ([\d.]+)%,rgba\(8,6,12,0\) 100%\);[^}]*clip-path:polygon\(([^)]*)\)\}/.exec(COMP);
+check('the four dark tiers carry a corner shade under the photo (z-index 1) clipped to the card, the same darkness the box had', !!sh);
+check('gold and silver carry no shade', !/\.fc\.(gold|silver)::before/.test(COMP));
+/* the figure's band in % of the card (Saira Condensed, measured on the sheet's Plate): x 12 to 27% of the width, y 5.86 to
+   24.3% of the height (8.2 to 34 cqw); every corner must lie in the shade's solid part and inside its clip */
+if (sh) {
+  const [rx, ry, cx, cy, solid] = sh.slice(1, 6).map(Number);
+  const corners = [[12, 5.86], [27, 5.86], [12, 24.3], [27, 24.3]];
+  const d = ([x, y]) => Math.hypot((x - cx) / rx, (y - cy) / ry);
+  check('the figure\'s band lies in the shade\'s solid part (' + corners.map(c => d(c).toFixed(2)).join(', ') + ' of ' + (solid / 100) + ')', corners.every(c => d(c) < solid / 100));
+  const poly = sh[6].split(',').map(s => s.trim().split(/\s+/).map(v => parseFloat(v)));
+  const inside = ([x, y]) => { let c = false; for (let i = 0, k = poly.length - 1; i < poly.length; k = i++) { const [xi, yi] = poly[i], [xk, yk] = poly[k]; if ((yi > y) !== (yk > y) && x < (xk - xi) * (y - yi) / (yk - yi) + xi) c = !c; } return c; };
+  check('the clip keeps the shade inside the card\'s inner keyline and still holds the band (its top right corner and below)', poly.length === 8 && poly[0][1] > (105 - 99 * .965) / 210 * 100 && inside([27, 5.86]) && inside([12, 24.3]));
+}
 check('the light beam behind the sheet\'s Plate fades out instead of ending in a line', /\.ps-beam\{[^}]*mask-image:linear-gradient\(#000 62%,transparent\)/.test(SHEETS));
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASS');

@@ -2,8 +2,8 @@
    gameweek: photos disappearing on refresh and scroll, the rating backing's corner, the club code poking out beside the
    badge). Opens a built app (the demo at /tmp/mw-demo by default, as the contrast audit builds it) in headless Chromium
    at iPhone size, opens a player sheet and checks: every club circle with a loaded badge hides its code; the sheet's
-   Plate photo decodes synchronously and carries no filter; the rating backing starts inside the card's inner keyline
-   (6.31 cqw); a data refresh (MW.reload) keeps every loaded picture on the page and in the sheet as the same element,
+   Plate photo decodes synchronously and carries no filter; no box sits behind the rating, and a dark-tier card shades
+   its top left corner instead; a data refresh (MW.reload) keeps every loaded picture on the page and in the sheet as the same element,
    so nothing is fetched or decoded again; no page error. --stub-images serves a stand-in PNG for the PL, flag and
    favicon hosts (for a network that cannot reach them).
        NODE_PATH=/opt/node22/lib/node_modules node fplgg/tools/preview/check-images.js [--dir /tmp/mw-demo] [--path /demo/] [--width 402] [--stub-images] [--shot FILE]
@@ -46,13 +46,15 @@ function serve() {
     window.__app = [...document.querySelectorAll('#app img')].filter(i => i.complete && i.naturalWidth);
     const sh = document.querySelector('.sheet'); window.__sheet = [...sh.querySelectorAll('img')].filter(i => i.complete && i.naturalWidth);
     const circles = [...sh.querySelectorAll('.sk-cb')].map(c => { const i = c.querySelector('img'); return { code: c.querySelector('em').textContent, loaded: !!(i && i.complete && i.naturalWidth && i.style.display !== 'none'), shown: getComputedStyle(c.querySelector('em')).visibility === 'visible' }; });
-    const face = sh.querySelector('.ps-plate .face img'), fc = sh.querySelector('.ps-plate .fc'), R = fc.getBoundingClientRect(), q = fc.querySelector('.rt').getBoundingClientRect();
-    return { circles, decoding: face && face.getAttribute('decoding'), filter: face && getComputedStyle(face).filter, rtTop: (q.top - R.top) / (R.width / 100), app: window.__app.length, sheet: window.__sheet.length };
+    const face = sh.querySelector('.ps-plate .face img'), fc = sh.querySelector('.ps-plate .fc'), rt = fc.querySelector('.rt');
+    const box = getComputedStyle(rt, '::before').content !== 'none' || getComputedStyle(rt).backgroundColor !== 'rgba(0, 0, 0, 0)';
+    const dark = /\b(spec|elite|totw|potm)\b/.test(fc.className), shade = /radial-gradient/.test(getComputedStyle(fc, '::before').backgroundImage);
+    return { circles, decoding: face && face.getAttribute('decoding'), filter: face && getComputedStyle(face).filter, box, dark, shade, tier: fc.className, app: window.__app.length, sheet: window.__sheet.length };
   });
   const bad = s.circles.filter(c => c.loaded === c.shown);
   check(s.circles.length + ' club circles: the code hidden behind a loaded badge and shown without one', s.circles.length > 0 && !bad.length, JSON.stringify(bad.slice(0, 3)));
   check('the sheet\'s Plate photo decodes synchronously, with no filter', s.decoding === 'sync' && s.filter === 'none', s.decoding + ' ' + s.filter);
-  check('the rating backing starts inside the card\'s inner keyline (' + s.rtTop.toFixed(2) + ' cqw, keyline 6.31)', s.rtTop > 6.81 && s.rtTop <= 7.9);
+  check('no box behind the rating; the corner shade on a dark tier only (' + s.tier + ')', !s.box && s.shade === s.dark);
   if (shot) await page.screenshot({ path: shot });
   await page.evaluate(() => MW.reload(true)); await page.waitForTimeout(3000);
   const r = await page.evaluate(() => {

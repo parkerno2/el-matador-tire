@@ -44,3 +44,14 @@ Take a look please"
 ## Not certain
 The disappearing photos are an iPhone symptom this cloud cannot reproduce (no WebKit on iOS here). The refresh no longer
 replaces any picture, and the two iOS layer costs are gone; Parker's phone is the final check.
+
+## Follow-up the same afternoon: no box behind the rating
+Parker, on the preview: "I don't know if I really want that box above the rating. It's super unnecessary."
+- The box is gone on every tier: `.fc .rt` has no background, padding or ::before.
+- Gold and silver figures read 7:1 on the card as they are. Without the box the audit failed 17 texts, all on the four
+  dark tiers, whose fills are mid tones (elite: cyan 4.3:1; even white is 6.4:1).
+- Those four tiers shade the card's top left corner instead: `.fc.spec::before` and the other three, a soft radial
+  shade at the box's old darkness, clipped inside the inner keyline, under the photo and the figures, with no edges.
+  The figure's audited band lies in its solid part (`tests/app-images.js` computes it).
+- Checked: every suite ALL PASS; the contrast audit with the real fonts 0 offenders on 42 screens; `check-images.js`
+  ALL PASS; the six tiers rendered side by side with and without the box and looked at.
