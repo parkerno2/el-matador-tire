@@ -206,7 +206,7 @@ function collectSrc(rootSel) {
           await scan('team overview');
           await go('#/team/lineup'); await tap('[data-lview="pitch"]'); await scan('team lineup pitch');
           await tap('[data-lview="list"]'); await scan('team lineup list'); await tap('[data-lview="pitch"]');
-          for (const s of ['squad', 'transfers', 'fixtures', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
+          for (const s of ['squad', 'transfers', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
           for (const s of ['overview', 'results', 'money', 'derbies', 'stats', 'alltime']) { await go('#/league/' + s); await scan('league ' + s); }
           for (const s of ['league', 'foryou', 'articles', 'messages']) { await go('#/feed/' + s); await scan('feed ' + s); }
         }

@@ -1,4 +1,6 @@
-/* My team: your club. Overview (club header, To do from Jive, this gameweek), Lineup, Squad, Transfers, Fixtures, Season. */
+/* My team: your club. Overview (club header, To do from Jive, this gameweek), Lineup, Squad, Transfers, Season.
+   Season opens with what is next (your clubs' next five, the next four matchups: the old Fixtures tab, folded in on
+   11 Oct 2026 so the five tabs fit the phone) and then the season so far. #/team/fixtures still lands on Season. */
 import * as UI from '../ui.js';
 import { frame, plateDefs, simCached, simRun, safe } from './team/bits.js';
 import { clubHead, compactHead } from './team/head.js';
@@ -10,10 +12,10 @@ import { fixturesPage, FIX } from './team/fixtures.js';
 import { seasonPage, SEL } from './team/season.js';
 import { pickerPage } from './team/picker.js';
 
-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'lineup', label: 'Lineup' }, { id: 'squad', label: 'Squad' }, { id: 'transfers', label: 'Transfers' }, { id: 'fixtures', label: 'Fixtures' }, { id: 'season', label: 'Season' }];
+const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'lineup', label: 'Lineup' }, { id: 'squad', label: 'Squad' }, { id: 'transfers', label: 'Transfers' }, { id: 'season', label: 'Season' }];
 const PAGES = {
   overview: t => todoBlock(t) + gwBlock(t) + switchLine(t),
-  lineup: lineupPage, squad: squadPage, transfers: transfersPage, fixtures: fixturesPage, season: seasonPage,
+  lineup: lineupPage, squad: squadPage, transfers: transfersPage, season: t => fixturesPage(t) + seasonPage(t),
 };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
 const rerender = () => window.MW && window.MW.render({ keepScroll: true });
@@ -70,6 +72,7 @@ function bind(root) {
 export default {
   title: 'My team',
   subs: SUBS,
+  alias: { fixtures: 'season' },
   render(sub, args) {
     const team = UI.you();
     if (!team) return pickerPage();

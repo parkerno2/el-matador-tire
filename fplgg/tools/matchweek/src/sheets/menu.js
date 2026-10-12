@@ -82,7 +82,7 @@ function howView() {
     + '</div>'
     + UI.sh('The money', { aside: money(POT) }) + '<div class="card mn-ps">' + para('Prizes', moneyRows()) + '</div>'
     + UI.sh('League rules') + '<div class="card mn-ps">'
-    + para('Format', '<p>Head to head over 38 gameweeks: 3 points for a win, 1 for a draw. Points for breaks ties. Waivers are open all season, with no transfer or injury restrictions.</p>')
+    + para('Format', '<p>Head to head over 38 gameweeks: 3 points for a win, 1 for a draw. Points for breaks ties. Waivers are open all season, with no transfer or injury restrictions. Claims go in on FPL Draft and run before each deadline, lowest in the table first; after the run, free agents are instant pickups until the deadline.</p>')
     + para('The data', '<p>Scores and lineups come from the FPL Draft API on a rolling refresh. The app re-reads them whenever you open it, every 5 minutes, and every 90 seconds during games.</p>')
     + para('Privacy', '<p>No ads, no analytics. This phone remembers the team you follow and, if you signed in, your sign-in. A claimed team’s colours, crest, photo and display name are saved to the league’s Google Sheet, which anyone with the link can view. PINs are kept only as hashes on the league’s server.</p>')
     + '</div></div>';

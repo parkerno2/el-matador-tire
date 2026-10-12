@@ -356,19 +356,25 @@ export function mwMark(h = 22) {
     + '<path d="M16 8 H498 L556 66 V136 L548 144 H16 L8 136 V16 Z" fill="url(#mwI' + i + ')" stroke="url(#mwE' + i + ')" stroke-width="7"/>'
     + '<text x="270" y="99" text-anchor="middle" textLength="440" lengthAdjust="spacingAndGlyphs" style="font:900 62px Archivo,sans-serif;font-stretch:112%"><tspan fill="#FFD23F">MATCH</tspan><tspan fill="#FFFFFF">WEEK</tspan></text></svg>';
 }
+/* the page's one top row (Parker, 11 Oct 2026, "All" to the UI cleanup: the Matchweek plate row and the page title
+   row were two rows, a fifth of the phone before any content): the page title, then the state pill, search and your
+   crest. A page whose head carries its own hero passes it as body, under the row; its title in the row is then not the
+   page's h1 (the hero's name is). */
 export function appbar(opt = {}) {
   const me = you();
-  const m = week().mode;
+  const m = week().mode, tag = opt.hero ? 'div' : 'h1';
   return '<div class="abar' + (m === 'prov' || m === 'locked' ? ' wp' : '') + '">'
-    + '<a class="lg" href="#/matchday" aria-label="Matchweek · El Matador Tire">' + mwMark(22) + '<b>El Matador Tire</b></a>'
+    + '<div class="pt">' + (opt.lead || '') + '<' + tag + ' class="pt-t">' + esc(opt.title || '') + '</' + tag + '></div>'
     + '<span class="sp">' + statePill() + '</span>'
     + '<button class="ib" data-open="search" aria-label="Search players">' + icon('search', 16, 'var(--tx2)', 2.2) + '</button>'
     + '<button class="me" data-open="menu" aria-label="' + (me ? esc(me) + ', settings' : 'Settings') + '">' + (me ? crest(me, 32) : '<span class="ib">' + icon('gear', 16, 'var(--tx2)') + '</span>') + '</button>'
     + '</div>';
 }
+/* opt: bg (the head's background), under (decoration behind the row), lead (a crest before the title), body (a hero
+   or a back link under the row) */
 export function pageHead(title, opt = {}) {
-  return '<header class="phead"' + (opt.bg ? ' style="background:' + opt.bg + '"' : '') + '>' + (opt.under || '') + appbar()
-    + (opt.body || '<div class="ttl"><h1>' + esc(title) + '</h1>' + (opt.aside ? '<span class="aside">' + opt.aside + '</span>' : '') + '</div>')
+  return '<header class="phead"' + (opt.bg ? ' style="background:' + opt.bg + '"' : '') + '>' + (opt.under || '')
+    + appbar({ title, lead: opt.lead, hero: /<h1[\s>]/.test(opt.body || '') }) + (opt.body || '')
     + '</header>';
 }
 export function pills(items) {
