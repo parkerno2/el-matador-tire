@@ -28,7 +28,7 @@ export function tableBlock() {
   const ready = oddsReady(), od = ready ? odds() : null;
   const maxT = od ? Math.max(1, ...rows.map(r => od.title[r.team] || 0)) : 1;
   const after = w.basis ? 'After gameweek ' + w.basis + ' of 38' : 'Before gameweek 1 of 38';
-  const tag = w.prov ? '<span class="lg-tag prov">Provisional</span>' : w.live ? '<span class="lg-tag live"><i></i>GW' + D.gw + ' live</span>' : '';
+  const tag = w.prov ? '<span class="lg-tag prov">Provisional</span>' : '';   /* live: the pill at the top says it, once (11 Oct 2026) */
   let h = '<section class="lg-hero lg-tbl" aria-labelledby="lg-tbl-h">'
     + '<div class="lg-tbl-hd"><div class="l"><h2 id="lg-tbl-h" class="wide">The table</h2><span>' + after + '</span>' + tag + '</div>'
     + '<div class="r"><b class="n">' + esc(sum.big) + '</b><span>' + esc(sum.sub) + '</span></div></div>'

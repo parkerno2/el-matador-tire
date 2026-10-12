@@ -1,6 +1,6 @@
 /* League › Results: scores by gameweek, every gameweek's four results, season records. */
 import * as UI from '../../ui.js';
-import { table, grid, resultGws, scoreOf, records, wk } from './data.js';
+import { table, grid, resultGws, scoreOf, records } from './data.js';
 import { tap } from './overview.js';
 
 const esc = UI.esc;
@@ -13,7 +13,7 @@ const RES = { w: 'Won', d: 'Drew', l: 'Lost' };
 const nm2 = t => '<span class="t"><span class="full">' + esc(t) + '</span><span class="shrt">' + esc(UI.short(t)) + '</span></span>';
 
 function gridCard() {
-  const G = grid(), rows = table(), me = UI.you(), w = wk();
+  const G = grid(), rows = table(), me = UI.you();
   if (!G.gws.length) return '';
   const head = '<tr><th class="tm" scope="col">Team</th>' + G.gws.map(({ g, live, prov }) => '<th scope="col" class="' + (live ? (prov ? 'pv' : 'lv') : '') + '">' + (live ? '<em>' + (prov ? 'FT' : 'LIVE') + '</em>' : '') + 'GW' + g + '</th>').join('') + '<th scope="col" class="pf">PF</th><th scope="col" class="pf pa">PA</th></tr>';
   const body = rows.map(r => {
@@ -28,11 +28,9 @@ function gridCard() {
     }).join('');
     return '<tr class="' + (t === me ? 'you' : '') + '"><th scope="row" class="tm"' + tap(t, t + ', open the team') + '>' + UI.crest(t, 18) + '<span>' + esc(UI.short(t)) + '</span></th>' + tds + '<td class="pf n">' + r.pf + '</td><td class="pf pa n">' + r.pa + '</td></tr>';
   }).join('');
-  const lv = G.gws.find(x => x.live);
-  return UI.sh('Scores by gameweek', { aside: G.gws.filter(x => !x.live).length + ' played' + (lv ? ' · GW' + lv.g + (lv.prov ? ' at full time' : ' live') : '') })
+  return UI.sh('Scores by gameweek', { aside: G.gws.filter(x => !x.live).length + ' played' })
     + '<div class="card lg-grid"><div class="sc" tabindex="0" role="region" aria-label="Scores by gameweek, scrolls sideways"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>'
     + '<div class="lg-legend"><span><i class="fm w">W</i>won</span><span><i class="fm d">D</i>drew</span><span><i class="fm l">L</i>lost</span><span><i class="rg hi"></i>week’s top</span><span><i class="rg lo"></i>week’s lowest</span></div>'
-    + (w.live ? '<div class="foot">GW' + D.gw + ' scores are live and count once the gameweek is over.</div>' : w.prov ? '<div class="foot">GW' + D.gw + ' is provisional until FPL confirms it.</div>' : '')
     + '</div>';
 }
 
@@ -91,8 +89,33 @@ export function results() {
 export function mountResults(root) {
   const sc = root.querySelector('.lg-grid .sc');
   if (sc) {
-    sc.scrollLeft = GRIDX == null ? sc.scrollWidth : GRIDX;
-    sc.addEventListener('scroll', () => { GRIDX = sc.scrollLeft; }, { passive: true });
+    /* the grid opens on the latest gameweeks with a whole column against the team names, never a sliver of one
+       (11 Oct 2026: the half-hidden cells showed stray W and L letters beside the names): the last column gets just
+       enough room after it that the far end lines a column up with the names, so the latest weeks, PF and PA all show
+       whole */
+    const align = () => {
+      if (!sc.isConnected) return;
+      const tm = sc.querySelector('tbody .tm'), lasts = sc.querySelectorAll('tr > :last-child');
+      if (!tm) return;
+      lasts.forEach(c => { c.style.paddingRight = ''; });
+      const keep = GRIDX;
+      sc.scrollLeft = sc.scrollWidth;
+      const edge = tm.getBoundingClientRect().right, tds = [...tm.parentNode.querySelectorAll('td')];
+      /* a column's minimum width can swallow part of the added room, so measure again until nothing is cut */
+      for (let i = 0; i < 4; i++) {
+        sc.scrollLeft = sc.scrollWidth;
+        const cut = tds.find(td => { const r = td.getBoundingClientRect(); return r.left < edge - 1 && r.right > edge + 1; });
+        if (!cut) break;
+        const add = Math.ceil(cut.getBoundingClientRect().right - edge);
+        lasts.forEach(c => { c.style.paddingRight = (parseFloat(getComputedStyle(c).paddingRight) + add) + 'px'; });
+      }
+      sc.scrollLeft = keep == null ? sc.scrollWidth : keep;
+    };
+    /* measured now, on the next frame and once the fonts are in (the names' width moves the edge) */
+    align(); requestAnimationFrame(align);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
+    /* a position at the far end means "follow the latest weeks", not a fixed offset */
+    sc.addEventListener('scroll', () => { GRIDX = sc.scrollLeft >= sc.scrollWidth - sc.clientWidth - 2 ? null : sc.scrollLeft; }, { passive: true });
   }
   root.querySelectorAll('details.lg-gw').forEach(d => {
     d.addEventListener('toggle', () => { const g = +d.dataset.gw; if (d.open) OPEN.add(g); else OPEN.delete(g); });

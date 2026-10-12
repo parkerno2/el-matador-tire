@@ -8,7 +8,7 @@ import { derbiesPage } from './league/derbies.js';
 import { statsPage, mountStats } from './league/stats.js';
 import { alltimePage, mountAlltime } from './league/alltime.js';
 
-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'results', label: 'Results' }, { id: 'money', label: 'Money' }, { id: 'derbies', label: 'Derbies' }, { id: 'stats', label: 'Stats' }, { id: 'alltime', label: 'All-time' }];
+const SUBS = [{ id: 'overview', label: 'Table' }, { id: 'results', label: 'Results' }, { id: 'money', label: 'Money' }, { id: 'derbies', label: 'Derbies' }, { id: 'stats', label: 'Stats' }, { id: 'alltime', label: 'All-time' }];
 const NEEDS_ODDS = { overview: 1, money: 1 };
 
 function season() {
@@ -18,17 +18,15 @@ function season() {
 }
 /* sub-pages use the compact title row, like My team's: the league identity is the Overview's alone */
 function compactHead() {
-  const live = !!D.liveNow, prov = !!D.provOver, cur = live || prov;
-  const aside = 'GW' + (cur ? D.gw : D.gwsDone) + ' of 38' + (live ? ' · live' : prov ? ' · full time' : '');
-  return UI.pageHead('League', { bg: 'linear-gradient(180deg,var(--p900) 0%,#1A0B24 70%,var(--base) 100%)', body: '<div class="ttl lg-ttl">' + UI.leagueCrest(32) + '<h1>League</h1><span class="aside">' + UI.esc(aside) + '</span></div>' });
+  return UI.pageHead('League', { bg: 'linear-gradient(180deg,var(--p900) 0%,#1A0B24 70%,var(--base) 100%)', lead: UI.leagueCrest(28) });
 }
 function head() {
   const md = UI.week().mode, done = D.gwsDone, live = md === 'live', prov = md === 'prov', cur = live || prov;
   const label = 'GW' + (cur ? D.gw : done) + ' of 38';
   const bar = '<div class="lg-prog"><div class="bar" role="img" aria-label="' + done + ' of 38 gameweeks played' + (cur ? ', gameweek ' + D.gw + (live ? ' live' : ' at full time') : '') + '"><i style="width:' + (done / 38 * 100).toFixed(2) + '%"></i>'
-    + (cur ? '<i class="cur' + (live ? ' live' : '') + '" style="left:' + (done / 38 * 100).toFixed(2) + '%;width:' + (100 / 38).toFixed(2) + '%"></i>' : '') + '</div>'
-    + '<span class="n">' + label + (live ? ' <em class="live-c">LIVE</em>' : prov ? ' <em>FT</em>' : '') + '</span></div>';
-  const body = '<div class="lg-id">' + UI.leagueCrest(54) + '<div class="tx"><span class="k">League</span><h1 class="wide">El Matador Tire</h1>'
+    + (cur ? '<i class="cur" style="left:' + (done / 38 * 100).toFixed(2) + '%;width:' + (100 / 38).toFixed(2) + '%"></i>' : '') + '</div>'
+    + '<span class="n">' + label + '</span></div>';
+  const body = '<div class="lg-id">' + UI.leagueCrest(54) + '<div class="tx"><h1 class="wide">El Matador Tire</h1>'
     + '<span class="meta">' + season() + ' · ' + Object.keys(TEAMS).length + ' managers · ' + money(POT) + ' pool</span></div></div>' + bar;
   const wm = '<i class="lg-wm" aria-hidden="true">' + UI.leagueCrest(220) + '</i>';
   return UI.pageHead('League', { body, under: wm, bg: 'linear-gradient(180deg,var(--p900) 0%,#1A0B24 60%,var(--base) 100%)' });

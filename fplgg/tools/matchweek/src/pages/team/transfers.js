@@ -86,20 +86,20 @@ function claimText() {
     const next = W.gw !== D.gw;   /* the gameweek is under way: claims made now wait for next week's run */
     return {
       head: (next ? 'GW' + W.gw + ' waivers' : 'Waivers') + ' close ' + UI.soonWhen(W.wv),
-      sub: (next ? 'Claims made on FPL Draft now wait for that run, lowest in the table first'
-        : dlText(W.wv).replace(/^./, c => c.toUpperCase()) + '. Claims go in on FPL Draft, lowest in the table first' + (W.pick ? ': you’re ' + ord(W.pick) + ' in the order' : ''))
-        + '. After the run, free agents are instant pickups until the ' + (next ? 'GW' + W.gw + ' ' : '') + 'deadline.',
+      /* the state and its times only, no how-to (11 Oct 2026; the rules are on How it works) */
+      sub: next ? 'Claims made now wait for that run.'
+        : dlText(W.wv).replace(/^./, c => c.toUpperCase()) + (W.pick ? '. You’re ' + ord(W.pick) + ' in the order.' : '.'),
     };
   }
-  if (W && W.phase === 'free') return { head: 'Free agency is open', sub: 'Waivers have run. Free agents are instant pickups on FPL Draft until the deadline, ' + UI.soonWhen(W.dl) + ' (' + dlText(W.dl) + ').' };
-  return { head: 'Claims are made in FPL Draft', sub: 'Waivers and free-agent pickups go through the FPL Draft app or site. This page helps you choose.' };
+  if (W && W.phase === 'free') return { head: 'Free agency is open', sub: 'Until the deadline, ' + UI.soonWhen(W.dl) + ' (' + dlText(W.dl) + ').' };
+  return { head: 'Claims are made in FPL Draft', sub: '' };
 }
 export function transfersPage(team) {
   const seg = (attr, cur, items, lab) => '<span class="seg" role="tablist" aria-label="' + lab + '">' + items.map(([k, l]) => '<button data-' + attr + '="' + k + '" role="tab" aria-selected="' + (cur === k) + '"' + (cur === k ? ' class="on"' : '') + '>' + l + '</button>').join('') + '</span>';
   const C = claimText();
   return '<a class="card tm-claim" href="' + DRAFT + '" target="_blank" rel="noopener">'
     + '<span class="tm-claimi" aria-hidden="true">' + UI.icon('info', 18, 'var(--b300)', 2) + '</span>'
-    + '<span><b>' + esc(C.head) + '</b><span class="sub">' + esc(C.sub) + '</span></span>'
+    + '<span><b>' + esc(C.head) + '</b>' + (C.sub ? '<span class="sub">' + esc(C.sub) + '</span>' : '') + '</span>'
     + '<span class="tm-claimgo">Open ' + chev + '</span></a>'
     + UI.sh('Free agents')
     + '<div class="tm-fa"><label class="tm-search">' + UI.icon('search', 16, 'var(--tx3)', 2.2) + '<input type="search" id="tm-faq" placeholder="Search free agents" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(FA.q) + '" aria-label="Search free agents"></label>'

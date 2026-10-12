@@ -316,7 +316,7 @@ function pressCta(you) {
   const owed = P.replies.filter(r => !r.mine)[0];
   if (P.mine && !owed) return '';
   const tx = owed ? '<b>' + esc((TEAMS[owed.to.team] && TEAMS[owed.to.team].mgr) || owed.to.team) + ' said something.</b> Archizio wants your answer.' : '<b>Archizio wants a quote</b> before ' + esc(P.nm || 'GW' + P.g) + '. Everyone sees it.';
-  return '<a class="fcta" href="#/feed/messages/archizio">' + avatar('archizio', 36) + '<span>' + tx + '</span><em class="ftag ftag-press">PRESS</em></a>';
+  return '<a class="fcta" href="#/feed/messages/archizio">' + avatar('archizio', 36) + '<span>' + tx + '</span><em class="fcta-go">Press</em></a>';
 }
 
 /* ---------- the page ---------- */
