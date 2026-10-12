@@ -30,8 +30,9 @@ try { if (!localStorage.getItem('emt-mig-feed1')) { delete LAST.feed; localStora
 export function parse(h = location.hash) {
   const parts = (h || '').replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
   let page = parts[0] && PAGES[parts[0]] ? parts[0] : 'matchday';
-  let sub = parts[1] || '';
   const mod = PAGES[page];
+  /* a sub-page folded into another keeps its old address (#/team/fixtures is now part of Season) */
+  let sub = parts[1] ? (mod.alias && mod.alias[parts[1]]) || parts[1] : '';
   const subs = (mod.subs || []).map(s => s.id);
   if (!sub || !subs.includes(sub)) sub = (!parts[1] && LAST[page] && subs.includes(LAST[page])) ? LAST[page] : subs[0];
   return { page, sub, args: parts.slice(2) };
