@@ -1,5 +1,7 @@
 /* league/chart.js — one clean SVG line chart for the Stats page.
-   Grey for everyone not picked; picked managers in their team colour (you in you-blue), each labelled at its end.
+   Only the picked managers draw, in their comparison colours (you in you-blue), each labelled at its end (11 Oct 2026: the
+   seven grey context lines made one picked line hard to find). The scale still spans every manager, so it holds still
+   as picks change.
    A readout above the plot shows the values at one gameweek (the latest by default); tap or drag to move it. */
 import * as UI from '../../ui.js';
 
@@ -37,12 +39,9 @@ export function lineChart(o) {
     const pts = s.vals.filter(v => xi[v.g] != null).map(v => [px(xi[v.g]), py(v.v), v]);
     return pts;
   };
-  /* grey context first, then the picked lines on top */
-  const order = o.series.slice().sort((a, b) => (a.on ? 1 : 0) - (b.on ? 1 : 0));
-  order.forEach(s => {
+  o.series.filter(s => s.on).forEach(s => {
     const p = path(s); if (!p.length) return;
     const d = p.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('');
-    if (!s.on) { g += p.length > 1 ? '<path d="' + d + '" class="ctx"/>' : '<circle cx="' + p[0][0].toFixed(1) + '" cy="' + p[0][1].toFixed(1) + '" r="2.5" class="ctxd"/>'; return; }
     if (p.length > 1) g += '<path d="' + d + '" class="on" style="stroke:' + s.color + '"/>';
     p.forEach((q, i) => { if (q[2].live || i === p.length - 1 || p.length === 1) g += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="4" class="' + (q[2].live ? 'lvd' : 'dot') + '" style="' + (q[2].live ? 'stroke:' : 'fill:') + s.color + '"/>'; });
   });
