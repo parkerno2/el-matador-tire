@@ -36,7 +36,7 @@ function healthBlock(team) {
   const col = (rows, up) => '<div class="tm-hcol"><span class="tm-hk ' + (up ? 'win-c' : 'loss-c') + '">' + UI.icon('up', 12, 'currentColor', 2.6).replace('<svg', '<svg' + (up ? '' : ' style="transform:rotate(180deg)"')) + (up ? 'Trending up' : 'Trending down') + '</span>'
     + (rows.length ? rows.map(r => '<button class="tm-hr" data-open="player:' + esc(r.p.Code) + '">' + UI.face(r.p, 26) + '<span class="tm-hn"><b class="ell">' + esc(r.p.Player) + '</b><span class="sub n">' + f1(r.l3) + ' a game</span></span><span class="tm-hd n ' + (up ? 'win-c' : 'loss-c') + '">' + sgn(r.d) + '</span></button>').join('')
       : '<span class="sub tm-hnone">Nobody' + (up ? ' above' : ' below') + ' his usual</span>') + '</div>';
-  return UI.sh('Squad health', { aside: H ? 'last ' + H.n + ' GW' + (H.n > 1 ? 's' : '') + ' v his average' : '' })
+  return UI.sh('Squad health')
     + '<div class="card tm-health">' + avail + (H ? '<div class="tm-hcols">' + col(H.up, 1) + col(H.dn, 0) + '</div>' : '<p class="sub tm-hnone pad">Form trends show once two gameweeks are played.</p>') + '</div>';
 }
 
@@ -48,8 +48,10 @@ function sqRow(p, bench) {
     + '<div class="tm-sm"><div class="tm-sn"><b class="ell">' + esc(p.Player) + '</b>' + st + (bench ? '<span class="chip mute">BENCH</span>' : '') + '</div>'
     + '<span class="sub">' + POSN[p.Pos] + ' · ' + esc(p.Club) + ' · <span class="n">' + m + '</span> min</span>'
     + '<div class="tm-sc">' + chips(p, 5, 1) + '</div></div>'
-    + '<div class="tm-ovr"><b class="n">' + o + '</b><span class="' + (fd > 0 ? 'win-c' : fd < 0 ? 'loss-c' : 'muted') + '">' + (fd ? (fd > 0 ? '▲' : '▼') + Math.abs(fd) : 'OVR') + '</span></div>'
-    + '<div class="tm-spt"><b class="n">' + seasonPts(p) + '</b>' + (a ? '<span class="sub"><span class="n">' + f1(a) + '</span> a game</span>' : '<span class="sub">no games</span>') + '</div>'
+    /* two numbers, each labelled (11 Oct 2026: the rating and the points sat side by side in the same big type): the
+       rating small in its box, OVR always under it with the form arrow; the points big, marked pts */
+    + '<div class="tm-ovr"><b class="n">' + o + '</b><span class="k">OVR' + (fd ? ' <i class="' + (fd > 0 ? 'win-c' : 'loss-c') + '">' + (fd > 0 ? '▲' : '▼') + Math.abs(fd) + '</i>' : '') + '</span></div>'
+    + '<div class="tm-spt"><b class="n">' + seasonPts(p) + '<small>pts</small></b>' + (a ? '<span class="sub"><span class="n">' + f1(a) + '</span> a game</span>' : '<span class="sub">no games</span>') + '</div>'
     + '</div>';
 }
 
