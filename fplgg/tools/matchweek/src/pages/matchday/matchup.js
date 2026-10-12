@@ -48,17 +48,18 @@ function token(x, T, mode) {
   const sub = T.subs.find(s => String(s.inn.Code) === x.code);
   /* every player on a small Plate (Parker, 8 Oct 2026) with the one status badge (Parker, 10 Oct 2026: UI.plateStatus; a
      sub outranks a doubt, and a doubt stops mattering once his match has started); the line under the card is only the
-     kick-off, the minute or FT */
+     kick-off or the minute: no FT (Parker, 12 Oct 2026: a finished player's badge already says PTS, and the room goes
+     to bigger cards) */
   const mark = sub ? (sub.kind === 'locked' ? 'in' : 'inl') : '';
   const title = sub ? (sub.kind === 'locked' ? 'On for ' : 'Likely on for ') + sub.out.Player : '';
   const badge = UI.plateStatus(x.p, mark, { title, flag: !x.started, dnp: !!st.dnp });
-  const line = st.t;
-  const label = x.p.Player + ', ' + (b.cls === 'pj' ? 'projected ' + b.txt : b.cls === 'xp' ? 'xP ' + b.txt : b.txt + ' points') + (badge ? ', ' + badge.t : '') + (line ? ', ' + line : '');
+  const line = st.t === 'FT' ? '' : st.t;
+  const label = x.p.Player + ', ' + (b.cls === 'pj' ? 'projected ' + b.txt : b.cls === 'xp' ? 'xP ' + b.txt : b.txt + ' points') + (badge ? ', ' + badge.t : '') + (line ? ', ' + line : st.t ? ', full time' : '');
   /* a double-figure haul turns the bubble gold, a banked blank goes quiet */
   const pv = parseFloat(b.txt), tone = (b.cls === 'bk' || b.cls === 'lv') && pv >= 10 ? 'haul' : b.cls === 'bk' && pv <= 1 ? 'blank' : '';
   return '<span class="md-tk" data-open="player:' + esc(x.code) + '" role="button" tabindex="0" aria-label="' + esc(label) + '"><span class="md-ph">'
     + UI.plateMini(x.p, 64, { noOpen: true, mark, title, flag: !x.started, dnp: !!st.dnp, bubble: { st: b.cls, txt: b.txt, cls: tone, live: x.live } }) + '</span>'
-    + '<span class="md-sl' + (st.live ? ' lv' : '') + '">' + esc(line) + '</span></span>';
+    + (line ? '<span class="md-sl' + (st.live ? ' lv' : '') + '">' + esc(line) + '</span>' : '') + '</span>';
 }
 function half(T, top, mode) {
   const order = top ? ['GKP', 'DEF', 'MID', 'FWD'] : ['FWD', 'MID', 'DEF', 'GKP'];
