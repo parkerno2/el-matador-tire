@@ -9,17 +9,7 @@ import * as PL from './matchday/pl.js';
 import * as Week from './matchday/week.js';
 import { warm as warmFeed } from '../feed/index.js';
 
-const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'matchup', label: 'Matchup' }, { id: 'all', label: 'All matchups' }, { id: 'pl', label: 'Premier League' }, { id: 'week', label: 'Week' }];
-
-function aside() {
-  const ph = M.phase(), g = 'GW' + D.gw;
-  if (ph === 'live') return new Date().toLocaleDateString(undefined, { weekday: 'long' }) + ' · ' + g;
-  if (ph === 'locked') return g + ' · locked';
-  if (ph === 'prov') return g + ' · full time';
-  if (ph === 'ft') return g + ' · final';
-  const dl = M.deadline();
-  return dl ? g + ' · deadline ' + M.tWd(dl) : g;
-}
+const SUBS = [{ id: 'overview', label: 'Overview' }, { id: 'matchup', label: 'Matchup' }, { id: 'all', label: 'All matchups' }, { id: 'pl', label: 'PL' }, { id: 'week', label: 'Week' }];
 
 let TIMER = 0, OBS = null;
 function tick() {
@@ -43,7 +33,7 @@ export default {
       console.error(e);
       body = '<div class="err">Something went wrong drawing this part of Matchday. ' + UI.esc(e.message) + '</div>';
     }
-    return '<div class="md">' + UI.pageHead('Matchday', { aside: UI.esc(aside()) })
+    return '<div class="md">' + UI.pageHead('Matchday')
       + UI.pills(SUBS.map(s => ({ label: s.label, href: '#/matchday/' + s.id, on: s.id === sub })))
       + body + '<div class="md-end"></div></div>';
   },
