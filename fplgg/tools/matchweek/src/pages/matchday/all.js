@@ -50,7 +50,7 @@ export function render() {
   const order = fx.map((f, i) => i).sort((a, b) => (b === yi) - (a === yi) || a - b);
   const ms = order.map(M.mx);
   const ph = M.phase();
-  const lead = { pre: 'Predicted until the deadline' + (M.deadline() ? ', ' + M.tFull(M.deadline()) : '') + '.', locked: '', live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
+  const lead = { pre: '', locked: '',   /* pre: every card says PREDICTED (11 Oct 2026) */ live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
   return UI.sh('Gameweek ' + D.gw, { aside: ms.length + ' matchups' }) + (lead ? '<p class="md-cap top">' + esc(lead) + '</p>' : '')
     + '<div class="md-acs-list">' + ms.map(card).join('') + '</div>'
     + nextGw();
