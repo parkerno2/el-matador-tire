@@ -13,8 +13,7 @@
 .tm-id{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:10px 16px 0}
 .tm-crest{flex:none;display:flex;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35))}
 .tm-idt{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
-.tm-kick{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:-4px}
-.tm-kick .k{color:var(--tc-light)}
+.tm-mrow{display:flex;align-items:center;gap:8px;min-width:0;margin-top:2px}
 .tm-clubbtn{position:relative;margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:0 12px;min-height:36px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid var(--tc-line);color:#fff;white-space:nowrap}
 .tm-clubbtn:active{background:rgba(255,255,255,.18)}
 .tm-clubbtn::after{content:"";position:absolute;inset:-4px}
@@ -166,11 +165,13 @@
 .tm-sc{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
 .tm-nf{display:inline-flex;align-items:center;gap:5px}
 .tm-nf .sub{font-size:11px}
-.tm-ovr{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:2px}
-.tm-ovr b{font-size:22px;line-height:1;font-weight:700}
-.tm-ovr span{font:800 11px/1 var(--f-ui);letter-spacing:.04em}
+.tm-ovr{flex:none;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 6px 4px;border-radius:8px;background:var(--raised);align-self:flex-start}
+.tm-ovr b{font-size:15px;line-height:1;font-weight:700;color:var(--tx)}
+.tm-ovr .k{font:800 11px/1 var(--f-ui);letter-spacing:.04em;color:var(--tx2);white-space:nowrap}
+.tm-ovr .k i{font-style:normal}
 .tm-spt{flex:none;min-width:48px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding-top:2px}
 .tm-spt b{font-size:22px;line-height:1;font-weight:700}
+.tm-spt b small{font:700 11px/1 var(--f-ui);color:var(--tx2);margin-left:3px;letter-spacing:.02em}
 .tm-spt .sub{font-size:11px;white-space:nowrap}
 .tm-pcs{display:inline-flex;gap:4px}
 .tm-pc{display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:6px;font:700 13px/1 var(--f-num)}

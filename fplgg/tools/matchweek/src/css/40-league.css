@@ -194,6 +194,8 @@
 /* ---------- Results ---------- */
 .lgx > .sh:first-child{padding-top:8px}
 .lg-grid .sc{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+/* a fade off the team names' edge: a column scrolling under them goes out of sight, never a stray letter */
+.lg-grid .tm::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:14px;pointer-events:none;background:linear-gradient(90deg,var(--card) 30%,rgba(23,18,29,0))}
 .lg-grid .sc::-webkit-scrollbar{display:none}
 .lg-grid table{border-collapse:collapse;border-spacing:0;min-width:100%}
 .lg-grid th,.lg-grid td{font-weight:400;text-align:center;padding:0}
