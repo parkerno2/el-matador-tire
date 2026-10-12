@@ -180,9 +180,10 @@
 .md-lines .ar.t{top:72px;border-top-width:0;border-radius:0 0 32px 32px/0 0 18px 18px}
 .md-lines .ar.b{bottom:72px;border-bottom-width:0;border-radius:32px 32px 0 0/18px 18px 0 0}
 .md-half{position:relative;z-index:1}
-/* both XIs on small Plates (UI.plateMini, 64 px, five across at 390 px); a row grows with its cards */
-.md-row{display:flex;justify-content:space-evenly;align-items:flex-start;min-height:var(--rowh);padding:8px 4px 2px}
-.md-tk{flex:0 1 64px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center;cursor:pointer}
+/* both XIs on small Plates (UI.plateMini), 72 px where a row has room and shrinking evenly to fit five across
+   (Parker, 12 Oct 2026: no FT under the cards, the cards a little bigger); a row grows with its cards */
+.md-row{display:flex;justify-content:space-evenly;align-items:flex-start;gap:4px;min-height:var(--rowh);padding:8px 4px 2px}
+.md-tk{flex:0 1 72px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;text-align:center;cursor:pointer}
 .md-ph{position:relative;width:100%;flex:none}
 .md-ph .plate{width:100%!important}
 .md-tk .fc{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
@@ -445,7 +446,7 @@
   .md-mbig{font-size:36px}
   .md-mbig.dec{font-size:26px}
   .md-pitch{--rowh:84px}
-  .md-tk{flex-basis:56px}
+  .md-tk{flex-basis:66px}
   .md-h2h{grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr);padding:9px 10px}
   .md-hc .fc-i{width:26px!important;height:26px!important}
   .md-prb{grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr) 42px;padding:12px 8px 12px 10px;gap:4px}
