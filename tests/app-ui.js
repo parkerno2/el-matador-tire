@@ -106,7 +106,7 @@ check('the old status marks are gone from the pages\' CSS: the matchup corner ic
 
 console.log('--- where the Plates appear');
 check('matchup.js: the token asks for the badge with the sub mark, the title and the kick-off flag, and draws no icon of its own; no swap icon', /UI\.plateMini\(x\.p, 64, \{ noOpen: true, mark, title, flag: !x\.started, dnp: !!st\.dnp, bubble:/.test(MATCHUP) && /const title = sub \? \(sub\.kind === 'locked' \? 'On for ' : 'Likely on for '\) \+ sub\.out\.Player : '';/.test(MATCHUP) && !/md-ic|ICON_SW/.test(MATCHUP));
-check('matchup.js: the line under a card is only the kick-off, the minute or FT (never "likely sub")', /const line = st\.t;/.test(MATCHUP) && !/'likely sub'/.test(MATCHUP));
+check('matchup.js: the line under a card is only the kick-off or the minute, no FT since 12 Oct 2026 (never "likely sub")', /const line = st\.t === 'FT' \? '' : st\.t;/.test(MATCHUP) && !/'likely sub'/.test(MATCHUP));
 console.log('--- did not play (the manager, 10 Oct 2026: Tzolis and Brobbey showed "Did not play" under their cards)');
 const MODEL = rd('src/pages/matchday/model.js');
 check('model.js statusLine: a finished match says FT whether he played or not, with dnp for no minutes (never "Did not play" under a card)', /if \(x\.finished\) return \{ t: 'FT', live: false, dnp: !\(x\.mins > 0\) \};/.test(MODEL) && !/'Did not play'/.test(MODEL));

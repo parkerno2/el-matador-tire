@@ -66,6 +66,13 @@ console.log('--- 8. the press prompt in the app\'s colours');
 check('a neutral card, white text, a purple Press button; lime only in Archizio\'s own thread heads',
   /<em class="fcta-go">Press<\/em>/.test(FEED) && /\.fcta\{[^}]*background:var\(--card\);border:1px solid var\(--line\)/.test(FEEDCSS) && /\.fcta b\{color:var\(--tx\)\}/.test(FEEDCSS) && /\.fcta-go\{[^}]*background:var\(--p500\)/.test(FEEDCSS));
 
+console.log('--- 9. no FT under the pitch cards, the cards bigger (Parker, 12 Oct 2026)');
+const MU = rd('src/pages/matchday/matchup.js'), MDCSS = rd('src/css/20-matchday.css');
+check('a finished player has no line under his card (his badge says PTS); kick-off and the minute stay; screen readers still hear full time',
+  /const line = st\.t === 'FT' \? '' : st\.t;/.test(MU) && /\(line \? '<span class="md-sl' \+ \(st\.live \? ' lv' : ''\) \+ '">' \+ esc\(line\) \+ '<\/span>' : ''\)/.test(MU) && /: st\.t \? ', full time' : ''/.test(MU));
+check('the pitch cards are 72 px where a row has room and shrink evenly to fit five across (66 px on a 360 px phone)',
+  /\.md-tk\{flex:0 1 72px;/.test(MDCSS) && /\.md-row\{[^}]*gap:4px/.test(MDCSS) && /\.md-tk\{flex-basis:66px\}/.test(MDCSS));
+
 check('no emoji and no em or en dash in the copy this pass added', !/[\u{1F300}-\u{1FAFF}—–]/u.test(bar + fn(UI, 'pageHead') + (TX.match(/sub: [^\n]*/g) || []).join('')));
 console.log(fails ? fails + ' FAILED' : 'ALL PASS');
 process.exit(fails ? 1 : 0);
