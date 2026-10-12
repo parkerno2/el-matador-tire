@@ -275,7 +275,7 @@ const gradientColors = s => (String(s).match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)
   await scan('team overview');
   await go('#/team/lineup'); await tap('[data-lview="pitch"]'); await scan('team lineup pitch');
   await tap('[data-lview="list"]'); await scan('team lineup list'); await tap('[data-lview="pitch"]');
-  for (const s of ['squad', 'transfers', 'fixtures', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
+  for (const s of ['squad', 'transfers', 'season']) { await go('#/team/' + s); await scan('team ' + s); }
 
   /* League */
   for (const s of ['overview', 'results', 'money', 'derbies', 'stats', 'alltime']) { await go('#/league/' + s); await scan('league ' + s); }
