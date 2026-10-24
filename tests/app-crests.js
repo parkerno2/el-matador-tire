@@ -68,8 +68,8 @@ const fx = { GW: 6, Home: 'ARS', Away: 'LEE' };
 /* ---------- listRow (lineup.js): the XI and the bench rows ---------- */
 function rowCtx(g) {
   const ctx = {
-    esc, UI: { badge: badgeImg, face: () => '<span class="fc-i"></span>', plateNum: () => ({ st: 'proj', txt: '4.9' }), statusChip: () => '', subChip: () => '' },
-    POSN: { GKP: 'GK', DEF: 'DEF', MID: 'MID', FWD: 'FWD' }, flaggedOut: () => false, gwFix: () => g, oppChip: B.oppChip,
+    esc, UI: { badge: badgeImg, face: () => '<span class="fc-i"></span>', plateNum: () => ({ st: 'proj', txt: '4.9' }), minus: v => String(v), statusChip: () => '', subChip: () => '' },   /* minus: the row draws its number through UI.minus (F56) */
+    POSN: { GKP: 'GK', DEF: 'DEF', MID: 'MID', FWD: 'FWD' }, availChip: () => '', availRing: () => ({}), gwFix: () => g, oppChip: B.oppChip,
   };
   vm.createContext(ctx);
   vm.runInContext(lift(LINEUP, 'CREST') + lift(LINEUP, 'listRow') + ';this.__row = listRow;', ctx);
@@ -81,16 +81,16 @@ const crests = html => [...html.matchAll(/<img class="crest" style="height:(\d+)
   check('listRow sizes the crests at 16 px (the club) and 14 px (the opponent)', /^const CREST = 16, OPP_CREST = 14;$/m.test(LINEUP));
   const up = rowCtx({ f: fx, home: true, opp: 'LEE', started: false, done: false, sc: '', min: 0, dbl: false })(raya, L);
   check('upcoming: the club\'s crest before its short name in the meta line ("GK · [crest] ARS") and the opponent\'s inside the difficulty chip', crests(up).join(' ') === 'ARS:3@16 LEE:2@14' && /<span class="sub tm-lmeta">GK · <img class="crest" style="height:16px"[^>]*alt="ARS"[^>]*>ARS<\/span>/.test(up) && /<span class="tm-lopp"><span class="tm-fd fd-n"[^>]*><img class="crest" style="height:14px"[^>]*alt="LEE"[^>]*><b>LEE<\/b><i>H<\/i><\/span><\/span>/.test(up), up);
-  const live = rowCtx({ f: fx, home: true, opp: 'LEE', started: true, done: false, sc: '2–1', min: 67, dbl: false })(raya, L);
-  check('live: the opponent\'s crest before its name in the live score, the minute kept', crests(live).join(' ') === 'ARS:3@16 LEE:2@14' && /<span class="tm-lsc on"><img class="crest" style="height:14px"[^>]*alt="LEE"[^>]*><b>LEE<\/b> H <span class="n">2–1<\/span> <span class="live-c n">67′<\/span><\/span>/.test(live), live);
-  const ft = rowCtx({ f: fx, home: false, opp: 'LEE', started: true, done: true, sc: '1–2', min: 90, dbl: false })(raya, L);
-  check('full time: the same crest before the final score', crests(ft).join(' ') === 'ARS:3@16 LEE:2@14' && /<span class="tm-lsc"><img class="crest" style="height:14px"[^>]*alt="LEE"[^>]*><b>LEE<\/b> A <span class="n">1–2<\/span><\/span>/.test(ft), ft);
+  const live = rowCtx({ f: fx, home: true, opp: 'LEE', started: true, done: false, sc: '2-1', min: 67, dbl: false })(raya, L);
+  check('live: the opponent\'s crest before its name in the live score, the minute kept', crests(live).join(' ') === 'ARS:3@16 LEE:2@14' && /<span class="tm-lsc on"><img class="crest" style="height:14px"[^>]*alt="LEE"[^>]*><b>LEE<\/b> H <span class="n">2-1<\/span> <span class="live-c n">67′<\/span><\/span>/.test(live), live);
+  const ft = rowCtx({ f: fx, home: false, opp: 'LEE', started: true, done: true, sc: '1-2', min: 90, dbl: false })(raya, L);
+  check('full time: the same crest before the final score', crests(ft).join(' ') === 'ARS:3@16 LEE:2@14' && /<span class="tm-lsc"><img class="crest" style="height:14px"[^>]*alt="LEE"[^>]*><b>LEE<\/b> A <span class="n">1-2<\/span><\/span>/.test(ft), ft);
   const blank = rowCtx({ blank: true })(raya, L);
   check('a blank gameweek: the club\'s crest only, the BLANK chip as it was', crests(blank).join(' ') === 'ARS:3@16' && /<span class="tm-lopp"><span class="tm-fd blank">BLANK<\/span><\/span>/.test(blank), blank);
   const dgw = rowCtx({ f: fx, home: true, opp: 'LEE', started: false, done: false, sc: '', min: 0, dbl: true })(raya, L);
   check('a double gameweek keeps its DGW tag after the chip', /<\/span><span class="tm-dgw">DGW<\/span><\/span>/.test(dgw));
   const bench = rowCtx({ f: fx, home: true, opp: 'LEE', started: false, done: false, sc: '', min: 0, dbl: false })(raya, L, '1st', false);
-  check('a bench row (slot label) carries the same two crests; the slot, the face, the number alone and no pill are as before', crests(bench).join(' ') === 'ARS:3@16 LEE:2@14' && /^<div class="row tap tm-lr" data-open="player:1" role="button" tabindex="0"><span class="tm-lslot n">1st<\/span><span class="fc-i"><\/span><span class="tm-lm">/.test(bench) && /<span class="tm-lpts n proj" title="Projected points">4\.9<\/span><\/div>$/.test(bench) && !/class="pb /.test(bench), bench);
+  check('a bench row (slot label) carries the same two crests; the slot, the face, the number alone and no pill are as before', crests(bench).join(' ') === 'ARS:3@16 LEE:2@14' && /^<div class="row tap tm-lr" data-open="player:1" role="button" tabindex="0"><span class="tm-lslot n">1st<\/span><span class="fc-i"><\/span><span class="tm-lm">/.test(bench) && /<span class="tm-lpts n proj" title="Proj">4\.9<\/span><\/div>$/.test(bench) && !/class="pb /.test(bench), bench);
   const unknown = rowCtx({ f: { GW: 6, Home: 'XYZ', Away: 'QQQ' }, home: true, opp: 'QQQ', started: false, done: false, sc: '', min: 0, dbl: false })(Object.assign({}, raya, { Club: 'XYZ' }), L);
   check('a club without a code shows its short names with no image at all, never a broken one', crests(unknown).length === 0 && !/<img/.test(unknown) && /GK · XYZ<\/span>/.test(unknown) && /<b>QQQ<\/b><i>H<\/i>/.test(unknown), unknown);
 }

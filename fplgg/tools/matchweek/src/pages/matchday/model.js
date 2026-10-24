@@ -1,8 +1,9 @@
 /* matchday/model.js — the numbers behind every Matchday screen, read from the engine (core.js) and memoised per data load.
    Nothing here invents a figure: scores are mscore(), win chance is hpWin() rounded once by mpxWinPct(), projections are
-   teamProj()/projOf()/hpLive(), xP is teamXP()/teamXPBlend() for teams and xpOf() per player (0 for a player with 0 minutes),
+   teamProj()/projOf()/hpLive(), xP is teamXP() for teams and xpOf() per player (0 for a player with 0 minutes),
    auto-subs are autoSubs(), the series is series() after buildH2H(). */
 import * as UI from '../../ui.js';
+import { availOf } from '../avail.js';
 
 /* ---------- speed: autoSubs is a pure function of the loaded data, but the engine recomputes it on every call
    (hpWin alone asks for it ~8 times). Production (v12-look) memoised it per data load; core.gen.js lost that wrapper
@@ -58,6 +59,11 @@ export function until(d) {
   if (h >= 1) return h + 'h ' + (m % 60) + 'm';
   return Math.max(1, m) + ' min';
 }
+/* a countdown in a sentence: "in 1h 0m" while the time is ahead, then the words for after it ("under way" for a kick-off).
+   The span carries both, so the Matchday ticker (pages/matchday.js) redraws it by the same rule as the first render. */
+/* after: words that follow the countdown only while the time is ahead (the Week page's ". Lineups lock.") */
+export const untilText = (d, past, after) => d && d.getTime() > Date.now() ? 'in ' + until(d) + (after || '') : past;
+export const countdown = (d, past, after) => '<span data-md-until="' + d.getTime() + '" data-md-past="' + UI.esc(past) + '"' + (after ? ' data-md-after="' + UI.esc(after) + '"' : '') + '>' + untilText(d, past, after) + '</span>';
 
 /* projections exist whenever the engine produces them: FPL's forecast, or the house model (v12 epOf), which works
    from history and, before any, from draft-rank priors. Hidden only if every team projects to nothing. */
@@ -106,7 +112,7 @@ export function pl(p) {
     const hl = started ? hpLive(p) : null;
     const now = fxs.find(liveFx) || null;
     const nextUp = fxs.find(x => !fin(x.Started)) || null;
-    const status = String(p.Status || 'a');
+    const av = availOf(p);
     return {
       p, code, team: p.Team, pos: p.Pos, club: p.Club, fxs, dgw: fxs.length > 1, blank: !fxs.length,
       started, finished, live, mins, pts, pb, row,
@@ -116,19 +122,17 @@ export function pl(p) {
       st: hl ? hl.state : (fxs.length ? 'pre' : 'blank'),
       xp: started && row ? (num(row.Mins) > 0 ? xpOf(row) : 0) : null, /* 0 minutes deserves 0 (xpOf alone would add expected DefCon) */
       minute: now ? Math.round(num(now.Mins)) : null,
-      ko: nextUp ? koOf(nextUp) : (fxs[0] ? koOf(fxs[0]) : null),
+      ko: nextUp ? koOf(nextUp) : (fxs[0] ? koOf(fxs[0]) : null),   /* the next game still to start, for the line under a card; "first up" is firstUp() */
       fx: now || nextUp || fxs[fxs.length - 1] || null,
-      status, doubt: status === 'd', out: 'isun'.includes(status) && status !== '', chance: UI.chance(p),
-      news: String(p.News || ''),
+      av,      /* availability: avail.js is the one reader of Status, so every screen reads the same state, chance and words */
     };
   });
 }
 /* the bubble a player wears: banked (white), live (green), projected (dashed) */
-export function bubble(x, mode) {
-  if (!x) return { cls: 'pj', txt: '–' };
-  if (mode === 'xp' && x.started && x.xp !== null) return { cls: 'xp', txt: f1(x.xp) };
-  if (x.blank) return { cls: 'pj', txt: '–' };
-  if (!x.started) return { cls: 'pj', txt: x.proj === null ? '–' : f1(x.proj) };
+export function bubble(x) {
+  if (!x) return { cls: 'prj', txt: '-' };
+  if (x.blank) return { cls: 'prj', txt: '-' };
+  if (!x.started) return { cls: 'prj', txt: x.proj === null ? '-' : f1(x.proj) };
   return { cls: x.finished ? 'bk' : 'lv', txt: int(x.pts) };
 }
 /* the short line under a player: kick-off, minute, FT, not on yet. A finished match he did not play says FT too, with
@@ -164,17 +168,78 @@ export function team(t) {
     return {
       t, xi, xiL, players, bench, subs: as.subs, lockedSubs: lk.subs,
       proj: teamProj(t), split, left, toPlay, playing, done,
-      /* the engine's own team xP (the full-time line, as the old app showed it) and its xP-or-projection blend */
-      xp: D.hasXP ? teamXP(t) : null, xpBlend: D.hasXP ? teamXPBlend(t) : null,
-      /* xP of the effective XI players who have actually played (the live "so far" figure) */
-      xpPlayed: D.hasXP ? xiL.map(pl).reduce((s2, x) => s2 + (x.started && x.mins > 0 ? x.xp || 0 : 0), 0) : null,
-      form: formation(xi).replace(/–/g, '-'),
+      /* the engine's own team xP (the full-time line): shown only once the matchup is final, never beside a Proj */
+      xp: D.hasXP ? teamXP(t) : null,
+      form: formation(xi),
       rec: mpxRecord(t),
     };
   });
 }
 
-/* ---------- a matchup ---------- */
+/* ---------- where a matchup stands ----------
+   'open'    something besides bonus can still change the score
+   'bonus'   every match of both effective XIs is over and FPL's bonus is not confirmed, so D.pbonus is in the score:
+             the result can move by bonus points only ("Bonus provisional")
+   'settled' nothing can change: the matchup is finished, or every match of both XIs is over and no bonus is pending
+   One decision, read by the header, the overview card, All and My team. It reads every starter's club (the effective XI,
+   which already carries the bench players who came on for a starter whose match ended without him) and nothing from the H2H
+   row's Finished flag, which FPL sets only when it closes the gameweek. Before the deadline, or with no fixture data for
+   the XIs, nothing is over. players: [{ code, fxs: [{ finished }] }] of both effective XIs. */
+export function decideSettle(players, pbonus, dlPassed) {
+  if (!dlPassed) return 'open';
+  if (!players.some(x => x.fxs.length)) return 'open';
+  if (players.some(x => x.fxs.length && !x.fxs.every(f => f.finished))) return 'open';
+  return players.some(x => ((pbonus || {})[String(x.code)] || 0) > 0) ? 'bonus' : 'settled';
+}
+export function settleState(f) {
+  return memo('settle|' + num(f.GW) + f.Home + f.Away, () => {
+    if (fin(f.Finished)) return 'settled';
+    if (num(f.GW) !== D.gw) return 'open';
+    const xi = [f.Home, f.Away].flatMap(t => autoSubs(t, false).xi);
+    return decideSettle(xi.map(p => { const x = pl(p); return { code: x.code, fxs: x.fxs.map(c => ({ finished: fin(c.Finished) })) }; }), D.pbonus, D.dlPassed);
+  });
+}
+/* win, draw and lose chances for one fixture, from the home side: whole percents that add to 100.
+   settled: 100 for the winner, 0 for the loser and no draw chance (d is null); a settled draw is 100% draw (h and a null).
+   anything else: the engine's forecast, held to 1..99 for a win or a loss (mpxWinPct), the draw shown by drawText() */
+export function winPct(f) {
+  return memo('winpct|' + num(f.GW) + f.Home + f.Away, () => {
+    if (settleState(f) === 'settled') {
+      const s = mscore(f);
+      return s.hs === s.as2 ? { h: null, d: 100, a: null, settled: true, drawn: true } : { h: s.hs > s.as2 ? 100 : 0, d: null, a: s.as2 > s.hs ? 100 : 0, settled: true, drawn: false };
+    }
+    const w = hpWin(f), pc = mpxWinPct(w);
+    return { h: pc.h, d: pc.d, a: pc.a, settled: false, drawn: false, raw: w };
+  });
+}
+/* the draw chance in words: nothing once the result is settled, "under 1%" when it rounds to 0 */
+export const drawText = w => !w || w.d === null ? '' : w.d < 1 ? 'under 1%' : w.d + '%';
+
+/* the member's own side first: "Series 4-2 (1 drawn), Callum leads". record(L, R) counts L's wins first, so the line
+   reads the same way round as the score beside it; with no member L is the home side */
+export function seriesLine(L, R) {
+  const r = record(L, R); if (!r) return null;
+  if (!r.n) return 'First ever meeting';
+  const tail = r.d ? ' (' + r.d + ' drawn)' : '';
+  if (r.a === r.b) return 'Series level ' + r.a + '-' + r.b + tail;
+  return 'Series ' + r.a + '-' + r.b + tail + ', ' + FIRSTOF(r.a > r.b ? L : R) + ' leads';
+}
+
+/* "first up": the member's player, from the effective XI as picked, whose game kicks off soonest after now. A game that
+   has started or finished never counts (so the finished first leg of a double is skipped for the second), a club with no
+   fixture or none left is never first up, a starter the engine counts out (flaggedOut, avail.js state 'out': injured,
+   suspended, unavailable or a doubt at 25% or less) is never first up, and two kick-offs together go to the player earlier
+   in the XI. players: pl() rows. Returns { x, f, ko } or null. */
+export function firstUp(players, now = Date.now()) {
+  let best = null;
+  players.forEach(x => (x.av && x.av.state === 'out' ? [] : x.fxs || []).forEach(f => {
+    if (fin(f.Started) || fin(f.Finished)) return;
+    const ko = koOf(f); if (!ko || ko.getTime() <= now) return;
+    if (!best || ko < best.ko) best = { x, f, ko };
+  }));
+  return best;
+}
+
 export function mx(i) {
   const fx = gwFx(); const f = fx[i]; if (!f) return null;
   const me = UI.you();
@@ -183,15 +248,13 @@ export function mx(i) {
     const L = me === f.Away ? f.Away : f.Home, R = L === f.Home ? f.Away : f.Home, flip = L !== f.Home;
     const s = mscore(f);
     const ph = s.done ? 'ft' : D.provOver ? 'prov' : phase() === 'none' ? 'pre' : (phase() === 'ft' ? 'live' : phase());
-    let win = null;
-    if (ph !== 'ft' && ph !== 'prov') {
-      const w = hpWin(f); if (!w.done) { const pc = mpxWinPct(w); win = flip ? { l: pc.a, d: pc.d, r: pc.h, raw: w } : { l: pc.h, d: pc.d, r: pc.a, raw: w }; }
-    }
+    const st = settleState(f), w = winPct(f);
+    const win = flip ? { l: w.a, d: w.d, r: w.h, settled: w.settled, drawn: w.drawn, raw: w.raw } : { l: w.h, d: w.d, r: w.a, settled: w.settled, drawn: w.drawn, raw: w.raw };
     const tl = team(L), tr = team(R);
     return {
-      i, f, mine, me, L, R, flip, s, ph, win, tl, tr,
+      i, f, mine, me, L, R, flip, s, ph, st, win, tl, tr,
       sl: flip ? s.as2 : s.hs, sr: flip ? s.hs : s.as2,
-      derby: derbyName(f.Home, f.Away), series: series(f.Home, f.Away),
+      derby: derbyName(f.Home, f.Away), series: seriesLine(L, R),
       final: ph === 'ft' || ph === 'prov',
     };
   });
@@ -208,11 +271,11 @@ export function featuredIndex() {
     return pool.slice().sort((a, b) => close(a) - close(b))[0];
   });
 }
-/* the matchup sub-line: PREDICTED → PROJ FINAL → xP */
+/* the matchup sub-line: Proj final before and during the games, xP after them */
 export function projLine(m) {
   if (m.final) return D.hasXP ? { k: 'xP', l: m.tl.xp, r: m.tr.xp } : null;
   if (!hasProj()) return null;
-  return { k: m.ph === 'pre' ? 'Predicted' : 'Proj final', l: m.tl.proj, r: m.tr.proj };
+  return { k: 'Proj final', l: m.tl.proj, r: m.tr.proj };
 }
 /* the side labels: "You" for you, the manager's first name otherwise */
 export const who = (m, t) => (m.me === t ? 'You' : FIRSTOF(t));
@@ -226,7 +289,7 @@ export function subReason(s) {
      confirmed-facts pass would have used a flagged bench player instead, BUGS #37) */
   if (s.kind === 'locked' || (x && x.finished && x.mins <= 0)) return 'did not play' + (x && x.fxs.length ? ', ' + fxLabel(x.fxs[0]) + ' finished' : '');
   const n = String(p.News || '').split(' - ')[0].trim();
-  return n || (p.Status === 'd' ? 'doubtful' : 'flagged out');
+  return n || (availOf(p).state === 'doubt' ? 'doubtful' : 'flagged out');
 }
 
 /* ---------- this season's meetings between two teams ---------- */

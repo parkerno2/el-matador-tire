@@ -1,4 +1,4 @@
-/* feed/articles.js — the weekly recaps and previews written in the cloud (Code.gs v3.13), read from the league sheet.
+/* feed/articles.js - the weekly recaps and previews written in the cloud (Code.gs v3.13), read from the league sheet.
    GET ?articles=1      → { live:[{id,gw,kind,title,sub,approved,written}], waiting:[{gw,kind,status,since}], commish, review }
    GET ?article=<id>    → { id, gw, kind, approved, written, auto, a } for live articles only
    POST articles        → { commish, review, drafts:[{id,gw,kind,status,written,model,note,redos,a}], live:[{id,gw,kind,redos,note,rewrite}] }
@@ -13,6 +13,7 @@
    refresh (main.js), at most once a minute; the server caches it for 5 minutes and clears that on every change. The built-in
    RECAPS/PREVIEWS (hand-built pages from GW1 to GW4) merge in and keep linking to their own HTML pages. */
 import { lsGet, lsSet, bump } from './util.js';
+import { plainDeep } from '../data/tabs.js';   /* every reply of the cloud is dash-free before anything reads it (M2, check 8) */
 
 const LKEY = 'emt-articles', BKEY = 'emt-artbodies', FRESH = 60e3, MAX_REDOS = 3;
 const S = {
@@ -22,7 +23,7 @@ const S = {
 };
 function norm(r) { return r && typeof r === 'object' ? { live: Array.isArray(r.live) ? r.live : [], waiting: Array.isArray(r.waiting) ? r.waiting : [], commish: r.commish || null, review: r.review === undefined ? true : !!r.review } : null; }
 const url = q => D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + q;
-const getJSON = q => fetch(url(q), { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+const getJSON = q => fetch(url(q), { cache: 'no-store' }).then(r => (r.ok ? r.json().then(plainDeep) : null)).catch(() => null);
 const auth = () => (typeof authRead === 'function' ? authRead() : null);
 export const KIND = k => (/recap/i.test(String(k)) ? 'Recap' : 'Preview');
 export const artHref = id => '#/feed/articles/' + encodeURIComponent(id);
@@ -73,7 +74,7 @@ function draftsWanted(force) {
   if (S.dq || (!force && S.dFor === a.team && Date.now() - S.dAt < FRESH)) return;
   S.dq = true;
   const gen = S.gen;
-  authPost(authBuildReq('articles', { team: a.team, token: a.token })).then(r => {
+  authPost(authBuildReq('articles', { team: a.team, token: a.token })).then(plainDeep).then(r => {
     S.dq = false; S.dAt = Date.now();
     if (gen !== S.gen) { draftsWanted(true); return; }   /* asked before an approve, a rewrite or a drop landed */
     if (!r || !r.ok) { if (!S.dErr) { S.dErr = true; changed(); } return; }
@@ -144,7 +145,7 @@ export function mod(id, op, note) {
   const a = auth(); if (!a) return Promise.resolve({ ok: false, error: 'Sign in as ' + (commish() || 'the commissioner') + ' first.' });
   const req = { team: a.team, token: a.token, id, op };
   if (op === 'redo') req.note = String(note || '').replace(/\s+/g, ' ').trim().slice(0, 400);
-  return authPost(authBuildReq('articlemod', req)).then(r => {
+  return authPost(authBuildReq('articlemod', req)).then(plainDeep).then(r => {
     r = r || { ok: false };
     if (r.ok) {
       S.gen++;

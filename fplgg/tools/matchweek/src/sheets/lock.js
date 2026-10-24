@@ -1,4 +1,4 @@
-/* lock.js — the page behind a bottom sheet (Parker, 10 Oct 2026, on his iPhone: "the Home Screen was up high and I
+/* lock.js - the page behind a bottom sheet (the owner, 10 Oct 2026, on his iPhone: "the Home Screen was up high and I
    clicked on a player and it half rendered"). While a sheet is open the page must not move at all, and it must come back
    at exactly the position it had. iOS Safari ignores overflow:hidden on the root for touch scrolling: a finger that
    reaches the end of the sheet keeps scrolling the page behind it, and the rubber band moves it too; so the lock makes the

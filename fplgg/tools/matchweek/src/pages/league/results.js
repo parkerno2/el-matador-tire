@@ -2,6 +2,7 @@
 import * as UI from '../../ui.js';
 import { table, grid, resultGws, scoreOf, records } from './data.js';
 import { tap } from './overview.js';
+import { byes } from '../byes.js';
 
 const esc = UI.esc;
 const OPEN = new Set();       // which gameweeks are expanded (kept across refreshes)
@@ -20,7 +21,7 @@ function gridCard() {
     const t = r.team;
     const tds = G.gws.map(({ g, live, prov }) => {
       const c = G.cell[t + '|' + g];
-      if (!c) return '<td><span class="c none">–</span></td>';
+      if (!c) return byes(g).includes(t) ? '<td aria-label="GW' + g + ': bye"><span class="c none"><span class="by">Bye</span></span></td>' : '<td><span class="c none">-</span></td>';
       const hi = !live && c.p === G.top[g], lo = !live && c.p === G.bot[g];
       const showRes = !live || prov;
       const lab = 'GW' + g + ': ' + c.p + ' against ' + c.opp + ' ' + c.op + (showRes ? ', ' + RES[c.r].toLowerCase() : ', live') + (hi ? ', top score of the week' : lo ? ', lowest score of the week' : '');
@@ -48,15 +49,18 @@ function gwCards() {
       top = 'Top score ' + G.top[g] + ' · ' + who.map(UI.short).join(', ');
     } else top = prov ? 'Full time, provisional' : 'Live now';
     const rows = fs.map(f => {
-      const s = scoreOf(f), hw = s.h > s.a, aw = s.a > s.h, nm = derbyName(f.Home, f.Away);
+      const s = scoreOf(f), nm = derbyName(f.Home, f.Away);
+      /* the member's own side and score first when the member plays (set order, milestone M2); every other matchup as the fixture list has it */
+      const flip = !!me && f.Away === me, L = flip ? f.Away : f.Home, R = flip ? f.Home : f.Away, ls = flip ? s.a : s.h, rs = flip ? s.h : s.a;
+      const lw = ls > rs, rw = rs > ls;
       const done = s.done || prov;
-      const side = (t, win, cls) => '<span class="side ' + cls + (done && win ? ' win' : done && !(hw || aw) ? ' draw' : done ? ' lose' : '') + (t === me ? ' me' : '') + '"' + tap(t, t) + '>'
+      const side = (t, win, cls) => '<span class="side ' + cls + (done && win ? ' win' : done && !(lw || rw) ? ' draw' : done ? ' lose' : '') + (t === me ? ' me' : '') + '"' + tap(t, t) + '>'
         + (cls === 'h' ? UI.crest(t, 24) + nm2(t) : nm2(t) + UI.crest(t, 24)) + '</span>';
       const idx = num(f.GW) === D.gw ? curRows.indexOf(f) : -1;
       const sc = '<span class="sc' + (live && !prov ? ' lv' : '') + '"' + (idx >= 0 ? ' data-go="#/matchday/matchup/' + idx + '" role="button" tabindex="0" aria-label="Open the matchup"' : '') + '>'
-        + '<b class="n' + (done && aw ? ' dim' : '') + '">' + s.h + '</b><i>–</i><b class="n' + (done && hw ? ' dim' : '') + '">' + s.a + '</b>'
+        + UI.score(ls, rs, { aCls: done && rw ? 'dim' : '', bCls: done && lw ? 'dim' : '' })
         + '</span>';
-      return '<div class="lg-res">' + side(f.Home, hw, 'h') + sc + side(f.Away, aw, 'a') + '</div>' + (nm ? '<div class="lg-dn">' + esc(nm) + '</div>' : '');
+      return '<div class="lg-res">' + side(L, lw, 'h') + sc + side(R, rw, 'a') + '</div>' + (nm ? '<div class="lg-dn">' + esc(nm) + '</div>' : '');
     }).join('');
     return '<details class="card lg-gw" data-gw="' + g + '"' + (OPEN.has(g) ? ' open' : '') + '><summary><span class="g"><b>Gameweek ' + g + '</b><span>' + (dl ? esc(UI.day(dl)) + ' · ' : '') + esc(top) + '</span></span>'
       + (live ? '<span class="lg-tag ' + (prov ? 'prov' : 'live') + '">' + (prov ? 'Provisional' : '<i></i>Live') + '</span>' : '') + UI.icon('chev', 16, 'var(--tx3)', 2.4) + '</summary>'
@@ -76,8 +80,8 @@ function recordTiles() {
   return UI.sh('Season records') + '<div class="tiles lg-recs">'
     + tile('Highest score', R.hi.v, who(R.hi.who, x => 'GW' + x.g))
     + tile('Lowest score', R.lo.v, who(R.lo.who, x => 'GW' + x.g))
-    + (R.big ? tile('Biggest win', 'by ' + R.big.v, who(R.big.who, x => x.s + '–' + x.os + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g)) : '')
-    + (R.close ? tile('Closest win', 'by ' + R.close.v, who(R.close.who, x => x.s + '–' + x.os + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g)) : '')
+    + (R.big ? tile('Biggest win', 'by ' + R.big.v, who(R.big.who, x => UI.score(x.s, x.os) + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g)) : '')
+    + (R.close ? tile('Closest win', 'by ' + R.close.v, who(R.close.who, x => UI.score(x.s, x.os) + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g)) : '')
     + '</div><p class="lg-cap">Finished gameweeks only.</p>';
 }
 

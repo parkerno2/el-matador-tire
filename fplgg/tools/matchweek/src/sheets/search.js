@@ -1,6 +1,7 @@
-/* Search: data-open="search" — every player (D.plr + D.ro) and the eight teams, instant, with recent searches. */
+/* Search: data-open="search" - every player (D.plr + D.ro) and every team, instant, with recent searches. */
 import * as UI from '../ui.js';
 import * as K from './kit.js';
+import { availChip } from '../pages/avail.js';
 
 const esc = UI.esc;
 const LS = 'emt-recent';
@@ -42,7 +43,7 @@ function findClub(q) {
 function playerRow(p) {
   const own = ownerOf(p), status = (D.plr || []).find(x => String(x.Code) === String(p.Code)) || p;
   return '<button type="button" class="row tap sr-r" data-open="player:' + esc(p.Code) + '" data-rk="p" data-rv="' + esc(p.Code) + '">' + UI.face(p, 40)
-    + '<span class="sr-m"><b>' + esc(p.Player) + '</b><span class="sr-m2">' + UI.statusChip(status) + '<span class="sub ell">' + esc(p.Pos) + ' · ' + esc(K.clubName(p.Club)) + '</span></span></span>'
+    + '<span class="sr-m"><b>' + esc(p.Player) + '</b><span class="sr-m2">' + availChip(status) + '<span class="sub ell">' + esc(p.Pos) + ' · ' + esc(K.clubName(p.Club)) + '</span></span></span>'
     + (own ? '<span class="sr-o" title="' + esc(own) + '">' + UI.crest(own, 20) + '<i>' + esc(UI.short(own)) + '</i></span>' : '<span class="chip free">FREE</span>')
     + '<span class="sr-p"><b class="n">' + Math.round(num(p['Season pts'])) + '</b><i>pts</i></span></button>';
 }

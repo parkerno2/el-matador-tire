@@ -1,4 +1,4 @@
-/* kit.js — small helpers shared by the sheets (player, manager, identity, search, menu).
+/* kit.js - small helpers shared by the sheets (player, manager, identity, search, menu).
    Engine globals (D, TEAMS, num, fin, …) come from core.js as bare names. */
 import * as UI from '../ui.js';
 
@@ -89,7 +89,7 @@ export function cb(club, px = 28) {
 /* points chip (Parker, 10 Oct 2026): green 6 points or more (p3), amber 3 to 5 (p2), red 0 to 2 (p1), grey for no minutes (z) */
 export function ptsCls(v, dnp) { return dnp ? 'z' : v >= 6 ? 'p3' : v >= 3 ? 'p2' : 'p1'; }
 export function pc(v, opt = {}) {
-  return '<span class="sk-pc ' + (opt.live ? 'lv' : ptsCls(v, opt.dnp)) + '"' + (opt.w ? ' style="width:' + opt.w + 'px;height:' + (opt.h || 30) + 'px"' : '') + '>' + v + '</span>';
+  return '<span class="sk-pc ' + (opt.live ? 'lv' : ptsCls(v, opt.dnp)) + '"' + (opt.w ? ' style="width:' + opt.w + 'px;height:' + (opt.h || 30) + 'px"' : '') + '>' + UI.minus(v) + '</span>';
 }
 /* W/D/L chip with the score */
 export function res(r, score, live) {

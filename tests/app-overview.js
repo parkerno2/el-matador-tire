@@ -2,7 +2,7 @@
 // that feels intuitive this looks too jumbled I'd cut the money stuff and have PF there too probably and form for sure
 // keep that"): the table without money, PF as its own column, the manager and his form dots under the name; the
 // Manager of the Month race led by real points (the month so far, the live gameweek as it stands), ranked by them with
-// the projection breaking ties, the projection the small secondary figure, Projected the main number only before the
+// the projection breaking ties, the projection the small secondary figure, Proj the main number only before the
 // month has a point; and the refresh path (heavy, settleHeavy in src/pages/league/data.js, the League page's mount)
 // that puts new live points on screen without a page load. Plain Node: data.js and overview.js run in a vm on a stub
 // engine with eight teams from league.json.   node tests/app-overview.js
@@ -50,6 +50,7 @@ function engine(opt = {}) {
     num: v => +v || 0, fin: v => String(v).toUpperCase() === 'TRUE',
     dt: s => (s ? new Date(s) : null), gwDeadline: () => new Date('2026-10-10T10:00:00Z'),
     xiOf: () => [], benchOf: () => [], effXiOf: () => [],
+    simSettle: o => o,
     hpLiveSplit: t => ({ rem: 10, banked: 0 }), hpTeamSd: () => 8, hpTeam: t => 45 + names.indexOf(t) * 4,   /* the last team projects best */
     hpRng: seed => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; },
     formOf: t => 'WLWWL', buildH2H() { }, derbyRows: () => [], SEED: {}, luckAgg: () => ({}), schedLuck: () => ({}), xiPtsMap: () => ({}), mgrSeries: () => [], benchByGw: () => ({}), squadOf: () => [], ovrOf: () => 0, hpWin: () => 0.5,
@@ -57,10 +58,11 @@ function engine(opt = {}) {
   ctx.effPtsOf = (f, t) => { const raw = ctx.num(f.Home === t ? f['Home pts'] : f['Away pts']); if (ctx.num(f.GW) === ctx.D.gw && !ctx.fin(f.Finished) && ctx.D.dlPassed) return Math.max(raw, ctx.LIVE[t] || 0); return raw; };
   ctx.UI = {
     esc: s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
-    short: t => SHORTOF[t] || t, first: t => FIRST[t] || t, you: () => names[4], tc: () => '#7A95FF', crest: (t, px) => '<i class="cr" data-t="' + t + '"></i>', waitN: () => '..', icon: () => '', SHAPES: { shield: '' },
+    short: t => SHORTOF[t] || t, first: t => FIRST[t] || t, you: () => names[4], tc: () => '#7A95FF', crest: (t, px) => '<i class="cr" data-t="' + t + '"></i>', waitN: () => '..', legendTap: (t, h) => '<button type="button" class="lgd" data-open="legend:' + t + '">' + h + '</button>', icon: () => '', SHAPES: { shield: '' },
     week: () => ({ mode: opt.zero ? 'pre' : 'live' }), oddsReady: () => true, titleOdds: () => ({ title: Object.fromEntries(names.map((n, i) => [n, 40 - i * 4])) }), day: d => 'Sat',
   };
   vm.createContext(ctx);
+  vm.runInContext((() => { const C = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/core.gen.js', 'utf8'), a = C.indexOf('const pctTxt='), b = C.indexOf('function plrPseudo', a); if (a < 0 || b < 0) throw new Error('pctTxt not found in core.gen.js'); return C.slice(a, b); })(), ctx);   /* the engine's one percent formatter */
   vm.runInContext(strip(DATA) + '\n' + strip(OVER) + '\n;this.X = { tableBlock, motmBlock, motm, table, heavyPending, settleHeavy };', ctx, { filename: 'league.js' });
   return ctx;
 }
@@ -93,12 +95,12 @@ console.log('--- R the race with the live gameweek');
   const mains = row(h, /<b class="n pr">(\d+)<\/b>/g).map(x => +/\d+/.exec(x)[0]);
   check('R3 the big number of each row is those points', mains.join(',') === banked.map(Math.round).join(','), mains.join(','));
   check('R4 the column head is Points with the live tag', /<span class="ph">Points <em class="live-c">LIVE<\/em><\/span>/.test(h));
-  const sm = row(h, /<small class="n sm">(\d+) proj<\/small>/g).map(x => +/\d+/.exec(x)[0]);
+  const sm = row(h, /<small class="n sm">(\d+) Proj<\/small>/g).map(x => +/\d+/.exec(x)[0]);
   check('R5 the projection is the small secondary figure on every row, and the marker on the bar', sm.join(',') === m.rows.map(r => Math.round(r.proj)).join(',') && count(h, /<span class="mk" style="left:/g) === 8);
   check('R6 win chance on every row, the favourite marked', count(h, /<b class="n wn[^"]*">[<>]?\d+%<\/b>/g) === 8 && count(h, / fav">/g) === 1);
   check('R7 no dollar sign, no em or en dash in the race', !/\$/.test(h) && !/[–—]/.test(h), (h.match(/[^\s]*[\$–—][^\s]*/g) || []).join(' '));
   check('R8 the state line names the live leader by points', /GW6 live · [A-Za-z]+ lead on 29/.test(h), /lg-pipnote"><span>([^<]*)/.exec(h)[1]);
-  check('R9 the key reads points, projected, likely range', /<i class="k-bk"><\/i>points<\/span><span><i class="k-mk"><\/i>projected<\/span><span><i class="k-rg"><\/i>likely range/.test(h));
+  check('R9 the key reads points, Proj, likely range', /<i class="k-bk"><\/i>points<\/span><span><i class="k-mk" aria-hidden="true"><\/i><button[^>]*data-open="legend:proj"[^>]*>Proj<\/button><\/span><span aria-hidden="true"><i class="k-rg"><\/i>likely range/.test(h));
   check('R10 no explanatory note under the race (the method is on How it works)', !/simulations|bars fill|20,000/.test(h));
 }
 {
@@ -112,7 +114,7 @@ console.log('--- Z before the month has a point');
   const E = engine({ zero: true }), m = E.X.motm(), h = E.X.motmBlock();
   check('Z1 nothing banked: ranked by the projection', !m.anyBanked && m.rows.every((r, i) => i === 0 || m.rows[i - 1].proj >= r.proj));
   const mains = row(h, /<b class="n pr">(\d+)<\/b>/g).map(x => +/\d+/.exec(x)[0]);
-  check('Z2 the main number is the projection, headed Projected, with no secondary figure', /<span class="ph">Projected<\/span>/.test(h) && mains.join(',') === m.rows.map(r => Math.round(r.proj)).join(',') && !/class="n sm"/.test(h));
+  check('Z2 the main number is the projection, headed Proj, with no secondary figure', /<span class="ph"><button[^>]*data-open="legend:proj"[^>]*>Proj<\/button><\/span>/.test(h) && mains.join(',') === m.rows.map(r => Math.round(r.proj)).join(',') && !/class="n sm"/.test(h));
   check('Z3 the state line says no points yet', /0 of 4 played · no points yet/.test(h));
 }
 

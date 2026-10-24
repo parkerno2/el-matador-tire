@@ -19,7 +19,7 @@ function clubPlayers(club) {
 }
 function bub(o) {
   const x = o.x;
-  if (!x.started) return '<span class="md-pv2 pj"><b class="n">' + (x.proj === null ? '–' : M.f1(x.proj)) + '</b><i>PROJ</i></span>';
+  if (!x.started) return '<span class="md-pv2 prj"><b class="n">' + (x.proj === null ? '-' : M.f1(x.proj)) + '</b><i>Proj</i></span>';
   const lab = x.dgw ? 'GW' : x.finished ? 'PTS' : 'LIVE';
   return '<span class="md-pv2 ' + (x.finished ? 'bk' : 'lv') + '"><b class="n">' + M.int(x.pts) + '</b><i>' + lab + '</i></span>';
 }
@@ -35,7 +35,7 @@ function fxRow(x) {
   const nXI = hp.filter(o => o.xi).length + ap.filter(o => o.xi).length, nAll = hp.length + ap.length;
   const ko = M.koOf(x);
   const st = done ? '<span class="md-pst">FT</span>' : live ? '<span class="md-pst lv">' + Math.round(num(x.Mins)) + '’</span>' : '';
-  const mid = '<span class="md-pm">' + (sc ? '<b class="n md-ps">' + num(x['Home goals']) + '<i>–</i>' + num(x['Away goals']) + '</b>' : '<span class="n md-pk">' + esc(M.tTime(ko)) + '</span>') + st + '</span>';
+  const mid = '<span class="md-pm">' + (sc ? '<span class="n md-ps">' + UI.score(num(x['Home goals']), num(x['Away goals']), { cls: 'flush' }) + '</span>' : '<span class="n md-pk">' + esc(M.tTime(ko)) + '</span>') + st + '</span>';
   /* your men in this game, before you open it */
   const me = UI.you();
   const mine = me ? hp.concat(ap).filter(o => o.p.Team === me && o.xi) : [];
@@ -43,8 +43,8 @@ function fxRow(x) {
   return '<div class="md-pr' + (open ? ' open' : '') + (live ? ' live' : '') + '">'
     + '<button class="md-prb" data-md-pl="' + esc(k) + '" aria-expanded="' + open + '">'
     + '<span class="md-pc">' + UI.badge(x.Home, 20) + '<b>' + esc(x.Home) + '</b></span>' + mid + '<span class="md-pc r"><b>' + esc(x.Away) + '</b>' + UI.badge(x.Away, 20) + '</span>'
-    + '<span class="md-pn" title="League starters in this game">' + nXI + '<i>/' + nAll + '</i></span>' + UI.icon('chev', 14, 'var(--tx3)') + '</button>'
-    + (mine.length && !open ? '<div class="md-pmine">' + UI.crest(me, 14) + mine.map(o => esc(o.p.Player) + (o.x.started ? ' <b class="n">' + M.int(o.x.pts) + '</b>' : '')).join(' · ') + '</div>' : '')
+    + '<span class="md-pn" title="' + nXI + ' of the ' + nAll + ' league players at these two clubs are in a starting XI" aria-label="' + nXI + ' of ' + nAll + ' league players start in this game">' + nXI + '<i>/' + nAll + '</i><small>start</small></span>' + UI.icon('chev', 14, 'var(--tx3)') + '</button>'
+    + (mine.length && !open ? '<div class="md-pmine">' + UI.crest(me, 14) + mine.map(o => esc(o.p.Player) + (o.x.started ? ' <b class="n">' + UI.minus(M.int(o.x.pts)) + '</b>' : '')).join(' · ') + '</div>' : '')
     + (open ? '<div class="md-pxs">' + side(hp, x.Home) + side(ap, x.Away) + '</div>' : '')
     + '</div>';
 }
@@ -65,6 +65,6 @@ export function render() {
   const summary = [done ? done + ' finished' : '', live ? live + ' live' : '', left ? left + ' still to come' : ''].filter(Boolean).join(', ');
   return snapshot(rows)
     + UI.sh('Gameweek ' + D.gw + ' fixtures', { aside: '<button class="md-all" data-md-plall="1">' + (PLS.all ? 'Hide all' : 'Show all') + '</button>' })
-    + '<p class="md-cap top">' + esc(summary.charAt(0).toUpperCase() + summary.slice(1)) + '.</p>'
+    + '<p class="md-cap top">' + esc(summary.charAt(0).toUpperCase() + summary.slice(1)) + '. ' + UI.legendTap('proj', 'What Proj means', 'ln') + '</p>'
     + days.map(g => '<div class="md-day">' + esc(g.d ? M.tDayLong(g.d) : 'Date to be confirmed') + '</div><div class="card md-pl">' + g.list.map(fxRow).join('') + '</div>').join('');
 }

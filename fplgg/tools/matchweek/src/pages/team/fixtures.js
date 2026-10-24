@@ -24,7 +24,7 @@ function grid(team) {
   });
   clubs.sort(FIX.sort === 'easy' ? (a, b) => a.diff - b.diff || b.ps.length - a.ps.length : (a, b) => b.nXi - a.nXi || b.ps.length - a.ps.length || a.diff - b.diff);
   const cell = (c, fs) => {
-    if (!fs.length) return '<span class="tm-gc blank" title="No fixture">–</span>';
+    if (!fs.length) return '<span class="tm-gc blank" title="No fixture">-</span>';
     return '<span class="tm-gc' + (fs.length > 1 ? ' dbl' : '') + '">' + fs.map(f => {
       const h = f.Home === c, o = h ? f.Away : f.Home, n = fdrOf(c, f);
       return '<span class="tm-fd fd-' + fdK(n) + '" title="' + esc(clubName(o)) + ' (' + (h ? 'H' : 'A') + '), ' + FDRLAB[n].toLowerCase() + '"><b>' + esc(o) + '</b><i>' + (h ? 'H' : 'A') + '</i></span>';
@@ -48,14 +48,14 @@ function matchups(team) {
 function matchupsBlock(team) {
   const rows = matchups(team);
   if (!rows.length) return UI.sh('Next four matchups') + UI.empty('No league matchups left', 'That’s the season. The final table is on League.');
-  return UI.sh('Next four matchups', { aside: 'win chance' })
+  return UI.sh('Next four matchups', { aside: UI.legendTap('proj', 'Proj', 'ln') + ' · ' + UI.legendTap('odds', 'win chance', 'ln') })
     + '<div class="card tm-nm">' + rows.map(r => {
       const dl = gwDeadline(r.g);
       return '<button class="row tap tm-nmr" data-open="manager:' + esc(r.opp) + '">'
         + '<span class="tm-nmg n">GW' + r.g + '</span>' + UI.crest(r.opp, 32)
         + '<span class="tm-nmm"><b>' + (r.home ? 'v ' : 'at ') + esc(r.opp) + '</b><span class="sub ell">' + (dl ? esc(dayDate(dl)) + ' · ' : '') + esc(r.nm || mgrName(r.opp)) + '</span>'
         + (r.me !== null ? UI.wbar(r.me / 100, r.d / 100, r.them / 100, ...UI.pairCols(team, r.opp), true) : '') + '</span>'
-        + '<span class="tm-nmp"><b class="n">' + (r.me !== null ? r.me + '%' : '–') + '</b><span class="sub n">' + (r.muMe !== null ? f1(r.muMe) + '–' + f1(r.muThem) : '') + '</span></span>'
+        + '<span class="tm-nmp"><b class="n">' + (r.me !== null ? r.me + '%' : '-') + '</b><span class="sub n">' + (r.muMe !== null ? UI.score(f1(r.muMe), f1(r.muThem)) : '') + '</span></span>'
         + '</button>';
     }).join('')
     + '</div>';

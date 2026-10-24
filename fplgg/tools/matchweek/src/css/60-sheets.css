@@ -17,7 +17,7 @@
 .sk-pc.lv{background:var(--live-bg);color:var(--live);box-shadow:inset 0 0 0 1.5px var(--live)}
 .sk-res{display:inline-flex;align-items:center;gap:3px;font:700 12px/1 var(--f-num);padding:3px 6px;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
 .sk-res.w{background:var(--win-bg);color:#5FE09A}
-.sk-res.l{background:var(--loss-bg);color:#FF8A8D}
+.sk-res.l{background:var(--loss-bg);color:var(--loss)}   /* the red token, 7.4:1 on its own tint (#FF8A8D read 6.9:1 once the score made the figures numbers) */
 .sk-res.d{background:var(--top);color:var(--tx2)}
 .sk-res.lv{background:var(--live-bg);color:var(--live)}
 .sk-tabs{padding-top:16px}
@@ -158,6 +158,9 @@
 .ps-ml .xp{font:700 12px/1 var(--f-num);color:var(--p300);margin-left:2px}
 .ps-ml .mi{font-size:14px;color:var(--tx3);text-align:right}
 .ps-ml .sk-pc{justify-self:end}
+.ps-ml.up{grid-template-columns:34px 28px minmax(0,1fr) auto}
+.ps-ml.up.none .nm b{color:var(--tx3);font-weight:600}
+.ps-fdw{justify-self:end;padding:4px 8px;border-radius:6px;font:700 12px/1 var(--f-ui);color:var(--base);white-space:nowrap}
 .ps-ev{display:inline-flex;align-items:center;flex:none}
 .ps-ev.as{width:12px;height:12px;border-radius:50%;background:var(--b300);color:var(--base);font:900 8px/12px var(--f-ui);justify-content:center}
 .ps-ev.cs,.ps-ev.gc,.ps-ev.rc,.ps-ev.bn{font:700 11px/1 var(--f-num);padding:2px 4px;border-radius:3px;background:var(--top);color:var(--tx2);letter-spacing:.02em}
@@ -217,6 +220,10 @@
 .ms-glass > div + div{border-left:1px solid rgba(255,255,255,.1)}
 .ms-glass b{font-size:24px;line-height:1;white-space:nowrap}
 .ms-glass span{font-size:11px;color:rgba(255,255,255,.72);white-space:nowrap}
+/* the title chance's legend tap stays a purple link, in the light purple: the link purple (--p300) read 3.9:1 on the glass
+   over a team's colour, --p100 reads 5.3:1 or more over every preset team colour, as the white labels beside it do (the
+   contrast audit, M2) */
+.ms-glass .lgd{color:var(--p100)}
 .ms-wait{color:rgba(255,255,255,.5)}
 .ms-form{position:relative;display:flex;align-items:center;gap:6px;padding:12px 16px 4px;flex-wrap:wrap}
 .ms-form .k{margin-right:4px;color:rgba(255,255,255,.72)}
@@ -236,7 +243,7 @@
 .ms-op{display:flex;min-height:40px;align-items:center}
 .ms-mid{display:flex;flex-direction:column;align-items:center;gap:6px}
 .ms-sc{display:flex;align-items:center;gap:6px}
-.ms-sc b{font-size:34px;line-height:1}
+.ms-sc .score{gap:6px;font-size:34px;line-height:1}
 .ms-sc i{font:700 28px/1 var(--f-num);font-style:normal;color:var(--tx4)}
 .ms-wb{padding:0 14px 14px}
 .ms-wbl{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
@@ -252,8 +259,10 @@
 .ms-pitch .plate{width:min(64px,calc((100% - 20px) / 5))!important}
 .ms-bench{display:flex;flex-wrap:wrap;justify-content:space-around;align-items:flex-start;gap:8px 6px;margin:8px var(--gutter) 0;padding:10px 12px 12px;background:var(--card);border:1px solid var(--top);border-radius:var(--r-l)}
 .ms-bench .k{flex-basis:100%}
-.ms-bench button{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:54px;min-height:40px;font-size:11px;color:var(--tx2)}
-.ms-bench button span{max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the bench players share the row (F15 of docs/plans/M2-review-1.md: a fixed 54 px cut longer surnames); the ellipsis is a last resort */
+.ms-bench button{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1 1 0;min-width:0;max-width:25%;min-height:40px;font-size:11px;color:var(--tx2)}
+.ms-bench button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-bench .chip{padding:1px 5px}
 .ms-subs{display:flex;flex-direction:column;gap:4px;margin:8px 16px 0;font-size:12px;color:var(--tx3)}
 .ms-subs b{color:var(--tx)}
 
@@ -276,6 +285,8 @@
 .ms-ps b{font-size:19px;line-height:1}
 .ms-ps span{font-size:11px;color:var(--tx3)}
 .ms-pl .pb{flex:none}
+.ms-pg{display:flex;flex-direction:column;align-items:center;gap:2px;flex:none}
+.ms-pg>span:last-child{font-size:11px;color:var(--tx3)}
 .ms-grid{padding:6px 10px 10px}
 .ms-gr{display:grid;grid-template-columns:30px repeat(5,minmax(0,1fr));gap:4px;align-items:center;padding:3px 0}
 .ms-gr.hd span{font-size:11px;font-weight:700;color:var(--tx3);text-align:center;letter-spacing:.04em}
@@ -367,7 +378,7 @@
   .ms-r.hd{letter-spacing:.04em}
   .ms-lk{grid-template-columns:96px minmax(0,1fr);gap:10px;padding:14px 12px}
   .ms-last{margin-left:0;width:100%}
-  .ms-sc b{font-size:28px}
+  .ms-sc .score{font-size:28px}
 }
 
 /* ---------- club identity ---------- */
@@ -582,3 +593,13 @@
 .mn-legal{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 16px 0;font-size:12px}
 .mn-legal a{display:inline-flex;align-items:center;min-height:40px;padding:0 6px;color:var(--tx3);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .mn-legal i{width:3px;height:3px;border-radius:50%;background:var(--tx4)}
+.ps-own .ell{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2}   /* the owner chip wraps at 360 px instead of cutting the pick */
+/* M2 part E: a part of a Proj read as points ("+0.7 pts from goals"), no xP column while his match is on, the legend taps */
+.ps-bd.one{grid-template-columns:minmax(0,1fr)}
+.ps-bd.one span b{display:inline;text-align:left;font-size:16px}
+.ps-bd.nox{grid-template-columns:minmax(0,1fr) 44px}
+.ps-fold{position:relative}
+.ps-fold.lgx .ps-prow{padding-right:92px}
+.ps-lgp{position:absolute;right:40px;top:3px;padding:0;color:var(--p300)}
+.ps-cell .lgd.ln,.ps-bd .lgd.ln,.ps-tot .lgd.ln,.ps-prow .lgd.ln{font:inherit;letter-spacing:inherit;color:inherit}
+.ps-lgr{margin:6px 0 -6px -10px}

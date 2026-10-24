@@ -54,7 +54,7 @@ function compare() {
     const w = Math.abs(r.v) / mx * (signed ? 50 : 100);
     const bar = signed ? '<span class="bar dv"><i style="' + (r.v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w.toFixed(1) + '%;background:' + (r.s.on ? r.s.color : 'var(--tx4)') + '"></i></span>'
       : '<span class="bar"><i style="width:' + Math.max(1.5, w).toFixed(1) + '%;background:' + (r.s.on ? r.s.color : 'var(--tx4)') + '"></i></span>';
-    return '<button class="r' + (r.s.on ? ' on' : '') + (r.s.key === me ? ' you' : '') + '" data-pick="' + esc(r.s.key) + '" aria-pressed="' + r.s.on + '"><span class="i n">' + (i + 1) + '</span>' + UI.crest(r.s.key, 18) + '<span class="nm">' + esc(r.s.label) + '</span>' + bar + '<b class="n">' + M.rfmt(r.v) + '</b></button>';
+    return '<button class="r' + (r.s.on ? ' on' : '') + (r.s.key === me ? ' you' : '') + '" data-pick="' + esc(r.s.key) + '" aria-pressed="' + r.s.on + '"><span class="i n">' + (i + 1) + '</span>' + UI.crest(r.s.key, 18) + '<span class="nm">' + esc(r.s.label) + '</span>' + bar + '<b class="n">' + UI.minus(M.rfmt(r.v)) + '</b></button>';
   }).join('');
   const anyLive = ser.some(s => s.on && s.vals.some(v => v.live));
   const chart = xs.length ? lineChart({ id: 'lg-ch', xs, series: ser, fmt: M.fmt, zero: M.zero, floor0: M.floor0, label: M.title + ' for ' + sel.map(UI.short).join(', ') }) : UI.empty('Nothing to draw yet', 'The chart starts once gameweek 1 has scores.');
@@ -64,7 +64,7 @@ function compare() {
     + '<div class="lg-mets" role="group" aria-label="Measure">' + mets + '</div>'
     + '<div class="lg-ct"><b>' + esc(M.title) + '</b><span></span></div>'
     + chart
-    + '<div class="lg-rank"><div class="hd"><span>' + esc(M.rank) + '</span><span></span></div>' + rankH + '</div>'
+    + '<div class="lg-rank"><div class="hd"><span>' + esc(M.rank) + (ser.some(s => s.vals.some(v => v.live)) ? ', live included' : '') + '</span><span></span></div>' + rankH + '</div>'
     + (anyLive ? '<div class="foot">A hollow dot is the live week.</div>' : '')
     + '</div>';
 }
@@ -73,7 +73,7 @@ function luckCard() {
   const { luck, sched } = lab(), me = UI.you(), perf = S.luck !== 'sched';
   const rows = perf
     ? Object.keys(luck).filter(t => TEAMS[t]).map(t => ({ t, d: luck[t].act - luck[t].x, sub: Math.round(luck[t].act) + ' · xP ' + luck[t].x.toFixed(1) }))
-    : Object.keys(sched).filter(t => TEAMS[t]).map(t => { const s = sched[t]; return { t, d: s.pts - s.ap, sub: 'beats ' + (Math.round(s.beat * 10) / 10) + ' of ' + s.opp + (s.cw + s.cd + s.cl ? ' · close ' + s.cw + '–' + s.cd + '–' + s.cl + ' W–D–L' : '') }; });
+    : Object.keys(sched).filter(t => TEAMS[t]).map(t => { const s = sched[t]; return { t, d: s.pts - s.ap, sub: 'beats ' + (Math.round(s.beat * 10) / 10) + ' of ' + s.opp + (s.cw + s.cd + s.cl ? ' · close ' + UI.rec(s.cw, s.cd, s.cl) + ' W-D-L' : '') }; });
   rows.sort((a, b) => b.d - a.d);
   const tog = '<div class="seg lg-seg" role="group" aria-label="Luck measure"><button class="' + (perf ? 'on' : '') + '" data-luck="perf" aria-pressed="' + perf + '">Performance</button><button class="' + (!perf ? 'on' : '') + '" data-luck="sched" aria-pressed="' + !perf + '">Results</button></div>';
   if (!rows.length) return UI.sh('Luck index') + UI.empty('No luck to measure yet', 'It starts once gameweek 1 is played.');
@@ -83,7 +83,7 @@ function luckCard() {
     + '<span class="dv"><i class="' + (r.d >= 0 ? 'p' : 'm') + '" style="width:' + (Math.abs(r.d) / mx * 50).toFixed(1) + '%"></i></span>'
     + '<b class="v n">' + sgn(r.d) + '</b></div>').join('');
   return '<div class="sh"><h2>Luck index</h2><span class="aside">' + tog + '</span></div>'
-    + '<div class="card lg-luck"><div class="ax"><span>Unlucky</span><span>Lucky</span></div>' + body + '</div>';
+    + '<div class="card lg-luck"><div class="ax"><span>Unlucky</span>' + UI.legendTap('luck', 'What luck means', 'ln') + '<span>Lucky</span></div>' + body + '</div>';
 }
 
 function managerTiles() {
@@ -93,7 +93,7 @@ function managerTiles() {
     return '<div class="lg-mt' + (r.team === me ? ' you' : '') + '"' + tap(r.team, r.team + ', open the team') + '>'
       + UI.glow(r.team, 'left', .32, 150)
       + '<div class="top">' + UI.crest(r.team, 32) + '<span class="tx"><b>' + esc(r.team) + '</b><span>' + esc(r.mgr) + ' · ' + ord(r.pos) + '</span></span></div>'
-      + '<div class="st"><span><b class="n">' + (r.avg == null ? '–' : r.avg.toFixed(1)) + '</b><i>per GW</i></span><span><b class="n">' + (r.best || '–') + '</b><i>best GW</i></span><span><b class="n">' + r.w + '–' + r.d + '–' + r.l + '</b><i>W–D–L</i></span></div>'
+      + '<div class="st"><span><b class="n">' + (r.avg == null ? '-' : r.avg.toFixed(1)) + '</b><i>per GW</i></span><span><b class="n">' + (r.best || '-') + '</b><i>best GW</i></span><span><b class="n">' + UI.rec(r.w, r.d, r.l) + '</b><i>W-D-L</i></span></div>'
       + (star && r.starPts > 0 ? '<div class="star">' + UI.face(star, 30) + '<span><i>Star man · <em class="n">' + r.starPts + ' pts started</em></i><b>' + esc(star.Player) + '</b></span></div>' : '')
       + '</div>';
   }).join('') + '</div>';
@@ -121,8 +121,8 @@ function recs() {
   return UI.sh('Season records') + '<div class="tiles lg-recs">'
     + (R.haul ? tile('Biggest haul', R.haul.v, cap(R.haul.who, x => line(x.t, esc(x.name) + ' · GW' + x.g))) : '')
     + (R.ben ? tile('Most left on the bench', R.ben.v, cap(R.ben.who, x => line(x.t, esc(UI.short(x.t)) + ' · GW' + x.g))) : '')
-    + (R.run ? tile('Longest winning run', R.run.v, cap(R.run.who, x => line(x.t, esc(UI.short(x.t)) + ' · GW' + x.from + '–' + x.to))) : '')
-    + (R.loss ? tile('Best score in a defeat', R.loss.v, cap(R.loss.who, x => line(x.t, esc(UI.short(x.t)) + ' · ' + R.loss.v + '–' + x.op + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g))) : '')
+    + (R.run ? tile('Longest winning run', R.run.v, cap(R.run.who, x => line(x.t, esc(UI.short(x.t)) + ' · GW' + x.from + '-' + x.to))) : '')
+    + (R.loss ? tile('Best score in a defeat', R.loss.v, cap(R.loss.who, x => line(x.t, esc(UI.short(x.t)) + ' · ' + UI.score(R.loss.v, x.op) + ' v ' + esc(UI.short(x.o)) + ', GW' + x.g))) : '')
     + '</div><p class="lg-cap">Finished gameweeks only.</p>';
 }
 

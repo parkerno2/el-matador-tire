@@ -1,4 +1,4 @@
-/* league/data.js — every number the League page shows, computed from the engine (core.js globals) and memoised.
+/* league/data.js: every number the League page shows, computed from the engine (core.js globals) and memoised.
    Render code never computes; it reads these. Nothing here touches the DOM. */
 import * as UI from '../../ui.js';
 
@@ -30,7 +30,7 @@ export function fastXi(fn) {
   fastXi.on = true;
   try { return fn(); } finally { xiOf = o.xiOf; benchOf = o.benchOf; effXiOf = o.effXiOf; fastXi.on = false; }
 }
-/* seeded standard normals, two per Box–Muller draw */
+/* seeded standard normals, two per Box-Muller draw */
 export function normals(seed) {
   const r = hpRng(seed); let spare = null;
   return () => {
@@ -46,11 +46,21 @@ export const PAY = Object.assign({ first: 0, second: 0, third: 0, half: 0, motm:
 export const POT = PAY.buyin * Object.keys(TEAMS).length;
 export const FINAL = PAY.first + PAY.second + PAY.third;
 export const ord = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
-export const money = v => '$' + Math.round(v).toLocaleString('en-US');
+/* every amount of money, in the league's currency (LEAGUE.currency: GBP, USD or EUR, the commissioner's setting; GBP when it is missing).
+   This table is the only place a currency symbol is typed (it agrees with CURRENCIES in data/config.js, tests/m2-currency.js). Whole
+   numbers, en-GB digit grouping, a negative amount with the true minus before the symbol. */
+export const SYMBOL = { GBP: '\u00a3', USD: '$', EUR: '\u20ac' };
+export const money = v => {
+  const code = typeof LEAGUE !== 'undefined' && LEAGUE && Object.prototype.hasOwnProperty.call(SYMBOL, LEAGUE.currency) ? LEAGUE.currency : 'GBP';
+  const n = Math.round(v);
+  return (n < 0 ? '\u2212' : '') + SYMBOL[code] + Math.abs(n).toLocaleString('en-GB');
+};
+/* true when the league pays a Manager of the Month prize; with none, no screen shows a prize, a multiple or a race for money */
+export const hasMotm = () => PAY.motm > 0;
 export const sgn = (v, d = 1) => { const r = +(Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d); return r > 0 ? '+' + r.toFixed(d) : r < 0 ? '−' + Math.abs(r).toFixed(d) : (0).toFixed(d); };
 export const teams = () => Object.keys(TEAMS);
-export const perName = p => String(p[0]).replace(' & ', '–');
-export const words = n => ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][n] || String(n);
+export const perName = p => String(p[0]).replace(' & ', '-');
+export const words = n => ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen'][n] || String(n);
 
 /* ---------- the week ---------- */
 export function wk() {
@@ -129,14 +139,21 @@ export function tableSummary() {
    number, so: before a ball is kicked and at full time it is simulate() itself; while games are live it is
    simulate() run on this week as not yet played (no live points, no kickoffs). Cached until a result changes. */
 export const oddsReady = () => UI.oddsReady();
-export const odds = () => UI.titleOdds();
-export const pctTxt = v => v == null ? '–' : v < 1 ? (v > 0 ? '<1%' : '0%') : v > 99 && v < 100 ? '>99%' : Math.round(v) + '%';
-export function bahaTeam() { return teams().find(t => FIRSTOF(t) === 'Baha') || 'Kobbie Mainoo Fan'; }
+/* the odds, already settled at the source (UI.warmOdds and simulate()): 0 and 100 only where the table proves them */
+export const odds = () => memo('odds', () => UI.titleOdds());
+/* the team the wooden spoon market is about: league.json "spoon", else Baha's (the market El Matador has always run), else the last team of the league */
+export function spoonTeam() { const ts = Object.keys(TEAMS); return typeof LEAGUE !== 'undefined' && LEAGUE.spoon in TEAMS ? LEAGUE.spoon : ts.find(t => FIRSTOF(t) === 'Baha') || ts[ts.length - 1]; }
+
+/* a Manager of the Month win chance (0 to 1) as text: 0% and 100% only for a decided month, ">99%" and "<1%" for an open one */
+export const winTxt = w => w >= 0.995 && w < 1 ? '>99%' : w > 0 && w < 0.005 ? '<1%' : Math.round(w * 100) + '%';
 
 /* ---------- Manager of the Month ---------- */
 export const curPeriodIdx = () => { const i = PERIODS.findIndex(p => D.gw >= p[1] && D.gw <= p[2]); return i < 0 ? PERIODS.length - 1 : i; };
 function seedOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-/* a finished period's totals (finished fixtures only), or a running one's banked points (+ the live week, scored like the scoreboard) */
+/* a team's points in a gameweek of a month: its fixture's, or its bye score when the league is odd and it sits the week out
+   (the XI it started, which the engine holds as real data: byeScore). A week with no fixtures at all has no scores yet. */
+const hasFx = g => D.fx.some(x => num(x.GW) === g);
+/* a finished period's totals (finished fixtures and byes only), or a running one's banked points (+ the live week, scored like the scoreboard) */
 export function periodTotals(p) {
   const t = {}; teams().forEach(n => { t[n] = 0; });
   D.fx.forEach(f => {
@@ -144,6 +161,11 @@ export function periodTotals(p) {
     if (fin(f.Finished)) { t[f.Home] += num(f['Home pts']); t[f.Away] += num(f['Away pts']); return; }
     if (g === D.gw && D.dlPassed) { t[f.Home] += effPtsOf(f, f.Home); t[f.Away] += effPtsOf(f, f.Away); }
   });
+  const { fxDone } = wk();
+  for (let g = p[1]; g <= p[2]; g++) {
+    if (!hasFx(g) || !(fxDone(g) || (g === D.gw && D.dlPassed))) continue;
+    teams().forEach(n => { if (!D.fx.some(x => num(x.GW) === g && (x.Home === n || x.Away === n))) t[n] += byeScore(n, g, g === D.gw && D.dlPassed && !fxDone(g)) || 0; });
+  }
   return t;
 }
 export function periodState(p) {
@@ -167,31 +189,41 @@ export function motm() {
       let banked = 0, mu = 0, v = 0;
       for (let g = a; g <= b; g++) {
         const f = D.fx.find(x => num(x.GW) === g && (x.Home === t || x.Away === t));
-        if (!f) continue;
-        if (fin(f.Finished)) { banked += num(f.Home === t ? f['Home pts'] : f['Away pts']); continue; }
+        /* a team with no fixture in a week that has fixtures is on a bye (an odd league): it still scores, so its bye score counts
+           as banked in a finished or live week and its Proj stands in for a week still to come */
+        if (!f && !hasFx(g)) continue;
+        if (f ? fin(f.Finished) : fxDone(g)) { banked += f ? num(f.Home === t ? f['Home pts'] : f['Away pts']) : byeScore(t, g, false) || 0; continue; }
         if (g === D.gw && D.dlPassed) {
-          banked += effPtsOf(f, t);
-          const s = hpLiveSplit(t), sd = hpTeamSd(t, g);
-          mu += Math.max(0, s.rem); v += sd * sd; continue;
+          /* the live week is the matchup's own Proj final (hpTeam): what is still to come is that less the score the scoreboard counts */
+          const sc = f ? effPtsOf(f, t) : byeScore(t, g, true) || 0, sd = hpTeamSd(t, g);
+          banked += sc; mu += Math.max(0, hpTeam(t, g) - sc); v += sd * sd; continue;
         }
         const m = hpTeam(t, g), sd = hpTeamSd(t, g); mu += m; v += sd * sd;
       }
       const sd = Math.sqrt(v), proj = banked + mu;
       return { t, banked, mu, sd, proj, lo: Math.max(banked, proj - 1.2816 * sd), hi: proj + 1.2816 * sd, win: 0 };
     });
-    /* who wins the month: 20,000 seeded runs, each team's remaining points a normal draw */
-    const N = 20000, wins = {}; rows.forEach(r => { wins[r.t] = 0; });
+    /* WHO WINS THE MONTH (the method; How it works says it again in words). A team's month is the points it has banked plus
+       what is still to come: the banked part is fixed, the rest is a normal draw (mean mu, spread sd, never below 0, since a
+       gameweek cannot take points away). 20,000 seeded runs; the team with the most points in a run takes it, and its
+       share of the runs is its win chance. When nothing is left to play (every spread 0) the month is decided: the top
+       banked score wins, and teams level on it share the month evenly (two level teams are 50% each). With 20,000 runs a
+       figure of p is good to about 3 x sqrt(p(1-p)/20000), at most 1.1 points. A figure of 0 or 100 shows only for a decided month. */
+    const N = 20000, wins = Object.create(null); rows.forEach(r => { wins[r.t] = 0; });
     if (rows.every(r => r.sd < 1e-6)) {
       const top = Math.max(...rows.map(r => r.banked)), w = rows.filter(r => r.banked === top);
       w.forEach(r => { wins[r.t] = N / w.length; });
     } else {
       const z = normals(seedOf(name + '|' + rows.map(r => r.t + r.banked + r.mu.toFixed(2) + r.sd.toFixed(2)).join('|')));
-      const k = rows.length, base = rows.map(r => r.banked + r.mu), sd = rows.map(r => r.sd), cnt = new Array(k).fill(0);
+      const k = rows.length, bk = rows.map(r => r.banked), mu = rows.map(r => r.mu), sd = rows.map(r => r.sd), cnt = new Array(k).fill(0);
       for (let i = 0; i < N; i++) {
         let best = 0, bv = -1e9;
-        for (let j = 0; j < k; j++) { const s = base[j] + sd[j] * z(); if (s > bv) { bv = s; best = j; } }
+        for (let j = 0; j < k; j++) { const s = bk[j] + Math.max(0, mu[j] + sd[j] * z()); if (s > bv) { bv = s; best = j; } }
         cnt[best]++;
       }
+      /* 0 and 100 are shown only when the month is decided: a team no run gave the month is half a run, taken from the leader's runs */
+      const top = cnt.indexOf(Math.max(...cnt));
+      cnt.forEach((c, j) => { if (c < 0.5) { cnt[top] -= 0.5 - c; cnt[j] = 0.5; } });
       rows.forEach((r, j) => { wins[r.t] = cnt[j]; });
     }
     rows.forEach(r => { r.win = wins[r.t] / N; });
@@ -229,7 +261,8 @@ export const dayMonth = d => d ? d.toLocaleDateString(undefined, { day: 'numeric
 /* ---------- the prize pool ---------- */
 export function payouts() {
   return memo('pay', () => {
-    const list = PERIODS.map(p => ({ gw: p[2], amt: PAY.motm, kind: 'motm', per: p }));
+    /* a league with no Manager of the Month prize has no such payout: no stop, no amount of 0 */
+    const list = hasMotm() ? PERIODS.map(p => ({ gw: p[2], amt: PAY.motm, kind: 'motm', per: p })) : [];
     list.push({ gw: 19, amt: PAY.half, kind: 'half' });
     list.push({ gw: 38, amt: FINAL, kind: 'final' });
     const done = D.gwsDone;
@@ -304,7 +337,7 @@ export function winOf(f) { return memo('win|' + num(f.GW) + f.Home + f.Away, () 
 
 /* ---------- derbies ---------- */
 export function derbies() {
-  return memo('derbies', () => { buildH2H(); return derbyRows().map(r => {
+  return memo('derbies|' + (myTeam() || ''), () => { buildH2H(); return derbyRows().map(r => {
     const meet = D.fx.filter(f => (f.Home === r.a && f.Away === r.b) || (f.Home === r.b && f.Away === r.a)).sort((p, q) => num(p.GW) - num(q.GW));
     const played = meet.filter(f => fin(f.Finished));
     let big = null;
@@ -344,21 +377,23 @@ export function metricSeries(t, metric) {
   }
   return [];
 }
-/* the old Lab tiles: average per gameweek played, best finished gameweek, W–D–L, star man (started points only) */
+/* the old Lab tiles: average per game played, best finished gameweek, W-D-L, star man (started points only) */
 export function tiles() {
   return memo('tiles', () => {
     const { xm } = lab(), xiP = p => ((xm[String(p.Code)] || {}).xi || 0);
     return table().map(r => {
       const t = r.team;
       const sq = squadOf(t).slice().sort((a, b) => xiP(b) - xiP(a) || ovrOf(b) - ovrOf(a));
+      /* the average is points for per game played, counted the way the table counts: finished games only, so the
+         denominator is the games counted (g) and a live gameweek is not in it until it is finished */
       let g = 0, pf = 0, best = 0;
       D.fx.forEach(f => {
-        if (f.Home !== t && f.Away !== t) return;
-        const pt = effPtsOf(f, t);
-        if (fin(f.Finished) || pt > 0) { g++; pf += pt; }
-        if (fin(f.Finished) && pt > best) best = pt;
+        if (!fin(f.Finished) || (f.Home !== t && f.Away !== t)) return;
+        const pt = num(f.Home === t ? f['Home pts'] : f['Away pts']);
+        g++; pf += pt;
+        if (pt > best) best = pt;
       });
-      return { ...r, avg: g ? pf / g : null, best: best || null, star: sq[0] || null, starPts: sq[0] ? xiP(sq[0]) : 0 };
+      return { ...r, games: g, avg: g ? pf / g : null, best: best || null, star: sq[0] || null, starPts: sq[0] ? xiP(sq[0]) : 0 };
     });
   });
 }

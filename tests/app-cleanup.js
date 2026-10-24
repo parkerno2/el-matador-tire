@@ -4,7 +4,7 @@
 //  2. one live signal: no "LIVE" on the League hero's progress, no live tag on the table, no live aside under titles;
 //  3. tabs that fit: the switcher is one track whose segments share the width; My team folds Fixtures into Season
 //     (#/team/fixtures still lands there), Matchday's Premier League is PL, League's Overview is Table;
-//  4. the Squad list labels its two numbers: the rating small in a box over OVR, the points marked pts;
+//  4. the Squad list labels its two numbers: the rating small in a box over the word Rating, the points marked pts;
 //  5. explainer copy gone: All matchups' "Predicted until the deadline", the Transfers how-to (now on How it works),
 //     the Squad health aside, the Results footnotes;
 //  6. the Results grid opens with a whole column against the team names and fades under the edge;
@@ -45,8 +45,8 @@ check('the router follows a page\'s aliases before it checks the sub-page', /let
 check('Matchday says PL, League says Table', /\{ id: 'pl', label: 'PL' \}/.test(MD) && /\{ id: 'overview', label: 'Table' \}/.test(LG));
 
 console.log('--- 4. the Squad list labels its numbers');
-check('the rating sits small in its box with OVR always under it (and the form arrow); the points carry pts',
-  /'<div class="tm-ovr"><b class="n">' \+ o \+ '<\/b><span class="k">OVR'/.test(SQUAD) && /seasonPts\(p\) \+ '<small>pts<\/small><\/b>'/.test(SQUAD)
+check('the rating sits small in its box with the word Rating always under it (and the form arrow); the points carry pts',
+  /'<div class="tm-ovr"><b class="n">' \+ o \+ '<\/b><span class="k">Rating'/.test(SQUAD) && /seasonPts\(p\)\)? \+ '<small>pts<\/small><\/b>'/.test(SQUAD)
   && /\.tm-ovr\{[^}]*background:var\(--raised\)/.test(TEAMCSS) && /\.tm-ovr b\{font-size:15px/.test(TEAMCSS));
 
 console.log('--- 5. explainer copy gone, data states kept');

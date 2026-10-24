@@ -4,9 +4,26 @@
 const SHEET='1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
 /* the league's config (league.json, ROADMAP C1, 9 Oct 2026): ci-build.sh and the demo build put `const LEAGUE={...}` in front of this file */
 if(typeof LEAGUE==='undefined')throw new Error('core.js needs LEAGUE (league.json): build with ci-build.sh');
-const TEAM_ALIAS=Object.assign({},LEAGUE.aliases||{});
-const canonTeam=v=>(typeof v==='string'&&TEAM_ALIAS[v])?TEAM_ALIAS[v]:v;
-const TEAMS={};Object.keys(LEAGUE.teams).forEach(t=>{const x=LEAGUE.teams[t];TEAMS[t]={mgr:x.mgr,ini:x.ini,col:x.col,xi:x.xi,lo:x.lo,hi:x.hi}});
+/* no en or em dash is ever drawn (M2, check 8): the league's own text (team and manager names, aliases, derby keys) and the seasons' text are
+   made hyphens here, in place and keys included, before anything reads them. The tab reader (src/data/tabs.js) does the same to every cell it
+   reads, so a dashed team name in the config and in the data still meet as the same hyphenated name. */
+const plainText=s=>s.replace(/[\u2013\u2014]/g,'-');
+function plainTree(o){
+  if(typeof o==='string')return plainText(o);
+  if(!o||typeof o!=='object')return o;
+  const own=Object.keys(o).map(k=>[plainText(k),plainTree(o[k])]);
+  if(Array.isArray(o)){own.forEach(e=>{o[e[0]]=e[1]});return o}
+  Object.keys(o).forEach(k=>{delete o[k]});
+  own.forEach(e=>{Object.defineProperty(o,e[0],{value:e[1],writable:true,enumerable:true,configurable:true})});
+  return o;
+}
+plainTree(LEAGUE);if(typeof HISTORY!=='undefined')plainTree(HISTORY);
+
+/* every map keyed by a team name, an alias, a short name or an FPL entry name has no prototype (Object.create(null)): a team or an entry called
+   toString, valueOf, constructor or __proto__ is then data like any other name, never an inherited method and never the prototype */
+const TEAM_ALIAS=Object.assign(Object.create(null),LEAGUE.aliases||{});
+const canonTeam=v=>(typeof v==='string'&&Object.prototype.hasOwnProperty.call(TEAM_ALIAS,v)&&TEAM_ALIAS[v])?TEAM_ALIAS[v]:v;
+const TEAMS=Object.create(null);Object.keys(LEAGUE.teams).forEach(t=>{const x=LEAGUE.teams[t];TEAMS[t]={mgr:x.mgr,ini:x.ini,col:x.col,xi:x.xi,lo:x.lo,hi:x.hi}});
 const MATCH=Object.assign({},LEAGUE.derbies||{});
 const SEED=Object.assign({},LEAGUE.seeded||{});
 const FIRST={};Object.keys(LEAGUE.teams).forEach(t=>{FIRST[LEAGUE.teams[t].ini]=LEAGUE.teams[t].first});
@@ -111,11 +128,11 @@ function defconExp(code,gw,pos){
 function bdOf(r){ // r = normalized GW Stats row → [{lbl,pts,x}]
   const pos=r.Pos,rows=[],add=(lbl,pts,x)=>rows.push({lbl,pts,x});
   if(r.Mins>0)add('Appearance ('+r.Mins+'’)',r.Mins>=60?2:1,r.Mins>=60?2:1);
-  if(r.G||r.xG>0.005)add('Goals '+r.G+' (xG '+r.xG.toFixed(2)+')',r.G*GOALPTS[pos],r.xG*GOALPTS[pos]);
-  if(r.A||r.xA>0.005)add('Assists '+r.A+' (xA '+r.xA.toFixed(2)+')',r.A*3,r.xA*3);
+  if(r.G||r.xG>0.005)add(r.G+(r.G===1?' goal':' goals')+' (xG '+r.xG.toFixed(2)+')',r.G*GOALPTS[pos],r.xG*GOALPTS[pos]);
+  if(r.A||r.xA>0.005)add(r.A+(r.A===1?' assist':' assists')+' (xA '+r.xA.toFixed(2)+')',r.A*3,r.xA*3);
   if(CSPTS[pos]&&r.Mins>=60)add((r.CS?'Clean sheet':'No clean sheet')+' (xGC '+r.xGC.toFixed(2)+')',r.CS?CSPTS[pos]:0,Math.exp(-r.xGC)*CSPTS[pos]);
-  if((pos==='GKP'||pos==='DEF')&&r.Mins>0&&(r.GC>=2||r.xGC>0.3))add('Goals conceded '+r.GC,-Math.floor(r.GC/2),-gcPen(r.xGC));
-  if(r.Saves)add('Saves '+r.Saves,Math.floor(r.Saves/3),Math.floor(r.Saves/3));
+  if((pos==='GKP'||pos==='DEF')&&r.Mins>0&&(r.GC>=2||r.xGC>0.3))add(r.GC+(r.GC===1?' goal conceded':' goals conceded'),-Math.floor(r.GC/2),-gcPen(r.xGC));
+  if(r.Saves)add(r.Saves+(r.Saves===1?' save':' saves'),Math.floor(r.Saves/3),Math.floor(r.Saves/3));
   if(r.PS)add('Penalty saves',r.PS*5,r.PS*5);
   if(r.PM)add('Penalty misses',-r.PM*2,-r.PM*2);
   {const dAct=r.DefCon>=DCTH[pos]?2:0;
@@ -143,8 +160,8 @@ function histRow(code,pos){
     Saves:Math.round(sv/n),Bonus:0,BPS:0,DefCon:Math.round(dc/n),
     xG:xg/n,xA:xa/n,xGC:xgc/n};
 }
-const projLbl=s=>s.replace(/^(Goals|Assists) \d+ /,'$1 ').replace('No clean sheet ','Clean sheet ');
 const fmt1=n=>(Math.round(n*10)/10).toFixed(1).replace(/\.0$/,'');
+const minusTxt=v=>String(v==null?'':v).replace(/^-(?=\.?\d)/,'\u2212').replace(/^\u2212(?=0*\.?0*$)/,''); // a negative number as drawn: the true minus U+2212 (the engine's copy of UI.minus in app/src/ui.js)
 function gwsRow(code,gw){ // normalized GW Stats row for a player+GW
   const m=(gw===undefined||gw===D.gw)?D.gwsCur:(D.gwsByGw[gw]||{});
   return m[String(code)]||null;
@@ -178,10 +195,11 @@ function autoSubs(team,likely){ // likely=true adds the projection tier; default
   /* blank gameweek: no fixture for his club is a certain 0. Locked once the gameweek is under way (deadline passed or a
      fixture kicked off: the XI is fixed and FPL subs him at the end); before that, projection tier like a flagged player.
      No fixtures listed for the GW at all (tab missing) means nobody is blank. */
-  const gwFx=(D.cf||[]).filter(x=>num(x.GW)===D.gw),gwOn=D.dlPassed||gwFx.some(x=>fin(x.Started));
+  const gwFx=(D.cf||[]).filter(x=>num(x.GW)===D.gw),kicked=gwFx.some(x=>fin(x.Started)),gwOn=D.dlPassed||kicked;
+  if(!gwOn)return{xi:xi,subs:[]}; // before the deadline the XI is the XI as picked and nothing is subbed: a flag is a flag, not a swap (M2 check 2)
   const blank=p=>gwFx.length>0&&!gwFx.some(x=>x.Home===p.Club||x.Away===p.Club);
   const zeroed=p=>{if(blank(p))return gwOn;const r=gwsRow(p.Code);return fxFinished(p.Club)&&(!r||!num(r.Mins));};
-  const outKind=p=>zeroed(p)?'locked':(likely&&(likelyOut(p)||blank(p)))?'likely':'';
+  const outKind=p=>zeroed(p)?'locked':(likely&&kicked&&(likelyOut(p)||blank(p)))?'likely':''; // the projection tier waits for the first kick-off: before it nothing is live, so no arrow is drawn on a guess (M2 check 2)
   const cnt=(l,pos)=>l.reduce((s,x)=>s+(x.Pos===pos?1:0),0);
   const legal=l=>cnt(l,'GKP')===1&&cnt(l,'DEF')>=3&&cnt(l,'MID')>=2&&cnt(l,'FWD')>=1;
   const subs=[],used=new Set(),replaced=new Set();
@@ -324,8 +342,8 @@ function faceImgHTML(p){
  if(!ok.length)return'<span class="noface">'+initials(p.Player)+'</span>';
  return '<img decoding="async"'+(isFplPhoto(ok[0])?' class="fpl"':'')+' src="'+ok[0]+'" data-alt="'+ok.slice(1).join('|')+'" alt="" onerror="FACEBAD.add(this.getAttribute(\'src\'));var a=(this.dataset.alt||\'\').split(\'|\').filter(Boolean);if(a.length){this.src=a.shift();this.dataset.alt=a.join(\'|\');this.classList.toggle(\'fpl\',this.src.indexOf(\'premierleague25/photos\')>-1)}else{this.outerHTML=\'<span class=noface>'+initials(p.Player)+'</span>\'}">';
 }
-function projBubble(p){ // pre-match bubble text: the prediction if one exists, otherwise a dash (never a fake 0.0)
-  const e=D.hasEP?epOf(p.Code):null;return e===null?'–':fmt1(e);
+function projBubble(p){ // pre-match bubble text: the prediction if one exists, otherwise a dash (never a fake 0.0); one decimal always (5.0), as the small Plate and the Matchup write it
+  const e=D.hasEP?epOf(p.Code):null;return e===null?'-':minusTxt((Math.round(e*10)/10).toFixed(1));
 }
 function __card_base(p,i){
   const t=tierOf(p),o=dynOvr(p),fd=formDelta(p);
@@ -340,13 +358,13 @@ function __card_base(p,i){
    +(fd?'<span class="fdar '+(fd>0?'up':'dn')+'">'+(fd>0?'▲':'▼')+Math.abs(fd)+'</span>':'')+'</span>'
    +(D.xpview
      ?(fxStarted(p.Club)
-       ?'<span class="pts'+(fxFinished(p.Club)?'':' live')+'"><b>'+fmt1(xpOf(gwsRow(p.Code)))+'</b><i>XP</i></span>'
-       :'<span class="pts proj"><b>'+projBubble(p)+'</b><i>PROJ</i></span>')
+       ?'<span class="pts'+(fxFinished(p.Club)?'':' live')+'"><b>'+minusTxt(fmt1(xpOf(gwsRow(p.Code))))+'</b><i>XP</i></span>'
+       :'<span class="pts proj"><b>'+projBubble(p)+'</b><i>Proj</i></span>')
      :(fxStarted(p.Club)
        /* v5.5: LIVE (green ring + LIVE label) while his match is on, solid PTS once it's finished */
-       ?'<span class="pts'+(fxFinished(p.Club)?'':' live')+'"><b>'+Math.round(num(p['GW pts']))+'</b><i>'+(fxFinished(p.Club)?'PTS':'LIVE')+'</i></span>'
+       ?'<span class="pts'+(fxFinished(p.Club)?'':' live')+'"><b>'+minusTxt(Math.round(num(p['GW pts'])))+'</b><i>'+(fxFinished(p.Club)?'PTS':'LIVE')+'</i></span>'
        /* pre-match: the player's own prediction, labeled PROJ — hollow dashed bubble so it can't be mistaken for banked points (v5.5) */
-       :'<span class="pts proj"><b>'+projBubble(p)+'</b><i>PROJ</i></span>'))
+       :'<span class="pts proj"><b>'+projBubble(p)+'</b><i>Proj</i></span>'))
    +'<span class="face">'+faceImgHTML(p)+'</span>'
    +'<span class="nm">'+esc(p.Player)+'</span>'
    +'<span class="meta">'+badgeImg(p.Club,0)+'<span class="sep"></span>'+flagImg(p.Nation,0)+'</span>'
@@ -369,7 +387,7 @@ function series(h,a){const x=TEAMS[h]?.ini,y=TEAMS[a]?.ini;if(!x||!y)return null
   const sd=SEED[k]||[0,0,0],lv=LIVEH2H[k]||[0,0,0];
   const w1=sd[0]+lv[0],w2=sd[1]+lv[1],dr=sd[2]+lv[2];
   if(w1+w2+dr===0)return'First ever meeting';
-  const rec=(a1,b1)=>a1+'–'+b1+(dr?' ('+dr+' drawn)':'');
+  const rec=(a1,b1)=>a1+'-'+b1+(dr?' ('+dr+' drawn)':'');
   const[wa,wb]=(x===f1)?[w1,w2]:[w2,w1];
   if(wa>wb)return FIRST[x]+' leads '+rec(wa,wb);
   if(wb>wa)return FIRST[y]+' leads '+rec(wb,wa);
@@ -389,7 +407,7 @@ function benchOf(team){
 }
 function formation(xi){
   const c=p=>xi.filter(x=>x.Pos===p).length;
-  return c('DEF')+'–'+c('MID')+'–'+c('FWD');
+  return c('DEF')+'-'+c('MID')+'-'+c('FWD');
 }
 function rowsFor(xi,mirror){
   const order=mirror?['FWD','MID','DEF','GKP']:['GKP','DEF','MID','FWD'];
@@ -452,13 +470,13 @@ function gwsPlayed(p){ // finished GWs + the live one once this player's club ha
   return D.gwsDone+(fxStarted(p.Club)?1:0);
 }
 function avgOf(p){
-  if(!D.started)return'–';
+  if(!D.started)return'-';
   return(seasonTot(p)/Math.max(1,gwsPlayed(p))).toFixed(1);
 }
 function nextFixture(club){
   const f=D.cf.filter(x=>!fin(x.Finished)&&!fin(x.Started)&&(x.Home===club||x.Away===club))
     .sort((a,b)=>num(a.GW)-num(b.GW)||String(a['Kickoff (UTC)']).localeCompare(String(b['Kickoff (UTC)'])))[0];
-  if(!f)return'–';
+  if(!f)return'-';
   return f.Home===club?(f.Away+' (H)'):(f.Home+' (A)');
 }
 let BENCHOPEN=false,XPMODE=false,SUBMARK={};
@@ -481,10 +499,12 @@ const PREVIEWS=[
 function gwDeadline(g){const w=D.mw.find(x=>num(x.GW)===g);return w?dt(w['Deadline (UTC)']):null}
 function mscore(f){
   const hp=num(f['Home pts']),ap=num(f['Away pts']);
-  const done=fin(f.Finished),liveNow=!done&&(hp+ap>0||D.dlPassed);
+  const done=fin(f.Finished),liveNow=!done&&(hp+ap>0||(D.dlPassed&&gwKicked(num(f.GW))));
   const hs=done?hp:Math.max(hp,liveScoreOf(f.Home)),as2=done?ap:Math.max(ap,liveScoreOf(f.Away));
-  return{done,liveNow,hs,as2,score:(done||liveNow)?(hs+' – '+as2):'vs'};
+  return{done,liveNow,hs,as2,score:(done||liveNow)?(hs+' - '+as2):'vs'};
 }
+/* has any fixture of gameweek g kicked off: the gameweek is live only from the first kick-off, not from the deadline */
+function gwKicked(g){return (D.cf||[]).some(x=>num(x.GW)===g&&(fin(x.Started)||fin(x.Finished)))}
 function luckAgg(){ /* per owner: per-GW actual (excl. bonus) vs xP, from GW Stats history */
   const out={};
   /* started-only, same lens as the scoreboard: live GW = effective XI (predicted
@@ -507,28 +527,80 @@ function luckAgg(){ /* per owner: per-GW actual (excl. bonus) vs xP, from GW Sta
 }
 let LUCKMODE='perf';
 const CLOSE_MARGIN=5;
+/* the matchups of one gameweek is half the league: a league of n teams has floor(n/2) fixtures a week (an odd league has a bye) */
+function fxPerWeek(){return Math.max(1,Math.floor(Object.keys(TEAMS).length/2))}
+/* ALL-PLAY, the one definition (the Results luck, the all-play record, "beat N of M" and the Stats and manager sheet
+   copies of them all read it).
+   A week counts once every one of the league's n teams has a score. A team's score is compared with every one of the
+   other n-1 scores of that week: a win over a score is one beaten, an equal score is a tie, the rest are lost. So a
+   league of n teams and w counted weeks gives every team M = w(n-1) scores compared, whatever n is.
+   In a league of an odd size one team has a bye each week: no fixture, no league points, but its score is real data and
+   it is compared like any other. Its score comes from the engine: the live week's from liveScoreOf (the effective XI,
+   auto-subs and provisional bonus), a finished week's from the GW Log (the points of the XI it started). A week whose
+   bye score is not in the data is left out for every team, so every team keeps the same weeks.
+   "Beat N of M" is N = wins + ties/2 of the M scores, so W + D/2 = N and W + D + L = M.
+   Worth, the all-play points of a week, is on the league's own 3/1/0 scale: (3 x wins + 1 x ties) / (n-1), the points the
+   team would have banked on average had it played every other team. It is never negative; summed over weeks it is
+   what the Results luck sets the points banked against (luck = banked - worth). A bye week adds to neither side. */
+function apRivals(){return Object.keys(TEAMS).length-1}
+/* the score of a team that has no fixture in gameweek g (null when the data does not hold it) */
+function byeScore(t,g,live){
+  if(live&&g===D.gw)return liveScoreOf(t);
+  let n=0,s=0;(D.gl||[]).forEach(r=>{if(r.Team===t&&num(r.GW)===g&&r.Started==='XI'){n++;s+=num(r['GW pts'])}});
+  if(n)return s;
+  return g===D.gw?liveScoreOf(t):null;
+}
+/* the scores of one gameweek's fixtures, plus the bye team's, keyed by team: every team of the league, or null before
+   they all have one. live is true when any fixture is still being played. */
+function gwScores(fs){
+  if(fs.length<fxPerWeek())return null;
+  const sc=Object.create(null);let ready=true,live=false;
+  fs.forEach(f=>{const s2=mscore(f);if(!(s2.done||s2.liveNow)){ready=false;return}if(!s2.done)live=true;sc[f.Home]=s2.hs;sc[f.Away]=s2.as2;});
+  if(!ready)return null;
+  const g=num(fs[0].GW);
+  for(const t of Object.keys(TEAMS)){
+    if(t in sc)continue;
+    const v=byeScore(t,g,live);if(v===null)return null;
+    sc[t]=v;
+  }
+  return Object.keys(sc).length>=Object.keys(TEAMS).length?{sc,live}:null;
+}
+/* every finished week up to the engine's gameweek, oldest first: [{ g, sc, fs }]. A week still being played is left out, so
+   the all-play record, "beat N of M", worth, banked and close games all read the weeks the table has settled; M = w(n-1). */
+function apWeeks(){
+  const byGw={};(D.fx||[]).forEach(f=>{const g=num(f.GW);(byGw[g]=byGw[g]||[]).push(f)});
+  const out=[];
+  Object.keys(byGw).map(Number).sort((a,b)=>a-b).forEach(g=>{
+    if(g>D.gw)return;
+    const w=gwScores(byGw[g]);if(!w||w.live)return;
+    out.push({g,sc:w.sc,fs:byGw[g]});
+  });
+  return out;
+}
+/* one team's week against the other scores of it: how many it beat, tied and lost to */
+function apTally(sc,t){
+  let beat=0,tie=0,lost=0;
+  Object.keys(sc).forEach(o=>{if(o===t)return;if(sc[t]>sc[o])beat++;else if(sc[t]===sc[o])tie++;else lost++;});
+  return {beat,tie,lost};
+}
 function schedLuck(){
-  /* v5.7 Results luck: league points banked vs an ALL-PLAY schedule — each week your score is
-     compared against all seven rivals (win 3 / draw 1 / loss 0, all-play prorated to /7).
-     + = the fixture list has been kind (wins banked with scores that beat few rivals; the
-     close-game record shows how much could have swung). Sums week over week, so schedule
-     luck compounds. Scores via mscore (scoreboard-identical, incl. live + provisional). */
-  const out={},byGw={};
-  D.fx.forEach(f=>{const g=num(f.GW);(byGw[g]=byGw[g]||[]).push(f)});
-  Object.keys(byGw).forEach(g=>{
-    const fs=byGw[g];if(fs.length<4)return;
-    const sc={};let ready=true;
-    fs.forEach(f=>{const s2=mscore(f);if(!(s2.done||s2.liveNow)){ready=false;return}
-      sc[f.Home]=s2.hs;sc[f.Away]=s2.as2;});
-    if(!ready||Object.keys(sc).length<8)return;
+  const out=Object.create(null);
+  const row=t=>out[t]=out[t]||{pts:0,ap:0,beat:0,opp:0,cw:0,cl:0,cd:0,gws:0};
+  apWeeks().forEach(({sc,fs})=>{
+    const rivals=Object.keys(sc).length-1,played=new Set();
+    fs.forEach(f=>{played.add(f.Home);played.add(f.Away)});
+    Object.keys(sc).forEach(t=>{
+      const k=apTally(sc,t),o2=row(t);
+      /* worth is earned only in a week the team has a fixture, the one week it could have banked points; a team on a bye
+         has no points to set against it, so its bye week adds nothing to worth or banked. Its score still counts as one of
+         the n-1 scores everyone else is compared with, and in its own "beat N of M". */
+      if(played.has(t))o2.ap+=(3*k.beat+k.tie)/rivals;
+      o2.beat+=k.beat+k.tie/2;o2.opp+=rivals;o2.gws++;
+    });
     fs.forEach(f=>{[f.Home,f.Away].forEach(t=>{
-      const opp=f.Home===t?f.Away:f.Home;
-      const mine=sc[t],theirs=sc[opp];
-      const act=mine>theirs?3:mine===theirs?1:0;
-      let beat=0,tie=0;
-      Object.keys(sc).forEach(o=>{if(o===t)return;if(mine>sc[o])beat++;else if(mine===sc[o])tie++;});
-      const o2=out[t]=out[t]||{pts:0,ap:0,beat:0,opp:0,cw:0,cl:0,cd:0,gws:0};
-      o2.pts+=act;o2.ap+=(beat+tie*0.5)/7*3;o2.beat+=beat+tie*0.5;o2.opp+=7;o2.gws++;
+      const opp=f.Home===t?f.Away:f.Home,mine=sc[t],theirs=sc[opp];
+      const act=mine>theirs?3:mine===theirs?1:0,o2=row(t);
+      o2.pts+=act;
       if(Math.abs(mine-theirs)<=CLOSE_MARGIN){if(act===3)o2.cw++;else if(act===0)o2.cl++;else o2.cd++;}
     });});
   });
@@ -606,51 +678,10 @@ function goldenBoot(){
     +rankBars(rows.map(p2=>({label:p2.name,team:p2.owner,v:p2.xi,tap:p2.owner,
       barColor:TEAMS[p2.owner]?TEAMS[p2.owner].col:'#999',
       sub:p2.bench?('+'+p2.bench+' rotting on the bench'):''})),{fmt:v=>Math.round(v)})
-    +'<p class="mnote">Only weeks a player was actually started count — a benched haul is a crime, not a credit.</p></div>';
+    +'<p class="mnote">Only weeks a player was actually started count. A benched haul is a crime, not a credit.</p></div>';
 }
-function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();
-  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
-function simulate(){
-  const names=Object.keys(TEAMS);
-  const M={};
-  names.forEach(n=>{
-    const t=TEAMS[n];
-    const pMean=t.xi/38,pSd=((t.hi-t.lo)/2/1.28)/Math.sqrt(38)*1.9;
-    const obs=[];
-    D.fx.forEach(f=>{if(!fin(f.Finished))return;
-      if(f.Home===n)obs.push(num(f['Home pts']));
-      if(f.Away===n)obs.push(num(f['Away pts']));});
-    const w=obs.length/(obs.length+8);
-    const oMean=obs.length?obs.reduce((a,b)=>a+b,0)/obs.length:pMean;
-    const oSd=obs.length>3?Math.sqrt(obs.reduce((a,b)=>a+(b-oMean)*(b-oMean),0)/obs.length):pSd;
-    M[n]={mean:w*oMean+(1-w)*pMean,sd:Math.max(6,w*oSd+(1-w)*pSd)};
-  });
-  const pts={},pf={};names.forEach(n=>{pts[n]=0;pf[n]=0});
-  const remain=[];
-  D.fx.forEach(f=>{
-    if(fin(f.Finished)){
-      const hp=num(f['Home pts']),ap=num(f['Away pts']);
-      pf[f.Home]+=hp;pf[f.Away]+=ap;
-      if(hp>ap)pts[f.Home]+=3;else if(ap>hp)pts[f.Away]+=3;else{pts[f.Home]++;pts[f.Away]++;}
-    }else remain.push([f.Home,f.Away]);
-  });
-  const N=10000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
-  for(let s=0;s<N;s++){
-    const p={...pts},q={...pf};
-    for(const[h,a]of remain){
-      if(!M[h]||!M[a])continue; /* unaliased rename — degrade, don't crash */
-      const hs=Math.max(0,Math.round(M[h].mean+M[h].sd*gauss()));
-      const as_=Math.max(0,Math.round(M[a].mean+M[a].sd*gauss()));
-      q[h]+=hs;q[a]+=as_;
-      if(hs>as_)p[h]+=3;else if(as_>hs)p[a]+=3;else{p[h]++;p[a]++;}
-    }
-    const order=names.slice().sort((x,y)=>(p[y]-p[x])||(q[y]-q[x]));
-    title[order[0]]++;last[order[7]]++;
-  }
-  names.forEach(n=>{title[n]/=N/100;last[n]/=N/100});
-  return{title,last};
-}
-const pctTxt=v=>v<1?'<1%':(v>99?'>99%':Math.round(v)+'%');
+/* a percent (0 to 100) as text, the one formatter of every screen: 0% and 100% only where simSettle proved them, "<1%" and ">99%" for an open race */
+const pctTxt=v=>v<=0?'0%':v>=100?'100%':v<1?'<1%':v>99?'>99%':Math.round(v)+'%';
 function plrPseudo(p){ /* Players-tab row → openSheet-compatible object */
   const fc=D.fc27[String(p.Code)]||{};
   const ros=D.ro.find(r=>String(r.Code)===String(p.Code));
@@ -825,14 +856,14 @@ function squadHealth(team){
   const up=rows.filter(r=>r.d>0).sort((a,b)=>b.d-a.d).slice(0,3),dn=rows.filter(r=>r.d<0).sort((a,b)=>a.d-b.d).slice(0,3);
   const li=(r,c)=>'<div class="hr"><b>'+esc(r.p.Player)+'</b><span>'+fmt1(r.l3)+' / GW</span><span class="d '+c+'">'+(r.d>0?'+':'−')+fmt1(Math.abs(r.d))+'</span></div>';
   return '<h2 class="v10">Squad health<span class="lnk" style="cursor:default">last '+last.length+' GW'+(last.length>1?'s':'')+'</span></h2><div class="health">'
-   +'<div class="card"><span class="hk up">▲ Trending up</span>'+(up.length?up.map(r=>li(r,'up')).join(''):'<span class="hr"><span>–</span></span>')+'</div>'
-   +'<div class="card"><span class="hk dn">▼ Trending down</span>'+(dn.length?dn.map(r=>li(r,'dn')).join(''):'<span class="hr"><span>–</span></span>')+'</div></div>';
+   +'<div class="card"><span class="hk up">▲ Trending up</span>'+(up.length?up.map(r=>li(r,'up')).join(''):'<span class="hr"><span>-</span></span>')+'</div>'
+   +'<div class="card"><span class="hk dn">▼ Trending down</span>'+(dn.length?dn.map(r=>li(r,'dn')).join(''):'<span class="hr"><span>-</span></span>')+'</div></div>';
 }
 function nextFive(team){
   /* every club in the 15-man squad, XI slots first (the label promises your players' clubs, not your XI's) */
   const sq=squadOf(team).slice().sort((a,b)=>(num(a.Slot)||99)-(num(b.Slot)||99));const clubs=[...new Set(sq.map(p=>p.Club))];
   const gws=[0,1,2,3,4].map(i=>D.gw+i);
-  const cell=(c,g)=>{const fs=(D.cf||[]).filter(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!fs.length)return '<span class="x">–</span>';
+  const cell=(c,g)=>{const fs=(D.cf||[]).filter(x=>num(x.GW)===g&&(x.Home===c||x.Away===c));if(!fs.length)return '<span class="x">-</span>';
     return '<span class="fxc'+(fs.length>1?' dbl':'')+'">'+fs.map(f=>{const h=f.Home===c,opp=h?f.Away:f.Home,n=fdrOf(c,f);
       return '<span class="fd" style="background:'+FDRCOL[n]+';color:'+FDRTXT[n]+'" title="'+esc(clubName(opp))+' ('+(h?'H':'A')+') · difficulty '+n+'">'+badgeImg(opp,16)+'<i>'+(h?'H':'A')+'</i></span>';}).join('')+'</span>';};
   return '<div class="card fixt" style="padding:0;margin:0 0 10px"><div class="fh" id="fixh">Next five · your clubs</div>'
@@ -915,8 +946,8 @@ function fixNations(){[D.ro,D.plr].forEach(a=>(a||[]).forEach(p=>{if(!p.Nation&&
 function mxScore(f){
   const s=mscore(f);let st,nums,lab;
   if(s.done||D.provOver){st=s.done?'ft':'prov';nums=[s.hs,s.as2];lab=s.done?'Full time':'Provisional';}
-  else if(s.liveNow){st='live';nums=[s.hs,s.as2];lab=D.hasEP?'Proj final '+fmt1(teamProj(f.Home))+' – '+fmt1(teamProj(f.Away)):'Live';}
-  else{st='pred';nums=D.hasEP?[teamProj(f.Home).toFixed(1),teamProj(f.Away).toFixed(1)]:['–','–'];lab='Projected';}
+  else if(s.liveNow){st='live';nums=[s.hs,s.as2];lab=D.hasEP?'Proj final '+fmt1(teamProj(f.Home))+' - '+fmt1(teamProj(f.Away)):'Live';}
+  else{st='pred';nums=D.hasEP?[teamProj(f.Home).toFixed(1),teamProj(f.Away).toFixed(1)]:['-','-'];lab='Proj';}
   return {st,nums,lab,s};
 }
 function mxKeyMan(team,xi){
@@ -950,10 +981,18 @@ function authErrText(e){
   if(e.name==='AbortError')return 'Timed out. Check your signal and try again.';
   return e.message==='off'?'Logins aren’t switched on yet.':'Couldn’t reach the server. Try again.';
 }
+/* the order a derby's two sides are drawn in, everywhere a score or a record of the pair is written: the member's own side
+   first; with no member in the pair, the sorted order of the two monograms (the same order the series key uses) */
+function derbyOrder(x,y){
+  const me=myTeam();
+  if(me===y)return [y,x];
+  if(me===x)return [x,y];
+  return String(TEAMS[x].ini)<=String(TEAMS[y].ini)?[x,y]:[y,x];
+}
 function derbyRows(){
   const teams=Object.keys(TEAMS);const out=[];
   for(let i=0;i<teams.length;i++)for(let j=i+1;j<teams.length;j++){
-    const a=teams[i],b=teams[j];const nm=derbyName(a,b);
+    const [a,b]=derbyOrder(teams[i],teams[j]);const nm=derbyName(a,b);
     const fx=D.fx.filter(f=>(f.Home===a&&f.Away===b)||(f.Home===b&&f.Away===a)).sort((p,q)=>num(p.GW)-num(q.GW));
     const played=fx.filter(f=>fin(f.Finished));const last=played[played.length-1]||null;
     const thisGw=fx.find(f=>num(f.GW)===D.gw)||null;
@@ -968,17 +1007,17 @@ function derbyMeta(r){
   /* scores read in the card's column order (r.a left, r.b right), whichever side was at home that week */
   const bits=[];
   if(r.thisGw){const {st,nums,lab}=mxScore(r.thisGw);const flip=r.thisGw.Home!==r.a;const l=flip?nums[1]:nums[0],rt=flip?nums[0]:nums[1];
-    bits.push('<b class="now">This week</b> · '+esc(FIRSTOF(r.a))+' <span class="num">'+l+'</span> – <span class="num">'+rt+'</span> '+esc(FIRSTOF(r.b))+' <i>'+esc(lab)+'</i>');}
+    bits.push('<b class="now">This week</b> · '+esc(FIRSTOF(r.a))+' <span class="num">'+l+'</span> - <span class="num">'+rt+'</span> '+esc(FIRSTOF(r.b))+' <i>'+esc(lab)+'</i>');}
   else if(r.next){const d=gwDeadline(num(r.next.GW));bits.push('<b>Next</b> · GW'+num(r.next.GW)+(d?' · '+esc(d.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})):''));}
   else bits.push('<b>Next</b> · not scheduled this season');
   if(r.last&&!(r.thisGw&&r.last===r.thisGw)){const hp=num(r.last['Home pts']),ap=num(r.last['Away pts']);const w=hp===ap?'draw':(hp>ap?FIRSTOF(r.last.Home):FIRSTOF(r.last.Away))+' won';
     const flip=r.last.Home!==r.a;
-    bits.push('<b>Last</b> · GW'+num(r.last.GW)+' · <span class="num">'+(flip?ap+'–'+hp:hp+'–'+ap)+'</span> '+esc(w));}
+    bits.push('<b>Last</b> · GW'+num(r.last.GW)+' · <span class="num">'+(flip?ap+'-'+hp:hp+'-'+ap)+'</span> '+esc(w));}
   return bits.join('<span class="dot">·</span>');
 }
 function resFixtures(team){
   return D.fx.filter(f=>(f.Home===team||f.Away===team)&&num(f.GW)<=D.gw)
-   .filter(f=>fin(f.Finished)||(num(f.GW)===D.gw&&(D.dlPassed||effPtsOf(f,f.Home)+effPtsOf(f,f.Away)>0)))
+   .filter(f=>fin(f.Finished)||(num(f.GW)===D.gw&&((D.dlPassed&&gwKicked(D.gw))||effPtsOf(f,f.Home)+effPtsOf(f,f.Away)>0)))
    .sort((a,b)=>num(a.GW)-num(b.GW));
 }
 function posAfter(g){
@@ -1196,7 +1235,9 @@ function hpLiveSplit(team){let banked=0,rem=0,pre=0,started=0;
     if(fxStarted(p.Club)){const L=hpLive(p);banked+=L.pts-L.rem;rem+=L.rem;started++;}
     else rem+=e;});
   return {banked,rem,pre,started};}
-function hpSimModel(){
+/* the league table as the odds see it: league points and points for from the finished fixtures only, and the fixtures
+   still to play (3 for a win, 1 each for a draw; the table's own tie-break, points for, comes after points) */
+function simTable(){
   const names=Object.keys(TEAMS);
   const pts={},pf={};names.forEach(n=>{pts[n]=0;pf[n]=0});
   const remain=[];
@@ -1204,6 +1245,10 @@ function hpSimModel(){
     if(fin(f.Finished)){const hp=num(f['Home pts']),ap=num(f['Away pts']);pf[f.Home]+=hp;pf[f.Away]+=ap;
       if(hp>ap)pts[f.Home]+=3;else if(ap>hp)pts[f.Away]+=3;else{pts[f.Home]++;pts[f.Away]++;}}
     else remain.push(f);});
+  return {names,pts,pf,remain};
+}
+function hpSimModel(){
+  const {names,pts,pf,remain}=simTable();
   /* each team's weekly mean = its XI's projection for that gameweek's fixtures, shrunk 30% toward its
      season scoring rate (squads change, form regresses); weekly spread from the per-player model */
   const obs={};names.forEach(n=>{const a=[];D.fx.forEach(f=>{if(!fin(f.Finished))return;if(f.Home===n)a.push(num(f['Home pts']));if(f.Away===n)a.push(num(f['Away pts']));});obs[n]=a;});
@@ -1226,7 +1271,50 @@ function hpSeed(){const s=D.gw+'#'+(D.fx||[]).map(f=>[num(f.GW),f.Home,f.Away,nu
   let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 function hpRng(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 function hpGauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
-simulate=function(){
+/* TITLE AND LAST-PLACE ODDS, the one definition (every screen reads simulate(), or the same loop run in slices by
+   UI.warmOdds, then simSettle).
+   Method. The finished fixtures give each team its league points and points for (simTable). Every fixture still to
+   play is drawn 5,000 times, each side's score a normal draw rounded to a whole number, never below 0:
+     mean = 0.7 x the XI's projection for that week + 0.3 x the team's scoring rate (its finished scores, pulled toward
+            the league average by games/(games+6)); in the live week the points already scored enter at full weight;
+     spread = the larger of 9 and the per-player model's spread (the live week's shrinks with what is left).
+   A win is 3 points to the winner, a draw 1 each. A season ends in the table's own order: league points, then points
+   for, then the order of the league's teams (a dead heat on both). The team on top takes a title run, the team at the
+   bottom a last-place run; a team's odds are its runs / 5,000 as a percentage. The stream of random numbers is seeded
+   from the fixtures (hpSeed), so the same table always gives the same odds. With 5,000 runs one odds figure of p is
+   good to about 3 x sqrt(p(1-p)/5000), at most 2.1 points.
+   0 and 100 are shown only when the table proves them (simSettle). */
+function simReach(){
+  const {names,pts,remain}=simTable(),rem=Object.create(null);names.forEach(n=>{rem[n]=0});
+  remain.forEach(f=>{if(f.Home in rem&&f.Away in rem){rem[f.Home]++;rem[f.Away]++}});
+  const max=Object.create(null);names.forEach(n=>{max[n]=pts[n]+3*rem[n]});
+  const title=Object.create(null),last=Object.create(null);
+  names.forEach(n=>{
+    const others=names.filter(o=>o!==n);
+    /* the title is open to a team whose best case reaches the best points any rival already has */
+    title[n]=!others.length||max[n]>=Math.max(...others.map(o=>pts[o]));
+    /* last place is open to a team unless a rival is sure to finish below it (that rival's best case is under its points) */
+    last[n]=!others.length||others.every(o=>max[o]>=pts[n]);
+  });
+  return {names,title,last};
+}
+/* the odds with 0 and 100 only where certain: a team the table rules out is exactly 0, a team that is the only one left
+   is exactly 100, and every other team is at least 0.01 and at most 99.99 (a run count of 0 or 5,000 of 5,000 is not
+   proof); the shift is taken from, or given to, the largest figure so each list still adds up to 100 */
+function simSettle(od){
+  const R=simReach(),out={title:Object.create(null),last:Object.create(null)};
+  ['title','last'].forEach(k=>{
+    const open=R.names.filter(n=>R[k][n]),v=out[k];
+    R.names.forEach(n=>{v[n]=0});
+    if(open.length===1){v[open[0]]=100;return}
+    open.forEach(n=>{v[n]=Math.min(99.99,Math.max(0.01,+(od[k]||{})[n]||0))});
+    if(!open.length)return;
+    const top=open.slice().sort((a,b)=>v[b]-v[a])[0];
+    v[top]+=100-open.reduce((s2,n)=>s2+v[n],0);
+  });
+  return out;
+}
+function simulate(){
   const {names,pts,pf,remain,M}=hpSimModel(),rnd=hpRng(hpSeed());
   const N=5000,title={},last={};names.forEach(n=>{title[n]=0;last[n]=0});
   for(let s=0;s<N;s++){
@@ -1238,8 +1326,8 @@ simulate=function(){
     title[order[0]]++;last[order[order.length-1]]++;
   }
   names.forEach(n=>{title[n]/=N/100;last[n]/=N/100});
-  return {title,last};
-};
+  return simSettle({title,last});
+}
 const MPX_RISK=.7;
 function mpxTable(){return D.st.slice().sort((a,b)=>num(b['League Pts'])-num(a['League Pts'])||num(b['Pts For'])-num(a['Pts For']))}
 function mpxRecord(team){
@@ -1251,7 +1339,16 @@ function mpxPct(ps){
   raw.map((x,i)=>[x-fl[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{if(left>0){fl[i]++;left--;}});
   return fl;
 }
-function mpxWinPct(w){const p=mpxPct([w.h,w.d,w.a]);return {h:p[0],d:p[1],a:p[2]}}
+/* win, draw, lose as whole percents that add to 100. A result that is in (w.done) is exact, 100 and 0. Anything else is a
+   forecast: a win or a loss is held to 1..99 on the raw chances first, the three are scaled back to 1, then rounded once by
+   largest remainder, so the sum stays 100 (M2 check 2: never 0% or 100% until the result cannot change) */
+function mpxWinPct(w){
+  if(w.done){const p=mpxPct([w.h,w.d,w.a]);return {h:p[0],d:p[1],a:p[2]}}
+  const h=Math.min(.99,Math.max(.01,w.h)),a=Math.min(.99,Math.max(.01,w.a)),d=Math.max(0,w.d),t=h+d+a;
+  const p=mpxPct([h/t,d/t,a/t]);
+  for(const i of [0,2]){if(p[i]<1){const j=p[1]>=p[2-i]?1:2-i;p[j]--;p[i]++}}
+  return {h:p[0],d:p[1],a:p[2]}
+}
 function mpxBanked(p){return num(p['GW pts'])+((D.pbonus||{})[String(p.Code)]||0)}
 function mpxLeft(team){
   const xi=effXiOf(team,true);let so=0,n=0;
@@ -1299,7 +1396,7 @@ function tsxMemo(k,f){
   return k in TSXC?TSXC[k]:(TSXC[k]=f());
 }
 const tsxSgn=(v,d)=>{const r=Math.round(v*Math.pow(10,d||0))/Math.pow(10,d||0);return r>0?'+'+r.toFixed(d||0):r<0?'−'+Math.abs(r).toFixed(d||0):(0).toFixed(d||0)};
-const tsxRec=o=>o.w+'–'+o.d+'–'+o.l;
+const tsxRec=o=>o.w+'-'+o.d+'-'+o.l;
 const TSX_POS=[['GKP','GKP','goalkeeper'],['DEF','DEF','defence'],['MID','MID','midfield'],['FWD','FWD','attack']];
 function tsxFinGws(){return tsxMemo('fin',()=>{const by={};(D.fx||[]).forEach(f=>{const g=num(f.GW);(by[g]=by[g]||[]).push(f)});
   return Object.keys(by).map(Number).filter(g=>by[g].length>=4&&by[g].every(f=>fin(f.Finished))).sort((a,b)=>a-b);})}
@@ -1307,22 +1404,16 @@ function tsxRank(map,t,asc){const v=map[t];return 1+Object.keys(map).filter(o=>a
 function tsxLeagueOrd(n,of){return n===1?'Most in the league':n===of?'Fewest in the league':ORD(n)+' most in the league'}
 function tsxCalc(){return tsxMemo('calc',()=>{
   const T=Object.keys(TEAMS),fgs=tsxFinGws(),fset=new Set(fgs);
-  const out={};T.forEach(t=>out[t]={});
-  /* 1 · all-play: the luck index lens (schedLuck), W/D/L kept separate */
-  const byGw={};(D.fx||[]).forEach(f=>{const g=num(f.GW);(byGw[g]=byGw[g]||[]).push(f)});
-  const ap={};T.forEach(t=>ap[t]={w:0,d:0,l:0,pf:0});let apLast=0,apLive=0;
-  Object.keys(byGw).map(Number).sort((a,b)=>a-b).forEach(g=>{
-    const fs=byGw[g];if(fs.length<4||g>D.gw)return;
-    const sc={};let ready=true,live=false;
-    fs.forEach(f=>{const s=mscore(f);if(!(s.done||s.liveNow)){ready=false;return}if(!s.done)live=true;sc[f.Home]=s.hs;sc[f.Away]=s.as2;});
-    if(!ready||Object.keys(sc).length<8)return;
-    apLast=g;if(live)apLive=g;
-    Object.keys(sc).forEach(t=>{if(!ap[t])return;ap[t].pf+=sc[t];
-      Object.keys(sc).forEach(o=>{if(o===t)return;if(sc[t]>sc[o])ap[t].w++;else if(sc[t]===sc[o])ap[t].d++;else ap[t].l++;});});
+  const out=Object.create(null);T.forEach(t=>out[t]={});
+  /* 1 · all-play: the same weeks and the same count of scores compared as schedLuck (apWeeks, apTally), W/D/L kept separate */
+  const ap=Object.create(null);T.forEach(t=>ap[t]={w:0,d:0,l:0,pf:0});let apLast=0;
+  apWeeks().forEach(({g,sc})=>{
+    apLast=g;
+    Object.keys(sc).forEach(t=>{if(!ap[t])return;const k=apTally(sc,t);ap[t].pf+=sc[t];ap[t].w+=k.beat;ap[t].d+=k.tie;ap[t].l+=k.lost;});
   });
   const apOrder=T.slice().sort((a,b)=>(ap[b].w+ap[b].d/2)-(ap[a].w+ap[a].d/2)||ap[b].pf-ap[a].pf);
   const posNow=apLast&&typeof posAfter==='function'?posAfter(apLast):null; /* the results table's Pos column, same lens */
-  T.forEach(t=>{out[t].ap={...ap[t],rank:apOrder.indexOf(t)+1,pos:posNow?posNow[t]:0,live:apLive,last:apLast};});
+  T.forEach(t=>{out[t].ap={...ap[t],rank:apOrder.indexOf(t)+1,pos:posNow?posNow[t]:0,last:apLast};});
   /* 2 · finished matchups: close games (margin <= CLOSE_MARGIN), points against, scores */
   const cm=typeof CLOSE_MARGIN==='number'?CLOSE_MARGIN:5;
   const cl={},pa={},score={};T.forEach(t=>{cl[t]={w:0,d:0,l:0};pa[t]=0;score[t]={};});
@@ -1421,27 +1512,8 @@ function tsxSeasonHTML(team){
   return '<h2 class="v10">Season numbers<span class="lnk tsx-k">'+span+'</span></h2><div class="tsx">'+rows.join('')+'</div>';
 }
 squadHealth=function(team){return tsxSeasonHTML(team)};
-schedLuck=function(){
-  const out={},byGw={};
-  D.fx.forEach(f=>{const g=num(f.GW);(byGw[g]=byGw[g]||[]).push(f)});
-  Object.keys(byGw).forEach(g=>{
-    const fs=byGw[g];if(fs.length<4||num(g)>D.gw)return;
-    const sc={};let ready=true;
-    fs.forEach(f=>{const s2=mscore(f);if(!(s2.done||s2.liveNow)){ready=false;return}sc[f.Home]=s2.hs;sc[f.Away]=s2.as2;});
-    if(!ready||Object.keys(sc).length<8)return;
-    fs.forEach(f=>{[f.Home,f.Away].forEach(t=>{
-      const opp=f.Home===t?f.Away:f.Home,mine=sc[t],theirs=sc[opp];
-      const act=mine>theirs?3:mine===theirs?1:0;
-      let beat=0,tie=0;
-      Object.keys(sc).forEach(o=>{if(o===t)return;if(mine>sc[o])beat++;else if(mine===sc[o])tie++;});
-      const o2=out[t]=out[t]||{pts:0,ap:0,beat:0,opp:0,cw:0,cl:0,cd:0,gws:0};
-      o2.pts+=act;o2.ap+=(beat+tie*0.5)/7*3;o2.beat+=beat+tie*0.5;o2.opp+=7;o2.gws++;
-      if(Math.abs(mine-theirs)<=CLOSE_MARGIN){if(act===3)o2.cw++;else if(act===0)o2.cl++;else o2.cd++;}
-    });});
-  });
-  return out;
-};
-const PSX_PARTS=[['app','Appearance'],['goals','Goals'],['assists','Assists'],['cs','Clean sheet'],['gc','Goals conceded'],['saves','Saves'],['defcon','Defensive contribution'],['bonus','Bonus'],['cards','Cards']];
+/* the parts of a Proj, each read as points: the sheet prints "+0.7 pts from goals" (a part is points, never a label with a number after it) */
+const PSX_PARTS=[['app','from appearance'],['goals','from goals'],['assists','from assists'],['cs','from clean sheet'],['gc','from goals conceded'],['saves','from saves'],['defcon','from defensive contribution'],['bonus','from bonus'],['cards','from cards']];
 function psxRow(p){
   if(p&&TEAMS[p.Team])return p;
   const r=(D.plr||[]).find(x=>String(x.Code)===String(p.Code));
@@ -1483,7 +1555,7 @@ function fbxOrder(rows){const mine=myTeam();const me=f=>mine&&(f.Home===mine||f.
   return rows.map((f,i)=>({f,i})).sort((a,b)=>me(a.f)-me(b.f)||a.i-b.i)}
 function fbxShort(t){return (typeof SHORTOF!=='undefined'&&SHORTOF[t])||t}
 function fbxRes(a,b){return a>b?'W':a<b?'L':'D'}
-function fbxRec(t){const s=(D.st||[]).find(x=>x.Team===t);return s&&s.W!==undefined&&s.W!==''?num(s.W)+'–'+num(s.D)+'–'+num(s.L):''}
+function fbxRec(t){const s=(D.st||[]).find(x=>x.Team===t);return s&&s.W!==undefined&&s.W!==''?num(s.W)+'-'+num(s.D)+'-'+num(s.L):''}
 function fbxKicks(g){return (D.cf||[]).filter(x=>num(x.GW)===g).map(x=>dt(x['Kickoff (UTC)'])).filter(Boolean).sort((a,b)=>a-b)}
 function fbxDay(d){try{return d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})}catch(e){return ''}}
 function fbxWhen(d){try{return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}catch(e){return ''}}
@@ -1568,7 +1640,7 @@ function __loadBase(quiet){
       D.stOfficial=D.st;D.st=D.st.map(s=>eff[s.Team]||s);
     }
     D.started=D.gwsDone>0||fx.some(f=>fin(f.Finished))||anyLivePts||D.dlPassed;
-    const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&(D.dlPassed||anyLivePts);
+    const liveNow=fx.some(f=>num(f.GW)===D.gw&&!fin(f.Finished))&&((D.dlPassed&&gwKicked(D.gw))||anyLivePts);
     const finalMode=!D.dlPassed&&D.gwsDone>0&&!liveNow&&!D.provOver;D.liveNow=liveNow&&!D.provOver;D.finalMode=finalMode;D.curDl=curDl;
     LOADED=Date.now();
     

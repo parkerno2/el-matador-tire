@@ -1,4 +1,4 @@
-/* feed/ai-posts.js — posts the AI writer (Apps Script v3.9, Claude) put in the Posts tab. Plain text from the sheet,
+/* feed/ai-posts.js - posts the AI writer (Apps Script v3.9, Claude) put in the Posts tab. Plain text from the sheet,
    escaped here; Archizio's caps tag goes bold; Clark's come with a thumbnail. Every one says who wrote it. */
 import { esc, relTime, short } from './util.js';
 

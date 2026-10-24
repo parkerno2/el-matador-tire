@@ -1,18 +1,18 @@
-/* feed/claims.js — Archizio's press conference (every manager, every gameweek, before the deadline) and the claims
+/* feed/claims.js - Archizio's press conference (every manager, every gameweek, before the deadline) and the claims
    inside the quotes. A claim is something the data can settle later: a win, a margin, a score, a month, a haul.
    Settling is a pure function of the data, so every phone agrees on the receipts. */
 import * as UI from '../ui.js';
 import { esc, short, firstOf, mgrOf, fxFor, oppOf, pick, hash, ptsOver, gwDoneTime } from './util.js';
 import { results, motmTotals, periodDone } from './facts.js';
 import { quotes, quoteOf } from './social.js';
-import { motm } from '../pages/league/data.js';
+import { motm, PAY, money, hasMotm } from '../pages/league/data.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const tail = z => 1 - hpNorm(z);                       /* P(X ≥ ...) from a z-score */
 export const pct = p => p == null ? '' : p < .01 ? '<1%' : p > .99 ? '>99%' : Math.round(p * 100) + '%';
 const perOf = name => (PERIODS || []).find(p => p[0] === name) || null;
 const perFor = g => (PERIODS || []).find(p => g >= p[1] && g <= p[2]) || null;
-const pname = name => String(name).replace(' & ', '–');
+const pname = name => String(name).replace(' & ', '-');
 
 /* ---------- what a claim is called ---------- */
 export function claimLabel(c) {
@@ -60,7 +60,7 @@ function claimsFor(team, g) {
     } catch (e) { }
   }
   const per = perFor(g);
-  if (per && g - per[1] <= 1 && !periodDone(per)) {
+  if (hasMotm() && per && g - per[1] <= 1 && !periodDone(per)) {
     let p = null;
     try { const R = motm(); if (R && R.per && R.per[0] === per[0]) { const row = R.rows.find(r => r.t === team); if (row) p = row.win; } } catch (e) { }
     out.push({ c: { type: 'motm', per: per[0], team }, p });
@@ -125,7 +125,7 @@ export function settle(q) {
   if (c.type === 'win' || c.type === 'margin' || c.type === 'score') {
     const r = results(c.gw).find(x => x.home === c.team || x.away === c.team); if (!r) return { state: 'open' };
     const ts = r.home === c.team ? r.hs : r.as, os = r.home === c.team ? r.as : r.hs;
-    const line = esc(r.home) + ' ' + r.hs + '–' + r.as + ' ' + esc(r.away), plain = r.home + ' ' + r.hs + '–' + r.as + ' ' + r.away;
+    const line = esc(r.home) + ' ' + UI.scoreText(r.hs, r.as) + ' ' + esc(r.away), plain = r.home + ' ' + UI.scoreText(r.hs, r.as) + ' ' + r.away;
     if (!fxFinal(r)) return (r.live || r.done) ? { state: 'live', line, plain, ts, os } : { state: 'open' };
     let won, sev;
     if (c.type === 'win') { won = ts > os; sev = ts === os ? .3 : clamp((os - ts) / 25, .15, 1); }
@@ -155,6 +155,8 @@ export function settle(q) {
   }
   return { state: 'open' };
 }
+/* a running Manager of the Month call is mocked only near the bottom: the last three of the league (6th to 8th of eight) */
+export const mockable = s => s.rank >= (s.nTeams || Object.keys(TEAMS).length) - 2;
 export const ordinal = n => ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'][n] || String(n);
 /* earned, not random: a big miss, or a bold call that missed, or one that landed against the odds */
 export function viral(q, s) {

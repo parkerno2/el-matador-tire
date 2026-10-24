@@ -66,7 +66,7 @@ html.gs-on{overflow:hidden}
 .gs-fxn b i{font-style:normal;color:#A398B2;font-weight:600;margin:0 2px}
 .gs-fxn em{font-style:normal;font-size:11px;color:#CDBDF0;letter-spacing:.03em}
 .gs-fxw{flex:none;font-size:19px;line-height:1}
-.gs-fxw i{font-style:normal;color:#A398B2;margin:0 3px}
+.gs-fxw i{font-style:normal;color:#A398B2;padding:0 3px}
 .gs-dl{margin-top:14px;font-weight:700;font-size:13.5px;animation:gsUp .5s 1.5s both}
 .gs-wl{font-size:11px;color:#A398B2;margin-top:2px;animation:gsUp .5s 1.6s both}
 .gs-cta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px;animation:gsUp .5s 1.2s both}
@@ -117,7 +117,7 @@ html.gs-on{overflow:hidden}
 .gs-pred{display:flex;flex-direction:column;align-items:center;gap:2px;animation:gsUp .5s .8s both}
 .gs-pk{font:800 11px/1 var(--f-ui);letter-spacing:.14em;text-transform:uppercase;color:#A398B2}
 .gs-pred b{font-size:58px;line-height:1}
-.gs-pred b i{font-style:normal;color:#A398B2;margin:0 6px}
+.gs-pred b i{font-style:normal;color:#A398B2;padding:0 6px}
 .gs-win{display:flex;align-items:center;gap:10px;width:100%;animation:gsUp .5s 1s both}
 .gs-win .wbar{flex:1;height:10px;border-radius:5px}
 .gs-win b{font-size:17px}

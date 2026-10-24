@@ -1,4 +1,4 @@
-/* feed/showsync.js — the Gameweek Show's audio contract with Code.gs (v3.23) and the caption clock, with no DOM in it so
+/* feed/showsync.js - the Gameweek Show's audio contract with Code.gs (v3.23) and the caption clock, with no DOM in it so
    tests/app-show.js can run it in Node.
    · ?show=<gw> answers only the clips rendered from the script's lines as they are now (the server compares each stored
      take's hash with the current line); an older take is listed in stale and never sent, a line not yet voiced in

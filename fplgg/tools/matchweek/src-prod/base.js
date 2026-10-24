@@ -6,9 +6,9 @@ const SHEET='1rIj4A3-lkSfg1rTuAh3yJL-K7LP4EOYkwWZiItZaoHk';
    and standings all agree. One line per rename, old -> current. */
 /* the league's config (league.json, ROADMAP C1, 9 Oct 2026): ci-build.sh and the demo build put `const LEAGUE={...}` in front of this file */
 if(typeof LEAGUE==='undefined')throw new Error('core.js needs LEAGUE (league.json): build with ci-build.sh');
-const TEAM_ALIAS=Object.assign({},LEAGUE.aliases||{});
-const canonTeam=v=>(typeof v==='string'&&TEAM_ALIAS[v])?TEAM_ALIAS[v]:v;
-const TEAMS={};Object.keys(LEAGUE.teams).forEach(t=>{const x=LEAGUE.teams[t];TEAMS[t]={mgr:x.mgr,ini:x.ini,col:x.col,xi:x.xi,lo:x.lo,hi:x.hi}});
+const TEAM_ALIAS=Object.assign(Object.create(null),LEAGUE.aliases||{});
+const canonTeam=v=>(typeof v==='string'&&Object.prototype.hasOwnProperty.call(TEAM_ALIAS,v)&&TEAM_ALIAS[v])?TEAM_ALIAS[v]:v;
+const TEAMS=Object.create(null);Object.keys(LEAGUE.teams).forEach(t=>{const x=LEAGUE.teams[t];TEAMS[t]={mgr:x.mgr,ini:x.ini,col:x.col,xi:x.xi,lo:x.lo,hi:x.hi}});
 const MATCH=Object.assign({},LEAGUE.derbies||{});
 const SEED=Object.assign({},LEAGUE.seeded||{});
 const FIRST={};Object.keys(LEAGUE.teams).forEach(t=>{FIRST[LEAGUE.teams[t].ini]=LEAGUE.teams[t].first});
@@ -202,10 +202,11 @@ function autoSubs(team,likely){ // likely=true adds the projection tier; default
   /* blank gameweek: no fixture for his club is a certain 0. Locked once the gameweek is under way (deadline passed or a
      fixture kicked off: the XI is fixed and FPL subs him at the end); before that, projection tier like a flagged player.
      No fixtures listed for the GW at all (tab missing) means nobody is blank. */
-  const gwFx=(D.cf||[]).filter(x=>num(x.GW)===D.gw),gwOn=D.dlPassed||gwFx.some(x=>fin(x.Started));
+  const gwFx=(D.cf||[]).filter(x=>num(x.GW)===D.gw),kicked=gwFx.some(x=>fin(x.Started)),gwOn=D.dlPassed||kicked;
+  if(!gwOn)return{xi:xi,subs:[]}; // before the deadline the XI is the XI as picked and nothing is subbed: a flag is a flag, not a swap (M2 check 2)
   const blank=p=>gwFx.length>0&&!gwFx.some(x=>x.Home===p.Club||x.Away===p.Club);
   const zeroed=p=>{if(blank(p))return gwOn;const r=gwsRow(p.Code);return fxFinished(p.Club)&&(!r||!num(r.Mins));};
-  const outKind=p=>zeroed(p)?'locked':(likely&&(likelyOut(p)||blank(p)))?'likely':'';
+  const outKind=p=>zeroed(p)?'locked':(likely&&kicked&&(likelyOut(p)||blank(p)))?'likely':''; // the projection tier waits for the first kick-off: before it nothing is live, so no arrow is drawn on a guess (M2 check 2)
   const cnt=(l,pos)=>l.reduce((s,x)=>s+(x.Pos===pos?1:0),0);
   const legal=l=>cnt(l,'GKP')===1&&cnt(l,'DEF')>=3&&cnt(l,'MID')>=2&&cnt(l,'FWD')>=1;
   const subs=[],used=new Set(),replaced=new Set();

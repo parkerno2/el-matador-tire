@@ -4,7 +4,12 @@
    finished H2H Fixtures rows (D.fx) with the standings worked out from them. Pure functions of those globals, memoised
    per data load; nothing here touches the DOM. The League's All-time sub-tab and the manager sheet's All-time tab read
    it. The head-to-head records equal the Derbies page's series (SEED plus this season's finished meetings), which
-   tests/app-alltime.js holds to. */
+   tests/app-alltime.js holds to.
+   NOT RECORDED. A season the history does not hold is not a season of 0 games. The seasons between two recorded ones
+   (or between the last recorded one and this season) that no file covers are listed as "not recorded" (allTime().gaps);
+   they add nothing to any total, a winning or losing run does not carry across one (the matches either side of it are not
+   consecutive), and every record says over how many recorded seasons it is computed (allTime().recorded, with this
+   season counted once it has a finished match). */
 
 const M = { at: -1, v: null };
 const hist = () => (typeof HISTORY !== 'undefined' && Array.isArray(HISTORY) ? HISTORY : []);
@@ -40,10 +45,17 @@ export function currentSeason() {
 /* a manager's matches across the seasons, oldest first: { season, gw, opp, my, their, res } */
 function matchesOf(seasons, code) {
   const out = [];
-  seasons.forEach(s => (s.fixtures || []).forEach(([g, a, as, bs, b]) => {
-    if (a === code) out.push({ season: s.season, gw: g, opp: b, my: as, their: bs });
-    else if (b === code) out.push({ season: s.season, gw: g, opp: a, my: bs, their: as });
-  }));
+  seasons.forEach((s, i) => {
+    /* the first match after a season no file covers starts a new stretch: a run cannot carry across it */
+    const gap = i > 0 && yearOf(s.season) - yearOf(seasons[i - 1].season) > 1;
+    let first = true;
+    (s.fixtures || []).forEach(([g, a, as, bs, b]) => {
+      if (a !== code && b !== code) return;
+      const m = a === code ? { season: s.season, gw: g, opp: b, my: as, their: bs } : { season: s.season, gw: g, opp: a, my: bs, their: as };
+      if (gap && first) m.gapBefore = true;
+      first = false; out.push(m);
+    });
+  });
   out.forEach(m => { m.res = m.my > m.their ? 'W' : m.my < m.their ? 'L' : 'D'; });
   return out;
 }
@@ -51,22 +63,27 @@ function matchesOf(seasons, code) {
 function longestRun(ms, res) {
   let best = null, cur = 0, from = null;
   ms.forEach(m => {
+    if (m.gapBefore) cur = 0;
     if (m.res === res) { if (!cur) from = { season: m.season, gw: m.gw }; cur++; if (!best || cur > best.n) best = { n: cur, from, to: { season: m.season, gw: m.gw } }; }
     else cur = 0;
   });
   return best;
 }
-/* this season's all-play record: a manager's score against every other finished score of the same gameweek */
-function allPlayNow(cur, code) {
-  const byGw = {};
-  cur.fixtures.forEach(([g, a, as, bs, b]) => { (byGw[g] = byGw[g] || {})[a] = as; byGw[g][b] = bs; });
+/* this season's all-play record: a manager's score against the other n-1 scores of every finished gameweek, from the
+   engine's one all-play count (apWeeks, apTally in core.gen.js), the team on a bye included */
+function allPlayNow(code) {
+  const team = Object.keys(TEAMS).find(t => codeOf(t) === code);
   let w = 0, l = 0, t = 0;
-  Object.keys(byGw).forEach(g => {
-    const row = byGw[g]; if (!(code in row)) return;
-    Object.keys(row).forEach(o => { if (o === code) return; if (row[code] > row[o]) w++; else if (row[code] < row[o]) l++; else t++; });
+  if (!team) return { w, l, t };
+  apWeeks().forEach(wk => {
+    if (wk.live || !(team in wk.sc)) return;
+    const k = apTally(wk.sc, team); w += k.beat; t += k.tie; l += k.lost;
   });
   return { w, l, t };
 }
+/* the start year of a season label (2025/26 is 2025) and the label of a start year */
+const yearOf = label => parseInt(String(label).slice(0, 4), 10);
+const labelOf = y => y + '/' + String((y + 1) % 100).padStart(2, '0');
 
 /* the model: { seasons, managers: { <code>: {...} }, rows: [managers ranked by league points], records } */
 export function allTime() {
@@ -92,10 +109,10 @@ export function allTime() {
       if (d > 0 && (!bigWin || d > bigWin.m)) bigWin = { m: d, season: m.season, gw: m.gw, opp: m.opp, my: m.my, their: m.their };
       if (d < 0 && (!bigLoss || -d > bigLoss.m)) bigLoss = { m: -d, season: m.season, gw: m.gw, opp: m.opp, my: m.my, their: m.their };
     });
-    const ap = { w: 0, l: 0, t: 0 };
+    const ap = { w: 0, l: 0, t: 0, seasons: 0 };   /* seasons: how many recorded seasons the all-play record is over (a file may carry no all-play) */
     seasons.forEach(s => {
-      if (s.current) { const a = allPlayNow(s, code); ap.w += a.w; ap.l += a.l; ap.t += a.t; }
-      else if (s.allplay && s.allplay[code]) { ap.w += s.allplay[code].apW; ap.l += s.allplay[code].apL; ap.t += s.allplay[code].apT; }
+      if (s.current) { const a = allPlayNow(code); ap.w += a.w; ap.l += a.l; ap.t += a.t; ap.seasons++; }
+      else if (s.allplay && s.allplay[code]) { ap.w += s.allplay[code].apW; ap.l += s.allplay[code].apL; ap.t += s.allplay[code].apT; ap.seasons++; }
     });
     const h2h = {};
     ms.forEach(m => { const r = h2h[m.opp] || (h2h[m.opp] = { w: 0, d: 0, l: 0, pf: 0, pa: 0 }); r[m.res.toLowerCase()]++; r.pf += m.my; r.pa += m.their; });
@@ -111,7 +128,12 @@ export function allTime() {
   rows.forEach((r, i) => { r.rank = i + 1; });
   const top = (k, f) => { let b = null; rows.forEach(r => { const v = r[k]; if (!v) return; const x = f(v); if (b == null || x > b.x) b = { x, code: r.code, v }; }); return b; };
   const records = { hi: top('hi', v => v.v), bigWin: top('bigWin', v => v.m), winRun: top('winRun', v => v.n), lossRun: top('lossRun', v => v.n) };
-  M.at = LOADED_AT; M.v = { seasons, managers, rows, records };
+  /* the seasons no file covers, between two recorded ones and up to this season */
+  const gaps = [];
+  seasons.forEach((s, i) => { if (i) for (let y = yearOf(seasons[i - 1].season) + 1; y < yearOf(s.season); y++) gaps.push(labelOf(y)); });
+  const recorded = seasons.filter(s => s.current ? (s.fixtures || []).length > 0 : true).length;
+  records.recorded = recorded;
+  M.at = LOADED_AT; M.v = { seasons, managers, rows, records, gaps, recorded };
   return M.v;
 }
 export const managerOf = team => allTime().managers[codeOf(team)] || null;

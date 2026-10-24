@@ -224,7 +224,11 @@ function warmImages() {
   const urls = [];
   Object.values(D.clubs || {}).forEach(c => { if (c) urls.push('https://resources.premierleague.com/premierleague/badges/50/t' + c + '.png'); });
   [...new Set(ro.map(p => String(p.Nation || '').toLowerCase()).filter(Boolean))].forEach(n => urls.push('https://flagcdn.com/w80/' + n + '.png'));
-  ro.forEach(p => { const u = UI.faceSrcs(p.Code)[0]; if (u) urls.push(u); });
+  /* every rostered player's photo (about 90 KB each, over 10 MB for a league) only where the service worker keeps them, the
+     installed app, and the phone is not saving data. On the web and the demo nothing keeps them, so the warm-up only took the
+     connection from the pictures on screen (Parker, 24 Oct 2026: flags, clubs and pictures slow to load) */
+  const conn = navigator.connection || {};
+  if (navigator.serviceWorker && navigator.serviceWorker.controller && !conn.saveData && !/2g$/.test(conn.effectiveType || '')) ro.forEach(p => { const u = UI.faceSrcs(p.Code)[0]; if (u) urls.push(u); });
   let i = 0, live = 0;
   const next = () => {
     while (live < 3 && i < urls.length) {

@@ -1,4 +1,4 @@
-/* feed/showplay.js — The Gameweek Show, full screen and vertical.
+/* feed/showplay.js - The Gameweek Show, full screen and vertical.
    Script: show/gwN.json (open, four chapters of five beats, close). Audio, one clip per line:
      · show/gwN/<clip>.mp3 in the repo (GW4, rendered by hand), or
      · rendered by Code.gs v3.11 with ElevenLabs into the Sheet and served by the web app (GET ?show=N).
@@ -11,10 +11,12 @@ import * as M from '../pages/matchday/model.js';
 import { shows } from './facts.js';
 import { quotes } from './social.js';
 import { esc, firstOf } from './util.js';
+import { plainDeep } from '../data/tabs.js';
 import { parseShow, wordsOn, wordsByShare, stripTags, showPlayable, showNote } from './showsync.js';
 
 const HOLD = { open: 7200, intro: 3400, xi: 5800, face: 5400, close: 5200 };
 const ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
+export const ordPos = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
 let Q = null;
 
 /* ---------- audio: where the clips live ----------
@@ -37,7 +39,7 @@ export function audioFor(s) {
   }
   if (!D.api) return Promise.resolve(null);
   const p = fetch(D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + 'show=' + s.gw, { cache: 'no-store' })
-    .then(r => r.ok ? r.json() : null).then(r => {
+    .then(r => r.ok ? r.json().then(plainDeep) : null).then(r => {
       const P = parseShow(r);
       if (!P) { delete AUDIO[s.gw]; return null; }
       const urls = {}, durs = {}, words = {}, hashes = {};
@@ -75,7 +77,7 @@ function sceneOpen(s) {
     const m = i > -1 ? M.mx(i) : null, w = m && m.win ? (m.flip ? { h: m.win.r, a: m.win.l } : { h: m.win.l, a: m.win.r }) : null;
     const dn = derbyName(f.Home, f.Away);
     return '<div class="gs-fx">' + UI.crest(f.Home, 30) + '<span class="gs-fxn"><b>' + esc(firstOf(f.Home)) + ' <i>v</i> ' + esc(firstOf(f.Away)) + '</b>' + (dn ? '<em>' + esc(dn) + '</em>' : '') + '</span>'
-      + (w ? '<span class="gs-fxw n">' + w.h + '<i>–</i>' + w.a + '</span>' : '') + UI.crest(f.Away, 30) + '</div>';
+      + (w ? '<span class="gs-fxw n">' + UI.score(w.h, w.a, { cls: 'flush' }) + '</span>' : '') + UI.crest(f.Away, 30) + '</div>';
   }).join('');
   const dl = gwDeadline(s.gw);
   return '<div class="gs-open">' + UI.mwMark(30) + '<span class="gs-k">Gameweek ' + s.gw + '</span><h2 class="gs-ttl f-cond">The Gameweek Show</h2><span class="gs-by">Malcolm Tyre in the booth</span>'
@@ -88,8 +90,8 @@ function sceneIntro(c, side, s) {
   let proj = null; try { if (live && M.hasProj()) proj = M.team(t).proj; } catch (e) { }
   return '<div class="gs-intro ' + side + '">' + crestBig(t, 168)
     + '<h2 class="gs-tn f-cond">' + esc(t) + '</h2><span class="gs-mg">' + esc(firstOf(t)) + '’s week</span>'
-    + '<div class="gs-stats">' + (live && pos ? '<span><b class="n">' + ORD[pos] + '</b><em>in the table</em></span>' : '') + (live && r ? '<span><b class="n">' + UI.rec(r.w, r.d, r.l) + '</b><em>W–D–L</em></span>' : '')
-    + (proj ? '<span><b class="n">' + M.f1(proj) + '</b><em>projected</em></span>' : '') + '</div>'
+    + '<div class="gs-stats">' + (live && pos ? '<span><b class="n">' + ordPos(pos) + '</b><em>in the table</em></span>' : '') + (live && r ? '<span><b class="n">' + UI.rec(r.w, r.d, r.l) + '</b><em>W-D-L</em></span>' : '')
+    + (proj ? '<span><b class="n">' + M.f1(proj) + '</b><em>Proj</em></span>' : '') + '</div>'
     + chips(results(t, s.gw - 1)) + '</div>';
 }
 function sceneXI(c, side, s) {
@@ -114,7 +116,7 @@ function sceneXI(c, side, s) {
         + (isStar ? '<span class="gs-st">Star man</span>' : '') + '</span>';
     }).join('') + '</div>';
   }).join('');
-  return '<div class="gs-xi ' + side + '"><div class="gs-xih">' + UI.crest(t, 34) + '<span><b>' + esc(t) + '</b><em>' + esc(T.form) + (M.hasProj() ? ' · projected ' + M.f1(T.proj) : '') + '</em></span></div>'
+  return '<div class="gs-xi ' + side + '"><div class="gs-xih">' + UI.crest(t, 34) + '<span><b>' + esc(t) + '</b><em>' + esc(T.form) + (M.hasProj() ? ' · Proj ' + M.f1(T.proj) : '') + '</em></span></div>'
     + '<div class="gs-pitch"><i class="gs-lines" aria-hidden="true"></i>' + rows + '</div></div>';
 }
 function quoteFor(c, gw) {
@@ -129,10 +131,10 @@ function sceneFace(c, s) {
   let nums = '', bar = '';
   if (m && !m.final) {
     const ph = m.flip ? m.tr.proj : m.tl.proj, pa = m.flip ? m.tl.proj : m.tr.proj;
-    if (M.hasProj()) nums = '<div class="gs-pred"><span class="gs-pk">Predicted</span><b class="n">' + M.f1(ph) + '<i>–</i>' + M.f1(pa) + '</b></div>';
+    if (M.hasProj()) nums = '<div class="gs-pred"><span class="gs-pk">Proj</span><b class="n">' + UI.score(M.f1(ph), M.f1(pa), { cls: 'flush' }) + '</b></div>';
     if (m.win) { const w = m.flip ? { h: m.win.r, d: m.win.d, a: m.win.l } : { h: m.win.l, d: m.win.d, a: m.win.r }; bar = '<div class="gs-win"><b class="n" style="color:' + ch + '">' + w.h + '%</b>' + UI.wbar(w.h / 100, w.d / 100, w.a / 100, ch, ca) + '<b class="n" style="color:' + ca + '">' + w.a + '%</b></div>'; }
-  } else if (fin(f.Finished)) nums = '<div class="gs-pred"><span class="gs-pk">Full time</span><b class="n">' + num(f['Home pts']) + '<i>–</i>' + num(f['Away pts']) + '</b></div>';
-  const rc = M.record(H, A), lead = rc && rc.n ? (rc.a === rc.b ? 'Level at ' + rc.a + '–' + rc.b : esc(firstOf(rc.a > rc.b ? H : A)) + ' leads ' + Math.max(rc.a, rc.b) + '–' + Math.min(rc.a, rc.b)) + (rc.d ? ', ' + rc.d + ' drawn' : '') : 'First ever meeting';
+  } else if (fin(f.Finished)) nums = '<div class="gs-pred"><span class="gs-pk">Full time</span><b class="n">' + UI.score(num(f['Home pts']), num(f['Away pts']), { cls: 'flush' }) + '</b></div>';
+  const rc = M.record(H, A), lead = rc && rc.n ? (rc.a === rc.b ? 'Level at ' + UI.scoreText(rc.a, rc.b) : esc(firstOf(rc.a > rc.b ? H : A)) + ' leads ' + UI.scoreText(Math.max(rc.a, rc.b), Math.min(rc.a, rc.b))) + (rc.d ? ', ' + rc.d + ' drawn' : '') : 'First ever meeting';
   const q = quoteFor(c, s.gw);
   return '<div class="gs-face"><span class="gs-dn">' + esc(dn || 'Gameweek ' + s.gw) + '</span>'
     + '<div class="gs-vs"><span class="gs-fs l">' + crestBig(H, 120) + '<b>' + esc(firstOf(H)) + '</b></span><b class="gs-x f-cond">VS</b><span class="gs-fs r">' + crestBig(A, 120) + '<b>' + esc(firstOf(A)) + '</b></span></div>'
@@ -144,14 +146,14 @@ function sceneClose(s) {
     const { f, i } = chapterFx(c, s.gw); if (!f) return '';
     const m = i > -1 ? M.mx(i) : null;
     let mid = '';
-    if (fin(f.Finished)) mid = num(f['Home pts']) + '<i>–</i>' + num(f['Away pts']);
-    else if (m && M.hasProj()) mid = M.f1(m.flip ? m.tr.proj : m.tl.proj) + '<i>–</i>' + M.f1(m.flip ? m.tl.proj : m.tr.proj);
+    if (fin(f.Finished)) mid = UI.score(num(f['Home pts']), num(f['Away pts']), { cls: 'flush' });
+    else if (m && M.hasProj()) mid = UI.score(M.f1(m.flip ? m.tr.proj : m.tl.proj), M.f1(m.flip ? m.tl.proj : m.tr.proj), { cls: 'flush' });
     return '<div class="gs-fx">' + UI.crest(f.Home, 30) + '<span class="gs-fxn"><b>' + esc(firstOf(f.Home)) + ' <i>v</i> ' + esc(firstOf(f.Away)) + '</b></span><span class="gs-fxw n">' + mid + '</span>' + UI.crest(f.Away, 30) + '</div>';
   }).join('');
   const live = s.gw === D.gw && !D.dlPassed;
   const prev = allArticles().find(p => p.kind === 'Preview' && p.gw === s.gw);
   return '<div class="gs-open gs-close"><span class="gs-k">Gameweek ' + s.gw + '</span><h2 class="gs-ttl f-cond">That’s the gameweek</h2>'
-    + '<div class="gs-fxs">' + rows + '</div><span class="gs-wl">' + (live ? 'Predicted' : '') + '</span>'
+    + '<div class="gs-fxs">' + rows + '</div><span class="gs-wl">' + (live ? 'Proj' : '') + '</span>'
     + '<div class="gs-cta">' + (live ? '<a class="btn" href="#/feed/messages/archizio" data-gs-go>Go on the record</a>' : '') + (prev ? '<a class="btn ghost" href="' + esc(prev.href) + '" data-gs-go>Read the preview</a>' : '')
     + '<button class="btn ghost" data-gs-replay>Watch again</button></div></div>';
 }

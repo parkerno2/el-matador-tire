@@ -10,7 +10,12 @@ export function formRun(team) {
 function lastLine(r) {
   if (!r) return '';
   const v = r.res === 'W' ? 'Won' : r.res === 'L' ? 'Lost' : 'Drew';
-  return v + ' ' + r.my + '\u2013' + r.their + ' ' + (r.home ? 'v' : 'at') + ' ' + r.opp + (r.live ? ', provisional' : '');
+  return esc(v) + ' ' + UI.score(r.my, r.their) + ' ' + (r.home ? 'v' : 'at') + ' ' + esc(r.opp) + (r.live ? ', provisional' : '');
+}
+/* the same line in words, for a form chip's title= (an attribute holds no markup: "Won 66 to 43 v Trophy Hunters") */
+function lastWords(r) {
+  const v = r.res === 'W' ? 'Won' : r.res === 'L' ? 'Lost' : 'Drew';
+  return v + ' ' + UI.scoreSpoken(r.my, r.their) + ' ' + (r.home ? 'v' : 'at') + ' ' + r.opp + (r.live ? ', provisional' : '');
 }
 
 export function titleCell(team) {
@@ -31,16 +36,17 @@ export function clubHead(team) {
     + '<div class="tm-mrow"><span class="tm-mgr">' + esc(mgrName(team)) + '</span>'
     + '<button class="tm-clubbtn" data-open="identity" aria-label="Edit club identity">' + UI.icon('edit', 13, '#fff', 2.2) + 'Club</button></div>'
     + '</div></div>'
-    + '<a class="tm-glass" href="#/league/overview" aria-label="League table">'
-    + '<span class="tm-stt"><b class="n">' + (rec.pos && D.started ? ord(rec.pos) : '–') + '</b><span>in the table</span></span>'
+    /* the strip is one tap to the League table; the title chance's legend tap sits beside that link, never inside it (F47) */
+    + '<div class="tm-glass tap-host"><a class="tap-cover" href="#/league/overview" aria-label="League table"></a>'
+    + '<span class="tm-stt"><b class="n">' + (rec.pos && D.started ? ord(rec.pos) : '-') + '</b><span>in the table</span></span>'
     + '<span class="tm-stt"><b class="n">' + num(st['League Pts']) + '</b><span>points</span></span>'
-    + '<span class="tm-stt"><b class="n">' + rec.w + '–' + rec.d + '–' + rec.l + '</b><span>W–D–L</span></span>'
-    + '<span class="tm-stt">' + titleCell(team) + '<span>title chance</span></span>'
-    + '</a>'
+    + '<span class="tm-stt"><b class="n">' + UI.rec(rec.w, rec.d, rec.l) + '</b><span>W-D-L</span></span>'
+    + '<span class="tm-stt">' + titleCell(team) + UI.legendTap('odds', 'title chance', 'ln') + '</span>'
+    + '</div>'
     + '<div class="tm-formrow"><span class="k">Form</span>'
     + (form.length
-      ? '<span class="tm-fms">' + form.map((r, i) => '<span class="fm ' + r.res.toLowerCase() + (i === form.length - 1 ? ' last' : '') + (r.live ? ' prov' : '') + '" title="GW' + r.g + ': ' + esc(lastLine(r)) + '">' + r.res + '</span>').join('') + '</span>'
-        + '<span class="tm-lastres">' + esc(lastLine(last)) + '</span>'
+      ? '<span class="tm-fms">' + form.map((r, i) => '<span class="fm ' + r.res.toLowerCase() + (i === form.length - 1 ? ' last' : '') + (r.live ? ' prov' : '') + '" title="GW' + r.g + ': ' + esc(lastWords(r)) + '">' + r.res + '</span>').join('') + '</span>'
+        + '<span class="tm-lastres">' + lastLine(last) + '</span>'
       : '<span class="tm-lastres first">No results yet. GW' + D.gw + ' is the first.</span>')
     + '</div>';
   return '<div class="tm-head" style="' + F.vars + '">' + UI.pageHead('My team', { bg: F.head, under, body }) + '</div>';

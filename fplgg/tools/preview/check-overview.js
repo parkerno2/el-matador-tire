@@ -94,9 +94,9 @@ function serve(dir) {
     check('the main number of each row is the month\'s points as the engine scores them (the live gameweek included)', R.every(r => r.main === Math.round(S[r.t])), R.map(r => r.t + ': shown ' + r.main + ', scored ' + Math.round(S[r.t])).join('; '));
     check('ranked by those points, descending', R.every((r, i) => i === 0 || R[i - 1].main >= r.main));
     check('the column head is Points' + (await page.evaluate(() => !!D.liveNow) ? ' with the live tag' : ''), /^Points/.test(headTxt[2]) && (!(await page.evaluate(() => !!D.liveNow)) || /LIVE/.test(headTxt[2])), headTxt[2]);
-    check('the projection shows as the small secondary figure on every row', R.every(r => /^\d+ proj$/.test(r.proj)));
+    check('the projection shows as the small secondary figure on every row', R.every(r => /^\d+ Proj$/.test(r.proj)));
   } else {
-    check('no points yet: the main number is the projection, headed Projected, no secondary figure', headTxt[2] === 'Projected' && R.every(r => !r.proj));
+    check('no points yet: the main number is the projection, headed Proj, no secondary figure', headTxt[2] === 'Proj' && R.every(r => !r.proj));
   }
   check('win chance on every row', R.every(r => /%$/.test(r.win)));
   check('no dollar sign in the race', !(await page.evaluate(() => /\$/.test(document.querySelector('.lg-motm').textContent))));
