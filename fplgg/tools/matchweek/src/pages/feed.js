@@ -1,4 +1,4 @@
-/* pages/feed.js — the Feed: Everyone (id league) · For you · Articles · Messages (+ #/feed/messages/<jive|archizio>, #/feed/league/<voice>). */
+/* pages/feed.js - the Feed: Everyone (id league) · For you · Articles · Messages (+ #/feed/messages/<jive|archizio>, #/feed/league/<voice>). */
 import * as UI from '../ui.js';
 import { isMotm, oneMotm, demote, artLeads } from '../feed/curate.js';
 import {
@@ -72,7 +72,7 @@ function forYou() {
   const stream = (call ? [call] : []).concat(mine);
   const art = latestArticle(!!pin);
   const N = 12, shown = stream.slice(0, N);
-  const body = shown.map((p, i) => renderPost(p, { unread: VISIT && VISIT.ids.has(p.id) }) + (i === 1 && art ? artBlock(art) : '')).join('') + (shown.length < 2 && art ? artBlock(art) : '');
+  const body = shown.map((p, i) => renderPost(p, { unread: VISIT && VISIT.ids.has(p.id), own: true }) + (i === 1 && art ? artBlock(art) : '')).join('') + (shown.length < 2 && art ? artBlock(art) : '');
   return pin + inbox + UI.sh('For ' + you) + (stream.length ? '<div class="fl">' + body + '</div>' : UI.empty('Quiet week for ' + you, 'Nothing about your club yet. Everyone has every post in the league.') + (art ? artBlock(art) : ''))
     + (stream.length > N ? '<a class="fl-more" href="#/feed/league">Every post is in Everyone ›</a>' : '');
 }
@@ -163,37 +163,52 @@ function draftCard(d) {
   return '<div class="far ar-dr wip' + (failed ? ' bad' : '') + '">' + k + '<span class="far-t"><span class="ar-st' + (failed ? ' bad' : ' run') + '"><i></i>' + (failed ? 'Couldn’t be written' : d.status === 'research' ? 'Researching the week' : 'Being written') + '</span><b>The GW' + g + ' ' + kind.toLowerCase() + '</b><span>' + (failed ? why + (left ? (left === 1 ? 'One retry left.' : left + ' retries left.') : 'No retries left; the sheet’s Articles: write now starts a fresh one.') : (d.note ? 'Rewriting with your note. ' : '') + 'It lands here for your read when it’s done.') + '</span>' + retry + '</span></div>';
 }
 const ago = d => { const r = relTime(d); return /^\d+[mh]$/.test(r) ? r + ' ago' : r; };
-/* what a missing article is doing: "GW6 preview: being written". Code.gs v3.14 publishes once it passes the checks, so
-   only review mode (EMT_ART_REVIEW = yes) says "written, waiting for Parker’s read" */
-function waitLine(gw, kind) {
+/* what a missing article is doing, in its own place in the list: "Being written", "Written, waiting for Dee's read" (review
+   mode, MW_ART_REVIEW = yes; Code.gs v3.14 otherwise publishes once it passes the checks), else "Not published" */
+function gapState(gw, kind) {
   const w = artWaiting().find(x => +x.gw === gw && KIND(x.kind) === kind);
-  if (!w) return null;
-  return 'GW' + gw + ' ' + kind.toLowerCase() + ': ' + (w.status !== 'draft' ? 'being written' : artReview() ? 'written, waiting for ' + commishFirst() + '’s read' : 'written, not published yet');
+  if (!w) return 'Not published';
+  return w.status !== 'draft' ? 'Being written' : artReview() ? 'Written, waiting for ' + commishFirst() + '’s read' : 'Written, not published yet';
+}
+/* a gameweek with no article, drawn where the article would be: never a silent gap in the list and never another gameweek's number */
+function gapCard(g) {
+  return '<div class="far ar-dr wip ar-gap"><span class="far-k dr"><b class="n">GW' + g.gw + '</b><em>' + esc(g.kind.toUpperCase()) + '</em></span><span class="far-t"><span class="ar-st"><i></i>' + esc(g.state) + '</span><b>The GW' + g.gw + ' ' + esc(g.kind.toLowerCase()) + '</b></span></div>';
+}
+/* The Articles list, newest first. Decision (M2, check 5): a finished gameweek whose recap was never published is listed as
+   "Not published" in its place; the app does not write one itself, because a recap written from the table would read as
+   the league's own words. The same for the current gameweek's preview, and for anything the writer has queued, whether or
+   not any article has been published (F25: a missing gameweek is never left out). The empty state is only for a league with
+   nothing finished and no gameweek to preview. The aside counts articles, then the gaps. */
+export function articleRows(arts, doneGw, curGw, queued, covered) {
+  const has = (gw, kind) => arts.some(a => a.gw === gw && a.kind === kind);
+  const rows = arts.map(a => ({ ord: a.ord, gw: a.gw, kind: a.kind, art: a }));
+  const want = [];
+  for (let g = 1; g <= doneGw; g++) want.push([g, 'Recap']);
+  if (curGw) want.push([curGw, 'Preview']);
+  queued.forEach(w => want.push([+w.gw, KIND(w.kind)]));
+  const seen = new Set();
+  want.forEach(([g, kind]) => {
+    const k = g + kind; if (seen.has(k) || has(g, kind) || covered(g, kind)) return; seen.add(k);
+    rows.push({ ord: g * 2 + (kind === 'Recap' ? 1 : 0), gw: g, kind, gap: true, state: gapState(g, kind) });
+  });
+  return rows.sort((a, b) => b.ord - a.ord);
 }
 function articles(args) {
   const S = shows();
   const arts = allArticles();
-  const has = (gw, kind) => arts.some(a => a.gw === gw && a.kind === kind);
-  const lines = [], missing = [];
-  [[D.gwsDone, 'Recap'], [D.gw, 'Preview']].forEach(([g, kind]) => {
-    if (!g || has(g, kind)) return;
-    const l = waitLine(g, kind); if (l) lines.push(l); else missing.push('GW' + g + ' ' + kind.toLowerCase());
-  });
-  /* anything else in the queue (a rewrite of an older week, say) */
-  artWaiting().forEach(w => { const g = +w.gw, kind = KIND(w.kind); if ((g === D.gwsDone && kind === 'Recap') || (g === D.gw && kind === 'Preview') || has(g, kind)) return; const l = waitLine(g, kind); if (l && !lines.includes(l)) lines.push(l); });
   /* the commissioner's queue shows only when something needs him: a draft to read (review mode) or an article that
-     failed (Try again). In review mode it also lists the ones being written; otherwise those get a line like everyone's */
+     failed (Try again). In review mode it also lists the ones being written; otherwise those get a row like everyone's */
   const all = isCommish() ? artDrafts().filter(d => ['draft', 'research', 'writing', 'failed'].includes(d.status)) : [];
   const needs = all.some(d => d.status === 'draft' || d.status === 'failed');
   const Q = !needs ? [] : all.filter(d => artReview() || d.status === 'draft' || d.status === 'failed').sort((a, b) => (b.status === 'draft') - (a.status === 'draft') || b.gw - a.gw);
-  /* the commissioner has those in his queue above; everyone else gets one line each */
-  const notes = lines.filter(l => !Q.some(d => l.indexOf('GW' + d.gw + ' ' + KIND(d.kind).toLowerCase() + ':') === 0));
+  /* the commissioner has those in his queue above; everyone else gets one row each */
+  const inQueue = (g, kind) => Q.some(d => +d.gw === g && KIND(d.kind) === kind);
+  const rows = articleRows(arts, D.gwsDone, D.gw, artWaiting(), inQueue);
+  const gaps = rows.filter(r => r.gap).length;
   return (Q.length ? UI.sh('Waiting for your read', { aside: Q.filter(d => d.status === 'draft' && d.a).length ? Q.filter(d => d.status === 'draft' && d.a).length + ' to read' : '' }) + '<div class="ar-list ar-q">' + Q.map(draftCard).join('') + '</div>' : '')
     + (S.length || showNoteFor() ? UI.sh('The Gameweek Show') + showNoteFor() + S.map(s => '<div class="ar-show">' + showCard(s) + '</div>').join('') : '')
-    + UI.sh('Previews and recaps', { aside: arts.length + ' articles' })
-    + (notes.length ? '<div class="ar-waits">' + notes.map(l => '<p class="ar-wait"><i></i>' + esc(l) + '.</p>').join('') + '</div>' : '')
-    + (arts.length ? '<div class="ar-list">' + arts.map(artCard).join('') + '</div>' : UI.empty('No articles yet', 'Previews land before each deadline, recaps after each gameweek.'))
-    + (missing.length ? '<p class="ar-note">Not published yet: ' + esc(missing.join(' and ')) + '.</p>' : '');
+    + UI.sh('Previews and recaps', { aside: arts.length + (arts.length === 1 ? ' article' : ' articles') + (gaps ? ', ' + gaps + ' not published' : '') })
+    + (rows.length ? '<div class="ar-list">' + rows.map(r => (r.art ? artCard(r.art) : gapCard(r))).join('') + '</div>' : UI.empty('No articles yet'));
 }
 
 /* ---------- Messages ---------- */

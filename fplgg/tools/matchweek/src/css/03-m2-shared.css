@@ -1,0 +1,44 @@
+/* ===== M2 shared: the score component and the legend tap (existing tokens only) ===== */
+
+/* UI.score: two numbers and a short bar between them, drawn here, so no dash character is typed between two scores.
+   The bar takes the colour of the text around it and the width of a hyphen. */
+.score{display:inline-flex;align-items:center;justify-content:center;gap:.3em;white-space:nowrap}
+.sc-s{display:inline-block;flex:none;width:.3em;height:.06em;min-height:2px;min-width:5px;border-radius:1px;background:currentColor;font-style:normal;vertical-align:middle;align-self:center}
+.score .sc-v{font-weight:inherit;font-size:inherit;color:inherit}
+/* a score inside a quiet label is a quiet number, as .sub .n is (01-tokens.css): it never takes the label grey --tx3,
+   which reads 4.5:1 but not 7:1 (the contrast audit, M2). A losing side is quiet the same way. */
+.sub .score .sc-v,.muted .score .sc-v,.k .score .sc-v{color:var(--num2)}
+.score .sc-v.dim{opacity:1;color:var(--num2)}
+.score .sc-v.win{color:var(--win)}
+.score .sc-v.lo{color:var(--num2)}
+/* a screen's own rule may size the separator or the gap around it (.flush has none, the screen's rule for its i sets it) */
+.score i.sc-s{margin:0}
+.score.flush{gap:0}
+
+/* UI.legendTap: a button that opens the legend on its topic. Standing alone it is at least 44 px to tap; inside a line (ln) the
+   hit area grows past the text without moving it. */
+.lgd{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;padding:0 10px;border-radius:999px;color:var(--p300);font-size:12px;font-weight:700;letter-spacing:.02em;text-decoration:underline dotted;text-underline-offset:3px;position:relative}
+.lgd.ln{min-height:0;min-width:0;padding:0;border-radius:4px}
+.lgd.ln::after{content:'';position:absolute;inset:-12px -6px}
+.lgd .n{color:inherit}
+
+/* a card that is one tap to its target and holds a legend tap (or another control): the card is a plain box, its target is a
+   link or button stretched over it (.tap-cover, the card's first child, drawing nothing), and the card's own controls sit
+   above the cover. A control is never inside the link (F47). The card is its own stacking context, so the cover never
+   reaches past it (a sticky bar over a scrolled card keeps its taps). */
+.tap-host{position:relative;isolation:isolate}
+.tap-cover{position:absolute;inset:0;z-index:1;display:block;margin:0;padding:0;border:0;border-radius:inherit;background:none;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tap-cover:focus-visible{outline:none}
+.tap-host:has(> .tap-cover:focus-visible){outline:2px solid var(--p300);outline-offset:2px}   /* the ring on the card, outside it: a raised control inside cannot cover it */
+.tap-host :is(.lgd,a[href],button,[data-open],[data-go]):not(.tap-cover){position:relative;z-index:2}
+
+/* the legend sheet */
+.sk-legend .lgn{padding:4px 16px 24px}
+.sk-legend .lgn-t{margin:0 0 4px;font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--tx)}
+.sk-legend .lgn-sec{margin:0 0 4px;scroll-margin-top:8px}
+.sk-legend .lgn-sec.on .sh h2{color:var(--tx)}
+.sk-legend .lgn-row{display:grid;grid-template-columns:104px 1fr;gap:4px 12px;align-items:baseline;padding:10px 14px;border-top:1px solid var(--line)}
+.sk-legend .lgn-row:first-child{border-top:0}
+.sk-legend .lgn-row b{font-size:14px;font-weight:800;color:var(--tx)}
+.sk-legend .lgn-row span{font-size:13px;line-height:1.4;color:var(--tx2)}
+@media (max-width:374px){.sk-legend .lgn-row{grid-template-columns:1fr}}

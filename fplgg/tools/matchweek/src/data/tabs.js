@@ -69,7 +69,8 @@ export function queryProblem(name, cols) {
 }
 let N = 0;
 const gv = name => (typeof SHEET === 'string' ? SHEET : '');
-const canon = v => { try { return typeof canonTeam === 'function' ? canonTeam(v) : v; } catch (e) { return v; } };
+/* a cell is made dash-free first, then read through the aliases: the engine holds the league's names and aliases already hyphenated (core.gen.js) */
+const canon = v => { try { return typeof canonTeam === 'function' ? canonTeam(plainDashes(v)) : plainDashes(v); } catch (e) { return v; } };
 /* the JSONP read: { cols, rows } (rows keyed by column label, every value through canonTeam, as the engine's readTab did) */
 export function readRaw(name, tq) {
   return new Promise((resolve, reject) => {
@@ -101,6 +102,7 @@ function readSheet(name) {
     return readRaw(name);
   });
 }
+
 
 /* ---------- the demo (Q2): frozen JSON tabs beside the page, set at build time ---------- */
 export const DEMO = typeof __MW_DEMO__ !== 'undefined' && !!__MW_DEMO__;
@@ -194,11 +196,27 @@ function readFrom(name) {
   if (SHEET_ONLY.includes(name)) return fromSheet(name, 'the web app writes it');
   return Promise.resolve().then(() => readSupabase(name)).then(r => { if (!r) return fromSheet(name, 'not on Supabase', true); REPORT[name] = 'supabase'; return r; }, e => fromSheet(name, String(e && e.message || e).slice(0, 80), true));
 }
+/* the one chokepoint for dashes in data text (M2, no U+2013 or U+2014 is ever rendered): news, posts, article titles,
+   names and every other text cell arrive here with a typed en or em dash turned into a hyphen, character for character.
+   The league's own names are hyphenated the same way when the engine loads them (core.gen.js), so a team the commissioner
+   wrote with a dash still matches its rows. */
+const HAS_DASH = /[\u2013\u2014]/;
+export const plainDashes = v => (typeof v === 'string' ? v.replace(/[\u2013\u2014]/g, '-') : v);
+/* the same for a reply that is not a tab row (an article, a show script): every string in it, however deep, loses the dash */
+export const plainDeep = v => (typeof v === 'string' ? plainDashes(v) : Array.isArray(v) ? v.map(plainDeep) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).map(k => [k, plainDeep(v[k])])) : v);
+export function cleanRows(rows) {
+  return rows.map(r => {
+    if (!r || typeof r !== 'object') return r;
+    const o = {};
+    Object.keys(r).forEach(k => { const v = r[k]; o[k] = typeof v === 'string' && HAS_DASH.test(v) ? plainDashes(v) : v; });
+    return o;
+  });
+}
 export function guardedReadTab(name) {
   return readFrom(name).then(({ cols, rows }) => {
     const why = tabProblem(name, cols);
     if (why) { console.warn('tab "' + name + '" refused: ' + why); throw new Error(name + ' tab is missing or has the wrong columns: ' + why); }
-    return rows;
+    return cleanRows(rows);
   });
 }
 export function installReadTab() { try { guardedReadTab.guarded = true; window.readTab = guardedReadTab; return true; } catch (e) { return false; } }
@@ -227,5 +245,5 @@ export function staleInfo(updated, now, live) {
   if (!updated) return null;
   const min = Math.round((now - updated) / 60000), limit = live ? STALE_LIVE_MIN : STALE_MIN;
   if (min <= limit) return null;
-  return { min, limit, text: 'The league data was last refreshed ' + agoText(min) + '. The refresh looks stuck, so scores, projections and the table may be out of date.' };
+  return { min, limit, text: 'The league data was last refreshed ' + agoText(min) + '. The refresh looks stuck, so scores, Proj figures and the table may be out of date.' };
 }

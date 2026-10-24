@@ -1,5 +1,6 @@
-/* feed/util.js — small helpers the Feed modules share. Engine globals (D, TEAMS, num, fin, …) come from core.js. */
+/* feed/util.js - small helpers the Feed modules share. Engine globals (D, TEAMS, num, fin, …) come from core.js. */
 import * as UI from '../ui.js';
+import { availOf } from '../pages/avail.js';
 
 export const esc = UI.esc;
 
@@ -33,11 +34,11 @@ export const ord = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 
 export const ROUND_WORD = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth'];
 export const f1 = v => (Math.round(v * 10) / 10).toFixed(1);
 export const pc = v => Math.round(v * 100) + '%';
-/* a title-odds percentage (0–100 scale) as the League page prints it */
-export const oddsTxt = v => v < 1 ? '<1%' : v > 99 ? '>99%' : Math.round(v) + '%';
+/* a title-odds percentage (0-100 scale) as the League page prints it */
+export const oddsTxt = v => pctTxt(v);
 export const hash = s => { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
-/* ---------- deterministic wording: one of a kind's 3–6 phrasings, the same on every phone and every reload ----------
+/* ---------- deterministic wording: one of a kind's 3-6 phrasings, the same on every phone and every reload ----------
    pickIndex(kind, gw, n, slot) = (hash(kind) mod n + gw + slot) mod n.
    · The start point is a stable hash of the kind, so kinds don't all rotate in step.
    · It moves one place per gameweek, so a kind never repeats a phrasing in consecutive gameweeks (any n ≥ 2;
@@ -119,10 +120,11 @@ export function newsLabel(p) {
   return a.replace(/\s+injury$/i, '').replace(/^Unspecified$/i, 'Injury') || a;
 }
 export function newsWhen(p) { const n = String(p && p.News || ''); const m = n.match(/(?:Expected back|back|until)\s+(\d{1,2}\s+[A-Za-z]{3})/i); return m ? m[1] : ''; }
-export function chanceOf(p) { return UI.chance(p); }
+/* FPL's stated chance of playing, or null when the news gives none (pages/avail.js, the one reader of availability): never an invented number */
+export function chanceOf(p) { return availOf(p).chance; }
 export function statusWord(p) {
   const s = p && p.Status;
-  if (s === 'd') { const c = chanceOf(p); return c + '%'; }
+  if (s === 'd') { const c = chanceOf(p); return c === null ? 'Doubtful' : c + '%'; }
   if (s === 'i') return 'Out'; if (s === 's') return 'Suspended'; if (s === 'u') return 'Unavailable'; if (s === 'n') return 'Not eligible';
   return '';
 }

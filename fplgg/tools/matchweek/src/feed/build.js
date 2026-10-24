@@ -1,4 +1,4 @@
-/* feed/build.js — data in, posts out. Each builder states facts from D and the engine, and carries them on the post. */
+/* feed/build.js - data in, posts out. Each builder states facts from D and the engine, and carries them on the post. */
 import * as UI from '../ui.js';
 import { pickMotm } from './curate.js';
 import {
@@ -12,6 +12,7 @@ import {
   latePick, finishedFxGws, teamPtsIn, seasonRange, lastMeeting, formGuide, hotStreak, unstarted, modelCheck,
 } from './facts.js';
 import { socialPosts } from './social-posts.js';
+import { PAY, money, hasMotm } from '../pages/league/data.js';
 import { editorialPosts } from './editorial.js';
 import { DEMO } from '../data/tabs.js';   /* the demo builds no editorial post and no market post: they are about a real person (S1, 11 Oct 2026) */
 import { aiPosts } from './ai-posts.js';
@@ -19,19 +20,26 @@ import { live as liveArticles, KIND as artKind, artHref } from './articles.js';
 
 const T = (d, min) => new Date((d ? d.getTime() : 0) + (min || 0) * 60e3);
 const strong = s => '<strong>' + s + '</strong>';
-const pt = n => n + (Math.abs(n) === 1 ? ' pt' : ' pts');
+const pt = n => UI.minus(n) + (Math.abs(n) === 1 ? ' pt' : ' pts');   /* a negative count keeps U+2212 (UI.minus) */
 const name = t => esc(t);
 const mins = () => { const live = (D.cf || []).filter(x => num(x.GW) === D.gw && fin(x.Started) && !fin(x.Finished)); return live.length ? Math.max(...live.map(x => num(x.Mins))) : 0; };
 const liveLabel = () => { const m = mins(); return m ? 'Live · ' + m + '’' : 'Live'; };
 const liveTime = () => { const k = (D.cf || []).filter(x => num(x.GW) === D.gw && fin(x.Started)).map(x => dt(x['Kickoff (UTC)'])).filter(Boolean).sort((a, b) => b - a)[0]; return k ? T(k, mins()) : (gwDeadline(D.gw) || new Date()); };
 const derbyOr = (r, team) => r.nm ? r.nm : (team === r.home ? r.away : r.home);
 const marginWords = m => m === 1 ? 'a single point' : words(m) + ' points';
-const pctPair = w => w.h + '–' + w.a + '%';
-/* the H2H series line from the engine ("PJ leads 4–3"), as a sentence part */
+/* the odds this phone kept after the last finished gameweek, read back from local storage: a map keyed by team name, so it has
+   no prototype (a team called toString or constructor must read as a team, never as a method) */
+export const oddsSnapshot = o => {
+  if (!o) return null;
+  const map = m => Object.assign(Object.create(null), m && typeof m === 'object' ? m : {});
+  return { gw: o.gw, title: map(o.title), last: map(o.last) };
+};
+const pctPair = w => w.h + '-' + w.a + '%';
+/* the H2H series line from the engine ("DR leads 4-3"), as a sentence part */
 const sr = (a, b) => series(a, b);
 const srLine = (a, b) => { const s = sr(a, b); if (!s) return ''; if (s === 'First ever meeting') return 'their first ever meeting'; return s.replace(' leads ', ' leads the series ').replace(/^Series level /, 'the series is level at '); };
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-const pname = per => String(per[0]).replace(' & ', '–');
+const pname = per => String(per[0]).replace(' & ', '-');
 /* "the Devils", "the Gulls"; names that aren't plurals stay whole */
 export const theShort = t => { const s = short(t); return s !== t && /s$/.test(s) ? 'the ' + s : t; };
 /* ============================== who says what ==============================
@@ -45,7 +53,7 @@ export const theShort = t => { const s = short(t); return s !== t && /s$/.test(s
    · Malcolm (the booth): the predicted board (biggest favourite and top projected score), previews (points over the last
      three gameweeks and the last meeting), the form guide, live board and swings, full time, the table, the gameweek
      against the projections, results boards.
-   Wording rotates through 3–6 phrasings per kind with pick() (util.js): same data, same words, on every phone. */
+   Wording rotates through 3-6 phrasings per kind with pick() (util.js): same data, same words, on every phone. */
 const S = (...parts) => parts.filter(Boolean).join(' ');
 const nTeams = () => Object.keys(TEAMS).length;
 const gaText = (G, A) => [G ? (G === 1 ? 'a goal' : words(G) + ' goals') : '', A ? (A === 1 ? 'an assist' : words(A) + ' assists') : ''].filter(Boolean).join(' and ');
@@ -145,14 +153,14 @@ function archizio(out, you) {
       const text = pick('treat', D.gw, [
         () => S(strong('INJURY WATCH.'), st + ' a flag into GW' + D.gw + '.', mostS),
         () => S(strong('MEDICAL ROOM.'), (one ? name(topN[0]) + ' lead the GW' + D.gw + ' injury list with ' + words(m) + ' flagged ' + plural(m, 'starter') : esc(list(topN)) + ' have ' + words(m) + ' flagged ' + plural(m, 'starter') + ' each') + '.', 'Across the league: ' + words(total) + '.'),
-        () => S(strong('FITNESS REPORT, GW' + D.gw + '.'), 'Flags on ' + words(total) + ' projected ' + plural(total, 'starter') + ' across the league.', mostS),
+        () => S(strong('FITNESS REPORT, GW' + D.gw + '.'), 'Flags on ' + words(total) + ' picked ' + plural(total, 'starter') + ' across the league.', mostS),
         () => S(strong('FLAGS UP.'), (one ? name(topN[0]) + ' have ' + words(m) : esc(list(topN)) + ' have ' + words(m) + ' each') + ' of the ' + words(total) + ' flagged ' + plural(total, 'starter') + ' going into GW' + D.gw + '.'),
       ]);
       out.push({
         id: 'treat:' + D.gw + ':' + hash(ids), voice: 'archizio', kind: 'treat', ts: T(bu, 70), time: 'GW' + D.gw + ' build-up', gw: D.gw, teams: teams.map(x => x.t), players: teams.flatMap(x => x.f.xi.map(p => String(p.Code))),
         text,
         media: { type: 'treat', groups: teams.sort((a, b) => posOf(a.t) - posOf(b.t)).map(x => ({ team: x.t, codes: x.f.xi.map(p => String(p.Code)) })) },
-        facts: 'FPL injury news · projected XIs for GW' + D.gw,
+        facts: 'FPL injury news · Proj XIs for GW' + D.gw,
         detail: teams.flatMap(x => x.f.xi.map(p => ({ k: esc(p.Player) + ' · ' + esc(short(x.t)), v: esc(p.News || statusWord(p)) }))),
         links: [], share: total + ' starters carry a flag into GW' + D.gw + '.',
       });
@@ -160,7 +168,7 @@ function archizio(out, you) {
       const stake = teams.map(x => ({ ...x, last: x.f.xi.map(p => ({ p, pts: done ? ptsOver(p.Code, [done]) : 0 })) })).map(x => ({ ...x, sum: x.last.reduce((s, y) => s + y.pts, 0) })).sort((a, b) => b.sum - a.sum || b.f.xi.length - a.f.xi.length)[0];
       if (stake && stake.f.xi.length >= 2 && stake.t !== you) {
         const ps = stake.f.xi.slice(0, 4), nm = ps.map(p => p.Player), k = ps.length, who = esc(list(nm)), TU = caps(stake.t);
-        const same = ps.every(p => statusWord(p) === statusWord(ps[0])), dAll = same && ps[0].Status === 'd', st0 = esc(statusWord(ps[0]));
+        const same = ps.every(p => statusWord(p) === statusWord(ps[0])), dAll = same && ps[0].Status === 'd' && chanceOf(ps[0]) !== null, st0 = esc(statusWord(ps[0]));
         const pts = stake.last.slice(0, 4).map(x => x.pts), sum = pts.reduce((s, v) => s + v, 0), samePts = pts.every(v => v === pts[0]) && pts[0] > 0;
         const both = k === 2 ? 'Both' : 'All ' + words(k);
         const ptsA = !done ? '' : samePts ? both + ' scored ' + pts[0] + ' in GW' + done + '.' : sum > 0 ? 'Between them: ' + sum + ' points in GW' + done + '.' : '';
@@ -241,7 +249,7 @@ function archizio(out, you) {
     out.push({
       id: 'fa:' + done + ':' + fa.map(x => x.p.Code).join(','), voice: 'archizio', kind: 'fa', ts: T(after, 40), time: 'After GW' + done, gw: done, teams: a.droppedBy ? [a.droppedBy] : [], players: fa.map(x => String(x.p.Code)),
       text: tx, media: { type: 'fa', rows: fa.map(x => ({ code: String(x.p.Code), name: x.p['Full name'] && String(x.p['Full name']).length < 22 ? x.p['Full name'] : x.p.Player, club: x.p.Club, pos: x.p.Pos, l3: x.l3, l2: x.l2, season: x.season, n: x.n })), before: D.gw },
-      facts: 'Players · owner FREE · GW Stats GW' + finishedGws(3)[0] + '–' + done + (a.droppedBy ? ' · Transactions ' + dayMonth(a.droppedOn) : ''),
+      facts: 'Players · owner FREE · GW Stats GW' + finishedGws(3)[0] + '-' + done + (a.droppedBy ? ' · Transactions ' + dayMonth(a.droppedOn) : ''),
       detail: fa.map(x => ({ k: esc(x.p.Player) + ' · ' + esc(x.p.Club) + ' ' + esc(x.p.Pos), v: pt(x.l3) + ' last ' + x.n + ' · ' + x.season + ' season' })),
       links: [{ label: 'Free agents', href: '#/team/transfers' }], share: a.p.Player + ' is a free agent: ' + a.l3 + ' points in the last ' + a.n + ' gameweeks.',
     });
@@ -270,7 +278,7 @@ function archizio(out, you) {
   /* NEW · HOT STREAK: an owned, available player with 6+ in each of the last three gameweeks */
   const hs = hotStreak();
   if (hs) {
-    const p = hs.p, P = esc(p.Player), tm = p.Team, per = hs.per, wS = 'GW' + hs.win[0] + '–' + hs.win[2], perS = per[0] + ', ' + per[1] + ' and ' + per[2];
+    const p = hs.p, P = esc(p.Player), tm = p.Team, per = hs.per, wS = 'GW' + hs.win[0] + '-' + hs.win[2], perS = per[0] + ', ' + per[1] + ' and ' + per[2];
     const tx = pick('streak', done, [
       () => strong('HOT STREAK.') + ' ' + P + ': ' + perS + ' in the last three gameweeks, ' + hs.tot + ' in all. Owned by ' + name(tm) + '.',
       () => strong(caps(p.Player) + ' IS FLYING.') + ' ' + hs.tot + ' points over ' + wS + ' (' + perS + ') for the ' + esc(UI.club(p.Club)) + ' ' + posWord(p.Pos) + '. ' + name(tm) + ' have him.',
@@ -337,7 +345,7 @@ function archizio(out, you) {
       out.push({
         id: 'rec:' + k + ':' + g, voice: 'archizio', kind: 'record', ts: T(at, 19), time: 'GW' + g + ' · full time', gw: g, teams: who, players: [],
         text: tx, media: { type: 'stat', big: String(r.p), label: (k === 'hi' ? 'Season high' : 'Season low'), sub: r.who.map(w => short(w[0]) + ' GW' + w[1]).join(' · '), team: who[0] },
-        facts: 'H2H Fixtures · finished GW1–' + g,
+        facts: 'H2H Fixtures · finished GW1-' + g,
         detail: r.who.map(w => ({ k: esc(w[0]), v: 'GW' + w[1] + ' · ' + r.p })), links: [{ label: 'Results', href: '#/league/results' }], share: tx.replace(/<[^>]+>/g, ''),
       });
     });
@@ -347,13 +355,14 @@ function archizio(out, you) {
      One post at a time (Parker, 8 Oct 2026: tone it down): a period's winner until the next gameweek finishes, then the
      current race; pickMotm in curate.js. Every candidate is built so the pick is the same wherever the Feed is read */
   const motmCands = [];
+  /* a league with no Manager of the Month prize has nothing at stake in a month's table: no post, no money line, no race */
   PERIODS.forEach((per, pi) => {
-    if (per[1] > D.gw) return;
+    if (!hasMotm() || per[1] > D.gw) return;
     const T2 = motmTotals(per); if (!T2.any) return;
     const [lead, pts] = T2.rows[0], tie = T2.rows.filter(r => r[1] === pts).map(r => r[0]), one = tie.length === 1;
     const P = esc(pname(per)), PU = caps(pname(per)), tE = esc(list(tie)), tU = caps(list(tie));
     if (periodDone(per)) {
-      const at = gwDoneTime(per[2]), span = 'GW' + per[1] + '–' + per[2], fst = esc(firstOf(lead)), usd = '$30' + (one ? ' to ' + fst : '') + '.';
+      const at = gwDoneTime(per[2]), span = 'GW' + per[1] + '-' + per[2], fst = esc(firstOf(lead)), usd = money(PAY.motm) + (one ? ' to ' + fst : '') + '.';
       const text = pick('motm', pi, [
         () => strong(PU + (one ? ' GOES TO ' : ' GO TO ') + tU + '.') + ' Manager of the Month with ' + pts + ' points over ' + span + '. ' + usd,
         () => strong(tU + ', MANAGER OF THE MONTH.') + ' ' + pts + ' points over ' + span + (one ? ' wins ' : ' share ') + P + '. ' + usd,
@@ -364,8 +373,8 @@ function archizio(out, you) {
       motmCands.push({ win: true, per, post: {
         id: 'motm:' + per[0], voice: 'archizio', kind: 'motm', topic: 'motm', ts: T(at, 15), time: 'GW' + per[2] + ' · full time', gw: per[2], teams: tie, players: [],
         text,
-        media: { type: 'stat', big: String(pts), label: 'Manager of the Month · ' + pname(per), sub: 'GW' + per[1] + '–' + per[2] + ' · $30', team: lead, rows: T2.rows.slice(0, 3) },
-        facts: 'H2H Fixtures · points for, GW' + per[1] + '–' + per[2],
+        media: { type: 'stat', big: String(pts), label: 'Manager of the Month · ' + pname(per), sub: 'GW' + per[1] + '-' + per[2] + ' · ' + money(PAY.motm), team: lead, rows: T2.rows.slice(0, 3) },
+        facts: 'H2H Fixtures · points for, GW' + per[1] + '-' + per[2],
         detail: T2.rows.map(r => ({ k: esc(r[0]), v: pt(r[1]) + '' })), links: [{ label: 'Money', href: '#/league/money' }], share: lead + ' are Manager of the Month for ' + pname(per) + ' with ' + pts + ' points.',
       } });
     } else {
@@ -382,8 +391,8 @@ function archizio(out, you) {
       motmCands.push({ win: false, per, post: {
         id: 'motmrace:' + per[0] + ':' + upTo + (live ? ':' + lead : ''), voice: 'archizio', kind: 'motm', topic: 'motm', ts: T(at, live ? 0 : 14), time: D.provOver ? 'GW' + D.gw + ' · provisional' : live ? liveLabel() : 'After GW' + D.gwsDone, gw: upTo, teams: tie, players: [],
         text,
-        media: { type: 'stat', big: String(pts), label: 'Manager of the Month · ' + pname(per), sub: (per[1] === Math.min(per[2], upTo) ? 'GW' + per[1] : 'GW' + per[1] + '–' + Math.min(per[2], upTo)) + ' so far · $30', team: lead, rows: T2.rows.slice(0, 3) },
-        facts: 'H2H Fixtures · points for, ' + (per[1] === upTo ? 'GW' + per[1] : 'GW' + per[1] + '–' + upTo) + (D.provOver ? ' (provisional)' : live ? ' (live)' : ''),
+        media: { type: 'stat', big: String(pts), label: 'Manager of the Month · ' + pname(per), sub: (per[1] === Math.min(per[2], upTo) ? 'GW' + per[1] : 'GW' + per[1] + '-' + Math.min(per[2], upTo)) + ' so far · ' + money(PAY.motm), team: lead, rows: T2.rows.slice(0, 3) },
+        facts: 'H2H Fixtures · points for, ' + (per[1] === upTo ? 'GW' + per[1] : 'GW' + per[1] + '-' + upTo) + (D.provOver ? ' (provisional)' : live ? ' (live)' : ''),
         detail: T2.rows.map(r => ({ k: esc(r[0]), v: pt(r[1]) + '' })), links: [{ label: 'Money', href: '#/league/money' }], share: lead + ' lead the ' + pname(per) + ' Manager of the Month race on ' + pts + '.',
       } });
     }
@@ -394,7 +403,7 @@ function archizio(out, you) {
   let S0 = sim(), saved = false;
   if (S0) {
     const ord = Object.keys(S0.title).sort((a, b) => S0.title[b] - S0.title[a]);
-    const prev = saved ? null : oddsBefore();
+    const prev = saved ? null : oddsSnapshot(oddsBefore());
     let mover = null;
     if (prev) mover = ord.map(t => ({ t, d: S0.title[t] - (prev.title[t] || 0) })).sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
     const top = ord[0], x = esc(oddsTxt(S0.title[top]));
@@ -484,8 +493,8 @@ function clark(out, you) {
         id: 'bench:' + g + ':' + b.team, voice: 'clark', kind: 'thumb', ts: T(at, 38), time: relTime(at), gw: g, teams: [b.team, b.opp], players: [b.top.code],
         text,
         media: { type: 'thumb', code: b.top.code, t1: b.top.pts + ' ' + plural(b.top.pts, 'POINT'), t2: 'ON THE BENCH', lo: 'LOST BY ' + (b.margin <= 20 ? WORDS(b.margin) : b.margin), chip: 'GW' + g, style: 'split' },
-        facts: 'GW' + g + ' · ' + b.top.name + ' ' + b.top.pts + ' on the bench · ' + b.team + ' ' + b.score + '–' + b.oppScore,
-        detail: b.bench.map(x => ({ k: esc(x.name) + ' (bench)', v: pt(x.pts) + ' · ' + x.mins + '’' })).concat([{ k: 'Bench total', v: String(b.tot) }, { k: 'Result', v: esc(b.team) + ' ' + b.score + '–' + b.oppScore + ' ' + esc(b.opp) }]),
+        facts: 'GW' + g + ' · ' + b.top.name + ' ' + b.top.pts + ' on the bench · ' + b.team + ' ' + UI.scoreText(b.score, b.oppScore),
+        detail: b.bench.map(x => ({ k: esc(x.name) + ' (bench)', v: pt(x.pts) + ' · ' + x.mins + '’' })).concat([{ k: 'Bench total', v: String(b.tot) }, { k: 'Result', v: esc(b.team) + ' ' + UI.scoreText(b.score, b.oppScore) + ' ' + esc(b.opp) }]),
         links: [{ label: 'Results', href: '#/league/results' }], share: b.team + ' left ' + b.top.name + '’s ' + b.top.pts + ' points on the bench and lost by ' + b.margin + '.',
       });
     });
@@ -508,7 +517,7 @@ function clark(out, you) {
     out.push({
       id: 'margin:' + done, voice: 'clark', kind: 'take', ts: T(after, 23), time: 'After GW' + done, gw: done, teams: [big.win, big.lose], players: [],
       text: tx,
-      media: { type: 'stamp', big: (big.win === big.home ? big.hs + '–' + big.as : big.as + '–' + big.hs), sub: 'Biggest win of GW' + done, a: big.win, b: big.lose }, facts: 'H2H Fixtures · GW' + done, detail: results(done).map(r => ({ k: esc(r.home) + ' v ' + esc(r.away), v: r.hs + '–' + r.as })), links: [{ label: 'Results', href: '#/league/results' }],
+      media: { type: 'stamp', big: (big.win === big.home ? UI.scoreText(big.hs, big.as) : UI.scoreText(big.as, big.hs)), sub: 'Biggest win of GW' + done, a: big.win, b: big.lose }, facts: 'H2H Fixtures · GW' + done, detail: results(done).map(r => ({ k: esc(r.home) + ' v ' + esc(r.away), v: UI.scoreText(r.hs, r.as) })), links: [{ label: 'Results', href: '#/league/results' }],
       share: big.win + ' beat ' + big.lose + ' by ' + big.margin + ' in GW' + done + '.',
     });
   }
@@ -530,30 +539,30 @@ function clark(out, you) {
     out.push({
       id: 'run:' + done + ':' + x.t, voice: 'clark', kind: 'thumb', ts: nextOn ? T(buildUpTime(D.gw), 81) : T(after, 27), time: nextOn ? 'GW' + D.gw + ' build-up' : 'After GW' + done, gw: done, teams: [x.t].concat(opp ? [opp] : []), players: [],
       text: tx,
-      media: { type: 'thumb', team: x.t, team2: nextOn && opp ? opp : '', t1: all ? r.w + ' FROM ' + r.played : r.w === 0 ? 'NO WINS' : r.run + ' IN A ROW', t2: nextOn ? (dn ? dn.replace(/^The /, '').toUpperCase() + ' NEXT' : 'NEXT: ' + short(opp).toUpperCase()) : all ? WORDS(r.l) + ' DEFEATS' : r.w === 0 ? 'IN ' + WORDS(r.played) : 'DEFEATS', lo: short(x.t).toUpperCase(), chip: 'GW1–' + done, style: 'stripes' },
-      facts: 'H2H Fixtures · ' + short(x.t) + ' ' + r.w + '–' + r.d + '–' + r.l + ' W–D–L', detail: [{ k: 'Record', v: r.w + '–' + r.d + '–' + r.l + ' W–D–L' }, { k: 'Results', v: r.res.join(' ') }],
+      media: { type: 'thumb', team: x.t, team2: nextOn && opp ? opp : '', t1: all ? r.w + ' FROM ' + r.played : r.w === 0 ? 'NO WINS' : r.run + ' IN A ROW', t2: nextOn ? (dn ? dn.replace(/^The /, '').toUpperCase() + ' NEXT' : 'NEXT: ' + short(opp).toUpperCase()) : all ? WORDS(r.l) + ' DEFEATS' : r.w === 0 ? 'IN ' + WORDS(r.played) : 'DEFEATS', lo: short(x.t).toUpperCase(), chip: 'GW1-' + done, style: 'stripes' },
+      facts: 'H2H Fixtures · ' + short(x.t) + ' ' + r.w + '-' + r.d + '-' + r.l + ' W-D-L', detail: [{ k: 'Record', v: r.w + '-' + r.d + '-' + r.l + ' W-D-L' }, { k: 'Results', v: r.res.join(' ') }],
       links: [{ label: short(x.t), open: 'manager:' + x.t }], share: tx.replace(/<[^>]+>/g, ''),
     });
   }
 
-  /* luck: performance (actual excl. bonus v xP) — a separate post from results luck (all-play) */
+  /* luck: performance (actual excl. bonus v xP) - a separate post from results luck (all-play) */
   const L = perfLuck();
   if (L.length >= 2 && L[0].d >= 8) {
     const a = L[0], b = L[1], lp = luckiestPlayer(a.team), D0 = Math.round(a.d), Tm = name(a.team), B2 = esc(b.team), nb = (b.d >= 0 ? '+' : '−') + Math.abs(Math.round(b.d));
     const lpOk = lp && lp.d >= 5, lpN = lpOk ? esc(lp.name) : '', lpD = lpOk ? Math.round(lp.d) : 0;
     const tx = pick('luck', done, [
-      () => S(strong(WORDS(D0) + '.') + ' That’s how many points ' + Tm + ' are running above expected. Next best: ' + B2 + ', ' + nb + '.', lpOk ? lpN + ' alone is +' + lpD + '.' : ''),
-      () => S(Tm + ' are ' + strong('+' + D0) + ' on expected points after GW' + done + '. Next best: ' + B2 + ' on ' + nb + '.', lpOk ? lpN + ' accounts for +' + lpD + ' on his own.' : ''),
-      () => S('Luckiest side in the league? ' + Tm + ', running ' + D0 + ' points above expected. ' + B2 + ' are next on ' + nb + '.', lpOk ? lpN + ': +' + lpD + ' by himself.' : ''),
-      () => S(strong('+' + D0 + '.') + ' ' + esc(possT(a.team)) + ' points above expected, GW1–' + done + '. Then ' + B2 + ', ' + nb + '.', lpOk ? 'Biggest contributor: ' + lpN + ', +' + lpD + '.' : ''),
+      () => S(strong(WORDS(D0) + '.') + ' That’s how many points ' + Tm + ' are running above xP. Next best: ' + B2 + ', ' + nb + '.', lpOk ? lpN + ' alone is +' + lpD + '.' : ''),
+      () => S(Tm + ' are ' + strong('+' + D0) + ' against xP after GW' + done + '. Next best: ' + B2 + ' on ' + nb + '.', lpOk ? lpN + ' accounts for +' + lpD + ' on his own.' : ''),
+      () => S('Luckiest side in the league? ' + Tm + ', running ' + D0 + ' points above xP. ' + B2 + ' are next on ' + nb + '.', lpOk ? lpN + ': +' + lpD + ' by himself.' : ''),
+      () => S(strong('+' + D0 + '.') + ' ' + esc(possT(a.team)) + ' points above xP, GW1-' + done + '. Then ' + B2 + ', ' + nb + '.', lpOk ? 'Biggest contributor: ' + lpN + ', +' + lpD + '.' : ''),
     ]);
     out.push({
       id: 'luck:' + done, voice: 'clark', kind: 'thumb', ts: T(after, 33), time: 'After GW' + done, gw: done, teams: [a.team], players: lp ? [String(lp.code)] : [],
       text: tx,
-      media: { type: 'thumb', code: lp ? String(lp.code) : '', team: a.team, t1: '+' + Math.round(a.d), t2: 'ABOVE EXPECTED', lo: 'RUNNING HOT', chip: 'GW1–' + done, style: 'yellow' },
-      facts: 'Started points excl. bonus v xP · GW1–' + done,
+      media: { type: 'thumb', code: lp ? String(lp.code) : '', team: a.team, t1: '+' + Math.round(a.d), t2: 'ABOVE xP', lo: 'RUNNING HOT', chip: 'GW1-' + done, style: 'yellow' },
+      facts: 'Started points excl. bonus v xP · GW1-' + done,
       detail: L.map(x => ({ k: esc(x.team), v: (x.d >= 0 ? '+' : '−') + f1(Math.abs(x.d)) + ' (' + x.act + ' v ' + f1(x.x) + ' xP)' })), links: [{ label: 'Stats', href: '#/league/stats' }],
-      share: a.team + ' are ' + Math.round(a.d) + ' points above expected.',
+      share: a.team + ' are ' + Math.round(a.d) + ' points above xP.',
     });
   }
   const RL = resultsLuck();
@@ -568,7 +577,7 @@ function clark(out, you) {
     out.push({
       id: 'robbed:' + done, voice: 'clark', kind: 'take', ts: T(after, 18), time: 'After GW' + done, gw: done, teams: [a.team], players: [],
       text: tx,
-      media: { type: 'robbed', team: a.team, pts: a.pts, ap: a.ap }, facts: 'All-play: every score v all seven rivals · GW1–' + done,
+      media: { type: 'robbed', team: a.team, pts: a.pts, ap: a.ap }, facts: 'All-play: every score v all ' + n7 + ' rivals · GW1-' + done,
       detail: RL.map(x => ({ k: esc(x.team), v: pt(x.pts) + ' v ' + f1(x.ap) + ' all-play' })), links: [{ label: 'Stats', href: '#/league/stats' }],
       share: a.team + ' have ' + a.pts + ' league points; all-play says ' + f1(a.ap) + '.',
     });
@@ -637,7 +646,7 @@ function clark(out, you) {
         id: 'waiting:' + D.gw + ':' + c.p.Code, voice: 'clark', kind: 'thumb', ts: T(ko, c.m + 1), time: 'Live · ' + c.m + '’', gw: D.gw, teams: [c.t], players: [String(c.p.Code)],
         text: tx,
         media: { type: 'thumb', code: String(c.p.Code), t1: String(c.p.Player).toUpperCase(), t2: 'STILL ON THE BENCH', lo: c.m + ' MINUTES GONE', chip: c.m + '’', style: 'stripes', live: true },
-        facts: 'Club Fixtures · ' + c.cf.Home + ' v ' + c.cf.Away + ' ' + c.m + '’ · Rosters GW mins 0', detail: [{ k: 'Match', v: esc(c.cf.Home) + ' ' + esc(c.cf['Home goals']) + '–' + esc(c.cf['Away goals']) + ' ' + esc(c.cf.Away) + ' · ' + c.m + '’' }, { k: c.p.Player, v: 'In ' + esc(c.t) + '’s XI · 0 minutes' }],
+        facts: 'Club Fixtures · ' + c.cf.Home + ' v ' + c.cf.Away + ' ' + c.m + '’ · Rosters GW mins 0', detail: [{ k: 'Match', v: esc(c.cf.Home) + ' ' + UI.scoreText(esc(c.cf['Home goals']), esc(c.cf['Away goals'])) + ' ' + esc(c.cf.Away) + ' · ' + c.m + '’' }, { k: c.p.Player, v: 'In ' + esc(c.t) + '’s XI · 0 minutes' }],
         links: [{ label: 'Matchup', href: '#/matchday/matchup' }], share: c.p.Player + ' still on the bench, ' + c.m + ' minutes gone.',
       });
     }
@@ -647,7 +656,7 @@ function clark(out, you) {
 function clarkCoin(out) {
   const fx = fxOf(D.gw); if (fx.length < 2) return;
   const R = fx.map((f, i) => ({ f, i, w: wp(f) })).sort((a, b) => Math.abs(a.w.h - a.w.a) - Math.abs(b.w.h - b.w.a) || a.i - b.i);
-  const c = R[0], H = c.f.Home, A = c.f.Away, h = c.w.h, a = c.w.a, vs = name(H) + ' v ' + name(A), pr = h + '–' + a, bu = buildUpTime(D.gw);
+  const c = R[0], H = c.f.Home, A = c.f.Away, h = c.w.h, a = c.w.a, vs = name(H) + ' v ' + name(A), pr = h + '-' + a, bu = buildUpTime(D.gw);
   const tx = pick('coin', D.gw, [
     () => strong('CLOSEST CALL OF GW' + D.gw + '.') + ' ' + vs + ': ' + pr + '% on the model. Pick a side.',
     () => strong(pr + '%.') + ' That’s ' + vs + ', the tightest matchup of gameweek ' + D.gw + ' on the model.',
@@ -657,8 +666,8 @@ function clarkCoin(out) {
   out.push({
     id: 'coin:' + D.gw + ':' + H + '|' + A, voice: 'clark', kind: 'take', ts: T(bu, 83), time: 'GW' + D.gw + ' build-up', gw: D.gw, teams: [H, A], players: [],
     text: tx, media: { type: 'stamp', big: pr + '%', sub: 'Closest call of GW' + D.gw, a: H, b: A },
-    facts: 'Win chance · the model · GW' + D.gw + ' projected XIs',
-    detail: R.map(x => ({ k: esc(x.f.Home) + ' v ' + esc(x.f.Away), v: x.w.h + '–' + x.w.d + '–' + x.w.a + '% · ' + f1(tp(x.f.Home)) + '–' + f1(tp(x.f.Away)) })),
+    facts: 'Win chance · the model · GW' + D.gw + ' Proj XIs',
+    detail: R.map(x => ({ k: esc(x.f.Home) + ' v ' + esc(x.f.Away), v: x.w.h + '-' + x.w.d + '-' + x.w.a + '% · ' + UI.scoreText(f1(tp(x.f.Home)), f1(tp(x.f.Away))) })),
     links: [{ label: 'All matchups', href: '#/matchday/all' }], share: H + ' v ' + A + ' is the closest call of GW' + D.gw + ': ' + pr + '% on the model.',
   });
 }
@@ -685,7 +694,7 @@ function clarkPoll(out, you) {
     id: 'poll:' + D.gw + ':' + f.Home + '|' + f.Away, voice: 'clark', kind: 'poll', ts: T(bu, 88), time: 'GW' + D.gw + ' build-up', gw: D.gw, teams: [f.Home, f.Away], players: [],
     text,
     media: { type: 'poll', h: f.Home, a: f.Away, w, pick: pick0, open: !D.dlPassed, fav, live: R && (R.live || R.done) ? R : null },
-    facts: R && R.done ? 'Result ' + R.hs + '–' + R.as + (D.provOver ? ' (provisional)' : '') : 'Win chance ' + w.h + '–' + w.d + '–' + w.a + ' · the model' + (R ? ' now' : ''), detail: [{ k: esc(f.Home), v: w.h + '%' }, { k: 'Draw', v: w.d + '%' }, { k: esc(f.Away), v: w.a + '%' }],
+    facts: R && R.done ? 'Result ' + UI.scoreText(R.hs, R.as) + (D.provOver ? ' (provisional)' : '') : 'Win chance ' + w.h + '-' + w.d + '-' + w.a + ' · the model' + (R ? ' now' : ''), detail: [{ k: esc(f.Home), v: w.h + '%' }, { k: 'Draw', v: w.d + '%' }, { k: esc(f.Away), v: w.a + '%' }],
     links: [{ label: 'Matchup', href: '#/matchday/matchup' }], share: nm + ': who’s having it?' + (hR && aR ? ' Season highs: ' + firstOf(f.Home) + ' ' + hR.hi + ', ' + firstOf(f.Away) + ' ' + aR.hi + '.' : ''),
   });
 }
@@ -704,7 +713,7 @@ function malcolm(out, you) {
     const fav = rows.slice().sort((a, b) => Math.max(b.w.h, b.w.a) - Math.max(a.w.h, a.w.a))[0];
     const fv = fav.w.h >= fav.w.a ? fav.h : fav.a, fp = Math.max(fav.w.h, fav.w.a);
     const topP = rows.flatMap(r => [[r.h, r.ph], [r.a, r.pa]]).sort((a, b) => b[1] - a[1])[0], same = topP[0] === fv, tpS = f1(topP[1]);
-    const topA = same ? 'They carry the top projected score too, ' + tpS + '.' : 'Top projected score: ' + name(topP[0]) + ', ' + tpS + '.';
+    const topA = same ? 'They carry the top Proj score too, ' + tpS + '.' : 'Top Proj score: ' + name(topP[0]) + ', ' + tpS + '.';
     const ko = firstKO ? 'First kick-off ' + esc(UI.dayHm(firstKO)) + '.' : '';
     const text = locked ? pick('boardL', D.gw, [
       () => S('Gameweek ' + D.gw + ' is locked.', ko, 'Biggest favourite: ' + name(fv) + ' at ' + fp + '%.', topA),
@@ -712,28 +721,32 @@ function malcolm(out, you) {
       () => S('The deadline has passed for gameweek ' + D.gw + '.', name(fv) + ' are the strongest favourites at ' + fp + '%.', topA, ko),
     ]) : pick('board', D.gw, [
       () => S('Gameweek ' + D.gw + ', as the model sees it. Biggest favourite: ' + name(fv) + ' at ' + fp + '%.', topA),
-      () => 'The model’s card for gameweek ' + D.gw + '. ' + name(fv) + ' are the strongest favourites at ' + fp + '%' + (same ? ' and project highest, on ' + tpS + '.' : '; ' + name(topP[0]) + ' project highest, on ' + tpS + '.'),
+      () => 'The model’s card for gameweek ' + D.gw + '. ' + name(fv) + ' are the strongest favourites at ' + fp + '%' + (same ? ' and have the top Proj score, ' + tpS + '.' : '; ' + name(topP[0]) + ' have the top Proj score, ' + tpS + '.'),
       () => S('Here’s how gameweek ' + D.gw + ' shapes up. ' + name(fv) + ', ' + fp + '%, are the surest thing on the board.', topA),
-      () => S('Gameweek ' + D.gw + ' on paper.', same ? name(fv) + ' have the top projected score, ' + tpS + ', and the best win chance, ' + fp + '%.' : 'Top projected score: ' + name(topP[0]) + ', ' + tpS + '. Biggest favourite: ' + name(fv) + ', ' + fp + '%.'),
+      () => S('Gameweek ' + D.gw + ' on paper.', same ? name(fv) + ' have the top Proj score, ' + tpS + ', and the best win chance, ' + fp + '%.' : 'Top Proj score: ' + name(topP[0]) + ', ' + tpS + '. Biggest favourite: ' + name(fv) + ', ' + fp + '%.'),
     ]);
     out.push({
       id: 'board:' + D.gw, wide: true, voice: 'malcolm', kind: 'board', ts: locked ? T(gwDeadline(D.gw), 3) : T(bu, 85), time: when, gw: D.gw, teams: rows.flatMap(r => [r.h, r.a]), players: [],
       text,
-      media: { type: 'board', rows, gw: D.gw }, facts: 'Projected XIs · projected scores · win chance',
-      detail: rows.map(r => ({ k: esc(r.h) + ' v ' + esc(r.a), v: f1(r.ph) + '–' + f1(r.pa) + ' · ' + r.w.h + '–' + r.w.d + '–' + r.w.a + '%' })), links: [{ label: 'All matchups', href: '#/matchday/all' }],
-      share: 'GW' + D.gw + ' predictions: ' + rows.map(r => short(r.h) + ' ' + f1(r.ph) + '–' + f1(r.pa) + ' ' + short(r.a)).join(', ') + '.',
+      media: { type: 'board', rows, gw: D.gw }, facts: 'Proj XIs · Proj scores · win chance',
+      detail: rows.map(r => ({ k: esc(r.h) + ' v ' + esc(r.a), v: UI.scoreText(f1(r.ph), f1(r.pa)) + ' · ' + r.w.h + '-' + r.w.d + '-' + r.w.a + '%' })), links: [{ label: 'All matchups', href: '#/matchday/all' }],
+      share: 'GW' + D.gw + ' Proj: ' + rows.map(r => short(r.h) + ' ' + UI.scoreText(f1(r.ph), f1(r.pa)) + ' ' + short(r.a)).join(', ') + '.',
     });
     /* previews: Malcolm's angle is recent scoring (points over the last three gameweeks) and the last meeting this season */
-    const win3 = finishedFxGws(3), k3 = win3.length, rng = k3 ? (k3 === 1 ? 'GW' + win3[0] : 'GW' + win3[0] + '–' + win3[k3 - 1]) : '';
-    const wS = k3 === 1 ? 'in gameweek ' + win3[0] : 'over gameweeks ' + win3[0] + '–' + win3[k3 - 1];
-    rows.forEach(r => {
-      const mineHere = you && (r.h === you || r.a === you);
-      if (!r.nm && !mineHere) return;
-      const fi = fx.findIndex(x => x.Home === r.h && x.Away === r.a);
+    const win3 = finishedFxGws(3), k3 = win3.length, rng = k3 ? (k3 === 1 ? 'GW' + win3[0] : 'GW' + win3[0] + '-' + win3[k3 - 1]) : '';
+    const wS = k3 === 1 ? 'in gameweek ' + win3[0] : 'over gameweeks ' + win3[0] + '-' + win3[k3 - 1];
+    rows.forEach(row => {
+      const mineHere = you && (row.h === you || row.a === you);
+      if (!row.nm && !mineHere) return;
+      const fi = fx.findIndex(x => x.Home === row.h && x.Away === row.a);
+      /* where the note speaks to the member (their own matchup) their side comes first: names, scores, Proj and win chance turn
+         together. A league-wide preview keeps the home side first. The id, teams and media stay the fixture's own. */
+      const flip = mineHere && row.a === you;
+      const r = flip ? { ...row, h: row.a, a: row.h, ph: row.pa, pa: row.ph, w: { ...row.w, h: row.w.a, a: row.w.h } } : row;
       const lab = r.nm ? esc(r.nm) : name(r.h) + ' v ' + name(r.a);
       const ph3 = k3 ? teamPtsIn(r.h, win3) : 0, pa3 = k3 ? teamPtsIn(r.a, win3) : 0;
-      const lm = lastMeeting(r.h, r.a, D.gw), lmH = lm ? num(lm['Home pts']) : 0, lmA = lm ? num(lm['Away pts']) : 0;
-      const lmS = lm ? 'They last met in GW' + num(lm.GW) + ': ' + name(lm.Home) + ' ' + lmH + '–' + lmA + ' ' + name(lm.Away) + '.' : '';
+      const lm0 = lastMeeting(r.h, r.a, D.gw), lm = lm0 && flip ? { ...lm0, Home: lm0.Away, Away: lm0.Home, 'Home pts': lm0['Away pts'], 'Away pts': lm0['Home pts'] } : lm0, lmH = lm ? num(lm['Home pts']) : 0, lmA = lm ? num(lm['Away pts']) : 0;
+      const lmS = lm ? 'They last met in GW' + num(lm.GW) + ': ' + name(lm.Home) + ' ' + UI.scoreText(lmH, lmA) + ' ' + name(lm.Away) + '.' : '';
       const fA = k3 ? name(r.h) + ' have scored ' + ph3 + ' ' + wS + ', ' + name(r.a) + ' ' + pa3 + '.' : '';
       const fB = k3 ? cap(wS) + ' it’s ' + ph3 + ' for ' + name(r.h) + ' and ' + pa3 + ' for ' + name(r.a) + '.' : '';
       const fC = k3 ? 'Points ' + wS + ': ' + name(r.h) + ' ' + ph3 + ', ' + name(r.a) + ' ' + pa3 + '.' : '';
@@ -746,28 +759,28 @@ function malcolm(out, you) {
       const dm = mineHere ? dangerMan(you) : null;
       const script = [
         'Gameweek ' + D.gw + '. ' + (r.nm || (r.h + ' against ' + r.a)) + '.',
-        r.h + ', projected ' + f1(r.ph) + '. ' + r.a + ', ' + f1(r.pa) + '.',
+        r.h + ', Proj ' + f1(r.ph) + '. ' + r.a + ', ' + f1(r.pa) + '.',
         k3 ? (k3 === 1 ? 'Last gameweek, ' : 'Over the last ' + words(k3) + ' gameweeks, ') + r.h + ' scored ' + ph3 + ' and ' + r.a + ' ' + pa3 + '.' : '',
         lm ? 'They last met in gameweek ' + num(lm.GW) + ': ' + lm.Home + ' ' + lmH + ', ' + lm.Away + ' ' + lmA + '.' : '',
         'Win chance: ' + short(r.h) + ' ' + r.w.h + ', ' + short(r.a) + ' ' + r.w.a + '.',
-        dm ? 'The danger man: ' + dm.p.Player + ', projected ' + f1(dm.ep) + ', the most in ' + possT(dm.opp) + ' eleven.' : '',
+        dm ? 'The danger man: ' + dm.p.Player + ', Proj ' + f1(dm.ep) + ', the most in ' + possT(dm.opp) + ' eleven.' : '',
       ].filter(Boolean);
       out.push({
-        id: 'prev:' + D.gw + ':' + r.h + '|' + r.a, voice: 'malcolm', kind: mineHere ? 'voicenote' : 'preview', ts: locked ? T(gwDeadline(D.gw), mineHere ? 2 : 1) : T(bu, mineHere ? 90 : 78), time: when, gw: D.gw, teams: [r.h, r.a], players: dm ? [String(dm.p.Code)] : [],
-        text: tx, media: { type: mineHere ? 'voicenote' : 'scorebug', h: r.h, a: r.a, w: r.w, ph: r.ph, pa: r.pa, nm: r.nm, gw: D.gw, script, state: 'pred' },
-        facts: 'Projected XIs · win chance' + (k3 ? ' · H2H Fixtures ' + rng : '') + (dm ? ' · ' + dm.p.Player + ' ' + f1(dm.ep) : ''),
-        detail: [{ k: 'Predicted', v: f1(r.ph) + '–' + f1(r.pa) }, { k: 'Win chance', v: r.w.h + '% · draw ' + r.w.d + '% · ' + r.w.a + '%' }]
+        id: 'prev:' + D.gw + ':' + row.h + '|' + row.a, voice: 'malcolm', kind: mineHere ? 'voicenote' : 'preview', ts: locked ? T(gwDeadline(D.gw), mineHere ? 2 : 1) : T(bu, mineHere ? 90 : 78), time: when, gw: D.gw, teams: [row.h, row.a], players: dm ? [String(dm.p.Code)] : [],
+        text: tx, media: { type: mineHere ? 'voicenote' : 'scorebug', h: row.h, a: row.a, w: row.w, ph: row.ph, pa: row.pa, nm: row.nm, gw: D.gw, script, state: 'pred' },
+        facts: 'Proj XIs · win chance' + (k3 ? ' · H2H Fixtures ' + rng : '') + (dm ? ' · ' + dm.p.Player + ' ' + f1(dm.ep) : ''),
+        detail: [{ k: 'Proj', v: UI.scoreText(f1(r.ph), f1(r.pa)) }, { k: 'Win chance', v: r.w.h + '% · draw ' + r.w.d + '% · ' + r.w.a + '%' }]
           .concat(k3 ? [{ k: 'Points, ' + rng, v: esc(short(r.h)) + ' ' + ph3 + ' · ' + esc(short(r.a)) + ' ' + pa3 }] : [])
-          .concat(lm ? [{ k: 'Last meeting', v: 'GW' + num(lm.GW) + ' · ' + esc(lm.Home) + ' ' + lmH + '–' + lmA + ' ' + esc(lm.Away) }] : [])
+          .concat(lm ? [{ k: 'Last meeting', v: 'GW' + num(lm.GW) + ' · ' + esc(lm.Home) + ' ' + UI.scoreText(lmH, lmA) + ' ' + esc(lm.Away) }] : [])
           .concat(mineHere ? [{ k: 'Narration', v: script.map(esc).join('<br>') }] : []),
-        links: [{ label: 'Matchup', href: mineHere ? '#/matchday/matchup' : '#/matchday/all' }], share: (r.nm ? r.nm + ': ' : '') + r.h + ' ' + f1(r.ph) + '–' + f1(r.pa) + ' ' + r.a + ' predicted.',
+        links: [{ label: 'Matchup', href: mineHere ? '#/matchday/matchup' : '#/matchday/all' }], share: (r.nm ? r.nm + ': ' : '') + 'Proj ' + r.h + ' ' + UI.scoreText(f1(r.ph), f1(r.pa)) + ' ' + r.a + '.',
       });
     });
     /* NEW · THE FORM GUIDE: league points over the last three gameweeks (only the top is named; losing runs are Clark's) */
     const FG = formGuide();
     if (FG) {
       const R = FG.rows, top = R[0].lp, lead = R.filter(x => x.lp === top), nx = R.find(x => x.lp < top), nxAll = nx ? R.filter(x => x.lp === nx.lp) : [];
-      const max = 3 * FG.gws.length, gS = FG.gws[0] + '–' + FG.gws[FG.gws.length - 1], one = lead.length === 1, Ld = esc(list(lead.map(x => x.team)));
+      const max = 3 * FG.gws.length, gS = FG.gws[0] + '-' + FG.gws[FG.gws.length - 1], one = lead.length === 1, Ld = esc(list(lead.map(x => x.team)));
       const Nx = nxAll.length ? (nxAll.length <= 2 ? esc(list(nxAll.map(x => x.team))) : Words(nxAll.length) + ' sides') : '';
       const ptsW = words(top) + ' ' + plural(top, 'point');
       const tx = pick('form', D.gw, [
@@ -790,7 +803,7 @@ function malcolm(out, you) {
   if (D.liveNow && anyKO && fx.length) {
     const rows = fx.map(f => { const s = ms(f), w = wp(f); return { h: f.Home, a: f.Away, hs: s.hs, as: s.as2, w, ph: tp(f.Home), pa: tp(f.Away), nm: derbyName(f.Home, f.Away), f }; });
     const at = liveTime();
-    const leads = rows.filter(r => r.hs !== r.as).map(r => esc(short(r.hs > r.as ? r.h : r.a)) + ' lead ' + Math.max(r.hs, r.as) + '–' + Math.min(r.hs, r.as)).slice(0, 2);
+    const leads = rows.filter(r => r.hs !== r.as).map(r => esc(short(r.hs > r.as ? r.h : r.a)) + ' lead ' + UI.scoreText(Math.max(r.hs, r.as), Math.min(r.hs, r.as))).slice(0, 2);
     const lS = leads.length ? leads.join('; ') + '.' : 'All square across the board.';
     out.push({
       id: 'live:' + D.gw, wide: true, voice: 'malcolm', kind: 'board', ts: T(at, 3), time: liveLabel(), gw: D.gw, teams: rows.flatMap(r => [r.h, r.a]), players: [],
@@ -800,30 +813,30 @@ function malcolm(out, you) {
         () => 'Here’s where we are in gameweek ' + D.gw + '. ' + lS,
         () => 'Gameweek ' + D.gw + ' is under way. ' + lS,
       ]),
-      media: { type: 'board', rows, gw: D.gw, live: true }, facts: 'Live scores · projected finals · win chance',
-      detail: rows.map(r => ({ k: esc(r.h) + ' v ' + esc(r.a), v: r.hs + '–' + r.as + ' · proj final ' + f1(r.ph) + '–' + f1(r.pa) + ' · ' + r.w.h + '–' + r.w.a + '%' })), links: [{ label: 'All matchups', href: '#/matchday/all' }],
-      share: 'GW' + D.gw + ' live: ' + rows.map(r => short(r.h) + ' ' + r.hs + '–' + r.as + ' ' + short(r.a)).join(', ') + '.',
+      media: { type: 'board', rows, gw: D.gw, live: true }, facts: 'Live scores · Proj finals · win chance',
+      detail: rows.map(r => ({ k: esc(r.h) + ' v ' + esc(r.a), v: UI.scoreText(r.hs, r.as) + ' · Proj final ' + UI.scoreText(f1(r.ph), f1(r.pa)) + ' · ' + r.w.h + '-' + r.w.a + '%' })), links: [{ label: 'All matchups', href: '#/matchday/all' }],
+      share: 'GW' + D.gw + ' live: ' + rows.map(r => short(r.h) + ' ' + UI.scoreText(r.hs, r.as) + ' ' + short(r.a)).join(', ') + '.',
     });
     const swung = rows.map(r => { const pk = preKick(r.f), was = pk.h > pk.a ? 'h' : pk.a > pk.h ? 'a' : '', now = r.w.h > r.w.a ? 'h' : r.w.a > r.w.h ? 'a' : ''; return { r, pk, was, now }; }).filter(x => x.was && x.now && x.was !== x.now);
     const solo = x => (you && (x.r.h === you || x.r.a === you)) || x.r.nm || swung.length <= 2;
     const quiet = swung.filter(x => !solo(x));
-    if (quiet.length) { const P = out[out.length - 1]; P.text += ' On projection, ' + list(quiet.map(x => esc(firstOf(x.now === 'h' ? x.r.h : x.r.a)))) + (quiet.length > 1 ? ' have' : ' has') + ' moved ahead.'; }
+    if (quiet.length) { const P = out[out.length - 1]; P.text += ' On Proj final, ' + list(quiet.map(x => esc(firstOf(x.now === 'h' ? x.r.h : x.r.a)))) + (quiet.length > 1 ? ' have' : ' has') + ' moved ahead.'; }
     swung.filter(solo).forEach(({ r, pk, was, now }) => {
       const t = now === 'h' ? r.h : r.a, o = now === 'h' ? r.a : r.h, fi = fx.indexOf(r.f);
       const left = mpxLeft(t).n, who = esc(firstOf(t)), leftS = left ? words(left) + ' still to play' : '', inN = r.nm ? ' in ' + esc(r.nm) : '';
-      const onBoard = withNm => r.hs === r.as ? 'It’s level at ' + r.hs + ' on the board.' : esc(r.hs > r.as ? r.h : r.a) + ' lead ' + (withNm && r.nm ? esc(r.nm) + ' ' : '') + Math.max(r.hs, r.as) + '–' + Math.min(r.hs, r.as) + ' on the board.';
+      const onBoard = withNm => r.hs === r.as ? 'It’s level at ' + r.hs + ' on the board.' : esc(r.hs > r.as ? r.h : r.a) + ' lead ' + (withNm && r.nm ? esc(r.nm) + ' ' : '') + UI.scoreText(Math.max(r.hs, r.as), Math.min(r.hs, r.as)) + ' on the board.';
       out.push({
         id: 'swing:' + D.gw + ':' + r.h + '|' + r.a + ':' + now, voice: 'malcolm', kind: 'swing', ts: T(at, 2), time: liveLabel(), gw: D.gw, teams: [r.h, r.a], players: [],
         text: pick('swing', D.gw, [
-          () => who + ' moves ahead on projection' + (left ? ' with ' + leftS : '') + '. ' + onBoard(true),
-          () => 'A swing' + inN + ': ' + who + ' is now the projected winner' + (left ? ', ' + leftS : '') + '. ' + onBoard(false),
-          () => 'The model has changed its mind' + (r.nm ? ' on ' + esc(r.nm) : '') + '. ' + who + ' is ahead on projection' + (left ? ', ' + leftS : '') + '. ' + onBoard(false),
-          () => 'Turnaround on the projections' + inN + '. ' + who + ' has it now' + (left ? ', with ' + leftS : '') + '. ' + onBoard(false),
+          () => who + ' moves ahead on Proj final' + (left ? ' with ' + leftS : '') + '. ' + onBoard(true),
+          () => 'A swing' + inN + ': ' + who + ' now leads on Proj final' + (left ? ', ' + leftS : '') + '. ' + onBoard(false),
+          () => 'The model has changed its mind' + (r.nm ? ' on ' + esc(r.nm) : '') + '. ' + who + ' is ahead on Proj final' + (left ? ', ' + leftS : '') + '. ' + onBoard(false),
+          () => 'Turnaround on Proj final' + inN + '. ' + who + ' has it now' + (left ? ', with ' + leftS : '') + '. ' + onBoard(false),
         ], fi),
         media: { type: 'scorebug', h: r.h, a: r.a, hs: r.hs, as: r.as, w: r.w, was: pk, ph: r.ph, pa: r.pa, nm: r.nm, gw: D.gw, state: 'live' },
-        facts: 'Win chance before kick-off v now · ' + short(t) + ' ' + (now === 'h' ? pk.h + '% → ' + r.w.h : pk.a + '% → ' + r.w.a) + '%',
-        detail: [{ k: 'Before kick-off', v: pk.h + '–' + pk.d + '–' + pk.a + '% (' + f1(pk.muH) + '–' + f1(pk.muA) + ')' }, { k: 'Now', v: r.w.h + '–' + r.w.d + '–' + r.w.a + '% (proj final ' + f1(r.ph) + '–' + f1(r.pa) + ')' }, { k: 'Score', v: r.hs + '–' + r.as }, { k: esc(t) + ' still to play', v: String(left) }],
-        links: [{ label: 'Matchup', href: (you && (r.h === you || r.a === you)) ? '#/matchday/matchup' : '#/matchday/all' }], share: firstOf(t) + ' moves ahead on projection against ' + o + '.',
+        facts: 'Win chance before kick-off v now · ' + short(t) + ' ' + (now === 'h' ? pk.h + '% → ' + r.w.h : pk.a + '% → ' + r.w.a) + '%', factsLegend: 'odds',
+        detail: [{ k: 'Before kick-off', v: pk.h + '-' + pk.d + '-' + pk.a + '% (' + UI.scoreText(f1(pk.muH), f1(pk.muA)) + ')' }, { k: 'Now', v: r.w.h + '-' + r.w.d + '-' + r.w.a + '% (Proj final ' + UI.scoreText(f1(r.ph), f1(r.pa)) + ')' }, { k: 'Score', v: UI.scoreText(r.hs, r.as) }, { k: esc(t) + ' still to play', v: String(left) }],
+        links: [{ label: 'Matchup', href: (you && (r.h === you || r.a === you)) ? '#/matchday/matchup' : '#/matchday/all' }], share: firstOf(t) + ' moves ahead on Proj final against ' + o + '.',
       });
     });
   }
@@ -844,17 +857,17 @@ function malcolm(out, you) {
         /* slot: the fixture's place in the gameweek (never the viewer's sort), so every phone gets the same words */
         const st = r.star, w = r.win, hauls = r.hauls.slice(0, 2), fi = Math.max(0, gfx.indexOf(r.f));
         const inN = r.nm ? ' in ' + esc(r.nm) : '', H = name(r.home), A = name(r.away), Wn = w ? name(w) : '', Ln = w ? name(r.lose) : '';
-        const ws = Math.max(r.hs, r.as), ls = Math.min(r.hs, r.as), sc = ws + '–' + ls;
+        const ws = Math.max(r.hs, r.as), ls = Math.min(r.hs, r.as), sc = UI.scoreText(ws, ls);
         let tx;
         if (prov) tx = pick('ft-prov', g, [
           () => 'Provisional full time' + inN + '. ' + (w ? Wn + ' ' + ws + ', ' + Ln + ' ' + ls + '.' : H + ' and ' + A + ' level at ' + r.hs + '.'),
-          () => 'On provisional scores' + inN + ', ' + (w ? Wn + ' beat ' + Ln + ' ' + sc + '.' : H + ' and ' + A + ' draw ' + r.hs + '–' + r.as + '.'),
+          () => 'On provisional scores' + inN + ', ' + (w ? Wn + ' beat ' + Ln + ' ' + sc + '.' : H + ' and ' + A + ' draw ' + UI.scoreText(r.hs, r.as) + '.'),
           () => 'Subject to the final bonus, ' + (w ? Wn + ' take it' + inN + ', ' + sc + '.' : H + ' and ' + A + ' share it' + inN + ', ' + r.hs + ' apiece.'),
         ], fi);
         else if (!w) tx = pick('ft-draw', g, [
           () => 'Honours even' + inN + '. ' + H + ' and ' + A + ' share it at ' + r.hs + ' apiece.',
           () => H + ' ' + r.hs + ', ' + A + ' ' + r.as + '. Nothing to separate them' + inN + '.',
-          () => 'Level at the whistle' + inN + ': ' + H + ' and ' + A + ', ' + r.hs + '–' + r.as + '.',
+          () => 'Level at the whistle' + inN + ': ' + H + ' and ' + A + ', ' + UI.scoreText(r.hs, r.as) + '.',
           () => 'A draw' + inN + '. ' + H + ' and ' + A + ' finish on ' + r.hs + ' each.',
         ], fi);
         else if (r.margin <= 3) tx = pick('ft-narrow', g, [
@@ -889,8 +902,8 @@ function malcolm(out, you) {
           id: 'ft:' + g + ':' + r.home + '|' + r.away + (prov ? ':p' : ''), voice: 'malcolm', kind: 'ft', ts: T(at, FTP[i] || 10), time: tl, gw: g, teams: [r.home, r.away], players: st ? [st.code] : [],
           text: tx, media: { type: 'scorebug', h: r.home, a: r.away, hs: r.hs, as: r.as, nm: r.nm, gw: g, state: prov ? 'prov' : 'ft', star: st },
           facts: (prov ? 'Live scores, provisional bonus' : 'H2H Fixtures · GW Log') + ' · GW' + g + (st ? ' · star man ' + st.name + ' ' + st.pts : ''),
-          detail: [{ k: 'Score', v: esc(r.home) + ' ' + r.hs + '–' + r.as + ' ' + esc(r.away) }].concat(st ? [{ k: 'Star man', v: esc(st.name) + ' · ' + esc(st.team) + ' · ' + pt(st.pts) + '' + (st.line ? ' · ' + st.line : '') }] : []).concat(r.hauls.map(h => ({ k: 'Double figures', v: esc(h.name) + ' ' + h.pts + ' (' + esc(short(h.team)) + ')' }))),
-          links: [{ label: 'Results', href: '#/league/results' }], share: 'Full time, GW' + g + ': ' + r.home + ' ' + r.hs + '–' + r.as + ' ' + r.away + '.',
+          detail: [{ k: 'Score', v: esc(r.home) + ' ' + UI.scoreText(r.hs, r.as) + ' ' + esc(r.away) }].concat(st ? [{ k: 'Star man', v: esc(st.name) + ' · ' + esc(st.team) + ' · ' + pt(st.pts) + '' + (st.line ? ' · ' + st.line : '') }] : []).concat(r.hauls.map(h => ({ k: 'Double figures', v: esc(h.name) + ' ' + h.pts + ' (' + esc(short(h.team)) + ')' }))),
+          links: [{ label: 'Results', href: '#/league/results' }], share: 'Full time, GW' + g + ': ' + r.home + ' ' + UI.scoreText(r.hs, r.as) + ' ' + r.away + '.',
         });
       });
       /* the table at full time, with movement */
@@ -918,16 +931,16 @@ function malcolm(out, you) {
       if (M && M.length >= 2 && M[0].d > 0 && M[M.length - 1].d < 0) {
         const o = M[0], u = M[M.length - 1], oD = f1(o.d), uD = f1(-u.d);
         const tx = pick('model', g, [
-          () => 'How the model did in gameweek ' + g + '. ' + name(o.team) + ' beat their projection by ' + oD + ', the most of anyone. ' + name(u.team) + ' fell ' + uD + ' short.',
-          () => 'Gameweek ' + g + ', model against reality. Nobody beat their projection by more than ' + name(o.team) + ', ' + oD + ' points. ' + name(u.team) + ' missed theirs by ' + uD + ', the most of anyone.',
-          () => 'Back to the projections for gameweek ' + g + '. Biggest overachievers: ' + name(o.team) + ', ' + oD + ' above. Furthest short: ' + name(u.team) + ', ' + uD + ' under.',
-          () => 'Gameweek ' + g + ' against the forecast. Best: ' + name(o.team) + ', ' + oD + ' points over their projection. Worst: ' + name(u.team) + ', ' + uD + ' under.',
+          () => 'How the model did in gameweek ' + g + '. ' + name(o.team) + ' beat their FPL Proj by ' + oD + ', the most of anyone. ' + name(u.team) + ' fell ' + uD + ' short.',
+          () => 'Gameweek ' + g + ', model against reality. Nobody beat their FPL Proj by more than ' + name(o.team) + ', ' + oD + ' points. ' + name(u.team) + ' missed theirs by ' + uD + ', the most of anyone.',
+          () => 'Back to FPL Proj for gameweek ' + g + '. Biggest overachievers: ' + name(o.team) + ', ' + oD + ' above. Furthest short: ' + name(u.team) + ', ' + uD + ' under.',
+          () => 'Gameweek ' + g + ' against FPL Proj. Best: ' + name(o.team) + ', ' + oD + ' points over their FPL Proj. Worst: ' + name(u.team) + ', ' + uD + ' under.',
         ]);
         out.push({
           id: 'model:' + g, voice: 'malcolm', kind: 'model', ts: T(at, 20), time: 'After GW' + g, gw: g, teams: [o.team, u.team], players: [],
           text: tx, media: null,
-          facts: 'FPL projections frozen at the GW' + g + ' deadline, summed over each selected XI · H2H Fixtures GW' + g,
-          detail: M.map(x => ({ k: esc(x.team), v: 'projected ' + f1(x.proj) + ' · scored ' + x.act + ' · ' + (x.d >= 0 ? '+' : '−') + f1(Math.abs(x.d)) })),
+          facts: 'FPL Proj frozen at the GW' + g + ' deadline, summed over each selected XI · H2H Fixtures GW' + g,
+          detail: M.map(x => ({ k: esc(x.team), v: 'FPL Proj ' + f1(x.proj) + ' · scored ' + x.act + ' · ' + (x.d >= 0 ? '+' : '−') + f1(Math.abs(x.d)) })),
           links: [{ label: 'Results', href: '#/league/results' }], share: 'GW' + g + ' v the model: ' + o.team + ' +' + oD + ', ' + u.team + ' −' + uD + '.',
         });
       }
@@ -945,8 +958,8 @@ function malcolm(out, you) {
         id: 'results:' + g, wide: true, voice: 'malcolm', kind: 'results', ts: T(at, 12), time: relTime(at), gw: g, teams: R.flatMap(r => [r.home, r.away]), players: s0 ? [s0.code] : [],
         text: tx,
         media: { type: 'results', rows: R, gw: g, star: s0 || null }, facts: 'H2H Fixtures · GW Log · GW' + g,
-        detail: R.map(r => ({ k: esc(r.home) + ' v ' + esc(r.away), v: r.hs + '–' + r.as + (r.star ? ' · star ' + esc(r.star.name) + ' ' + r.star.pts : '') })), links: [{ label: 'Results', href: '#/league/results' }],
-        share: 'GW' + g + ' results: ' + R.map(r => short(r.home) + ' ' + r.hs + '–' + r.as + ' ' + short(r.away)).join(', ') + '.',
+        detail: R.map(r => ({ k: esc(r.home) + ' v ' + esc(r.away), v: UI.scoreText(r.hs, r.as) + (r.star ? ' · star ' + esc(r.star.name) + ' ' + r.star.pts : '') })), links: [{ label: 'Results', href: '#/league/results' }],
+        share: 'GW' + g + ' results: ' + R.map(r => short(r.home) + ' ' + UI.scoreText(r.hs, r.as) + ' ' + short(r.away)).join(', ') + '.',
       });
     }
   });
@@ -991,22 +1004,22 @@ export function jivePosts(team) {
   const dismissed = (lsGet('emt-feed-kept', {}) || {});
   if (pre && call && !dismissed[callKey(call)]) out.push(callPost(call, bu));
   if (pre && (F.xi.length || F.bench.length)) {
-    const d = F.xi.filter(p => p.Status === 'd'), same = d.length && d.every(p => chanceOf(p) === chanceOf(d[0]));
+    const d = F.xi.filter(p => p.Status === 'd'), same = d.length && chanceOf(d[0]) !== null && d.every(p => chanceOf(p) === chanceOf(d[0]));
     let tx = F.xi.length ? 'Gaffer, ' + (F.xi.length === 1 ? esc(F.xi[0].Player) + ' carries a flag' : words(F.xi.length) + ' of your starters carry a flag') + ' into GW' + D.gw + '.' : 'Gaffer, your XI is clear. The flags are on the bench.';
     if (same && d.length === F.xi.length && d.length > 1) tx = 'Gaffer, ' + words(d.length) + ' of your starters are ' + chanceOf(d[0]) + '% for GW' + D.gw + '.';
     out.push({
       id: 'fit:' + D.gw + ':' + hash(F.xi.concat(F.bench).map(p => p.Code + statusWord(p)).join()), voice: 'jive', kind: 'fitness', ts: T(bu, 92), time: 'GW' + D.gw + ' build-up', gw: D.gw, teams: [team], players: F.xi.concat(F.bench).map(p => String(p.Code)), audience: 'you',
       text: tx, media: { type: 'fitness', xi: F.xi.map(p => String(p.Code)), bench: F.bench.map(p => String(p.Code)) },
-      facts: 'FPL injury news · your projected XI', detail: F.xi.concat(F.bench).map(p => ({ k: esc(p.Player) + (F.xi.includes(p) ? ' (XI)' : ' (bench)'), v: esc(p.News) })),
+      facts: 'FPL injury news · your Proj XI', detail: F.xi.concat(F.bench).map(p => ({ k: esc(p.Player) + (F.xi.includes(p) ? ' (XI)' : ' (bench)'), v: esc(p.News) })),
       links: [{ label: 'Lineup', href: '#/team/lineup' }], share: '',
     });
   }
   if (pre && dm) {
     out.push({
       id: 'scout:' + D.gw + ':' + dm.opp + ':' + dm.p.Code, voice: 'jive', kind: 'scout', ts: T(bu, 91), time: 'GW' + D.gw + ' build-up', gw: D.gw, teams: [team, dm.opp], players: [String(dm.p.Code)], audience: 'you',
-      text: 'Scouting ' + esc(theShort(dm.opp)) + ': ' + esc(dm.p.Player) + ' projects ' + f1(dm.ep) + ', the most in their XI.',
+      text: 'Scouting ' + esc(theShort(dm.opp)) + ': ' + esc(dm.p.Player) + ', Proj ' + f1(dm.ep) + ', the most in their XI.',
       media: { type: 'scout', code: String(dm.p.Code), ep: dm.ep, opp: dm.opp, xi: ex(dm.opp).map(p => ({ code: String(p.Code), ep: epOf(p.Code) || 0 })).sort((a, b) => b.ep - a.ep).slice(0, 3) },
-      facts: 'Projections · ' + dm.opp + ' projected XI', detail: ex(dm.opp).map(p => ({ k: esc(p.Player), v: f1(epOf(p.Code) || 0) })).sort((a, b) => parseFloat(b.v) - parseFloat(a.v)).slice(0, 5),
+      facts: 'Player Proj · ' + dm.opp + ' Proj XI', detail: ex(dm.opp).map(p => ({ k: esc(p.Player), v: f1(epOf(p.Code) || 0) })).sort((a, b) => parseFloat(b.v) - parseFloat(a.v)).slice(0, 5),
       links: [{ label: dm.p.Player, open: 'player:' + dm.p.Code }], share: '',
     });
   }
@@ -1038,8 +1051,8 @@ export function callPost(c, bu) {
   return {
     id: 'call:' + callKey(c), voice: 'jive', kind: 'call', ts: T(bu || buildUpTime(D.gw), 95), time: 'GW' + D.gw + ' build-up', gw: c.gw, teams: [c.team], players: [String(o.p.Code), String(a.p.Code)], audience: 'you', pin: true,
     text: tx, media: { type: 'call', out: pack(o), alt: pack(a), kind: a.kind, pos: o.p.Pos, gw: c.gw, key: callKey(c) },
-    facts: 'Start chance and projection · minutes GW' + c.win[0] + '–' + c.win[c.win.length - 1],
-    detail: [{ k: esc(nm), v: o.mins + ' min · ' + o.starts + ' starts · ' + Math.round(o.ps * 100) + '% start · ' + f1(o.pts) + ' proj' }, { k: esc(a.p.Player) + (a.kind === 'free' ? (onWaivers ? ' (on waivers)' : ' (free agent)') : ' (your bench)'), v: a.mins + ' min · ' + a.starts + ' starts · ' + Math.round(a.ps * 100) + '% start · ' + f1(a.pts) + ' proj' }],
+    facts: 'Start chance and Proj · minutes GW' + c.win[0] + '-' + c.win[c.win.length - 1],
+    detail: [{ k: esc(nm), v: o.mins + ' min · ' + o.starts + ' starts · ' + Math.round(o.ps * 100) + '% start · Proj ' + f1(o.pts) }, { k: esc(a.p.Player) + (a.kind === 'free' ? (onWaivers ? ' (on waivers)' : ' (free agent)') : ' (your bench)'), v: a.mins + ' min · ' + a.starts + ' starts · ' + Math.round(a.ps * 100) + '% start · Proj ' + f1(a.pts) }],
     links: a.kind === 'free' ? [{ label: 'Transfers', href: '#/team/transfers' }] : [{ label: 'Lineup', href: '#/team/lineup' }], share: '',
   };
 }

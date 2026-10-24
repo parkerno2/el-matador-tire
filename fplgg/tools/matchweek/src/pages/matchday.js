@@ -15,7 +15,7 @@ let TIMER = 0, OBS = null;
 function tick() {
   const els = document.querySelectorAll('[data-md-until]');
   if (!els.length) { clearInterval(TIMER); TIMER = 0; return; }
-  els.forEach(el => { const t = +el.getAttribute('data-md-until'), d = new Date(t); el.textContent = t > Date.now() ? 'in ' + M.until(d) : 'now'; });
+  els.forEach(el => { el.textContent = M.untilText(new Date(+el.getAttribute('data-md-until')), el.getAttribute('data-md-past') || 'now', el.getAttribute('data-md-after') || ''); });
 }
 
 export default {
@@ -46,8 +46,6 @@ export default {
     md.addEventListener('click', e => {
       const t = e.target.closest('[data-md-tab]');
       if (t) { Matchup.ST.tab = t.getAttribute('data-md-tab'); window.MW.render({ keepScroll: true }); return; }
-      const x = e.target.closest('[data-md-xp]');
-      if (x) { e.stopPropagation(); e.preventDefault(); Matchup.ST.xp = x.getAttribute('data-md-xp') === '1'; window.MW.render({ keepScroll: true }); return; }   /* the switch sits in the team bar, which opens the manager sheet on any other tap */
       const l = e.target.closest('[data-md-line]');
       if (l) { const k = l.getAttribute('data-md-line'); Matchup.ST.lines.has(k) ? Matchup.ST.lines.delete(k) : Matchup.ST.lines.add(k); window.MW.render({ keepScroll: true }); return; }
       const a = e.target.closest('[data-md-plall]');

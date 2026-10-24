@@ -1,6 +1,6 @@
 # El Matador Tire / Matchweek: notes for Claude sessions
 
-El Matador is frozen (Parker, 11 Oct 2026): fixes only. Product work happens in parkerno2/matchweek-app.
+El Matador was frozen (Parker, 11 Oct 2026): fixes only, product work in parkerno2/matchweek-app. Since 24 Oct 2026 (Parker: make it a replica of Matchweek on the same link, friends must not reinstall; it may differ from other leagues), Matchweek's screen changes are ported here; `fplgg/tools/matchweek/docs/PORT.md` says what came over, what El Matador keeps (the Sheet, Code.gs features, FC 27 ratings, its `emt-` saved settings) and how to port the next change.
 
 This repo runs Parker's 8-manager FPL Draft league app (El Matador Tire). The product name is **Matchweek**. **Rule zero:** everything runs without Parker's computer, so never add a step that needs it.
 

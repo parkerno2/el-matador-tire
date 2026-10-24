@@ -1,7 +1,7 @@
 /* League › Overview: the table (hero), the Manager of the Month race, the prize pool. Three blocks, nothing else. */
 import * as UI from '../../ui.js';
 import { DEMO } from '../../data/tabs.js';   /* no market in the demo (S1, 11 Oct 2026) */
-import { table, movement, tableSummary, odds, oddsReady, pctTxt, motm, payouts, halfway, wk, ord, money, perName, PAY, FINAL, POT, dayWord, dayMonth, koOf, begun } from './data.js';
+import { winTxt, table, movement, tableSummary, odds, oddsReady, motm, payouts, halfway, wk, ord, money, perName, PAY, FINAL, POT, dayWord, dayMonth, koOf, begun, hasMotm } from './data.js';
 
 const esc = UI.esc;
 export const tap = (team, label) => ' data-open="manager:' + esc(team) + '" role="button" tabindex="0" aria-label="' + esc(label) + '"';
@@ -30,7 +30,7 @@ export function tableBlock() {
   const after = w.basis ? 'After gameweek ' + w.basis + ' of 38' : 'Before gameweek 1 of 38';
   const tag = w.prov ? '<span class="lg-tag prov">Provisional</span>' : '';   /* live: the pill at the top says it, once (11 Oct 2026) */
   let h = '<section class="lg-hero lg-tbl" aria-labelledby="lg-tbl-h">'
-    + '<div class="lg-tbl-hd"><div class="l"><h2 id="lg-tbl-h" class="wide">The table</h2><span>' + after + '</span>' + tag + '</div>'
+    + '<div class="lg-tbl-hd"><div class="l"><h2 id="lg-tbl-h" class="wide">The table</h2><span>' + after + '</span>' + tag + UI.legendTap('odds', 'Title odds', 'ln') + '</div>'
     + '<div class="r"><b class="n">' + esc(sum.big) + '</b><span>' + esc(sum.sub) + '</span></div></div>'
     + '<div class="lg-th" aria-hidden="true"><span>#</span><span></span><span>Team</span><span>W-D-L</span><span>PF</span><span>Pts</span><span>Title</span></div>';
   rows.forEach((r, i) => {
@@ -60,7 +60,7 @@ export function tableBlock() {
 /* ---------- block 2: Manager of the Month ----------
    Parker, 10 Oct 2026 (Q6): the race leads with real points (the month so far, the live gameweek as it stands, scored
    like the scoreboard), ranked by them with the projection breaking ties; the projection is the secondary figure and
-   the marker on the bar; before the month has a point the projection is the main number, labelled Projected. */
+   the marker on the bar; before the month has a point the projection is the main number, labelled Proj. */
 export function motmBlock() {
   const m = motm(), me = UI.you(), w = wk();
   const range = 'GW' + m.a + '-' + m.b, pn = p => String(p[0]);   /* the period as the sheet names it (Aug & Sep) */
@@ -85,29 +85,28 @@ export function motmBlock() {
   const maxV = Math.max(1, ...m.rows.map(r => r.hi)) * 1.04;
   const pc = v => Math.max(0, Math.min(100, v / maxV * 100)).toFixed(1);
   const favWin = Math.max(...m.rows.map(r => r.win));
-  const colHead = byPts ? 'Points' + (live ? ' <em class="live-c">LIVE</em>' : prov ? ' <em>FT</em>' : '') : 'Projected';
+  const colHead = byPts ? 'Points' + (live ? ' <em class="live-c">LIVE</em>' : prov ? ' <em>FT</em>' : '') : UI.legendTap('proj', 'Proj', 'ln');
   let h = '<section class="lg-hero lg-motm" aria-labelledby="lg-motm-h">'
     + '<div class="lg-motm-top"><div class="hd"><div><span class="k">Manager of the Month</span><h2 id="lg-motm-h" class="wide">' + esc(pn(m.per)) + ' race</h2>'
-    + '<span class="sub">Most points in ' + range + ' · ' + esc(when) + '</span></div></div>'
+    + '<span class="sub">' + range + ' · ' + esc(when) + '</span></div></div>'
     + '<div class="lg-pips" aria-label="' + played + ' of ' + m.gws.length + ' gameweeks played">' + pips + '</div>'
     + '<div class="lg-pipnote"><span>' + esc(state) + '</span>' + (last ? '<span>' + esc(last) + '</span>' : '') + '</div></div>'
-    + '<div class="lg-mh" aria-hidden="true"><span></span><span>' + range + '</span><span class="ph">' + colHead + '</span><span>Win</span></div>';
+    + '<div class="lg-mh"><span></span><span>' + range + '</span><span class="ph">' + colHead + '</span><span>' + UI.legendTap('odds', 'Win', 'ln') + '</span></div>';
   m.rows.forEach((r, i) => {
     const you = r.t === me;
-    const winTxt = r.win >= 0.995 && r.win < 1 ? '>99%' : r.win > 0 && r.win < 0.005 ? '<1%' : Math.round(r.win * 100) + '%';
     const main = byPts ? Math.round(r.banked) : Math.round(r.proj);
-    const lab = r.t + ': ' + Math.round(r.banked) + ' points, ' + Math.round(r.proj) + ' projected, likely ' + Math.round(r.lo) + ' to ' + Math.round(r.hi) + ', win chance ' + winTxt;
+    const lab = r.t + ': ' + Math.round(r.banked) + ' points, ' + Math.round(r.proj) + ' Proj, likely ' + Math.round(r.lo) + ' to ' + Math.round(r.hi) + ', win chance ' + winTxt(r.win);
     h += '<div class="lg-mr' + (you ? ' you' : '') + '" style="--tc:' + UI.tc(r.t) + '"' + tap(r.t, lab) + '>'
       + '<span class="rk n">' + (i + 1) + '</span>' + UI.crest(r.t, 24)
       + '<span class="ln"><span class="tn">' + esc(r.t) + '</span><span class="lane" aria-hidden="true">'
       + (r.sd > 0.01 ? '<span class="rg" style="left:' + pc(r.lo) + '%;width:' + (pc(r.hi) - pc(r.lo)).toFixed(1) + '%"></span>' : '')
-      + (r.proj > r.banked + 0.05 ? '<span class="pj" style="left:' + pc(r.banked) + '%;width:' + (pc(r.proj) - pc(r.banked)).toFixed(1) + '%"></span>' : '')
+      + (r.proj > r.banked + 0.05 ? '<span class="prj" style="left:' + pc(r.banked) + '%;width:' + (pc(r.proj) - pc(r.banked)).toFixed(1) + '%"></span>' : '')
       + (r.banked > 0 ? '<span class="bk" style="width:' + pc(r.banked) + '%"></span>' : '')
       + '<span class="mk" style="left:' + pc(r.proj) + '%"></span></span></span>'
-      + '<span class="pv"><b class="n pr">' + main + '</b>' + (byPts && !m.st.complete ? '<small class="n sm">' + Math.round(r.proj) + ' proj</small>' : '') + '</span>'
-      + '<b class="n wn' + (r.win === favWin && r.win > 0 ? ' fav' : '') + '">' + winTxt + '</b></div>';
+      + '<span class="pv"><b class="n pr">' + main + '</b>' + (byPts && !m.st.complete ? '<small class="n sm">' + Math.round(r.proj) + ' Proj</small>' : '') + '</span>'
+      + '<b class="n wn' + (r.win === favWin && r.win > 0 ? ' fav' : '') + '">' + winTxt(r.win) + '</b></div>';
   });
-  h += '<div class="lg-key" aria-hidden="true"><span><i class="k-bk"></i>points</span><span><i class="k-mk"></i>projected</span><span><i class="k-rg"></i>likely range</span></div>'
+  h += '<div class="lg-key"><span aria-hidden="true"><i class="k-bk"></i>points</span><span><i class="k-mk" aria-hidden="true"></i>' + UI.legendTap('proj', 'Proj', 'ln') + '</span><span aria-hidden="true"><i class="k-rg"></i>likely range</span></div>'
     + '<div class="foot lg-foot"><a class="lg-more" href="#/league/money">Every month so far ' + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div></section>';
   return h;
 }
@@ -153,12 +152,12 @@ export function poolBlock() {
   } else next = '<div class="lg-next"><i></i><span>Every prize has been paid. See you next season.</span></div>';
   return '<section class="lg-hero lg-pool" aria-labelledby="lg-pool-h">'
     + '<div class="lg-pool-top"><span id="lg-pool-h" class="k">Prize pool · 38 gameweeks</span><b class="big n">' + money(POT) + '</b>'
-    + '<div class="lg-pool-sub"><b>' + money(P.left) + '</b> still to win · ' + money(P.paid) + ' paid so far</div></div>'
+    + '<div class="lg-pool-sub"><b>' + money(P.left) + '</b> still to win · ' + (P.paid ? money(P.paid) + ' paid so far' : 'nothing paid yet') + '</div></div>'
     + '<div class="lg-podium">' + step(1, 's2', PAY.second, '2nd') + step(0, 's1', PAY.first, '1st') + step(2, 's3', PAY.third, '3rd') + '</div>'
     + '<div class="lg-season"><div class="hd"><span class="k">The season so far</span><span class="sub">' + P.stops.filter(s => s.paid).length + ' of ' + P.stops.length + ' payouts made</span></div>' + labels + '</div>'
     + '<div class="lg-ptiles">'
     + '<div class="lg-pt"><span class="k">Halfway · GW19</span><b class="n">' + money(PAY.half) + '</b><span class="h">' + (on ? UI.crest(hw.team, 18) : '') + '<span>' + esc(hwTxt) + '</span></span></div>'
-    + '<div class="lg-pt"><span class="k">Manager of the Month</span><b class="n">' + money(PAY.motm) + ' <small>× 9</small></b><span class="h">' + UI.crest(fav, 18) + '<span>' + esc(mTxt) + '</span></span></div>'
+    + (hasMotm() ? '<div class="lg-pt"><span class="k">Manager of the Month</span><b class="n">' + money(PAY.motm) + ' <small>× ' + PERIODS.length + '</small></b><span class="h">' + UI.crest(fav, 18) + '<span>' + esc(mTxt) + '</span></span></div>' : '')
     + '</div>' + next
     + '<div class="lg-pool-more"><a class="lg-more" href="#/league/money">' + (DEMO ? 'Every prize ' : 'Every prize and the Baha market ') + UI.icon('chev', 14, 'currentColor', 2.4) + '</a></div>'
     + '</section>';

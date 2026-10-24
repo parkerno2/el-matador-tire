@@ -1,8 +1,9 @@
-/* feed/social-posts.js — what the voices do with the league's own words: every quote goes on Everyone's feed,
+/* feed/social-posts.js - what the voices do with the league's own words: every quote goes on Everyone's feed,
    bold calls get flagged, and when the data settles a claim the receipts come out (and, now and then, go viral). */
 import { esc, short, firstOf, mgrOf, pick, relTime, hash, gwDoneTime } from './util.js';
 import { quotes, rumours } from './social.js';
-import { settle, viral, claimLabel, claimClause, claimChip, pct, ordinal } from './claims.js';
+import { hasMotm } from '../pages/league/data.js';
+import { settle, viral, mockable, claimLabel, claimClause, claimChip, pct, ordinal } from './claims.js';
 
 const strong = s => '<strong>' + s + '</strong>';
 const T = (d, min) => new Date((d ? +d : 0) + (min || 0) * 60e3);
@@ -125,6 +126,8 @@ function rumourPosts(out) {
 export function socialPosts(you) {
   const out = [], hotBy = {};
   let Q = []; try { Q = quotes(); } catch (e) { console.error(e); return out; }
+  /* a Manager of the Month call in a league with no prize is just a quote: no claim to settle, no race to mock */
+  if (!hasMotm()) Q = Q.map(q => (q.claim && q.claim.type === 'motm' ? { ...q, claim: null, p: null } : q));
   Q.forEach((q, i) => {
     const slot = hash(q.team) % 7;
     let s = { state: 'none' }; try { s = settle(q); } catch (e) { console.error(e); }

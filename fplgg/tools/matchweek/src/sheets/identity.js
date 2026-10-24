@@ -221,13 +221,13 @@ function previewHTML(team, d) {
     const band = 'linear-gradient(180deg,' + col.deep + ' 0%,color-mix(in oklab,' + col.deep + ' 50%,var(--base)) 100%)';
     const ph = d.photo ? '<span class="sk-av" style="width:20px;height:20px"><img src="' + esc(d.photo) + '" alt=""></span>' : '';
     const cur = (D.fx || []).find(f => num(f.GW) === D.gw && (f.Home === team || f.Away === team));
-    const proj = cur ? (mscore(cur).liveNow || mscore(cur).done ? (cur.Home === team ? mscore(cur).hs : mscore(cur).as2) : D.hasEP ? K.f1(teamProj(team)) : '–') : '–';
+    const proj = cur ? (mscore(cur).liveNow || mscore(cur).done ? (cur.Home === team ? mscore(cur).hs : mscore(cur).as2) : D.hasEP ? K.f1(teamProj(team)) : '-') : '-';
     return '<div class="id-pv">'
       + '<div class="id-hd" style="background:' + band + '"><i class="ms-band" style="background:' + col.accent + '"></i>' + (pat ? '<i class="ms-pat" style="background:' + pat + '"></i>' : '')
       + '<span class="ms-cr">' + UI.glow(team, 'left', .5, 150) + UI.crest(team, 64) + '</span><div class="id-hn"><b class="wide">' + esc(team) + '</b><span>' + ph + esc(d.manager || TEAMS[team].mgr) + '</span><em>Live preview</em></div></div>'
       + '<div class="id-sizes"><span>' + UI.crest(team, 64) + '<i>64</i></span><span>' + UI.crest(team, 32) + '<i>32</i></span><span>' + UI.crest(team, 20) + '<i>20</i></span>'
       + '</div>'
-      + '<div class="id-rows"><div class="id-trow" style="background:' + K.rgbaOf(col.accent, .12) + '"><b class="n">' + (st.has ? st.pos : '–') + '</b>' + UI.crest(team, 20) + '<span class="ell">' + esc(team) + '</span><b class="n">' + (st.has ? st.pts : '–') + '</b></div>'
+      + '<div class="id-rows"><div class="id-trow" style="background:' + K.rgbaOf(col.accent, .12) + '"><b class="n">' + (st.has ? st.pos : '-') + '</b>' + UI.crest(team, 20) + '<span class="ell">' + esc(team) + '</span><b class="n">' + (st.has ? st.pts : '-') + '</b></div>'
       + '<div class="id-mchip">' + UI.crest(team, 22) + '<b class="ell">' + esc(UI.short(team).toUpperCase()) + '</b><b class="n you-c">' + proj + '</b></div></div>'
       + '</div>';
   });

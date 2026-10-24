@@ -4,6 +4,11 @@ export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export const n = v => num(v);
 export const f1 = v => (Math.round(v * 10) / 10).toFixed(1);
+/* a number as a screen draws it (K2 of docs/plans/M2.md): a negative one keeps the true minus sign U+2212, never a hyphen-minus. v is a
+   number or one already formatted ("-1.4", "-2"); a negative zero ("-0", "-0.0") drops its sign; any other text comes back as it was.
+   The one helper for a number that can be negative; the signed helpers (matchday/model.js signed, league/data.js sgn, sheets/kit.js
+   sgn) already write U+2212 for a figure that always carries its sign */
+export const minus = v => String(v == null ? '' : v).replace(/^-(?=\.?\d)/, '\u2212').replace(/^\u2212(?=0*\.?0*$)/, '');
 export const pct = (v, lt = 1) => { const x = v * 100; return x > 0 && x < lt ? '<' + lt + '%' : Math.round(x) + '%'; };
 export const TEAM_NAMES = () => Object.keys(TEAMS);
 export const short = t => (SHORTOF && SHORTOF[t]) || t;
@@ -192,21 +197,22 @@ export function plate(p, w = 100, opt = {}) {
   return '<span class="plate" style="width:' + w + 'px" data-open="player:' + esc(p.Code) + '">' + withStatus(h, st) + '</span>';
 }
 /* the number a player wears right now, as the Plate's bubble shows it: his banked points once his match is over (bk),
-   his live points while it is on (live), else his projection (proj; a dash when there is none, never a fake 0.0) */
+   his live points while it is on (live), else his projection (proj; a hyphen when there is none, never a fake 0.0) */
 export function plateNum(p) {
-  if (!p) return { st: 'proj', txt: '–' };
+  if (!p) return { st: 'proj', txt: BLANK };
   if (typeof fxStarted === 'function' && fxStarted(p.Club)) return { st: fxFinished(p.Club) ? 'bk' : 'live', txt: String(Math.round(num(p['GW pts']))) };
   const e = D.hasEP ? epOf(p.Code) : null;
-  return { st: 'proj', txt: e === null ? '–' : f1(e) };
+  return { st: 'proj', txt: e === null ? BLANK : f1(e) };
 }
-/* the bubble a Plate wears, as the full card draws it: PROJ (dashed) before his match, LIVE (green ring) while it is on,
-   PTS once it is over; XP in the xP view. b: { st: 'proj'|'live'|'bk'|'xp', txt, cls? } (plateNum, or the matchup page's own) */
+/* the bubble a Plate wears, as the full card draws it: Proj (dashed) before his match, LIVE (green ring) while it is on,
+   PTS once it is over; xP once a match is final. b: { st: 'proj'|'live'|'bk'|'xp', txt, cls? } (plateNum, or the matchup page's own) */
 export function plateBubble(b) {
-  const st = b.st === 'pj' ? 'proj' : b.st === 'lv' ? 'live' : b.st;
+  const st = b.st === 'prj' ? 'proj' : b.st === 'lv' ? 'live' : b.st;
   const extra = b.cls ? ' ' + b.cls : '';
-  if (st === 'proj') return '<span class="pts proj' + extra + '"><b>' + esc(b.txt) + '</b><i>PROJ</i></span>';
-  if (st === 'xp') return '<span class="pts' + (b.live ? ' live' : '') + extra + '"><b>' + esc(b.txt) + '</b><i>XP</i></span>';
-  return '<span class="pts' + (st === 'live' ? ' live' : '') + extra + '"><b>' + esc(b.txt) + '</b><i>' + (st === 'live' ? 'LIVE' : 'PTS') + '</i></span>';
+  const t = esc(minus(b.txt));
+  if (st === 'proj') return '<span class="pts proj' + extra + '"><b>' + t + '</b><i>Proj</i></span>';
+  if (st === 'xp') return '<span class="pts' + (b.live ? ' live' : '') + extra + '"><b>' + t + '</b><i>xP</i></span>';
+  return '<span class="pts' + (st === 'live' ? ' live' : '') + extra + '"><b>' + t + '</b><i>' + (st === 'live' ? 'LIVE' : 'PTS') + '</i></span>';
 }
 /* the small Plate (Parker, 8 Oct 2026): the same card without the overall rating; the face, the name, club and nation, and
    the bubble top right as always (plateNum, or opt.bubble from the caller). Its status is the one badge (plateStatus:
@@ -230,15 +236,7 @@ export const club = c => clubName ? clubName(c) : c;
 export const badge = (c, px = 18) => badgeImg ? badgeImg(c, px) : '';
 export const flag = (nat, px = 12) => flagImg ? flagImg(nat, px) : '';
 /* list views carry a text chip in the same three colours as the badge: green SUB ON, amber LIKELY SUB or the chance,
-   red OUT (subChip for a sub state, statusChip for availability) */
-export const statusChip = p => {
-  const s = p && p.Status, news = String((p && p.News) || '');
-  if (s === 'd') { const m = news.match(/(\d+)% chance/); return '<span class="chip doubt">' + (m ? m[1] + '%' : 'DOUBT') + '</span>'; }
-  if (s === 'i') return '<span class="chip out">OUT</span>';
-  if (s === 's') return '<span class="chip out">SUSPENDED</span>';
-  if (s === 'u') return '<span class="chip out">UNAVAILABLE</span>';
-  return '';
-};
+   red OUT (subChip for a sub state; availability chips are pages/avail.js availChip) */
 export const subChip = mark => mark === 'in' ? '<span class="chip on">SUB ON</span>' : mark === 'inl' ? '<span class="chip doubt">LIKELY SUB</span>' : mark === 'out' ? '<span class="chip out">SUBBED OFF</span>' : mark === 'outl' ? '<span class="chip doubt">LIKELY OFF</span>' : '';
 export const chance = p => { if (!p) return 100; const m = String(p.News || '').match(/(\d+)% chance/); if (p.Status === 'd') return m ? +m[1] : 50; return p.Status && 'isun'.includes(p.Status) ? 0 : 100; };
 
@@ -299,10 +297,30 @@ export const day = d => d ? d.toLocaleDateString(undefined, { weekday: 'short', 
 export const dayHm = d => d ? wd(d) + ' ' + hm(d) : '';
 export const dayFull = d => d ? day(d) + ', ' + hm(d) : '';
 export const when = (d, o) => d ? (o ? d.toLocaleString(undefined, o) : dayHm(d)) : '';
-/* a record, always labelled: "3–0–2 W–D–L" (rec() alone where a W–D–L column head or label sits beside it) */
-const J = '\u2060\u2013\u2060'; /* an en dash held to its neighbours, so a record never breaks across lines */
-export const rec = (w, d, l) => (typeof w === 'object' && w ? rec(w.w, w.d, w.l) : w + J + d + J + l);
-export const recL = (w, d, l) => rec(w, d, l) + '\u00a0W' + J + 'D' + J + 'L';
+/* a record, always labelled: "3-0-2 W-D-L" (rec() alone where a W-D-L column head or label sits beside it). ASCII hyphens only (M2) */
+export const rec = (w, d, l) => (typeof w === 'object' && w ? rec(w.w, w.d, w.l) : w + '-' + d + '-' + l);
+export const recL = (w, d, l) => rec(w, d, l) + '\u00a0W-D-L';
+/* the value for "nothing to show" is one hyphen, never a dash (M2) */
+export const BLANK = '-';
+/* a score is two numbers and a separator the component draws itself (a short bar, in 03-m2-shared.css): no dash character
+   is typed between two scores anywhere. score() is the markup (spoken as "a to b"); scoreText() is plain text for generated
+   copy, titles and labels: "a-b" with an ASCII hyphen, and a missing side reads as the blank hyphen. opt: cls (a modifier
+   on the whole score), aCls and bCls (a modifier on a side: a faded side, a winner), aStyle and bStyle (a colour for a side) */
+const sv = v => (v === null || v === undefined || v === '' || (typeof v === 'number' && !isFinite(v))) ? BLANK : String(v);
+export const scoreText = (a, b) => sv(a) + '-' + sv(b);
+export const scoreSpoken = (a, b) => sv(a) + ' to ' + sv(b);
+export function score(a, b, opt = {}) {
+  const side = (v, c, st) => '<b class="n sc-v' + (c ? ' ' + c : '') + '"' + (st ? ' style="' + esc(st) + '"' : '') + '>' + esc(sv(v)) + '</b>';
+  return '<span class="score' + (opt.cls ? ' ' + opt.cls : '') + '" role="img" aria-label="' + esc(scoreSpoken(a, b)) + '">'
+    + side(a, opt.aCls, opt.aStyle) + '<i class="sc-s" aria-hidden="true"></i>' + side(b, opt.bCls, opt.bStyle) + '</span>';
+}
+/* the separator alone, for a layout that holds its own two numbers (a tile with a number each side) */
+export const scoreSep = '<i class="sc-s" aria-hidden="true"></i>';
+/* the legend (sheets/legend.js): any rating, Proj figure, win chance or odds, or luck figure carries one of these. A
+   button that opens the legend sheet on its topic ('rating', 'proj', 'odds', 'luck'); inner is the label or figure it wraps.
+   Where it stands alone it is at least 44 px to tap (class lgd) */
+export const LEGEND_TOPICS = ['rating', 'proj', 'odds', 'luck'];
+export const legendTap = (topic, inner, cls) => '<button type="button" class="lgd' + (cls ? ' ' + cls : '') + '" data-open="legend:' + esc(topic) + '" title="What this means">' + (inner == null ? '' : inner) + '</button>';
 /* a number still being worked out (title odds land a moment after first paint) */
 export const waitN = () => '<span class="wait-n" role="img" aria-label="Working it out"></span>';
 export function statePill() {
@@ -380,8 +398,11 @@ export function pageHead(title, opt = {}) {
 export function pills(items) {
   return '<nav class="pills" aria-label="Sections">' + items.map(i => '<a href="' + i.href + '"' + (i.on ? ' class="on" aria-current="page"' : '') + '>' + esc(i.label) + (i.ct ? '<span class="ct">' + i.ct + '</span>' : '') + '</a>').join('') + '</nav>';
 }
+/* text set in capitals by CSS keeps the product's own words as written: xP (XP would read as a different word), Proj and Proj
+   final (K2: never PROJ). Takes escaped HTML and returns HTML. */
+export const keepCase = h => String(h).replace(/\bProj final\b|\bProj\b|\bxP\b/g, w => '<span class="case">' + w + '</span>');
 export function sh(title, opt = {}) {
-  return '<div class="sh"><h2>' + esc(title) + '</h2>' + (opt.more ? '<a class="more" href="' + opt.href + '">' + esc(opt.more) + ' ›</a>' : opt.aside ? '<span class="aside">' + opt.aside + '</span>' : '') + '</div>';
+  return '<div class="sh"><h2>' + keepCase(esc(title)) + '</h2>' + (opt.more ? '<a class="more" href="' + opt.href + '">' + esc(opt.more) + ' ›</a>' : opt.aside ? '<span class="aside">' + opt.aside + '</span>' : '') + '</div>';
 }
 export function navBar(active, unread) {
   const items = [['matchday', 'Matchday', '#/matchday'], ['team', 'My team', '#/team'], ['league', 'League', '#/league'], ['feed', 'Feed', '#/feed']];
@@ -500,7 +521,7 @@ export function warmOdds(cb) {
       names.forEach(n => { title[n] /= N / 100; last[n] /= N / 100; });
       OQ = false;
       if (oddsSig() !== sig) { warmOdds(); return; }          /* data moved underneath: run again */
-      ODDS.sig = sig; ODDS.v = { title, last };
+      ODDS.sig = sig; ODDS.v = simSettle({ title, last });   /* settled once, here: every screen reads UI.titleOdds() */
       WAIT.splice(0).forEach(f => { try { f(ODDS.v); } catch (e) { console.error(e); } });
       if (window.MW) { window.MW.render({ keepScroll: true }); window.MW.refreshSheet && window.MW.refreshSheet(); }
     };

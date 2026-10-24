@@ -65,7 +65,7 @@ export function recordsBlock() {
   const tile = (lab, v, w, sub) => '<div class="tile at-rec"><span class="lb">' + lab + '</span><b class="n">' + v + '</b>' + w + '<span class="sub">' + esc(sub) + '</span></div>';
   let h = '<div class="tiles at-recs">';
   h += tile('Highest score', R.hi.v.v, who(R.hi.code), when(R.hi.v.season, R.hi.v.gw) + ' v ' + nameOf(R.hi.v.opp));
-  if (R.bigWin) h += tile('Biggest win', R.bigWin.v.my + '-' + R.bigWin.v.their, who(R.bigWin.code), 'by ' + R.bigWin.v.m + ', ' + when(R.bigWin.v.season, R.bigWin.v.gw) + ' v ' + nameOf(R.bigWin.v.opp));
+  if (R.bigWin) h += tile('Biggest win', UI.score(R.bigWin.v.my, R.bigWin.v.their), who(R.bigWin.code), 'by ' + R.bigWin.v.m + ', ' + when(R.bigWin.v.season, R.bigWin.v.gw) + ' v ' + nameOf(R.bigWin.v.opp));
   if (R.winRun) h += tile('Longest winning run', R.winRun.v.n, who(R.winRun.code), when(R.winRun.v.from.season, R.winRun.v.from.gw) + ' to ' + when(R.winRun.v.to.season, R.winRun.v.to.gw));
   if (R.lossRun) h += tile('Longest losing run', R.lossRun.v.n, who(R.lossRun.code), when(R.lossRun.v.from.season, R.lossRun.v.from.gw) + ' to ' + when(R.lossRun.v.to.season, R.lossRun.v.to.gw));
   return h + '</div>';
@@ -75,7 +75,10 @@ export function alltimePage() {
   if (!A.rows.length) return UI.sh('All-time') + UI.empty('No seasons yet', 'The all-time table starts with the first finished gameweek.');
   const past = A.seasons.filter(s => !s.current).map(s => s.season), cur = thisSeason();
   const aside = past.length ? past.join(', ') + ' and ' + cur + ' so far' : cur + ' so far';
-  return UI.sh('All-time', { aside: esc(aside) }) + tableBlock() + (A.records.hi ? UI.sh('Records') + recordsBlock() : '') + '<p class="lg-cap">Finished gameweeks only.</p>';
+  /* a season no file covers is listed as not recorded, never counted as a season of 0 games; records say over how many seasons they are */
+  const gaps = A.gaps.length ? '<p class="lg-cap at-gaps">' + esc(A.gaps.join(', ')) + ' not recorded</p>' : '';
+  const over = 'over ' + A.recorded + (A.recorded === 1 ? ' recorded season' : ' recorded seasons');
+  return UI.sh('All-time', { aside: esc(aside) }) + tableBlock() + gaps + (A.records.hi ? UI.sh('Records', { aside: over }) + recordsBlock() : '') + '<p class="lg-cap">Finished gameweeks only.</p>';
 }
 export function mountAlltime(root) {
   if (root.__lgAt) return;

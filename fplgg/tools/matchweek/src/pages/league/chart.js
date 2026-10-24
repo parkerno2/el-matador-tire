@@ -30,7 +30,7 @@ export function lineChart(o) {
   for (let v = lo, k = 0; v <= hi + 1e-9 && k < 12; k++, v = lo + k * step) {
     const y = py(v).toFixed(1), isZero = Math.abs(v) < 1e-9 && o.zero;
     g += '<line x1="' + L + '" x2="' + (W - R + 6) + '" y1="' + y + '" y2="' + y + '" class="' + (isZero ? 'z' : 'gl') + '"/>'
-      + '<text x="' + (L - 6) + '" y="' + (+y + 3.5) + '" class="yt" text-anchor="end">' + (o.fmtAxis ? o.fmtAxis(v) : Math.round(v * 10) / 10) + '</text>';
+      + '<text x="' + (L - 6) + '" y="' + (+y + 3.5) + '" class="yt" text-anchor="end">' + UI.minus(o.fmtAxis ? o.fmtAxis(v) : Math.round(v * 10) / 10) + '</text>';   /* a tick below the line (Luck, Margin) reads U+2212 */
   }
   /* x labels: thin them out when the season gets long */
   const every = n <= 10 ? 1 : n <= 20 ? 2 : n <= 30 ? 3 : 4;
@@ -61,7 +61,7 @@ export function lineChart(o) {
   /* readouts, one per gameweek (the latest shows) */
   const on = o.series.filter(s => s.on);
   const ro = xs.map((gw, i) => '<div class="ro" data-i="' + i + '"' + (i === last ? '' : ' hidden') + '><b>GW' + gw + '</b>'
-    + on.map(s => ({ s, v: s.vals.find(q => q.g === gw) })).sort((a, b) => (b.v ? b.v.v : -1e9) - (a.v ? a.v.v : -1e9)).map(({ s, v }) => { return '<span><i style="background:' + s.color + '"></i>' + esc(s.label) + ' <b class="n">' + (v ? o.fmt(v.v) : '–') + '</b>' + (v && v.live ? '<em>live</em>' : '') + '</span>'; }).join('')
+    + on.map(s => ({ s, v: s.vals.find(q => q.g === gw) })).sort((a, b) => (b.v ? b.v.v : -1e9) - (a.v ? a.v.v : -1e9)).map(({ s, v }) => { return '<span><i style="background:' + s.color + '"></i>' + esc(s.label) + ' <b class="n">' + (v ? UI.minus(o.fmt(v.v)) : '-') + '</b>' + (v && v.live ? '<em>live</em>' : '') + '</span>'; }).join('')
     + '</div>').join('');
   return '<div class="lg-chart" id="' + o.id + '" data-n="' + n + '" data-l="' + L + '" data-r="' + R + '" data-w="' + W + '">'
     + '<div class="ros" aria-live="polite">' + ro + '</div>'

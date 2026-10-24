@@ -1,5 +1,5 @@
-/* feed/voices.js — the four fictional voices: names, handles, tags, avatars, beats.
-   El Matador's names; other leagues would rename them in league settings. Each look stays inside its own posts. */
+/* feed/voices.js - the four fictional voices: names, handles, tags, avatars, beats.
+   The demo's names; other leagues would rename them in league settings. Each look stays inside its own posts. */
 const MEGA = '<path d="M3 10v4h3l7 4V6L6 10H3z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>';
 const MIC = '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>';
 const CLIP = '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12l2 2 4-4"/>';

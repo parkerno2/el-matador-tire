@@ -1,7 +1,8 @@
 /* matchday/all.js — every matchup this gameweek, rich rows, then the next gameweek */
 import * as UI from '../../ui.js';
 import * as M from './model.js';
-import { stateTag, nums, winBar, seriesText, seriesHTML, resultLine, nameHTML, pairHTML, wdl } from './overview.js';
+import { stateTag, nums, winBar, seriesText, seriesHTML, resultLine, nameHTML, pairHTML, wdl, bonusNote, pctText } from './overview.js';
+import { byeRow } from '../byes.js';
 
 const esc = UI.esc;
 
@@ -10,15 +11,16 @@ function card(m) {
   const rec = T => T.rec && T.rec.played ? ORD(T.rec.pos) + ' · ' + wdl(T.rec) : '';
   const side = (T, r) => '<div class="md-as' + (r ? ' r' : '') + '">' + UI.crest(T.t, 36) + '<b>' + esc(T.t) + '</b><span class="sub">' + esc(M.who(m, T.t)) + '</span><span class="sub n">' + esc(rec(T)) + '</span></div>';
   let foot = [];
-  if (m.ph === 'live') foot.push('<span><b class="n">' + m.tl.toPlay.length + '</b> to play</span>', pl ? '<span>Proj final <b class="n">' + M.f1(pl.l) + '–' + M.f1(pl.r) + '</b></span>' : '', '<span><b class="n">' + m.tr.toPlay.length + '</b> to play</span>');
-  else if (m.final) foot.push('<span>' + resultLine(m) + '</span>', pl ? '<span>xP <b class="n">' + M.f1(pl.l) + '–' + M.f1(pl.r) + '</b></span>' : '');
+  if (m.ph === 'live') foot.push('<span><b class="n">' + m.tl.toPlay.length + '</b> to play</span>', pl && !m.win.settled ? '<span>' + UI.legendTap('proj', 'Proj final', 'ln') + ' <b class="n">' + UI.score(M.f1(pl.l), M.f1(pl.r)) + '</b></span>' : '', '<span><b class="n">' + m.tr.toPlay.length + '</b> to play</span>');
+  else if (m.final) foot.push('<span>' + resultLine(m) + '</span>', pl ? '<span>xP <b class="n">' + UI.score(M.f1(pl.l), M.f1(pl.r)) + '</b></span>' : '');
   else foot.push('<span>' + seriesHTML(m.series || '') + '</span>');
-  return '<a class="card md-ac' + (m.mine ? ' md-mine' : '') + '" href="' + href + '">' + UI.glow(m.L, 'left', .28, 180) + UI.glow(m.R, 'right', .2, 180)
+  /* the card is one tap to the matchup through its stretched link; its legend taps sit beside that link, never inside it (F47) */
+  return '<div class="card md-ac tap-host' + (m.mine ? ' md-mine' : '') + '"><a class="tap-cover" href="' + href + '" aria-label="' + esc(m.L + ' v ' + m.R) + ', open the matchup"></a>' + UI.glow(m.L, 'left', .28, 180) + UI.glow(m.R, 'right', .2, 180)
     + '<div class="md-ack">' + (m.mine ? '<span class="md-you">YOU</span>' : '') + '<span class="wide">' + (m.derby ? esc(m.derby) : esc(FIRSTOF(m.L) + ' v ' + FIRSTOF(m.R))) + '</span>' + stateTag(m) + '</div>'
-    + '<div class="md-acv">' + side(m.tl) + '<div class="md-acs"><div class="n md-acb' + (n.dec ? ' dec' : '') + '">' + pairHTML(n, m.final && +n.l < +n.r, m.final && +n.r < +n.l) + '</div>'
-    + (m.ph === 'live' || m.final ? '<span class="sub">' + seriesHTML(m.series || '') + '</span>' : '') + '</div>' + side(m.tr, 1) + '</div>'
-    + (m.win ? '<div class="md-acw"><b class="n' + (m.mine ? ' you-c' : '') + '">' + m.win.l + '%</b><div>' + winBar(m) + '<span class="sub">win chance · draw ' + m.win.d + '%</span></div><b class="n">' + m.win.r + '%</b></div>' : '')
-    + '<div class="md-acf">' + foot.filter(Boolean).join('') + '</div></a>';
+    + '<div class="md-acv">' + side(m.tl) + '<div class="md-acs">' + (m.ph === 'pre' || m.ph === 'locked' ? '<span class="md-kick">' + UI.legendTap('proj', 'Proj final', 'ln') + '</span>' : '') + '<div class="n md-acb' + (n.dec ? ' dec' : '') + '">' + pairHTML(n, m.final && +n.l < +n.r, m.final && +n.r < +n.l) + '</div>'
+    + bonusNote(m) + (m.ph === 'live' || m.final ? '<span class="sub">' + seriesHTML(m.series || '') + '</span>' : '') + '</div>' + side(m.tr, 1) + '</div>'
+    + (m.win ? '<div class="md-acw"><b class="n' + (m.mine ? ' you-c' : '') + '">' + pctText(m.win.l) + '</b><div>' + winBar(m) + '<span class="sub">' + (m.win.drawn ? 'draw 100%' : UI.legendTap('odds', 'win chance', 'ln') + (M.drawText(m.win) ? ' · draw ' + M.drawText(m.win) : '')) + '</span></div><b class="n">' + pctText(m.win.r) + '</b></div>' : '')
+    + '<div class="md-acf">' + foot.filter(Boolean).join('') + '</div></div>';
 }
 
 function nextGw() {
@@ -31,16 +33,16 @@ function nextGw() {
     let a = null, b = null, w = null;
     try { a = hpTeam(L, g); b = hpTeam(R, g); const ww = hpWin(f), pc = mpxWinPct(ww); w = flip ? { l: pc.a, d: pc.d, r: pc.h } : { l: pc.h, d: pc.d, r: pc.a }; } catch (e) { }
     const ok = a !== null && b !== null && isFinite(a) && isFinite(b);
-    const nm = derbyName(f.Home, f.Away), sr = series(f.Home, f.Away);
+    const nm = derbyName(f.Home, f.Away), sr = M.seriesLine(L, R);
     const side = (t, r) => '<div class="md-mt' + (r ? ' r' : '') + '" data-open="manager:' + esc(t) + '">' + (r ? '' : UI.crest(t, 24)) + nameHTML(t) + (r ? UI.crest(t, 24) : '') + '</div>';
     return '<div class="md-mr md-nx' + (mine ? ' md-mine' : '') + '">' + (nm || mine ? '<div class="md-dt">' + (mine ? '<span class="md-you">YOU</span>' : '') + (nm ? '<span>' + esc(nm) + '</span>' : '') + '<i></i></div>' : '')
-      + '<div class="md-mg">' + side(L) + '<div class="md-ms n dec">' + (ok ? M.f1(a) + '<i>–</i>' + M.f1(b) : 'v') + '</div>' + side(R, 1) + '</div>'
+      + '<div class="md-mg">' + side(L) + '<div class="md-ms n dec">' + (ok ? UI.score(M.f1(a), M.f1(b), { cls: 'flush' }) : 'v') + '</div>' + side(R, 1) + '</div>'
       + (w && ok ? '<div class="md-wb"><span class="n' + (mine ? ' you-c' : ' l') + '">' + w.l + '%</span>' + UI.wbar(w.l / 100, w.d / 100, w.r / 100, ...UI.pairCols(L, R), true) + '<span class="n">' + w.r + '%</span></div>' : '')
       + (sr ? '<div class="sub md-nxs">' + seriesHTML(sr) + '</div>' : '')
       + '</div>';
   }).join('');
   return UI.sh('Gameweek ' + g, { aside: dl ? 'Deadline ' + esc(M.tFull(dl)) : '' })
-    + '<div class="card md-mlist">' + list + '</div>';
+    + '<div class="card md-mlist"><div class="md-nxk"><span>' + UI.legendTap('proj', 'Proj final', 'ln') + '</span><span>' + UI.legendTap('odds', 'win chance', 'ln') + '</span></div>' + list + byeRow(g) + '</div>';
 }
 
 export function render() {
@@ -50,7 +52,7 @@ export function render() {
   const order = fx.map((f, i) => i).sort((a, b) => (b === yi) - (a === yi) || a - b);
   const ms = order.map(M.mx);
   const ph = M.phase();
-  const lead = { pre: '', locked: '',   /* pre: every card says PREDICTED (11 Oct 2026) */ live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
+  const lead = { pre: '', locked: '', live: '', prov: 'All matches finished. Provisional until FPL confirms.', ft: '' }[ph] || '';
   return UI.sh('Gameweek ' + D.gw, { aside: ms.length + ' matchups' }) + (lead ? '<p class="md-cap top">' + esc(lead) + '</p>' : '')
     + '<div class="md-acs-list">' + ms.map(card).join('') + '</div>'
     + nextGw();

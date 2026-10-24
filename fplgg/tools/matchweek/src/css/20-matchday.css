@@ -5,6 +5,8 @@
 .md-tag{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--tx3);white-space:nowrap}
 .md-tag svg{margin-top:-1px}
 .md-you{display:inline-flex;align-items:center;font-size:11px;font-weight:800;letter-spacing:.07em;padding:2px 6px;border-radius:4px;background:var(--you);color:var(--base);line-height:1.3;flex:none}
+.md-nxk{display:flex;justify-content:space-between;gap:8px;padding:10px 14px 0;font-size:11px;font-weight:700;color:var(--tx3)}
+.md-tpj{display:block;font-size:11px;font-weight:600;color:var(--tx3)}
 .md-kick{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:4px}
 .md-cap{margin:0;padding:8px 16px 0;font-size:12px;line-height:1.4;color:var(--tx3)}
 .md-cap.top{padding:4px 16px 10px}
@@ -14,11 +16,10 @@
 
 /* ---------- overview: your matchup ---------- */
 .md-hero{position:relative;cursor:pointer}
-.md-hero:focus-visible{outline:2px solid var(--p300);outline-offset:2px}
 .md-hin{position:relative;padding:14px 16px 16px}
 .md-hk{display:flex;align-items:center;gap:10px}
 .md-hk > :last-child{margin-left:auto}
-.md-hk .wide{font-size:12px;letter-spacing:.1em;color:var(--tx2);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-hk .wide{font-size:12px;letter-spacing:.1em;line-height:1.25;color:var(--tx2);min-width:0}
 .md-vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:6px;margin-top:14px}
 .md-tm{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
 .md-tm b{font-size:15px;line-height:1.15;font-weight:800;min-height:2.3em;display:flex;align-items:flex-end;justify-content:center;text-wrap-style:balance}
@@ -38,8 +39,8 @@
 .md-wl .md-dr{margin:0 auto}
 .md-wl .md-dr + b.opp{margin-left:0}
 .md-win .wbar{margin-top:7px}
-.md-pj{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
-.md-pj b{font-size:15px;color:#fff}
+.md-prj{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
+.md-prj b{font-size:15px;color:#fff}
 .md-tps{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--top)}
 .md-tp{display:flex;flex-direction:column;gap:6px;min-width:0}
 .md-tp.r{align-items:flex-end}
@@ -117,7 +118,7 @@
 .md-mhin{position:relative;padding:12px 14px 14px}
 .md-mhk{display:flex;align-items:center;gap:10px}
 .md-mhk > :last-child{margin-left:auto}
-.md-mhk .wide{font-size:11px;letter-spacing:.1em;color:var(--tx2);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-mhk .wide{font-size:11px;letter-spacing:.1em;line-height:1.25;color:var(--tx2);min-width:0}
 .md-mhv{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
 .md-hs{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center;cursor:pointer}
 .md-hs b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.15;font-weight:800;margin-top:2px}
@@ -153,16 +154,17 @@
 .md-seg button{flex:1;min-height:40px;font-size:13px}
 
 /* ---------- formation: the pitch ---------- */
-/* the xP switch in the top team bar (Parker, 10 Oct 2026: no legend row, the pitch starts under the tabs) */
-.md-xpt{flex:none;min-height:30px;padding:4px 10px;border-radius:999px;background:var(--raised);border:1px solid var(--line);font:700 12px/1 var(--f-ui);color:var(--tx3)}
-.md-xpt.on{background:var(--p500);border-color:var(--p500);color:#fff}
+/* the xP switch in the top team bar (the owner, 10 Oct 2026: no legend row, the pitch starts under the tabs) */
 .md-pw{margin-top:12px;margin:0 var(--gutter);border-radius:var(--r-l);overflow:hidden;border:1px solid var(--top);--md-rt:var(--tx3);--md-rb:var(--opp);--md-bt:var(--top);--md-bb:var(--top)}
 .md-pw.md-mine{--md-rt:var(--opp);--md-rb:var(--you);--md-bb:#1E2A55}
 .md-tb{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);cursor:pointer;min-height:56px}
-.md-tb > .ell{flex:0 1 auto}
+.md-tb > .ell{flex:0 1 auto;white-space:normal}   /* a long team name takes a second line at 360 px, never an ellipsis */
+.md-tb > .ell > b{overflow-wrap:anywhere}
+.md-tb > .ell > .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .md-tb b{display:block;font-size:14px;line-height:1.2}
-.md-tbp{margin-left:auto;white-space:nowrap}
-.md-tbp b{display:inline;font-size:14px;color:#fff}
+.md-tbp{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;line-height:1.2}
+.md-tbp i{font-style:normal}
+.md-tbp b{font-size:14px;color:#fff}
 .md-tbs{font-size:28px;line-height:1;color:var(--tx2);min-width:28px;text-align:right}
 .md-tbs.you-c{color:var(--you)}
 .md-pitch{position:relative;padding:10px 0;background:repeating-linear-gradient(180deg,#1A4029 0 44px,#1D472D 44px 88px);--rowh:88px}
@@ -328,7 +330,7 @@
 .md-ac:active{background:var(--raised)}
 .md-ack{position:relative;display:flex;align-items:center;gap:8px}
 .md-ack > :last-child{margin-left:auto}
-.md-ack .wide{font-size:11px;letter-spacing:.1em;color:var(--tx2);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-ack .wide{font-size:11px;letter-spacing:.1em;line-height:1.25;color:var(--tx2);min-width:0}
 .md-acv{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
 .md-as{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
 .md-as.r{align-items:flex-end;text-align:right}
@@ -365,8 +367,9 @@
 .md-ps{text-align:center;font-size:20px;line-height:1;white-space:nowrap}
 .md-ps i{font-style:normal;color:var(--tx4);padding:0 3px}
 .md-pk{text-align:center;font-size:14px;font-weight:600;color:var(--tx2);white-space:nowrap}
-.md-pn{justify-self:center;font:600 13px/1 var(--f-num);padding:4px 7px;border-radius:999px;background:var(--raised);white-space:nowrap}
+.md-pn{justify-self:center;font:600 13px/1 var(--f-num);padding:4px 7px;border-radius:12px;text-align:center;background:var(--raised);white-space:nowrap}
 .md-pn i{font-style:normal;color:var(--tx3)}
+.md-pn small{display:block;margin-top:3px;font:600 11px/1 var(--f-ui);color:var(--tx3);text-align:center}
 .md-pm{display:flex;flex-direction:column;align-items:center;gap:3px}
 .md-pst{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tx3);white-space:nowrap;line-height:1}
 .md-pst.lv{color:var(--live)}
@@ -388,7 +391,7 @@
 .md-pv2{flex:none;display:flex;flex-direction:column;align-items:center;min-width:30px;gap:1px}
 .md-pv2 b{font-size:16px;line-height:1}
 .md-pv2 i{font-style:normal;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tx3)}
-.md-pv2.lv b{color:var(--live)} .md-pv2.pj b{color:var(--tx2)}
+.md-pv2.lv b{color:var(--live)} .md-pv2.prj b{color:var(--tx2)}
 .md-all{font-size:13px;font-weight:600;color:var(--b300);min-height:40px;padding:0 2px}
 .md-snh{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx2)}
 .md-snh b{color:#fff;font-size:15px}
@@ -467,7 +470,8 @@
   .md-ms.dec{font-size:18px}
   .md-lr{grid-template-columns:50px minmax(0,1fr) 50px 12px;gap:8px}
   .md-stars{flex-direction:column}
-  .md-hfc{display:none}
+  .md-hf{flex-wrap:wrap}
+  .md-hfc{order:3;flex-basis:100%;text-align:center}   /* the win chance tap and the draw chance drop to their own line, they never vanish */
 }
 .md-v{color:var(--tx3);font-weight:600;font-size:11px}
 /* week: if it ended now */
@@ -497,3 +501,17 @@
 
 /* quiet numbers (DESIGN.md: 7:1): the gameweek of a past meeting, the small figure beside a head-to-head */
 .md-gw.n,.md-hv small.n{color:var(--num2)}
+
+/* 360 px: a long surname, a result line and a rank row get room instead of being cut (the gallery's clipped-text check at 360) */
+.md-mtx{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
+@media (max-width:360px){
+  .md-h2h{gap:3px;padding:9px 8px}
+  .md-hc{gap:4px}
+  .md-rkr{gap:5px}
+}
+
+/* M2: "Bonus provisional" beside a score (nothing can change but bonus); legend taps inside the Matchday labels read as the label they wrap */
+.md-bnote{display:block;margin-top:4px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--doubt);text-align:center}
+.md-cap .lgd,.md-hf .lgd,.md-hfc .lgd,.md-wl .lgd,.md-acw .lgd,.md-wb .lgd,.foot .lgd{font-size:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit}
+.md-kick .lgd,.md-blh .lgd{font-size:inherit;font-weight:inherit;text-transform:none;letter-spacing:0}   /* a forecast is Proj or Proj final, never PROJ FINAL */
+.md-wl .lgd{color:var(--p300)}

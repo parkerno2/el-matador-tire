@@ -69,9 +69,15 @@ function engine(opt = {}) {
   ctx.window = ctx; ctx.UI = {
     esc: s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
     short: t => SHORTOF[t] || t, first: t => FIRST[t] || t, you: () => names[0], crest: (t, px) => '<i class="cr" data-t="' + t + '" data-px="' + px + '"></i>',
+    score: (a, b) => '[' + a + ' to ' + b + ']',   /* UI.score's spoken form stands for the markup: a score is drawn by the component, never typed with a hyphen */
     icon: (n, px) => '<svg data-icon="' + n + '" width="' + px + '"></svg>', sh: (t, o = {}) => '<div class="sh"><h2>' + t + '</h2>' + (o.aside ? '<span class="aside">' + o.aside + '</span>' : '') + '</div>', empty: (t, s) => '<div class="empty"><b>' + t + '</b>' + (s || '') + '</div>',
   };
   vm.createContext(ctx);
+  {   /* the engine's one all-play count (fxPerWeek, apRivals, byeScore, gwScores, apWeeks, apTally) and mscore, copied from core.gen.js so the real code runs */
+    const C = fs.readFileSync(__dirname + '/../fplgg/tools/matchweek/core.gen.js', 'utf8');
+    const slice = (from, to) => { const a = C.indexOf(from), b = C.indexOf(to, a); if (a < 0 || b < 0) throw new Error('markers not found: ' + from); return C.slice(a, b); };
+    vm.runInContext(slice('function mscore(f){', 'function luckAgg()') + slice('function fxPerWeek()', 'function schedLuck()') + 'let liveScoreOf = t => 0;\n', ctx);
+  }
   vm.runInContext(strip(rd('src/alltime.js')), ctx);
   const tap = "const tap = (team, label) => ' data-open=\"manager:' + UI.esc(team) + '\" role=\"button\" tabindex=\"0\" aria-label=\"' + UI.esc(label) + '\"';\n";
   vm.runInContext(tap + strip(rd('src/pages/league/alltime.js')), ctx);
@@ -145,7 +151,7 @@ check('U6 the same tap again flips the direction', rs.map(r => /data-t="([^"]+)"
 E.setSort('w'); page = E.alltimePage(); rs = rowsOf(page);
 check('U7 W-D-L sorts by wins; an unknown column is ignored', rs.map(r => /data-t="([^"]+)"/.exec(r)[1]).map(t => A.managers[TEAMS[t].ini].W).every((w, i, a) => i === 0 || a[i - 1] >= w) && (E.setSort('nope'), E.sortState().sort === 'w'));
 E.setSort('pts'); page = E.alltimePage();
-check('U8 the records: four tiles with the holder and where, and the data-state line', count(page, /<div class="tile at-rec">/g) === 4 && /Highest score<\/span><b class="n">84<\/b><span class="w"><i class="cr" data-t="Trophy Hunters"[^>]*><\/i><span>Bryant<\/span><\/span><span class="sub">2025\/26 GW7 v Parker<\/span>/.test(page) && /Biggest win<\/span><b class="n">61-15<\/b>/.test(page) && /Longest winning run<\/span><b class="n">7<\/b>/.test(page) && /2025\/26 GW22 to 2025\/26 GW28/.test(page) && /<p class="lg-cap">Finished gameweeks only\.<\/p>/.test(page) && /<span class="aside">2025\/26 and 2026\/27 so far<\/span>/.test(page));
+check('U8 the records: four tiles with the holder and where, and the data-state line', count(page, /<div class="tile at-rec">/g) === 4 && /Highest score<\/span><b class="n">84<\/b><span class="w"><i class="cr" data-t="Trophy Hunters"[^>]*><\/i><span>Bryant<\/span><\/span><span class="sub">2025\/26 GW7 v Parker<\/span>/.test(page) && /Biggest win<\/span><b class="n">\[61 to 15\]<\/b>/.test(page) && /Longest winning run<\/span><b class="n">7<\/b>/.test(page) && /2025\/26 GW22 to 2025\/26 GW28/.test(page) && /<p class="lg-cap">Finished gameweeks only\.<\/p>/.test(page) && /<span class="aside">2025\/26 and 2026\/27 so far<\/span>/.test(page));
 check('U9 no en or em dash, no NaN, undefined or null anywhere on the page', !DASH.test(page) && !HOLE.test(page.replace(/[^\w]null/g, '')), (page.match(/.{20}(NaN|undefined|null|[–—]).{20}/) || [''])[0]);
 check('U10 the sort state is kept in localStorage under its own key, and the page without a history still renders eight rows', /localStorage\.setItem\(KEY/.test(rd('src/pages/league/alltime.js')) && rd('src/pages/league/alltime.js').includes("const KEY = 'emt-lg-at'") && (() => { const e = engine({ history: [], fx: [] }); const p = e.alltimePage(); return count(p, /<div class="at-tr/g) === 8 && !/at-rec/.test(p) && /<span class="aside">2026\/27 so far<\/span>/.test(p); })());
 

@@ -1,8 +1,10 @@
-/* feed/render.js — a post to HTML. Each voice's look lives only inside its own posts. */
+/* feed/render.js - a post to HTML. Each voice's look lives only inside its own posts. */
 import * as UI from '../ui.js';
 import { VOICES, avatar, tagChip } from './voices.js';
-import { esc, f1, oddsTxt, short, firstOf, mgrOf, hash, newsLabel, statusWord, chanceOf, list } from './util.js';
+import { esc, f1, oddsTxt, short, firstOf, mgrOf, hash, newsLabel, statusWord, list, words } from './util.js';
 import { shows, mmss } from './facts.js';
+import { availOf } from '../pages/avail.js';
+import { seriesLine } from '../pages/matchday/model.js';
 import { REACTS, reactions, votes, me as signedIn } from './social.js';
 
 /* ---------- small pieces ---------- */
@@ -70,7 +72,7 @@ function treat(m) {
 function chipFor(p, label) {
   if (label) return '<span class="chip mute">' + esc(label) + '</span>';
   if (!p) return '';
-  if (p.Status === 'd') return '<span class="chip doubt">' + chanceOf(p) + '%</span>';
+  if (p.Status === 'd') { const a = availOf(p); return '<span class="chip ' + (a.state === 'out' ? 'out' : 'doubt') + '">' + esc(a.label) + '</span>'; }
   return '<span class="chip out">' + esc(statusWord(p).toUpperCase()) + '</span>';
 }
 function injcards(m) {
@@ -82,8 +84,9 @@ function injcards(m) {
 }
 function derbies(m) {
   return '<div class="ap-panel slim">' + m.fx.map(f => {
-    const s = series(f.h, f.a) || '';
-    return '<div class="dby"><span class="dby-c">' + crest(f.h, 34) + '<i class="f-cond">v</i>' + crest(f.a, 34) + '</span><span class="dby-t"><b class="f-cond">' + esc(derbyName(f.h, f.a)) + '</b><span class="f-mono">' + esc(short(f.h).toUpperCase()) + ' V ' + esc(short(f.a).toUpperCase()) + (s ? ' · ' + esc(s.toUpperCase()) : '') + '</span></span></div>';
+    /* the member's side first, as everywhere else: crest, short name and series line all read from L */
+    const mine = f.a === UI.you(), L = mine ? f.a : f.h, R = mine ? f.h : f.a, s = seriesLine(L, R) || '';
+    return '<div class="dby"><span class="dby-c">' + crest(L, 34) + '<i class="f-cond">v</i>' + crest(R, 34) + '</span><span class="dby-t"><b class="f-cond">' + esc(derbyName(f.h, f.a)) + '</b><span class="f-mono">' + esc(short(L).toUpperCase()) + ' V ' + esc(short(R).toUpperCase()) + (s ? ' · ' + esc(s.toUpperCase()) : '') + '</span></span></div>';
   }).join('') + '</div>';
 }
 function fa(m) {
@@ -108,13 +111,13 @@ function odds(m) {
   const mx = Math.max(...m.rows.map(r => r.v), 1);
   return '<div class="ap-panel"><div class="ap-hd"><span class="f-cond ap-ttl big">Title odds</span><span class="f-mono ap-meta">AFTER GW' + D.gwsDone + '</span></div>'
     + m.rows.map((r, i) => '<div class="od-r' + (i === 0 ? ' top' : '') + '">' + crest(r.team, 20) + '<span class="od-n">' + esc(r.team) + '</span><span class="od-b"><i style="width:' + Math.max(1.5, r.v / mx * 100).toFixed(1) + '%"></i></span><b class="f-cond">' + oddsTxt(r.v) + '</b>'
-      + (r.d !== null && m.prev ? '<span class="f-mono od-d ' + (r.d >= .5 ? 'up' : r.d <= -.5 ? 'dn' : '') + '">' + (Math.abs(r.d) < .5 ? '–' : (r.d > 0 ? '+' : '−') + Math.round(Math.abs(r.d))) + '</span>' : '') + '</div>').join('')
-    + '<div class="ap-ft"><span class="f-mono">5,000 SIMULATED SEASONS' + (m.prev ? ' · CHANGE SINCE GW' + m.prev : '') + '</span>' + apMark + '</div></div>';
+      + (r.d !== null && m.prev ? '<span class="f-mono od-d ' + (r.d >= .5 ? 'up' : r.d <= -.5 ? 'dn' : '') + '">' + (Math.abs(r.d) < .5 ? UI.BLANK : (r.d > 0 ? '+' : '−') + Math.round(Math.abs(r.d))) + '</span>' : '') + '</div>').join('')
+    + '<div class="ap-ft"><span class="f-mono">' + UI.legendTap('odds', '5,000 SIMULATED SEASONS', 'ln') + (m.prev ? ' · CHANGE SINCE GW' + m.prev : '') + '</span>' + apMark + '</div></div>';
 }
 function market(m) {
   return '<div class="ap-panel mkt"><div class="mk-l"><span class="f-mono ap-meta">THE BAHA MARKET</span><b class="f-cond mk-q">' + esc(m.team) + ' to finish last</b><span class="f-mono mk-r">RESOLVES GW38 · TABLE NOW ' + m.pos + (['', 'ST', 'ND', 'RD'][m.pos] || 'TH') + '</span></div>'
     + '<div class="mk-v"><b class="f-cond">' + oddsTxt(m.v) + '</b><span class="f-mono">CHANCE</span>' + (m.prev !== null && m.prev !== undefined ? '<span class="f-mono mk-p">GW' + m.prevGw + ' ' + oddsTxt(m.prev) + '</span>' : '') + '</div>'
-    + '<div class="ap-ft fwide"><span class="f-mono">5,000 SIMULATED SEASONS</span>' + apMark + '</div></div>';
+    + '<div class="ap-ft fwide"><span class="f-mono">' + UI.legendTap('odds', '5,000 SIMULATED SEASONS', 'ln') + '</span>' + apMark + '</div></div>';
 }
 function quote(m) {
   const L = String(m.line).toUpperCase();
@@ -188,7 +191,7 @@ function thumb(m, post, compact) {
   return '<div class="fct fct-' + style + '">' + deco + subject
     + (style === 'zoom' && (m.code || m.img) ? '<i class="fct-ring"></i>' : '')
     + (compact || style === 'breaking' ? '' : '<span class="fct-lbl">THE TERRACE</span>')
-    + '<span class="fct-ttl"><b class="f-anton fct-t1" style="font-size:' + big + 'cqw">' + esc(t1) + '</b>' + (t2 ? '<b class="f-anton fct-t2" style="font-size:' + fit(t2, style === 'vs' ? 80 : 58, style === 'vs' ? 6.4 : 8.4, .43) + 'cqw">' + esc(t2) + '</b>' : '') + '</span>'
+    + '<span class="fct-ttl"><b class="f-anton fct-t1" style="font-size:' + big + 'cqw">' + esc(t1) + '</b>' + (t2 ? '<b class="f-anton fct-t2" style="font-size:' + fit(t2, style === 'vs' ? 80 : 58, style === 'vs' ? 6.4 : 8.4, .43) + 'cqw">' + UI.keepCase(esc(t2)) + '</b>' : '') + '</span>'
     + ((m.code || m.img) && !compact && (style === 'split' || style === 'yellow' || style === 'stripes') ? ARROW : '')
     + (m.lo && !compact ? '<span class="fct-lo f-anton">' + esc(m.lo) + '</span>' : '')
     + (compact ? '<span class="fct-lbl lo">THE TERRACE</span>' : '')
@@ -204,8 +207,8 @@ function poll(m, post) {
   return '<div class="fcp' + (show ? ' shown' : '') + '">' + opts.map(([k, t]) => '<button class="fcp-o' + (pickd === k ? ' on' : '') + (won === k ? ' won' : '') + '"' + (m.open ? ' data-fx="poll:' + esc(post.id) + ':' + k + '"' : ' disabled') + '>'
     + (t ? crest(t, 24) : '<span class="fcp-eq">=</span>') + '<b>' + (t ? esc(t) : 'A draw') + '</b>'
     + (won === k ? '<span class="fcp-r">RESULT</span>' : '') + bar(k) + '</button>').join('') + '</div>'
-    + '<div class="fcp-ft"><span>' + (m.open ? (pickd ? 'Your vote is in · ' : signedIn() ? '' : 'Sign in to vote · ') + V.n + ' of eight voted · closes at the deadline' : 'Poll closed · ' + V.n + ' of eight voted' + (pickd ? ' · you said ' + esc(pickd === 'd' ? 'a draw' : short(pickd === 'h' ? m.h : m.a)) : '')) + '</span>'
-    + (done ? '<span class="fcp-m">' + (D.provOver ? 'Provisional: ' : 'Result: ') + '<b>' + res.hs + '–' + res.as + '</b></span>'
+    + '<div class="fcp-ft"><span>' + (m.open ? (pickd ? 'Your vote is in · ' : signedIn() ? '' : 'Sign in to vote · ') + V.n + ' of ' + words(Object.keys(TEAMS).length) + ' voted · closes at the deadline' : 'Poll closed · ' + V.n + ' of ' + words(Object.keys(TEAMS).length) + ' voted' + (pickd ? ' · you said ' + esc(pickd === 'd' ? 'a draw' : short(pickd === 'h' ? m.h : m.a)) : '')) + '</span>'
+    + (done ? '<span class="fcp-m">' + (D.provOver ? 'Provisional: ' : 'Result: ') + '<b>' + UI.score(res.hs, res.as) + '</b></span>'
       : '<span class="fcp-m">The model' + (res ? ' now' : '') + ': ' + esc(short(m.fav)) + ' <b' + (m.fav === youOf() ? ' class="you-c"' : '') + '>' + Math.max(m.w.h, m.w.a) + '%</b></span>') + '</div>';
 }
 function stamp(m) {
@@ -224,17 +227,18 @@ function scoreLine(m) {
 }
 function winRow(w, h, a, was) {
   const [ch, ca] = sideText(h, a);
-  return '<div class="fsb-w"><div class="fsb-wl"><b class="n" style="color:' + ch + '">' + w.h + '%</b><span>' + (was ? 'was ' + was.h + '%' : 'win chance') + '</span><span class="fsb-d">draw ' + w.d + '%</span><span>' + (was ? 'was ' + was.a + '%' : '') + '</span><b class="n" style="color:' + ca + '">' + w.a + '%</b></div>' + UI.wbar(w.h / 100, w.d / 100, w.a / 100, ch, ca, true) + '</div>';
+  if (w.drawn) return '<div class="fsb-w"><div class="fsb-wl"><span class="fsb-d">draw 100%</span></div></div>';
+  return '<div class="fsb-w"><div class="fsb-wl"><b class="n" style="color:' + ch + '">' + w.h + '%</b><span>' + (was ? 'was ' + was.h + '%' : UI.legendTap('odds', 'win chance', 'ln')) + '</span>' + (w.settled ? '' : '<span class="fsb-d">draw ' + w.d + '%</span>') + '<span>' + (was ? 'was ' + was.a + '%' : '') + '</span><b class="n" style="color:' + ca + '">' + w.a + '%</b></div>' + UI.wbar(w.h / 100, w.d / 100, w.a / 100, ch, ca, true) + '</div>';
 }
 function scorebug(m) {
-  const lab = { pred: 'GW' + m.gw + ' · PREDICTED', live: '<span class="live-dot"><i></i>LIVE</span>', ft: 'FULL TIME', prov: 'FULL TIME · PROVISIONAL' }[m.state];
+  const lab = { pred: 'GW' + m.gw + ' · ' + UI.legendTap('proj', 'Proj', 'ln'), live: '<span class="live-dot"><i></i>LIVE</span>', ft: 'FULL TIME', prov: 'FULL TIME · PROVISIONAL' }[m.state];
   const right = m.state === 'ft' || m.state === 'prov' ? 'GAMEWEEK ' + m.gw : m.nm ? esc(m.nm.toUpperCase()) : 'GAMEWEEK ' + m.gw;
   const st = m.star;
   return '<div class="fmb' + (m.state === 'ft' || m.state === 'prov' ? ' ft' : '') + '"><i class="fmb-edge"></i>'
     + '<div class="fmb-hd"><b class="n">' + lab + '</b><span class="n">' + right + '</span></div>'
     + '<div class="fsb-row"><span class="fsb-t">' + crest(m.h, 52) + '<b>' + esc(m.h) + '</b></span>' + scoreLine(m) + '<span class="fsb-t">' + crest(m.a, 52) + '<b>' + esc(m.a) + '</b></span></div>'
     + ((m.state === 'ft' || m.state === 'prov') && m.nm ? '<div class="fsb-nm">' + esc(m.nm.toUpperCase()) + '</div>' : '')
-    + (m.state === 'live' ? '<div class="fsb-proj n">PROJ FINAL ' + f1(m.ph) + ' – ' + f1(m.pa) + '</div>' : '')
+    + (m.state === 'live' ? '<div class="fsb-proj n">' + UI.legendTap('proj', 'Proj final', 'ln') + ' ' + UI.score(f1(m.ph), f1(m.pa)) + '</div>' : '')
     + (m.w ? winRow(m.w, m.h, m.a, m.was) : '')
     + (st ? '<div class="fsb-star" data-open="player:' + esc(st.code) + '">' + UI.face(st.code, 48) + '<span class="fsb-st"><em>STAR MAN</em><b>' + esc(st.name) + ' · ' + esc(short(st.team)) + '</b>' + (st.line ? '<i>' + esc(st.line.toUpperCase()) + '</i>' : '') + '</span><span class="fsb-sp"><b class="n">' + st.pts + '</b><em>PTS</em></span></div>' : '')
     + '</div>';
@@ -244,29 +248,31 @@ function voicenote(m, post) {
     + '<button class="vn-play" data-fx="speak:' + esc(post.id) + '" aria-label="Play the preview">' + PLAY + '</button>'
     + '<span class="vn-mid"><b>' + esc(m.nm || (short(m.h) + ' v ' + short(m.a))) + '</b>' + wave(post.id) + '<span class="vn-cap">GW' + m.gw + ' PREVIEW · READ ALOUD BY YOUR PHONE</span></span></div>'
     + '<div class="vn-bug"><span class="vb-t">' + crest(m.h, 24) + '<b class="n">' + esc(short(m.h).toUpperCase()) + '</b></span><span class="n vb-v">v</span><span class="vb-t">' + crest(m.a, 24) + '<b class="n">' + esc(short(m.a).toUpperCase()) + '</b></span>'
-    + '<span class="vb-w n">WIN CHANCE <b style="color:' + sideCols(m.h, m.a)[0] + '">' + m.w.h + '</b>–<b style="color:' + sideCols(m.h, m.a)[1] + '">' + m.w.a + '</b></span></div></div>';
+    /* the win chances in white, each with a dot in its side's colour beside it (a number is never in a team colour) */
+    + '<span class="vb-w n">' + UI.legendTap('odds', 'WIN CHANCE', 'ln') + ' ' + UI.score(m.w.h, m.w.a, { aCls: 'mk', bCls: 'mk', aStyle: '--mk:' + sideCols(m.h, m.a)[0], bStyle: '--mk:' + sideCols(m.h, m.a)[1] }) + '</span></div></div>';
 }
 function board(m) {
-  return '<div class="fmb"><i class="fmb-edge"></i><div class="fmb-hd"><b class="n">' + (m.live ? '<span class="live-dot"><i></i>LIVE</span>' : 'PREDICTED') + '</b><span class="n">GAMEWEEK ' + m.gw + '</span></div>'
+  return '<div class="fmb"><i class="fmb-edge"></i><div class="fmb-hd"><b class="n">' + (m.live ? '<span class="live-dot"><i></i>LIVE</span>' : UI.legendTap('proj', 'Proj', 'ln')) + '</b><span class="n">GAMEWEEK ' + m.gw + '</span></div>'
     + m.rows.map(r => {
       const [ch, ca] = sideCols(r.h, r.a);
-      const sc = m.live ? '<b class="n">' + r.hs + '</b><i>–</i><b class="n">' + r.as + '</b>' : '<b class="n">' + f1(r.ph) + '</b><i>–</i><b class="n">' + f1(r.pa) + '</b>';
+      const sc = m.live ? UI.score(r.hs, r.as) : UI.score(f1(r.ph), f1(r.pa));
       return '<div class="fbd-r">' + (r.nm ? '<span class="fbd-nm">' + esc(r.nm.toUpperCase()) + '</span>' : '')
         + '<div class="fbd-m"><span class="fbd-t">' + crest(r.h, 22) + '<b>' + esc(short(r.h)) + '</b></span><span class="fbd-s">' + sc + '</span><span class="fbd-t r"><b>' + esc(short(r.a)) + '</b>' + crest(r.a, 22) + '</span></div>'
-        + '<div class="fbd-w"><span class="n">' + r.w.h + '%</span>' + UI.wbar(r.w.h / 100, r.w.d / 100, r.w.a / 100, ch, ca, true) + '<span class="n">' + r.w.a + '%</span></div>'
-        + (m.live ? '<div class="fbd-pf n">PROJ FINAL ' + f1(r.ph) + ' – ' + f1(r.pa) + '</div>' : '') + '</div>';
+        + (r.w.drawn ? '<div class="fbd-w dr"><span class="n">draw 100%</span></div>'
+          : '<div class="fbd-w"><span class="n">' + r.w.h + '%</span>' + UI.wbar(r.w.h / 100, r.w.d / 100, r.w.a / 100, ch, ca, true) + '<span class="n">' + r.w.a + '%</span></div>')
+        + (m.live ? '<div class="fbd-pf n">' + UI.legendTap('proj', 'Proj final', 'ln') + ' ' + UI.score(f1(r.ph), f1(r.pa)) + '</div>' : '') + '</div>';
     }).join('') + '</div>';
 }
 function results(m) {
   return '<div class="fmb res"><i class="fmb-edge"></i><div class="fmb-hd ftg"><b class="n">FULL TIME</b><span class="n">GAMEWEEK ' + m.gw + '</span></div>'
-    + m.rows.map(r => '<div class="fbd-r"><div class="fbd-m"><span class="fbd-t">' + crest(r.home, 22) + '<b>' + esc(short(r.home)) + '</b></span><span class="fbd-s"><b class="n' + (r.hs > r.as ? ' w' : '') + '">' + r.hs + '</b><i>–</i><b class="n' + (r.as > r.hs ? ' w' : '') + '">' + r.as + '</b></span><span class="fbd-t r"><b>' + esc(short(r.away)) + '</b>' + crest(r.away, 22) + '</span></div></div>').join('')
+    + m.rows.map(r => '<div class="fbd-r"><div class="fbd-m"><span class="fbd-t">' + crest(r.home, 22) + '<b>' + esc(short(r.home)) + '</b></span><span class="fbd-s">' + UI.score(r.hs, r.as, { aCls: r.hs > r.as ? 'w' : '', bCls: r.as > r.hs ? 'w' : '' }) + '</span><span class="fbd-t r"><b>' + esc(short(r.away)) + '</b>' + crest(r.away, 22) + '</span></div></div>').join('')
     + (m.star ? '<div class="fsb-star" data-open="player:' + esc(m.star.code) + '">' + UI.face(m.star.code, 44) + '<span class="fsb-st"><em>STAR OF THE WEEK</em><b>' + esc(m.star.name) + ' · ' + esc(short(m.star.team)) + '</b></span><span class="fsb-sp"><b class="n">' + m.star.pts + '</b><em>PTS</em></span></div>' : '')
     + '</div>';
 }
 function table(m) {
   return '<div class="fmb"><i class="fmb-edge"></i><div class="fmb-hd ftg"><b class="n">THE TABLE</b><span class="n">AFTER GW' + m.gw + '</span></div><div class="ftb">'
     + m.ord.map(t => { const d = m.before[t] - m.now[t], s = D.st.find(x => x.Team === t) || {};
-      return '<div class="ftb-r' + (t === youOf() ? ' me' : '') + '"><b class="n ftb-p">' + m.now[t] + '</b><span class="ftb-m ' + (d > 0 ? 'up' : d < 0 ? 'dn' : '') + '">' + (d > 0 ? '▲' + d : d < 0 ? '▼' + (-d) : '–') + '</span>' + crest(t, 18) + '<span class="ftb-n">' + esc(t) + '</span><b class="n ftb-pts">' + (num(s['League Pts']) || 0) + '</b></div>'; }).join('')
+      return '<div class="ftb-r' + (t === youOf() ? ' me' : '') + '"><b class="n ftb-p">' + m.now[t] + '</b><span class="ftb-m ' + (d > 0 ? 'up' : d < 0 ? 'dn' : '') + '">' + (d > 0 ? '▲' + d : d < 0 ? '▼' + (-d) : UI.BLANK) + '</span>' + crest(t, 18) + '<span class="ftb-n">' + esc(t) + '</span><b class="n ftb-pts">' + (num(s['League Pts']) || 0) + '</b></div>'; }).join('')
     + '</div></div>';
 }
 function article(m) {
@@ -292,7 +298,7 @@ function call(m, post, compact) {
     + '<div class="jc"><button class="jc-p" data-open="player:' + esc(o.code) + '"><span class="jc-f dash">' + cut(o.code, '', o.name) + '</span><b class="f-mono">' + esc(o.name.toUpperCase()) + '</b><span class="f-mono">' + esc(o.club) + ' · in your XI</span></button>'
     + '<span class="f-chalk jc-v">v</span>'
     + '<button class="jc-p" data-open="player:' + esc(a.code) + '"><span class="jc-f gold">' + cut(a.code, '', a.name) + '</span><b class="f-mono">' + esc(a.name.toUpperCase()) + '</b><span class="f-mono">' + esc(a.club) + ' · ' + (m.kind === 'free' ? (onWaivers ? 'on waivers' : 'free agent') : 'your bench') + '</span></button></div>'
-    + '<div class="jrs">' + row(o.mins, 'MINUTES, LAST ' + o.n, a.mins) + row(o.starts, 'STARTS', a.starts) + row(Math.round(o.ps * 100) + '%', 'START CHANCE', Math.round(a.ps * 100) + '%') + row(f1(o.pts), 'PROJECTED', f1(a.pts)) + '</div>'
+    + '<div class="jrs">' + row(o.mins, 'MINUTES, LAST ' + o.n, a.mins) + row(o.starts, 'STARTS', a.starts) + row(Math.round(o.ps * 100) + '%', 'START CHANCE', Math.round(a.ps * 100) + '%') + row(f1(o.pts), UI.legendTap('proj', 'Proj', 'ln'), f1(a.pts)) + '</div>'
     + '<div class="fjb-note"><span class="f-chalk">' + esc(note) + '</span>' + chalkArrow + '</div>'
     + (compact ? '' : '<div class="fjb-btns">' + (m.kind === 'free' ? '<a class="jbtn on f-mono" href="#/team/transfers">See free-agent ' + posWord(m.pos) + '</a>' : '<a class="jbtn on f-mono" href="#/team/lineup">Open the lineup</a>')
       + '<button class="jbtn f-mono" data-fx="keep:' + esc(m.key) + '">Keep ' + esc(o.name) + '</button></div>')
@@ -302,9 +308,9 @@ const firstName = n => String(n).replace(/^[A-Z]\.\s?/, '');
 const posWord = p => ({ GKP: 'keepers', DEF: 'defenders', MID: 'midfielders', FWD: 'forwards' }[p] || 'players');
 function fitness(m, post, compact) {
   const xi = m.xi.slice(0, 3), more = m.xi.length - xi.length;
-  const benchTxt = m.bench.map(c => { const p = UI.player(c); return p ? esc(p.Player.toUpperCase()) + ' ' + (p.Status === 'd' ? chanceOf(p) + '%' : statusWord(p).toUpperCase()) : ''; }).filter(Boolean);
+  const benchTxt = m.bench.map(c => { const p = UI.player(c); return p ? esc(p.Player.toUpperCase()) + ' ' + statusWord(p).toUpperCase() : ''; }).filter(Boolean);
   return '<div class="fjb fit">' + PITCH + '<div class="fjb-hd"><span class="f-mono fjb-t">FITNESS BOARD</span><span class="f-mono fjb-m">GW' + D.gw + '</span></div>'
-    + (xi.length ? '<div class="jf">' + xi.map(c => { const p = UI.player(c); return '<button class="jf-p" data-open="player:' + esc(c) + '"><span class="jc-f dash sm">' + cut(c, '', p.Player) + '</span><b class="f-mono">' + esc(p.Player.toUpperCase()) + '</b><span class="f-chalk">' + (p.Status === 'd' ? chanceOf(p) + '%' : esc(statusWord(p))) + '</span></button>'; }).join('') + '</div>' : '<div class="jf-clear f-chalk">Your XI is clear.</div>')
+    + (xi.length ? '<div class="jf">' + xi.map(c => { const p = UI.player(c); return '<button class="jf-p" data-open="player:' + esc(c) + '"><span class="jc-f dash sm">' + cut(c, '', p.Player) + '</span><b class="f-mono">' + esc(p.Player.toUpperCase()) + '</b><span class="f-chalk">' + esc(availOf(p).label || statusWord(p)) + '</span></button>'; }).join('') + '</div>' : '<div class="jf-clear f-chalk">Your XI is clear.</div>')
     + (more > 0 ? '<div class="f-mono jf-more">+' + more + ' MORE IN THE XI: ' + m.xi.slice(3).map(c => esc((UI.player(c) || {}).Player || '').toUpperCase()).join(', ') + '</div>' : '')
     + (benchTxt.length ? '<div class="f-mono jf-b">BENCH: ' + benchTxt.join(' · ') + '</div>' : '')
     + '</div>';
@@ -323,7 +329,7 @@ function subs(m) {
 
 /* ============================== the post ============================== */
 const MEDIA = { stamp, deal, race, treat, injcards, derbies, fa, r1, stat, odds, market, quote, receipt, qt, probe, whisper, thumb, poll, robbed, scorebug, voicenote, board, results, table, article, show, call, fitness, scout, subs };
-/* media that holds its own buttons or links can't sit inside the tap-to-open area */
+/* media that holds its own buttons or links is not a tap-to-open area (a legend tap alone is fine: it sits above the cover) */
 const LIVE_MEDIA = { qt: 1, deal: 1, poll: 1, voicenote: 1, show: 1, call: 1, fitness: 1, scout: 1, subs: 1, article: 1, injcards: 1, treat: 1, fa: 1, r1: 1, scorebug: 1, results: 1 };
 
 export function mediaHTML(post, compact) {
@@ -337,9 +343,35 @@ function head(post, opt) {
     + '<div class="fp-who"><b><span class="fp-nm">' + esc(V.name) + '</span>' + tagChip(post.voice) + (post.viral ? '<span class="fp-viral">GOING VIRAL</span>' : '') + '</b><span>' + esc(handle) + (post.time ? ' · ' + esc(post.time) : '') + '</span></div>'
     + (opt.unread ? '<i class="fp-new" aria-label="New"></i>' : '') + '</div>';
 }
-const nb = t => String(t).replace(/(\d+(?:\.\d+)?%?)–(\d+(?:\.\d+)?%?)/g, '<span class="nw">$1–$2</span>');
+const nb = t => String(t).replace(/(\d+(?:\.\d+)?%?)-(\d+(?:\.\d+)?%?)/g, '<span class="nw">$1-$2</span>');
+/* Where the Feed speaks to one member (the Matchday rail, For you) a matchup names the member's own side first: sides, scores,
+   projections and win chances all turn together. Anywhere else (Everyone) the home side stays first. Only the media turns;
+   the post's id, text and teams are what every phone sees. */
+const turn = x => { if (!x) return x; const t = Object.assign({}, x); [['h', 'a'], ['hs', 'as'], ['ph', 'pa'], ['home', 'away']].forEach(([p, q]) => { if (p in x || q in x) { t[p] = x[q]; t[q] = x[p]; } }); return t; };
+const turnW = w => (w ? { ...w, h: w.a, a: w.h } : w);
+const turnSide = m => { const t = turn(m); if (m.w) t.w = turnW(m.w); if (m.was) t.was = turnW(m.was); return t; };
+export function ownPost(post, you) {
+  you = you || youOf();
+  const m = post && post.media; if (!m || !you) return post;
+  if ((m.type === 'scorebug' || m.type === 'voicenote') && m.a === you) return { ...post, media: turnSide(m) };
+  if (m.type === 'board' && m.rows.some(r => r.a === you)) return { ...post, media: { ...m, rows: m.rows.map(r => (r.a === you ? turnSide(r) : r)) } };
+  return post;
+}
+/* the facts line under a post: where its numbers come from, one tap to the post. A post whose facts name a forecast first
+   (factsLegend: a legend topic) has that lead, up to the first " · ", as a legend tap, as the cards' own figures have (F41: the
+   live matchup card's "Win chance before kick-off v now"); the line's tap to the post is then a button stretched over it, beside
+   the legend tap and never around it (F47) */
+function factsLine(post, id, big) {
+  if (!post.facts) return '';
+  const f = String(post.facts), topic = UI.LEGEND_TOPICS.includes(post.factsLegend) ? post.factsLegend : '';
+  if (!topic) return '<div class="fp-ft"><span class="fp-facts"' + (big ? '' : ' data-open="post:' + id + '"') + '>' + esc(f) + '</span></div>';
+  const cut = f.indexOf(' · '), lead = cut < 0 ? f : f.slice(0, cut), rest = cut < 0 ? '' : f.slice(cut);
+  const line = UI.legendTap(topic, esc(lead), 'ln') + esc(rest);
+  return '<div class="fp-ft"><span class="fp-facts' + (big ? '' : ' tap-host') + '">' + (big ? '' : '<button type="button" class="tap-cover" data-open="post:' + id + '" aria-label="Open the post"></button>') + line + '</span></div>';
+}
 export function renderPost(post, opt = {}) {
   if (!post) return '';
+  if (opt.compact || opt.own) post = ownPost(post);
   const id = esc(post.id);
   if (opt.compact) {
     const m = post.media, type = m && m.type;
@@ -359,9 +391,11 @@ export function renderPost(post, opt = {}) {
   return '<article class="fp v-' + post.voice + (opt.unread ? ' unread' : '') + (opt.big ? ' big' : '') + (post.hot ? ' hot' : '') + '" id="p-' + id.replace(/[^\w-]/g, '_') + '">'
     + head(post, { open: !opt.big, unread: opt.unread })
     + '<div class="fp-tx"' + (opt.big ? '' : ' data-open="post:' + id + '"') + '>' + nb(post.text) + '</div>'
-    + (media ? (live || opt.big ? '<div class="fp-media">' + media + '</div>' : '<div class="fp-media" data-open="post:' + id + '">' + media + '</div>') : '')
+    /* a media with nothing of its own to press is one tap to the post: a button stretched over it, beside (never around) the
+       legend taps some media carry (F47) */
+    + (media ? (live || opt.big ? '<div class="fp-media">' + media + '</div>' : '<div class="fp-media tap-host"><button type="button" class="tap-cover" data-open="post:' + id + '" aria-label="Open the post"></button>' + media + '</div>') : '')
     + (post.audience === 'you' && post.voice !== 'jive' ? '<div class="fp-only">Only you can see this. It stays on this phone.</div>' : '')
-    + (post.facts ? '<div class="fp-ft"><span class="fp-facts"' + (opt.big ? '' : ' data-open="post:' + id + '"') + '>' + esc(post.facts) + '</span></div>' : '')
+    + factsLine(post, id, opt.big)
     + (opt.noActs || post.audience === 'you' ? '' : reactBar(post))
     + (opt.noActs ? '' : '<div class="fp-acts">' + (post.share ? '<button class="fp-sh" data-fx="share:' + id + '">' + UI.icon('share', 15, 'currentColor', 1.9) + 'Share</button>' : '') + linkHTML + '</div>')
     + '</article>';
@@ -414,7 +448,7 @@ function miniMedia(post) {
     case 'table': return '<div class="mini-bug">' + m.ord.slice(0, 3).map((t, i) => '<span class="mini-tb"><em class="n">' + (i + 1) + '</em>' + crest(t, 18) + '<b>' + esc(firstOf(t)) + '</b></span>').join('') + '<span class="n">AFTER GW' + m.gw + '</span></div>';
     case 'article': return '<div class="mini-bug"><b class="n">GW' + m.gw + ' ' + esc(m.kind.toUpperCase()) + '</b><span class="n">READ ›</span></div>';
     case 'show': { const sh = shows().find(x => x.gw === m.gw); return '<div class="mini-bug"><span class="mini-play">' + PLAY + '</span><b class="n">GW' + m.gw + ' SHOW</b><span class="n">' + (sh ? mmss(sh.dur) : '') + '</span></div>'; }
-    case 'fitness': return '<div class="mini-call">' + m.xi.slice(0, 3).map(c => '<span>' + UI.face(c, 34) + '<b class="f-mono">' + chanceOf(UI.player(c)) + '%</b></span>').join('') + '</div>';
+    case 'fitness': return '<div class="mini-call">' + m.xi.slice(0, 3).map(c => '<span>' + UI.face(c, 34) + '<b class="f-mono">' + esc(availOf(UI.player(c)).label || '') + '</b></span>').join('') + '</div>';
     case 'scout': return '<div class="mini-call"><span>' + UI.face(m.code, 38) + '<b class="f-mono">' + f1(m.ep) + '</b></span></div>';
     case 'subs': return '<div class="mini-call">' + m.subs.slice(0, 3).map(x => '<span>' + UI.face(x.inn, 32) + '<b class="f-mono">' + x.pts + (x.pts === 1 ? ' PT' : ' PTS') + '</b></span>').join('') + '</div>';
   }
@@ -422,7 +456,7 @@ function miniMedia(post) {
 }
 /* compact media for rails */
 function miniBug(m) {
-  const sc = m.state === 'pred' ? f1(m.ph) + '<i>–</i>' + f1(m.pa) : m.hs !== undefined ? m.hs + '<i>–</i>' + m.as : '<i>v</i>';
+  const sc = m.state === 'pred' ? UI.score(f1(m.ph), f1(m.pa), { cls: 'flush' }) : m.hs !== undefined ? UI.score(m.hs, m.as, { cls: 'flush' }) : '<i>v</i>';
   return '<div class="mini-bug">' + crest(m.h, 22) + '<b class="n">' + esc(short(m.h).toUpperCase()) + '</b><span class="n">' + sc + '</span><b class="n">' + esc(short(m.a).toUpperCase()) + '</b>' + crest(m.a, 22) + '</div>';
 }
 function miniDeal(m) {

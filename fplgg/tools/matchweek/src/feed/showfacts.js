@@ -1,4 +1,4 @@
-/* feed/showfacts.js — the Gameweek Show and the weekly articles write themselves without anyone's computer.
+/* feed/showfacts.js - the Gameweek Show and the weekly articles write themselves without anyone's computer.
    · Preview facts: in the last 54 hours before a deadline, any signed-in manager's phone sends the week's facts to the
      league sheet ('showfacts', Code.gs v3.12+), at most once per three-hour slot. The Gameweek Show and the preview
      article (Code.gs v3.13) are both written from them.
@@ -6,6 +6,7 @@
      fixture, the same phones send that gameweek's facts ('artfacts', kind 'recap'), at most once per three-hour slot.
    Every number comes from this app's own engine (the model's win chances and projections, the all-time series, each XI
    with its points, xP, bonus and auto-subs), so what the article says matches what the league sees on screen. */
+import * as UI from '../ui.js';
 import { quotes } from './social.js';
 import { lsGet, lsSet } from './util.js';
 
@@ -14,7 +15,7 @@ const PREVIEW_WINDOW = 54 * 3600e3, RECAP_WINDOW = 5 * 864e5, SLOT = 3 * 3600e3,
 const r1 = v => Math.round(v * 10) / 10;
 const iso = s => { const d = dt(s); return d ? d.toISOString().replace('.000Z', 'Z') : ''; };
 const clubFull = c => { try { return clubName(c) || c; } catch (e) { return c; } };
-const form = xi => { try { return formation(xi).replace(/–/g, '-'); } catch (e) { return null; } };
+const form = xi => { try { return formation(xi); } catch (e) { return null; } };
 const squad = t => (D.ro || []).filter(r => r.Team === t);
 
 /* ---------- the all-time series between two teams, through gameweek g (seeded history plus this season) ---------- */
@@ -150,7 +151,7 @@ export function computeFacts() {
   const res = { kind: 'preview', gw: D.gw, deadline: String(gwDeadline(D.gw)), gwsDone: D.gwsDone, table: tableRows(0), fixtures: [], quotes: [] };
   const results = t => (D.fx || []).filter(f => fin(f.Finished) && (f.Home === t || f.Away === t)).sort((a, b) => num(a.GW) - num(b.GW)).map(f => {
     const me = num(f.Home === t ? f['Home pts'] : f['Away pts']), op = num(f.Home === t ? f['Away pts'] : f['Home pts']);
-    return (me > op ? 'W' : me < op ? 'L' : 'D') + me + '-' + op + ' v ' + FIRSTOF(f.Home === t ? f.Away : f.Home) + ' GW' + f.GW;
+    return (me > op ? 'W' : me < op ? 'L' : 'D') + UI.scoreText(me, op) + ' v ' + FIRSTOF(f.Home === t ? f.Away : f.Home) + ' GW' + f.GW;
   });
   const side = t => {
     let xi = []; try { xi = autoSubs(t, true).xi; } catch (e) { }

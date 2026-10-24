@@ -1,6 +1,9 @@
 import * as UI from '../ui.js';
-/* feed/facts.js — every number a post states is computed here, from D and the engine. Nothing is invented. */
+/* feed/facts.js - every number a post states is computed here, from D and the engine. Nothing is invented. */
 import { showKeys, showVoiced } from './showsync.js';
+import { availOf } from '../pages/avail.js';
+import { winPct } from '../pages/matchday/model.js';
+import { DEMO, plainDeep } from '../data/tabs.js';
 import { dt, byName, ptsOver, minsOver, startsOver, finishedGws, fxOf, fxFor, oppOf, chanceOf, lsGet, lsSet, bump, gwDoneTime } from './util.js';
 
 /* ---------- memo per data load ---------- */
@@ -9,7 +12,9 @@ export function memo(k, f) { if (MK !== LOADED_AT) { MK = LOADED_AT; M = {}; } r
 
 /* ---------- engine calls the posts repeat: once per data load ---------- */
 const wpRaw = f => memo('wr|' + f.GW + '|' + f.Home + '|' + f.Away, () => hpWin(f));
-export const wp = f => memo('wp|' + f.GW + '|' + f.Home + '|' + f.Away, () => mpxWinPct(wpRaw(f)));
+/* the chances every screen shows: Matchday's one helper, so a result that cannot change reads 100 and 0 with no draw, and a settled
+   draw reads draw 100 (settled, drawn say so; h, d, a are whole numbers, 0 where the helper has none) */
+export const wp = f => memo('wp|' + f.GW + '|' + f.Home + '|' + f.Away, () => { const w = winPct(f); return { h: w.h ?? 0, d: w.d ?? 0, a: w.a ?? 0, settled: !!w.settled, drawn: !!w.drawn }; });
 /* a team's projected total this gameweek: hpWin already worked it out (muH/muA = hpTeam = teamProj for the current week) */
 export const tp = t => memo('tp|' + t, () => { const f = (D.fx || []).find(x => num(x.GW) === D.gw && (x.Home === t || x.Away === t)); if (!f) return teamProj(t); const w = wpRaw(f); if (w.done) return teamProj(t); return f.Home === t ? w.muH : w.muA; });
 export const ex = t => memo('ex|' + t, () => effXiOf(t, true));
@@ -111,13 +116,19 @@ function motmTotals0(per) {
     const sc = g === D.gw ? ms(f) : null;
     t[f.Home] = (t[f.Home] || 0) + (sc ? sc.hs : effPtsOf(f, f.Home)); t[f.Away] = (t[f.Away] || 0) + (sc ? sc.as2 : effPtsOf(f, f.Away)); n++;
   });
+  /* an odd league: the team on a bye scores too (the XI it started, byeScore), as in the League page's totals (data.js periodTotals) */
+  for (let g = per[1]; g <= per[2]; g++) {
+    const fs = (D.fx || []).filter(f => num(f.GW) === g);
+    if (!fs.length || !(fs.every(f => fin(f.Finished)) || (live && g === D.gw))) continue;
+    Object.keys(TEAMS).forEach(tm => { if (!fs.some(f => f.Home === tm || f.Away === tm)) t[tm] = (t[tm] || 0) + (byeScore(tm, g, live && g === D.gw && !fs.every(f => fin(f.Finished))) || 0); });
+  }
   return { rows: Object.entries(t).sort((a, b) => b[1] - a[1]), any: n > 0 };
 }
 export function periodDone(per) { for (let g = per[1]; g <= per[2]; g++) { const w = D.mw.find(x => num(x.GW) === g); if (!w || !fin(w.Finished)) return false; } return true; }
 
 /* ---------- luck (two separate components, never blended) ---------- */
 /* Performance luck through the last finished gameweek: luckAgg()'s formula (started points excl. bonus v xP, GW Log XI)
-   without the live week, so a post that says GW1–5 means GW1–5 even while GW6 is being played. */
+   without the live week, so a post that says GW1-5 means GW1-5 even while GW6 is being played. */
 export function perfLuck() {
   return memo('luck', () => {
     const upto = D.gwsDone, logXI = {}, logGws = new Set(), out = {};
@@ -282,8 +293,9 @@ export function modelCheck(g) {
 /* ---------- injuries and doubts ---------- */
 export function flagged(team) {
   const xi = xiOf(team), xiSet = new Set(xi.map(p => String(p.Code)));
-  const sq = squadOf(team).filter(p => p.Status && p.Status !== 'a');
-  const order = p => (p.Status === 'd' ? chanceOf(p) : -1);
+  /* the flags that still matter, by the one reading (pages/avail.js): out or a doubt, and his match not yet begun */
+  const sq = squadOf(team).filter(p => { const a = availOf(p); return a.state !== 'fit' && a.matters; });
+  const order = p => (p.Status === 'd' ? (chanceOf(p) === null ? 50 : chanceOf(p)) : -1);   /* sorting only: no number is shown */
   return { xi: sq.filter(p => xiSet.has(String(p.Code))).sort((a, b) => order(a) - order(b)), bench: sq.filter(p => !xiSet.has(String(p.Code))).sort((a, b) => order(a) - order(b)) };
 }
 
@@ -398,9 +410,9 @@ export function showsWanted() {
   const gws = [...new Set((typeof PREVIEWS !== 'undefined' ? PREVIEWS : []).map(p => p.gw).concat(D.gw ? [D.gw] : []))].filter(g => g >= 4);
   let left = gws.length; if (!left) return;
   /* the server's meta answer: the script (when the repo has none) and which lines have a current take */
-  const meta = g => D.api ? fetch(D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + 'show=' + g + '&meta=1', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
+  const meta = g => D.api ? fetch(D.api + (D.api.indexOf('?') > -1 ? '&' : '?') + 'show=' + g + '&meta=1', { cache: 'no-store' }).then(r => r.ok ? r.json().then(plainDeep) : null).catch(() => null) : Promise.resolve(null);
   const repoVoiced = j => !!(j && j.audio !== 'sheet' && j.dur);
-  gws.forEach(g => fetch('show/gw' + g + '.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null).then(j => {
+  gws.forEach(g => fetch('show/gw' + g + '.json', { cache: 'no-cache' }).then(r => r.ok ? r.json().then(plainDeep) : null).catch(() => null).then(j => {
     if (repoVoiced(j)) return { j, m: null };
     if (!j && g !== D.gw) return { j: null, m: null };   /* an older gameweek without a repo script has no show */
     return meta(g).then(m => ({ j: j || (m && m.ok && m.script && Array.isArray(m.script.chapters) ? m.script : null), m }));

@@ -1,6 +1,7 @@
-/* My team · Season: summary, results by gameweek, points v expected, luck (two parts), table position, star man, season numbers. */
+/* My team · Season: summary, results by gameweek, points v xP, luck (two parts), table position, star man, season numbers. */
 import * as UI from '../../ui.js';
-import { esc, memo, f1, sgn, ord, results, stRow, mgrName, plrRow, luck, sched, asOf } from './bits.js';
+import { plateOf } from '../avail.js';   /* a doubt the engine counts out reads red on the Plate, as everywhere else (F07) */
+import { esc, memo, f1, sgn, ord, words, results, stRow, mgrName, plrRow, luck, sched, asOf } from './bits.js';
 
 export const SEL = { gw: null };
 
@@ -15,9 +16,9 @@ function summary(team, R) {
   const tile = (lb, v, cm) => '<div class="tile"><span class="lb">' + lb + '</span><b class="n">' + v + '</b><span class="cm">' + cm + '</span></div>';
   return '<div class="tiles tm-tiles">'
     + tile('Points for', pf, ord(pfRank) + ' in the league')
-    + tile('Average', done.length ? f1(avg) : '–', done.length ? 'a gameweek · league ' + f1(lgAvg) : 'no gameweeks yet')
-    + tile('Best gameweek', best ? best.my : '–', best ? 'GW' + best.g + ' ' + (best.home ? 'v ' : 'at ') + esc(UI.short(best.opp)) + ' · ' + (best.res === 'W' ? 'won' : best.res === 'L' ? 'lost' : 'drew') : '–')
-    + tile('Worst gameweek', worst ? worst.my : '–', worst ? 'GW' + worst.g + ' ' + (worst.home ? 'v ' : 'at ') + esc(UI.short(worst.opp)) + ' · ' + (worst.res === 'W' ? 'won' : worst.res === 'L' ? 'lost' : 'drew') : '–')
+    + tile('Average', done.length ? f1(avg) : '-', done.length ? 'a gameweek · league ' + f1(lgAvg) : 'no gameweeks yet')
+    + tile('Best gameweek', best ? best.my : '-', best ? 'GW' + best.g + ' ' + (best.home ? 'v ' : 'at ') + esc(UI.short(best.opp)) + ' · ' + (best.res === 'W' ? 'won' : best.res === 'L' ? 'lost' : 'drew') : '-')
+    + tile('Worst gameweek', worst ? worst.my : '-', worst ? 'GW' + worst.g + ' ' + (worst.home ? 'v ' : 'at ') + esc(UI.short(worst.opp)) + ' · ' + (worst.res === 'W' ? 'won' : worst.res === 'L' ? 'lost' : 'drew') : '-')
     + '</div>';
 }
 
@@ -30,34 +31,34 @@ function resultsBlock(team, R) {
     const chip = lv ? '<span class="fm lv">LIVE</span>' : '<span class="fm ' + r.res.toLowerCase() + (r.live ? ' prov' : '') + '"' + (r.live ? ' title="Provisional until FPL confirms"' : '') + '>' + r.res + '</span>';
     return '<button class="row tap tm-rr" data-open="manager:' + esc(r.opp) + '">'
       + '<span class="tm-rg n">GW' + r.g + '</span>' + chip
-      + '<span class="tm-rs n">' + r.my + '<i>–</i>' + r.their + '</span>'
+      + '<span class="tm-rs n">' + UI.score(r.my, r.their, { cls: 'flush' }) + '</span>'
       + UI.crest(r.opp, 24)
       + '<span class="tm-ro"><b>' + (r.home ? 'v ' : 'at ') + '<span class="tm-full">' + esc(r.opp) + '</span><span class="tm-short">' + esc(UI.short(r.opp)) + '</span></b>' + (r.nm ? '<span class="sub ell">' + esc(r.nm) + '</span>' : '') + '</span>'
       + '<span class="tm-rp"><b class="n">' + ord(r.pos) + (r.live ? '*' : '') + '</b><span class="sub">after</span></span></button>';
   }).join('');
   const anyLive = R.some(r => r.live);
-  return UI.sh('Results', { aside: T.w + '–' + T.d + '–' + T.l + ' W–D–L' })
+  return UI.sh('Results', { aside: UI.rec(T.w, T.d, T.l) + ' W-D-L' })
     + '<div class="card tm-rl">' + rows + (anyLive ? '<div class="foot">* live, it moves until FPL confirms.</div>' : '') + '</div>';
 }
 
-/* points (bonus excluded) v xP per gameweek: columns with an expected tick; tap a column for the numbers */
+/* points (bonus excluded) v xP per gameweek: columns with an xP tick; tap a column for the numbers */
 function xpChart(team) {
   const A = luck()[team];
   const gws = A ? Object.keys(A.gws).map(Number).sort((a, b) => a - b) : [];
-  if (!gws.length) return UI.sh('Points v expected') + UI.empty('Nothing to chart yet', 'This fills in once gameweek stats arrive.');
+  if (!gws.length) return UI.sh('Points v xP') + UI.empty('Nothing to chart yet', 'This fills in once gameweek stats arrive.');
   const vals = gws.map(g => ({ g, a: A.gws[g].act, x: A.gws[g].x, live: g === D.gw && !D.provOver && D.liveNow }));
   const mx = Math.max(10, ...vals.map(v => Math.max(v.a, v.x)));
   const top = Math.ceil(mx / 10) * 10;
   const sel = vals.find(v => v.g === SEL.gw) || vals[vals.length - 1];
   const every = gws.length > 20 ? 5 : gws.length > 10 ? 2 : 1;
-  const cols = vals.map((v, i) => '<button class="tm-xc' + (v.g === sel.g ? ' on' : '') + (v.live ? ' live' : '') + '" data-xgw="' + v.g + '" data-a="' + v.a + '" data-x="' + f1(v.x) + '" aria-label="GW' + v.g + ': ' + v.a + ' points excluding bonus, ' + f1(v.x) + ' expected">'
+  const cols = vals.map((v, i) => '<button class="tm-xc' + (v.g === sel.g ? ' on' : '') + (v.live ? ' live' : '') + '" data-xgw="' + v.g + '" data-a="' + v.a + '" data-x="' + f1(v.x) + '" aria-label="GW' + v.g + ': ' + v.a + ' points excluding bonus, ' + f1(v.x) + ' xP">'
     + '<span class="tm-xb" style="height:' + (v.a / top * 100).toFixed(1) + '%"></span>'
     + '<span class="tm-xt" style="bottom:' + (v.x / top * 100).toFixed(1) + '%"></span>'
     + '<span class="tm-xg n">' + ((i % every === 0 || i === vals.length - 1) ? v.g : '') + '</span></button>').join('');
-  const read = v => '<b>GW' + v.g + (v.live ? ' (live)' : '') + '</b> <span class="n">' + v.a + '</span> scored, <span class="n">' + f1(v.x) + '</span> expected, <span class="' + (v.a - v.x >= 0 ? 'win-c' : 'loss-c') + ' n">' + sgn(v.a - v.x) + '</span>';
-  return UI.sh('Points v expected', { aside: 'bonus left out' })
+  const read = v => '<b>GW' + v.g + (v.live ? ' (live)' : '') + '</b> <span class="n">' + v.a + '</span> scored, <span class="n">' + f1(v.x) + '</span> xP, <span class="' + (v.a - v.x >= 0 ? 'win-c' : 'loss-c') + ' n">' + sgn(v.a - v.x) + '</span>';
+  return UI.sh('Points v xP', { aside: 'bonus left out ' + UI.legendTap('luck', 'What xP means', 'ln') })
     + '<div class="card tm-xch">'
-    + '<div class="tm-xleg"><span><i class="b"></i>Points</span><span><i class="t"></i>Expected (xP)</span></div>'
+    + '<div class="tm-xleg"><span><i class="b"></i>Points</span><span><i class="t"></i>xP</span></div>'
     + '<div class="tm-xplot"><div class="tm-xax n" aria-hidden="true"><span style="bottom:100%">' + top + '</span><span style="bottom:50%">' + top / 2 + '</span><span style="bottom:0">0</span></div>'
     + '<div class="tm-xcols"><i class="tm-xgl" style="bottom:0"></i><i class="tm-xgl" style="bottom:50%"></i><i class="tm-xgl" style="bottom:100%"></i>' + cols + '</div></div>'
     + '<div class="tm-xread sub" aria-live="polite">' + read(sel) + '</div>'
@@ -69,10 +70,10 @@ function luckBlock(team) {
   if (!P && !S) return '';
   const card = (lb, d, unit, line, more) => '<div class="tile tm-lk"><span class="lb">' + lb + '</span><b class="n ' + (d >= 0.05 ? 'win-c' : d <= -0.05 ? 'loss-c' : '') + '">' + sgn(d) + '</b>' + (unit ? '<span class="cm">' + unit + '</span>' : '') + '<span class="tm-lkl">' + line + '</span>' + (more ? '<span class="cm">' + more + '</span>' : '') + '</div>';
   const pD = P ? P.act - P.x : 0, sD = S ? S.pts - S.ap : 0;
-  return UI.sh('Luck')
+  return UI.sh('Luck', { aside: UI.legendTap('luck', 'What luck means', 'ln') })
     + '<div class="tiles tm-lks">'
-    + (P ? card('Performance', pD, '', '<span class="n">' + Math.round(P.act) + '</span> scored, <span class="n">' + f1(P.x) + '</span> expected.', '') : '')
-    + (S ? card('Results', sD, '', '<span class="n">' + S.pts + '</span> banked, <span class="n">' + f1(S.ap) + '</span> if you played all seven every week.', 'You beat ' + f1(S.beat).replace(/\.0$/, '') + ' of ' + S.opp + ' scores. Close games ' + S.cw + '–' + S.cd + '–' + S.cl + ' (W–D–L).') : '')
+    + (P ? card('Performance', pD, '', '<span class="n">' + Math.round(P.act) + '</span> scored, <span class="n">' + f1(P.x) + '</span> xP.', '') : '')
+    + (S ? card('Results', sD, '', '<span class="n">' + S.pts + '</span> banked, <span class="n">' + f1(S.ap) + '</span> worth against all ' + words(apRivals()) + ' every week.', 'You beat ' + f1(S.beat).replace(/\.0$/, '') + ' of ' + S.opp + ' scores. Close games ' + UI.rec(S.cw, S.cd, S.cl) + ' (W-D-L).') : '')
     + '</div>';
 }
 
@@ -118,7 +119,7 @@ function starBlock(team) {
   const gone = !p.Team || p.Team !== team;
   const next = rows.slice(1, 4);
   return UI.sh('Star man', { aside: 'points in your XI' })
-    + '<div class="card tm-star"><div class="tm-starc">' + UI.plate(p, 112) + '</div>'
+    + '<div class="card tm-star"><div class="tm-starc">' + UI.plate(plateOf(p), 112) + '</div>'
     + '<div class="tm-stari"><span class="k">Most points for you</span><b class="tm-starn">' + esc(s.name) + '</b>'
     + '<span class="tm-starv"><b class="n">' + s.pts + '</b> pts in <span class="n">' + s.starts + '</span> start' + (s.starts === 1 ? '' : 's') + '</span>'
     + (s.best ? '<span class="sub">Best: <span class="n">' + s.best.v + '</span> in GW' + s.best.g + (gone ? ' · since left the squad' : '') + '</span>' : '')
@@ -131,12 +132,12 @@ function numbersBlock(team) {
   const fgs = tsxFinGws(); if (!fgs.length) return '';
   const S = tsxCalc()[team]; if (!S) return '';
   const n8 = Object.keys(TEAMS).length, rows = [];
-  const row = (lab, val, ctx, unit) => '<div class="row tm-sn2"><span class="tm-snl"><b>' + lab + '</b><span class="sub">' + ctx + '</span></span><span class="tm-snv"><b class="n">' + val + '</b>' + (unit ? '<span class="sub">' + unit + '</span>' : '') + '</span></div>';
-  const rec = o => o.w + '–' + o.d + '–' + o.l;
+  const row = (lab, val, ctx, unit) => '<div class="row tm-sn2"><span class="tm-snl"><b>' + lab + '</b><span class="sub">' + ctx + '</span></span><span class="tm-snv"><b class="n">' + UI.minus(val) + '</b>' + (unit ? '<span class="sub">' + unit + '</span>' : '') + '</span></div>';
+  const rec = o => UI.rec(o.w, o.d, o.l);
   const A = S.ap;
-  if (A.last) rows.push(row('All-play record', rec(A), 'Would be ' + ord(A.rank) + ' against all seven every week' + (A.rank === A.pos ? ', same as the table' : ', actually ' + ord(A.pos)) + (A.live ? ' (GW' + A.live + ' live)' : ''), 'W\u2013D\u2013L'));
+  if (A.last) rows.push(row('All-play record', rec(A), 'Would be ' + ord(A.rank) + ' against all ' + words(apRivals()) + ' every week' + (A.rank === A.pos ? ', same as the table' : ', actually ' + ord(A.pos)), 'W-D-L'));
   const C = S.close;
-  rows.push(row('Close games', rec(C), C.n ? 'Matchups decided by ' + C.margin + ' or fewer' : 'No matchup decided by ' + C.margin + ' or fewer yet', 'W\u2013D\u2013L'));
+  rows.push(row('Close games', rec(C), C.n ? 'Matchups decided by ' + C.margin + ' or fewer' : 'No matchup decided by ' + C.margin + ' or fewer yet', 'W-D-L'));
   const P = S.pa;
   rows.push(row('Points against', P.v, P.rank === 1 ? 'Most in the league: the toughest schedule' : P.rank === n8 ? 'Fewest in the league: the kindest schedule' : ord(P.rank) + ' most in the league · average ' + Math.round(P.avg)));
   if (S.pos.n) rows.push('<div class="row tm-sn2 full"><span class="tm-snl"><b>Points by position</b><span class="sub">XI points a gameweek v the league average</span></span><span class="tm-pcs4">'
@@ -148,12 +149,12 @@ function numbersBlock(team) {
   const Dr = S.draft;
   if (Dr.hit) rows.push(row('Best pick: ' + esc(Dr.hit.name), Dr.hit.pts, 'Taken ' + ord(Dr.hit.pick) + ', ' + ord(Dr.hit.rank) + ' in points of the ' + Dr.n + ' drafted'));
   if (Dr.miss) { const bad = Dr.miss.pick - Dr.miss.rank < 0; rows.push(row((bad ? 'Biggest miss: ' : 'Weakest early pick: ') + esc(Dr.miss.name), Dr.miss.pts, 'Taken ' + ord(Dr.miss.pick) + ', ' + ord(Dr.miss.rank) + ' in points of the ' + Dr.n + ' drafted' + (Dr.miss.gone ? ' · since dropped' : ''))); }
-  const span = fgs.length > 1 ? 'GW' + fgs[0] + '–' + fgs[fgs.length - 1] : 'GW' + fgs[0];
+  const span = fgs.length > 1 ? 'GW' + fgs[0] + '-' + fgs[fgs.length - 1] : 'GW' + fgs[0];
   return UI.sh('Season numbers', { aside: span }) + '<div class="card tm-nums">' + rows.join('') + '</div>';
 }
 
 export function seasonPage(team) {
   const R = results(team);
-  if (!R.length) return UI.empty('The season starts with GW' + D.gw, 'Results, points against expected, luck and your star man land here after the first gameweek.');
+  if (!R.length) return UI.empty('The season starts with GW' + D.gw, 'Results, points against xP, luck and your star man land here after the first gameweek.');
   return summary(team, R) + resultsBlock(team, R) + xpChart(team) + luckBlock(team) + posChart(team, R) + starBlock(team) + numbersBlock(team);
 }

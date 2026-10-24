@@ -1,6 +1,7 @@
 /* My team · Squad: all fifteen with status, rating and form, plus the squad health summary. */
 import * as UI from '../../ui.js';
-import { esc, memo, f1, sgn, chips, ppg, seasonPts, seasonMins, lastSum, POSN, words, chanceOf } from './bits.js';
+import { esc, memo, f1, sgn, chips, ppg, seasonPts, seasonMins, lastSum, POSN, words } from './bits.js';
+import { availSummary, availChip, availRing } from '../avail.js';
 
 export const SORT = { squad: 'lineup' };
 try { const v = localStorage.getItem('emt-tm-ssort'); if (['lineup', 'pts', 'form', 'ovr'].includes(v)) SORT.squad = v; } catch (e) { }
@@ -28,13 +29,13 @@ export function health(team) {
 }
 function healthBlock(team) {
   const sq = squadOf(team);
-  const outs = sq.filter(p => flaggedOut(p)), dbt = sq.filter(p => p.Status === 'd' && !flaggedOut(p)), fit = sq.length - outs.length - dbt.length;
+  const A = availSummary(sq), outs = A.outs, dbt = A.doubts, fit = A.n.fit;
   const H = health(team);
   const avail = '<div class="tm-avail"><span><i class="ok"></i><b class="n">' + fit + '</b> available</span>'
     + '<span><i class="dbt"></i><b class="n">' + dbt.length + '</b> doubtful</span>'
     + '<span><i class="out"></i><b class="n">' + outs.length + '</b> out</span></div>';
   const col = (rows, up) => '<div class="tm-hcol"><span class="tm-hk ' + (up ? 'win-c' : 'loss-c') + '">' + UI.icon('up', 12, 'currentColor', 2.6).replace('<svg', '<svg' + (up ? '' : ' style="transform:rotate(180deg)"')) + (up ? 'Trending up' : 'Trending down') + '</span>'
-    + (rows.length ? rows.map(r => '<button class="tm-hr" data-open="player:' + esc(r.p.Code) + '">' + UI.face(r.p, 26) + '<span class="tm-hn"><b class="ell">' + esc(r.p.Player) + '</b><span class="sub n">' + f1(r.l3) + ' a game</span></span><span class="tm-hd n ' + (up ? 'win-c' : 'loss-c') + '">' + sgn(r.d) + '</span></button>').join('')
+    + (rows.length ? rows.map(r => '<button class="tm-hr" data-open="player:' + esc(r.p.Code) + '">' + UI.face(r.p, 26) + '<span class="tm-hn"><b class="ell">' + esc(r.p.Player) + '</b><span class="sub n">' + UI.minus(f1(r.l3)) + ' a game</span></span><span class="tm-hd n ' + (up ? 'win-c' : 'loss-c') + '">' + sgn(r.d) + '</span></button>').join('')
       : '<span class="sub tm-hnone">Nobody' + (up ? ' above' : ' below') + ' his usual</span>') + '</div>';
   return UI.sh('Squad health')
     + '<div class="card tm-health">' + avail + (H ? '<div class="tm-hcols">' + col(H.up, 1) + col(H.dn, 0) + '</div>' : '<p class="sub tm-hnone pad">Form trends show once two gameweeks are played.</p>') + '</div>';
@@ -42,16 +43,16 @@ function healthBlock(team) {
 
 function sqRow(p, bench) {
   const o = dynOvr(p), fd = formDelta(p), a = ppg(p), m = seasonMins(p);
-  const st = UI.statusChip(p);
+  const st = availChip(p);
   return '<div class="row tap tm-sr" data-open="player:' + esc(p.Code) + '" role="button" tabindex="0">'
-    + UI.face(p, 40, p.Status === 'd' ? { ring: 'var(--doubt)' } : flaggedOut(p) ? { ring: 'var(--loss)' } : {})
+    + UI.face(p, 40, availRing(p))
     + '<div class="tm-sm"><div class="tm-sn"><b class="ell">' + esc(p.Player) + '</b>' + st + (bench ? '<span class="chip mute">BENCH</span>' : '') + '</div>'
     + '<span class="sub">' + POSN[p.Pos] + ' · ' + esc(p.Club) + ' · <span class="n">' + m + '</span> min</span>'
     + '<div class="tm-sc">' + chips(p, 5, 1) + '</div></div>'
     /* two numbers, each labelled (11 Oct 2026: the rating and the points sat side by side in the same big type): the
-       rating small in its box, OVR always under it with the form arrow; the points big, marked pts */
-    + '<div class="tm-ovr"><b class="n">' + o + '</b><span class="k">OVR' + (fd ? ' <i class="' + (fd > 0 ? 'win-c' : 'loss-c') + '">' + (fd > 0 ? '▲' : '▼') + Math.abs(fd) + '</i>' : '') + '</span></div>'
-    + '<div class="tm-spt"><b class="n">' + seasonPts(p) + '<small>pts</small></b>' + (a ? '<span class="sub"><span class="n">' + f1(a) + '</span> a game</span>' : '<span class="sub">no games</span>') + '</div>'
+       rating small in its box, the word Rating always under it with the form arrow; the points big, marked pts */
+    + '<div class="tm-ovr"><b class="n">' + o + '</b><span class="k">Rating' + (fd ? ' <i class="' + (fd > 0 ? 'win-c' : 'loss-c') + '">' + (fd > 0 ? '▲' : '▼') + Math.abs(fd) + '</i>' : '') + '</span></div>'
+    + '<div class="tm-spt"><b class="n">' + UI.minus(seasonPts(p)) + '<small>pts</small></b>' + (a ? '<span class="sub"><span class="n">' + UI.minus(f1(a)) + '</span> a game</span>' : '<span class="sub">no games</span>') + '</div>'
     + '</div>';
 }
 
@@ -62,7 +63,7 @@ export function squadPage(team) {
   const all = xi.concat(bench);
   const S = SORT.squad;
   const seg = '<div class="tm-ctl"><span class="sub">Sort</span><span class="seg" role="tablist" aria-label="Sort the squad">'
-    + [['lineup', 'Lineup'], ['pts', 'Points'], ['form', 'Last 5'], ['ovr', 'OVR']].map(([k, l]) => '<button data-ssort="' + k + '" role="tab" aria-selected="' + (S === k) + '"' + (S === k ? ' class="on"' : '') + '>' + l + '</button>').join('') + '</span></div>';
+    + [['lineup', 'Lineup'], ['pts', 'Points'], ['form', 'Last 5'], ['ovr', 'Rating']].map(([k, l]) => '<button data-ssort="' + k + '" role="tab" aria-selected="' + (S === k) + '"' + (S === k ? ' class="on"' : '') + '>' + l + '</button>').join('') + '</span></div>';
   let rows;
   if (S === 'lineup') {
     const order = { GKP: 0, DEF: 1, MID: 2, FWD: 3 };
@@ -76,6 +77,6 @@ export function squadPage(team) {
   }
   const n = all.length;
   return healthBlock(team)
-    + UI.sh('Squad', { aside: words(n).replace(/^./, c => c.toUpperCase()) + ' players' })
+    + UI.sh('Squad', { aside: words(n).replace(/^./, c => c.toUpperCase()) + ' players ' + UI.legendTap('rating', 'Rating', 'ln') })
     + seg + rows;
 }

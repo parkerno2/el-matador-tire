@@ -1,4 +1,4 @@
-/* feed/player.js — plays the Gameweek Show: the real narrated clips in show/gwN/, in order, with their captions. */
+/* feed/player.js - plays the Gameweek Show: the real narrated clips in show/gwN/, in order, with their captions. */
 import { shows, mmss } from './facts.js';
 import { esc } from './util.js';
 import { stripTags } from './showsync.js';

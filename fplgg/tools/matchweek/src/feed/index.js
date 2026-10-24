@@ -1,7 +1,8 @@
-/* feed/index.js — the Feed contract (BRIEF §3). Other pages import from here:
+/* feed/index.js - the Feed contract (BRIEF §3). Other pages import from here:
    buildPosts() · renderPost(post,{compact}) · postsFor(team) · jiveTodo(team) · jiveCall(team) · unread()
    plus rail(posts) for a ready-made horizontal rail of compact posts. */
 import * as UI from '../ui.js';
+import { availOf } from '../pages/avail.js';
 import { build, jivePosts, callPost, callKey, theShort } from './build.js';
 import { presser } from './claims.js';
 import { toggleReact, vote, sayQuote, quoteOf, me as signedIn, rumours, startRumour, passRumour } from './social.js';
@@ -53,14 +54,15 @@ export function jiveTodo(team) {
   /* the waiver deadline: time-bound, so it leads. Absolute times only (the Jive thread's unread mark hashes this text) */
   if (onWaivers) out.push({ html: '<b>Waivers close ' + esc(UI.soonWhen(W.wv)) + '.</b> Claims go in on FPL Draft' + (W.pick ? ', and you’re ' + ord(W.pick) + ' in the order' : '') + '. After the run, free agents are instant pickups until the deadline.', faces: [], action: { label: 'Transfers', href: '#/team/transfers' }, kind: 'waivers' });
   if (F.xi.length) {
-    const d = F.xi.filter(p => p.Status === 'd'), same = d.length === F.xi.length && d.every(p => chanceOf(p) === chanceOf(d[0]));
+    /* one reading of availability (pages/avail.js): the "same chance" line only when every flagged starter is a doubt with a stated chance */
+    const d = F.xi.filter(p => availOf(p).state === 'doubt'), same = d.length === F.xi.length && d.every(p => availOf(p).chance !== null && availOf(p).chance === availOf(d[0]).chance);
     const nm = F.xi.slice(0, 3).map(p => esc(p.Player));
     const html = same
-      ? '<b>' + list(nm) + (F.xi.length > 3 ? ' and ' + (F.xi.length - 3) + ' more' : '') + '</b> ' + (F.xi.length === 1 ? 'is ' : 'are ') + chanceOf(d[0]) + '%, and ' + (F.xi.length === 1 ? 'starts.' : F.xi.length === 2 ? 'both start.' : 'all ' + words(F.xi.length) + ' start.')
-      : '<b>' + words(F.xi.length).replace(/^./, c => c.toUpperCase()) + ' ' + (F.xi.length === 1 ? 'starter carries' : 'starters carry') + ' a flag:</b> ' + F.xi.slice(0, 3).map(p => esc(p.Player) + ' ' + esc(statusWord(p))).join(', ') + '.';
+      ? '<b>' + list(nm) + (F.xi.length > 3 ? ' and ' + (F.xi.length - 3) + ' more' : '') + '</b> ' + (F.xi.length === 1 ? 'is ' : 'are ') + availOf(d[0]).chance + '%, and ' + (F.xi.length === 1 ? 'starts.' : F.xi.length === 2 ? 'both start.' : 'all ' + words(F.xi.length) + ' start.')
+      : '<b>' + words(F.xi.length).replace(/^./, c => c.toUpperCase()) + ' ' + (F.xi.length === 1 ? 'starter carries' : 'starters carry') + ' a flag:</b> ' + F.xi.slice(0, 3).map(p => esc(p.Player) + ' ' + esc(availOf(p).text)).join(', ') + '.';
     out.push({ html, faces: F.xi.slice(0, 3).map(p => String(p.Code)), action: { label: 'Lineup', href: '#/team/lineup' }, kind: 'xi' });
   }
-  const hurt = F.bench.filter(p => 'isu'.includes(p.Status));
+  const hurt = F.bench.filter(p => availOf(p).state === 'out');
   if (hurt.length) {
     const p = hurt[0];
     out.push({ html: '<b>' + esc(p.Player) + ' is ' + (p.Status === 's' ? 'suspended' : p.Status === 'u' ? 'unavailable' : 'out') + '</b>' + esc(outWhy(p)) + '.' + (hurt.length > 1 ? ' So ' + (hurt.length > 2 ? 'are ' : 'is ') + esc(list(hurt.slice(1).map(x => x.Player))) + '.' : '') + (hurt.length > 1 ? ' They’re on your bench.' : ' He’s on your bench.'), faces: hurt.slice(0, 2).map(x => String(x.Code)), action: { label: 'Transfers', href: '#/team/transfers' }, kind: 'bench' });

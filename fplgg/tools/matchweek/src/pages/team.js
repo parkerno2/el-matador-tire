@@ -51,7 +51,7 @@ function bind(root) {
       ch.querySelectorAll('.tm-xc').forEach(x => x.classList.toggle('on', x === b));
       const a = +b.getAttribute('data-a'), x = +b.getAttribute('data-x'), d = Math.round((a - x) * 10) / 10;
       const rd = ch.querySelector('.tm-xread');
-      if (rd) rd.innerHTML = '<b>GW' + SEL.gw + (b.classList.contains('live') ? ' (live)' : '') + '</b> <span class="n">' + a + '</span> scored, <span class="n">' + x.toFixed(1) + '</span> expected, <span class="' + (d >= 0 ? 'win-c' : 'loss-c') + ' n">' + (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toFixed(1) + '</span>';
+      if (rd) rd.innerHTML = '<b>GW' + SEL.gw + (b.classList.contains('live') ? ' (live)' : '') + '</b> <span class="n">' + a + '</span> scored, <span class="n">' + x.toFixed(1) + '</span> xP, <span class="' + (d >= 0 ? 'win-c' : 'loss-c') + ' n">' + (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toFixed(1) + '</span>';
     }
   });
   root.addEventListener('input', e => {

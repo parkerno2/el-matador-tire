@@ -1,4 +1,4 @@
-/* feed/social.js — the shared social log (Apps Script v3.8, Social tab): press-conference quotes, reactions, poll votes.
+/* feed/social.js - the shared social log (Apps Script v3.8, Social tab): press-conference quotes, reactions, poll votes.
    Every phone reads the same rows (D.social), so everyone sees the same quotes, counts and votes.
    Writes need a signed-in manager (emt-auth); they show at once on this phone and land for everyone on the next read. */
 import * as UI from '../ui.js';

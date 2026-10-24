@@ -177,5 +177,20 @@ check('C19 the audit lets a scroll settle (a sticky bar through an observer and 
 check('C17 the voice name in a post header is never cut against the voice\'s chip: the chips wrap under it', /\.fp-who b\{display:flex;align-items:center;flex-wrap:wrap;gap:2px 6px;/.test(FEED));
 check('C10 the README says how to run the audit locally', /NODE_PATH=\/opt\/node22\/lib\/node_modules node fplgg\/tools\/contrast\/audit\.js/.test(fs.readFileSync(__dirname + '/../fplgg/tools/contrast/README.md', 'utf8')));
 
+console.log('--- U screens the headless audit does not open');
+{
+  /* the manager sheet of a team whose next match does not involve you: its score and win chances are coloured by sides(), and
+     the audit only opens the followed team's sheet. Every colour sides() can give a number reads 7:1 on the card */
+  const MS = fs.readFileSync(MW + 'src/sheets/manager.js', 'utf8');
+  const m = /function sides\(team, opp\) \{([^\n]*)\}/.exec(MS);
+  const used = m ? [...new Set((m[1].match(/var\(--([a-z0-9-]+)\)/g) || []).map(v => v.slice(6, -1)))] : [];
+  check('U1 manager.js sides() names its colours as tokens', used.length >= 3, JSON.stringify(used));
+  used.forEach(k => check('U1 --' + k + ' (a side of the next match on a manager sheet: its score and win chance) reads 7:1 on --card', T[k] && ratio(k, 'card') >= 7, T[k] + ' ' + (T[k] ? r1(ratio(k, 'card')) : '') + ':1'));
+  /* My team > Overview, the line under the win bar: the draw figure is a number (.sub .n reads --num2), as the Proj final figures beside it are */
+  const OV = fs.readFileSync(MW + 'src/pages/team/overview.js', 'utf8');
+  check('U2 My team overview: the draw chance under the win bar is drawn as a number (class n), not label text', /' · draw <span class="n">' \+ dr \+ '<\/span>'/.test(OV));
+  check('U2 and a number in a quiet label reads --num2, 7:1 on --card', /\.sub \.n[^{]*\{color:var\(--num2\)\}/.test(TOK) && ratio('num2', 'card') >= 7, r1(ratio('num2', 'card')) + ':1');
+}
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASS');
 process.exit(fails ? 1 : 0);

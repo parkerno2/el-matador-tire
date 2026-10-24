@@ -6,17 +6,29 @@ import { buildPosts, renderPost, shows, showPending, mmss } from '../../feed/ind
 import { pic } from '../../feed/voices.js';
 import { showSlot, showNoteHTML } from '../../feed/showsync.js';
 import { artLeads, railOrder } from '../../feed/curate.js';
+import { byes, byeRow, byeCard } from '../byes.js';
+import { availSummary } from '../avail.js';
 
 const esc = UI.esc;
 
 /* ---------- shared bits (also used by All matchups) ---------- */
 export function stateTag(m) {
+  if (m.ph === 'live' && m.st === 'bonus') return '<span class="md-tag">PROVISIONAL</span>';
+  if (m.ph === 'live' && m.st === 'settled') return '<span class="md-tag">FULL TIME</span>';
   if (m.ph === 'live') return '<span class="live-dot"><i></i>LIVE</span>';
   if (m.ph === 'prov') return '<span class="md-tag">PROVISIONAL</span>';
   if (m.ph === 'ft') return '<span class="md-tag">FULL TIME</span>';
   if (m.ph === 'locked') return '<span class="md-tag">' + UI.icon('lock', 11, 'currentColor', 2.4) + 'LOCKED</span>';
-  return '<span class="md-tag">PREDICTED</span>';
+  /* before the deadline: the deadline's time, never LIVE or a forecast word */
+  const dl = M.deadline();
+  return dl ? '<span class="md-tag">DEADLINE ' + esc(M.tTime(dl)) + '</span>' : '';
 }
+/* "Bonus provisional" beside the score, only when nothing can change but bonus (M.settleState decides, once) */
+export const bonusNote = m => m.st === 'bonus' ? '<span class="md-bnote">Bonus provisional</span>' : '';
+/* a win chance as text: nothing for a side with no chance to show (a settled draw) */
+export const pctText = v => v === null || v === undefined ? '' : v + '%';
+/* the label that kicks the forecast numbers, with its legend tap */
+const projKick = () => UI.legendTap('proj', 'Proj final', 'ln');
 /* the two numbers in the middle: the score, or the prediction before anyone kicks off */
 export function nums(m) {
   if (m.ph === 'pre' || m.ph === 'locked') {
@@ -26,16 +38,16 @@ export function nums(m) {
   return { l: String(m.sl), r: String(m.sr), dec: false };
 }
 /* the two numbers as markup; "v" when there is nothing to predict with */
-export const pairHTML = (n, loL, loR) => n.vs ? '<span class="md-v">v</span>' : '<span' + (loL ? ' class="lo"' : '') + '>' + n.l + '</span><i>–</i><span' + (loR ? ' class="lo"' : '') + '>' + n.r + '</span>';
+export const pairHTML = (n, loL, loR) => n.vs ? '<span class="md-v">v</span>' : UI.score(n.l, n.r, { cls: 'flush', aCls: loL ? 'lo' : '', bCls: loR ? 'lo' : '' });
 /* win chance bar coloured by role: you blue v grey; a game without you reads light grey v dark grey */
 export function winBar(m, thin) {
   if (!m.win) return '';
   const [cl, cr] = UI.pairCols(m.L, m.R);
-  return UI.wbar(m.win.l / 100, m.win.d / 100, m.win.r / 100, cl, cr, thin);
+  return UI.wbar((m.win.l || 0) / 100, (m.win.d || 0) / 100, (m.win.r || 0) / 100, cl, cr, thin);
 }
-export const seriesText = s => s ? s.replace(/ leads /, ' leads the series ') : '';
+export const seriesText = s => s || '';
 /* the series line as HTML, the record kept on one line */
-export const seriesHTML = s => UI.esc(seriesText(s)).replace(/(\d+–\d+(?: \(\d+ drawn\))?)$/, '<span class="md-nw">$1</span>');
+export const seriesHTML = s => UI.esc(seriesText(s)).replace(/^(Series (?:level )?\d+-\d+(?: \(\d+ drawn\))?)/, '<span class="md-nw">$1</span>');
 const youCls = m => (m.mine ? ' md-mine' : '');
 
 /* a record, always labelled */
@@ -45,7 +57,7 @@ export const nameHTML = t => '<span class="md-fn">' + esc(t) + '</span><span cla
 /* result wording at full time */
 export function resultLine(m) {
   const d = m.sl - m.sr;
-  if (!d) return 'Honours even, ' + m.sl + '–' + m.sr;
+  if (!d) return 'Honours even, ' + UI.score(m.sl, m.sr);
   const w = d > 0 ? m.L : m.R, by = Math.abs(d);
   if (m.me === w) return 'You win by ' + by;
   if (m.mine) return FIRSTOF(w) + ' wins by ' + by;
@@ -59,19 +71,23 @@ function teamCol(m, t, side) {
 }
 function scoreCol(m) {
   const n = nums(m);
-  const kick = m.ph === 'locked' ? 'Proj final' : '';
+  const kick = m.ph === 'locked' || m.ph === 'pre' ? projKick() : '';
   return '<div class="md-sc">' + (kick ? '<span class="md-kick">' + kick + '</span>' : '')
     + '<div class="n md-big' + (n.dec ? ' dec' : '') + '">' + pairHTML(n, m.final && m.sl < m.sr, m.final && m.sr < m.sl) + '</div>'
+    + bonusNote(m)
     + (m.series ? '<div class="sub md-ser">' + seriesHTML(m.series) + '</div>' : '') + '</div>';
 }
+/* the three chances; a settled result shows 100 and 0 and no draw, a settled draw shows 100% draw alone */
 function winBlock(m) {
-  if (!m.win) return '';
+  const w = m.win;
+  if (!w) return '';
   const pl = M.projLine(m);
-  const showProj = pl && m.ph === 'live';
+  const showProj = pl && m.ph === 'live' && !w.settled;
+  const dr = M.drawText(w);
   return '<div class="md-win">'
-    + '<div class="md-wl"><b class="n you">' + m.win.l + '%</b><span>win chance</span><span class="md-dr">draw ' + m.win.d + '%</span><b class="n opp">' + m.win.r + '%</b></div>'
+    + '<div class="md-wl"><b class="n you">' + pctText(w.l) + '</b>' + (w.drawn ? '' : UI.legendTap('odds', 'win chance', 'ln')) + (dr ? '<span class="md-dr">draw ' + dr + '</span>' : '') + '<b class="n opp">' + pctText(w.r) + '</b></div>'
     + winBar(m)
-    + (showProj ? '<div class="md-pj"><span>Projected <b class="n">' + M.f1(pl.l) + '</b></span><span>Projected <b class="n">' + M.f1(pl.r) + '</b></span></div>' : '')
+    + (showProj ? '<div class="md-prj"><span>' + UI.legendTap('proj', 'Proj final', 'ln') + ' <b class="n">' + M.f1(pl.l) + '</b></span><span>' + UI.legendTap('proj', 'Proj final', 'ln') + ' <b class="n">' + M.f1(pl.r) + '</b></span></div>' : '')
     + '</div>';
 }
 function toPlayBlock(m) {
@@ -86,25 +102,27 @@ function starOf(T) {
   const s = T.players.filter(x => x.started && x.st !== 'pre').sort((a, b) => b.pts - a.pts || b.mins - a.mins)[0];
   if (!s) return '<div class="md-star none"><span class="sub">Nobody has kicked off</span></div>';
   const st = M.statusLine(s), b = M.bubble(s);
-  return '<div class="md-star" data-open="player:' + esc(s.code) + '">' + UI.face(s.p, 30) + '<div class="ell"><b>' + esc(s.p.Player) + '</b><span class="sub">' + esc(SHORTOF[s.team] || s.team) + ' · <span class="' + (st.live ? 'live-c' : '') + '">' + esc(st.t) + '</span></span></div><span class="pb ' + b.cls + '">' + b.txt + '</span></div>';
+  return '<div class="md-star" data-open="player:' + esc(s.code) + '">' + UI.face(s.p, 30) + '<div class="ell"><b>' + esc(s.p.Player) + '</b><span class="sub">' + esc(SHORTOF[s.team] || s.team) + ' · <span class="' + (st.live ? 'live-c' : '') + '">' + esc(st.t) + '</span></span></div><span class="pb ' + b.cls + '">' + UI.minus(b.txt) + '</span></div>';
 }
 function previewBlock(m) {
   const rows = [];
   const dl = M.deadline();
-  if (m.ph === 'pre' && dl) rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('lock', 15, 'var(--p300)') + '</span><div><b>Deadline ' + esc(M.tFull(dl)) + '</b><span class="sub" data-md-until="' + dl.getTime() + '">' + (dl > new Date() ? 'in ' + M.until(dl) : 'passed') + '</span></div></div>');
-  if (m.ph === 'locked') { const k = M.firstKo(); if (k) rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('lock', 15, 'var(--p300)') + '</span><div><b>Lineups locked</b><span class="sub">First kick-off ' + esc(M.tKo(k)) + ' · <span data-md-until="' + k.getTime() + '">in ' + M.until(k) + '</span></span></div></div>'); }
-  /* the first of your players to kick off (both sides' first if you aren't in it) */
-  const firstUp = T => T.players.filter(x => !x.started && x.ko).sort((a, b) => a.ko - b.ko)[0];
-  const f = firstUp(m.tl);
-  if (f) rows.push('<div class="md-pv" data-open="player:' + esc(f.code) + '">' + UI.face(f.p, 30) + '<div><b>' + (m.mine ? 'Your first up: ' : esc(SHORTOF[m.L] || m.L) + ' first up: ') + esc(f.p.Player) + '</b><span class="sub">' + esc(M.fxLabel(f.fx)) + ' · ' + esc(M.tKo(f.ko)) + '</span></div></div>');
-  /* doubts in the XI */
-  const doubts = m.tl.players.filter(x => x.doubt || x.out);
+  if (m.ph === 'pre' && dl) rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('lock', 15, 'var(--p300)') + '</span><div><b>Deadline ' + esc(M.tFull(dl)) + '</b><span class="sub">' + M.countdown(dl, 'passed') + '</span></div></div>');
+  if (m.ph === 'locked') { const k = M.firstKo(); if (k) rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('lock', 15, 'var(--p300)') + '</span><div><b>Lineups locked</b><span class="sub">First kick-off ' + esc(M.tKo(k)) + ' · ' + M.countdown(k, 'under way') + '</span></div></div>'); }
+  /* the first of the member's players to kick off (M.firstUp: a game still to come, none for a club with no game left, never a starter counted out) */
+  const u = M.firstUp(m.tl.players);
+  if (u) rows.push('<div class="md-pv" data-open="player:' + esc(u.x.code) + '">' + UI.face(u.x.p, 30) + '<div><b>' + (m.mine ? 'Your first up: ' : esc(SHORTOF[m.L] || m.L) + ' first up: ') + esc(u.x.p.Player) + '</b><span class="sub">' + esc(M.fxLabel(u.f)) + ' · ' + esc(M.tKo(u.ko)) + '</span></div></div>');
+  /* doubts in the XI: availSummary is the one reading of the flags, the same one My team's Lineup draws */
+  const A = availSummary(m.tl.xi), flagged = A.flagged;
+  /* the split the Lineup bar draws: doubts (still in with a chance) and outs, never one count for both */
+  const split = S => [S.doubts.length ? (S.doubts.length === 1 ? 'One doubt' : S.doubts.length + ' doubts') : '', S.outs.length ? S.outs.length + ' out' : ''].filter(Boolean);
   if (m.mine) {
-    if (doubts.length) rows.push('<div class="md-pv">' + UI.stack(doubts.map(x => x.p), 30, 3) + '<div><b>' + (doubts.length === 1 ? 'One doubt' : doubts.length + ' doubts') + ' in your XI</b><span class="sub">' + doubts.map(x => esc(x.p.Player) + ' ' + (x.out ? 'out' : x.chance + '%')).join(', ') + '</span></div></div>');
+    if (flagged.length) rows.push('<div class="md-pv">' + UI.stack(flagged.map(r => r.p), 30, 3) + '<div><b>' + split(A).join(', ') + ' in your XI</b><span class="sub">' + flagged.map(r => esc(r.p.Player) + ' ' + esc(r.a.text)).join(', ') + '</span></div></div>');
     else rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('team', 15, 'var(--p300)') + '</span><div><b>No doubts in your XI</b><span class="sub">Every starter is fit to play</span></div></div>');
   } else {
-    const d2 = m.tr.players.filter(x => x.doubt || x.out);
-    if (doubts.length + d2.length) rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('info', 15, 'var(--doubt)') + '</span><div><b>Doubts</b><span class="sub">' + esc(SHORTOF[m.L] || m.L) + ' ' + doubts.length + ' · ' + esc(SHORTOF[m.R] || m.R) + ' ' + d2.length + '</span></div></div>');
+    const B = availSummary(m.tr.xi), d2 = B.flagged;
+    const side = S => S.flagged.length ? split(S).join(', ').replace('One doubt', '1 doubt') : '0';
+    if (flagged.length + d2.length) rows.push('<div class="md-pv"><span class="md-pi">' + UI.icon('info', 15, 'var(--doubt)') + '</span><div><b>Doubts</b><span class="sub">' + esc(SHORTOF[m.L] || m.L) + ' ' + side(A) + ' · ' + esc(SHORTOF[m.R] || m.R) + ' ' + side(B) + '</span></div></div>');
   }
   return rows.length ? '<div class="md-pvs">' + rows.join('') + '</div>' : '';
 }
@@ -114,7 +132,7 @@ function lastResult(m) {
   if (!f) return '';
   const h = f.Home === m.me, me = num(h ? f['Home pts'] : f['Away pts']), op = num(h ? f['Away pts'] : f['Home pts']), opp = h ? f.Away : f.Home;
   const r = me > op ? 'w' : me < op ? 'l' : 'd';
-  return '<div class="md-last"><span class="fm ' + r + '">' + r.toUpperCase() + '</span><span>GW' + D.gwsDone + ': ' + (r === 'w' ? 'beat ' : r === 'l' ? 'lost to ' : 'drew with ') + esc(opp) + ' <b class="n">' + me + '–' + op + '</b></span></div>';
+  return '<div class="md-last"><span class="fm ' + r + '">' + r.toUpperCase() + '</span><span>GW' + D.gwsDone + ': ' + (r === 'w' ? 'beat ' : r === 'l' ? 'lost to ' : 'drew with ') + esc(opp) + ' <b class="n">' + UI.score(me, op) + '</b></span></div>';
 }
 function subsNote(m) {
   const T = m.mine ? m.tl : null; if (!T) return '';
@@ -125,7 +143,7 @@ function subsNote(m) {
 function finalBlock(m) {
   const pl = M.projLine(m);
   return '<div class="md-res"><b>' + resultLine(m) + '</b>'
-    + (pl ? '<span class="sub">xP <b class="n">' + M.f1(pl.l) + '</b> – <b class="n">' + M.f1(pl.r) + '</b> · what the performances deserved</span>' : '')
+    + (pl ? '<span class="sub">xP <b class="n">' + UI.score(M.f1(pl.l), M.f1(pl.r)) + '</b> · what the performances deserved</span>' : '')
     + (m.ph === 'prov' ? '<span class="sub">Provisional.' + (Object.keys(D.pbonus || {}).length ? ' Bonus is estimated from live BPS.' : '') + '</span>' : '')
     + '</div>';
 }
@@ -135,8 +153,10 @@ export function hero(m, featured) {
   let body = '';
   if (m.ph === 'pre' || m.ph === 'locked') body = winBlock(m) + previewBlock(m) + lastResult(m);
   else if (m.ph === 'live') body = winBlock(m) + toPlayBlock(m) + '<div class="md-stars">' + starOf(m.tl) + starOf(m.tr) + '</div>' + subsNote(m);
-  else body = finalBlock(m) + '<div class="md-stars">' + starOf(m.tl) + starOf(m.tr) + '</div>';
-  return '<div class="card hero md-hero' + youCls(m) + '" data-go="' + href + '" role="link" tabindex="0" aria-label="' + esc(L + ' v ' + R) + ', open the matchup">'
+  else body = winBlock(m) + finalBlock(m) + '<div class="md-stars">' + starOf(m.tl) + starOf(m.tr) + '</div>';
+  /* the card is one tap to the matchup through its stretched link; the legend taps, the players and the buttons sit beside
+     that link, never inside it (F47) */
+  return '<div class="card hero md-hero tap-host' + youCls(m) + '"><a class="tap-cover" href="' + href + '" aria-label="' + esc(L + ' v ' + R) + ', open the matchup"></a>'
     + UI.glow(L, 'left', .5, 230) + UI.glow(R, 'right', .32, 230)
     + '<div class="md-hin">'
     + '<div class="md-hk"><span class="wide">' + kicker + '</span>' + stateTag(m) + '</div>'
@@ -155,15 +175,14 @@ export function mrow(m) {
   return '<a class="md-mr' + youCls(m) + '" href="' + href + '">'
     + (m.derby || m.mine ? '<div class="md-dt">' + (m.mine ? '<span class="md-you">YOU</span>' : '') + (m.derby ? '<span>' + esc(m.derby) + '</span>' : '') + '<i></i></div>' : '')
     + '<div class="md-mg">' + side(m.L) + '<div class="md-msc"><div class="md-ms n' + (n.dec ? ' dec' : '') + '">' + pairHTML(n, m.final && +n.l < +n.r, m.final && +n.r < +n.l) + '</div>'
-      + (m.ph === 'live' ? '<span class="live-dot md-msl"><i></i>LIVE</span>' : m.ph === 'prov' ? '<span class="md-msl">PROV</span>' : m.ph === 'ft' ? '<span class="md-msl">FT</span>' : '') + '</div>' + side(m.R, 1) + '</div>'
-    + (m.win ? '<div class="md-wb"><span class="n' + (m.mine ? ' you-c' : ' l') + '">' + m.win.l + '%</span>' + winBar(m, true) + '<span class="n">' + m.win.r + '%</span></div>'
-      : m.final ? '<div class="md-wb md-fin"><span>' + resultLine(m) + '</span></div>' : '')
+      + (m.ph === 'live' && m.st === 'bonus' ? '<span class="md-msl md-bnote">Bonus provisional</span>' : m.ph === 'live' && m.st === 'settled' ? '<span class="md-msl">FT</span>' : m.ph === 'live' ? '<span class="live-dot md-msl"><i></i>LIVE</span>' : m.ph === 'prov' ? (m.st === 'bonus' ? '<span class="md-msl md-bnote">Bonus provisional</span>' : '<span class="md-msl">PROV</span>') : m.ph === 'ft' ? '<span class="md-msl">FT</span>' : '') + '</div>' + side(m.R, 1) + '</div>'
+    + (m.win ? '<div class="md-wb"><span class="n' + (m.mine ? ' you-c' : ' l') + '">' + pctText(m.win.l) + '</span>' + winBar(m, true) + '<span class="n">' + pctText(m.win.r) + '</span></div>' : '')
     + '</a>';
 }
 function footState(list) {
   const ph = list.map(m => m.ph), u = ph.every(x => x === ph[0]) ? ph[0] : 'mixed';
   const bars = '';
-  const st = { pre: 'Predicted until the deadline', live: '', locked: '', prov: 'Provisional until FPL confirms', ft: '', mixed: '' }[u];
+  const st = { pre: UI.legendTap('proj', 'Proj final', 'ln') + ' until the deadline', live: '', locked: '', prov: 'Provisional until FPL confirms', ft: '', mixed: '' }[u];
   return [bars, st].filter(Boolean).join('. ') + (st ? '.' : '');
 }
 

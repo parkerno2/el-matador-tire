@@ -2,8 +2,10 @@
 import * as UI from '../../ui.js';
 import { jiveCall } from '../../feed/index.js';
 import { mediaHTML } from '../../feed/render.js';
-import { esc, safe, frame, f1, words, list, plateMarked, subMarks, gwFix, oppChip, curFx, chanceOf, chanceTxt, POSN, asOf, projOfTeam } from './bits.js';
+import { esc, safe, frame, f1, words, list, plateMarked, subMarks, gwFix, oppChip, curFx, POSN, asOf, projOfTeam } from './bits.js';
+import { availOf, availSummary, availChip, availRing, isOut } from '../avail.js';
 import { gwState } from './overview.js';
+import * as M from '../matchday/model.js';
 
 export const VIEW = { lineup: 'pitch' };
 try { const v = localStorage.getItem('emt-tm-lview'); if (v === 'list' || v === 'pitch') VIEW.lineup = v; } catch (e) { }
@@ -29,29 +31,33 @@ export function lineupData(team) {
   const f = curFx(team);
   const st = f ? gwState(team, f) : null;
   const fm = ['DEF', 'MID', 'FWD'].map(p => xi.filter(x => x.Pos === p).length).join('-');
-  /* doubts that still matter: flagged starters whose match hasn't begun */
-  const doubts = xi.filter(p => p.Status === 'd' && !flaggedOut(p) && !fxStarted(p.Club));
-  return { as, xi, marks, bench0, innSet, st, fm, doubts };
+  /* flags that still matter: flagged starters whose match hasn't begun (avail.js, the same reading the Matchday doubts use) */
+  const S = availSummary(xi), doubts = S.doubts.map(r => r.p), outs = S.outs.map(r => r.p), flagged = S.flagged.map(r => r.p);
+  return { as, xi, marks, bench0, innSet, st, fm, doubts, outs, flagged };
 }
 
 function toolbar(team, L) {
   let val;
   if (!L.st) val = '<span class="sub">No match</span>';
-  else if (L.st.st === 'pred') val = '<span class="sub">' + 'Projected' + ' <b class="n">' + L.st.me + '</b></span>';
-  else if (L.st.st === 'live') val = '<span class="sub"><span class="live-c">Live</span> <b class="n">' + L.st.me + '</b> · proj <b class="n sm">' + f1(projOfTeam(team)) + '</b></span>';
+  else if (L.st.st === 'pred') val = '<span class="sub">' + UI.legendTap('proj', 'Proj final', 'ln') + ' <b class="n">' + L.st.me + '</b></span>';
+  else if (L.st.st === 'live' && L.st.settle !== 'open') val = '<span class="sub">' + (L.st.settle === 'bonus' ? 'Bonus provisional' : 'Full time') + ' <b class="n">' + L.st.me + '</b></span>';
+  else if (L.st.st === 'live') val = '<span class="sub"><span class="live-c">Live</span> <b class="n">' + L.st.me + '</b> · ' + UI.legendTap('proj', 'Proj final', 'ln') + ' <b class="n sm">' + f1(projOfTeam(team)) + '</b></span>';
   else val = '<span class="sub">' + (L.st.st === 'prov' ? 'Provisional' : 'Final') + ' <b class="n">' + L.st.me + '</b></span>';
   let chip = '';
   if (L.doubts.length) {
-    const ch = [...new Set(L.doubts.map(chanceOf))];
+    const ch = [...new Set(L.doubts.map(p => availOf(p).chance))];
     chip = '<span class="chip doubt">' + L.doubts.length + (ch.length === 1 && ch[0] !== null ? ' AT ' + ch[0] + '%' : L.doubts.length > 1 ? ' DOUBTS' : ' DOUBT') + '</span>';
   }
+  if (L.outs.length) chip += '<span class="chip out">' + L.outs.length + ' OUT</span>';
   const seg = '<span class="seg" role="tablist" aria-label="View"><button data-lview="pitch" role="tab" aria-selected="' + (VIEW.lineup === 'pitch') + '"' + (VIEW.lineup === 'pitch' ? ' class="on"' : '') + '>Pitch</button><button data-lview="list" role="tab" aria-selected="' + (VIEW.lineup === 'list') + '"' + (VIEW.lineup === 'list' ? ' class="on"' : '') + '>List</button></span>';
   return '<div class="tm-bar"><span class="tm-fmn n">' + L.fm + '</span><i class="tm-vr"></i>' + val + chip + seg + '</div>';
 }
 
+/* a starter whose match is over and who played no minute, with nobody on for him: the red "!" and DID NOT PLAY, as on the Matchday matchup (M.pl, the same reading) */
+const didNotPlay = (p, L) => { const x = M.pl(p); return !!x && x.finished && !(x.mins > 0) && !L.marks[p.Code]; };
 function pitch(team, L) {
   const F = frame(team), ls = lines(L.xi), n = Math.max(3, ...ls.map(l => l.ps.length));
-  const rows = ls.map(l => '<div class="tm-prow' + (l.pos === 'GKP' ? ' gk' : '') + '">' + (l.pos === 'GKP' ? '<i class="tm-mk-a" aria-hidden="true"></i>' : '') + l.ps.map(p => plateMarked(p, 100, L.marks, true)).join('') + '</div>').join('');
+  const rows = ls.map(l => '<div class="tm-prow' + (l.pos === 'GKP' ? ' gk' : '') + '">' + (l.pos === 'GKP' ? '<i class="tm-mk-a" aria-hidden="true"></i>' : '') + l.ps.map(p => plateMarked(p, 100, L.marks, true, didNotPlay(p, L))).join('') + '</div>').join('');
   return '<div class="tm-pitch" style="--s1:' + F.s1 + ';--s2:' + F.s2 + ';--mk:' + F.mark + ';--edge:' + F.edge + ';--n:' + n + ';--gap:' + (n > 4 ? 6 : n > 3 ? 8 : 12) + 'px">'
     + '<i class="tm-mk-c" aria-hidden="true"></i><i class="tm-mk-o" aria-hidden="true"></i>'
     + '<span class="tm-pwm" aria-hidden="true">' + UI.crest(team, 200) + '</span>'
@@ -70,21 +76,22 @@ function benchSlots(L) {
 }
 function coverNote(L) {
   const bench = L.bench0.filter(p => !L.innSet.has(p.Code));
-  const dOut = L.doubts.filter(p => p.Pos !== 'GKP'), dGk = L.doubts.find(p => p.Pos === 'GKP');
+  const txt = p => availOf(p).text;
+  const dOut = L.flagged.filter(p => p.Pos !== 'GKP'), dGk = L.flagged.find(p => p.Pos === 'GKP');
   const bOut = bench.filter(p => p.Pos !== 'GKP');
-  const can = bOut.filter(p => !flaggedOut(p) && !(fxStarted(p.Club) && fxFinished(p.Club) && !num(p['GW mins'])));
-  const gone = bOut.filter(p => flaggedOut(p));
+  const can = bOut.filter(p => !isOut(p) && !(fxStarted(p.Club) && fxFinished(p.Club) && !num(p['GW mins'])));
+  const gone = bOut.filter(p => isOut(p));
   const notes = [];
   if (dOut.length && can.length < dOut.length) {
-    const ch = [...new Set(dOut.map(chanceOf))];
-    const who = can.map(p => esc(p.Player) + (p.Status === 'd' ? ' (' + chanceTxt(p) + ')' : ''));
-    const starters = dOut.length === 1 ? esc(dOut[0].Player) + ' (' + chanceTxt(dOut[0]) + ')' : 'your ' + words(dOut.length) + ' ' + (ch.length === 1 && ch[0] !== null ? ch[0] + '% ' : 'doubtful ') + 'starters';
+    const tx = [...new Set(dOut.map(txt))];
+    const who = can.map(p => esc(p.Player) + (availOf(p).state === 'doubt' ? ' (' + txt(p) + ')' : ''));
+    const starters = dOut.length === 1 ? esc(dOut[0].Player) + ' (' + txt(dOut[0]) + ')' : 'your ' + words(dOut.length) + ' ' + (tx.length === 1 && !/,/.test(tx[0]) ? tx[0] + ' ' : 'flagged ') + 'starters';
     const lead = gone.length ? '<b>' + esc(list(gone.map(p => p.Player))) + (gone.length > 1 ? ' are' : ' is') + ' out</b>, so ' : '';
     notes.push(lead + (can.length ? (lead ? 'only ' : 'Only ') + list(who) + ' can come on for ' + starters + '.' : (lead ? 'nobody' : 'Nobody') + ' on your bench can come on for ' + starters + '.'));
   }
   if (dGk) {
     const gk = bench.find(p => p.Pos === 'GKP');
-    if (!gk || flaggedOut(gk)) notes.push('<b>' + esc(dGk.Player) + ' is ' + chanceTxt(dGk) + '</b> and ' + (gk ? esc(gk.Player) + ' is out' : 'there is no keeper on your bench') + ', so no keeper can come on.');
+    if (!gk || isOut(gk)) notes.push('<b>' + esc(dGk.Player) + ' is ' + txt(dGk) + '</b> and ' + (gk ? esc(gk.Player) + ' is out' : 'there is no keeper on your bench') + ', so no keeper can come on.');
   }
   return notes.map(t => '<div class="tm-cover">' + t.replace(/^./, c => c.toUpperCase()) + '</div>').join('');
 }
@@ -109,7 +116,7 @@ function benchBlock(L, asList) {
    The crests (Parker, 8 Oct 2026) are the PL badges the Plates wear (UI.badge over the engine's badgeImg); one that fails
    to load hides itself and the short name stays, so a row never shows a broken image. */
 const CREST = 16, OPP_CREST = 14;
-function listRow(p, L, lab, off) {
+function listRow(p, L, lab, off, xi) {
   const g = gwFix(p);
   let opp = '<span class="tm-fd blank">BLANK</span>', pts;
   if (!g.blank) {
@@ -117,12 +124,12 @@ function listRow(p, L, lab, off) {
     else opp = oppChip(p.Club, g.f, { crest: OPP_CREST }) + (g.dbl ? '<span class="tm-dgw">DGW</span>' : '');
   }
   const pn = UI.plateNum(p);
-  pts = '<span class="tm-lpts n ' + pn.st + '" title="' + (pn.st === 'bk' ? 'Points' : pn.st === 'live' ? 'Live points' : 'Projected points') + '">' + pn.txt + '</span>';
+  pts = '<span class="tm-lpts n ' + pn.st + '" title="' + (pn.st === 'bk' ? 'Points' : pn.st === 'live' ? 'Live points' : 'Proj') + '">' + UI.minus(pn.txt) + '</span>';
   const mk = L.marks[p.Code] || '';
-  const tag = UI.subChip(mk) || UI.statusChip(p);   /* one chip: green SUB ON, amber LIKELY SUB, LIKELY OFF or the chance, red SUBBED OFF or OUT (Parker, 10 Oct 2026); a sub state outranks availability */
+  const tag = UI.subChip(mk) || (xi && didNotPlay(p, L) ? '<span class="chip out">DID NOT PLAY</span>' : availChip(p));   /* one chip: green SUB ON, amber LIKELY SUB, LIKELY OFF or the chance, red SUBBED OFF or OUT (the owner, 10 Oct 2026); a sub state outranks availability */
   return '<div class="row tap tm-lr' + (off ? ' off' : '') + '" data-open="player:' + esc(p.Code) + '" role="button" tabindex="0">'
     + (lab ? '<span class="tm-lslot n">' + esc(off ? 'Off' : lab) + '</span>' : '')
-    + UI.face(p, 36, p.Status === 'd' ? { ring: 'var(--doubt)' } : flaggedOut(p) ? { ring: 'var(--loss)' } : {})
+    + UI.face(p, 36, availRing(p))
     + '<span class="tm-lm"><b class="ell">' + esc(p.Player) + '</b><span class="sub tm-lmeta">' + POSN[p.Pos] + ' · ' + UI.badge(p.Club, CREST) + esc(p.Club) + tag + '</span></span>'
     + '<span class="tm-lopp">' + opp + '</span>' + pts + '</div>';
 }
@@ -133,7 +140,7 @@ export function lineupPage(team) {
   const asList = VIEW.lineup === 'list';
   const likely = !lineupsLocked() && !D.dlPassed ? '<p class="sub tm-pnote">Likely lineup until the deadline' + (UI.week().dl ? ' (' + esc(UI.dayHm(UI.week().dl)) + ')' : '') + '.</p>' : '';
   const body = asList
-    ? '<div class="card tm-list">' + L.xi.map(p => listRow(p, L)).join('') + '</div>'
+    ? '<div class="card tm-list">' + L.xi.map(p => listRow(p, L, undefined, false, true)).join('') + '</div>'
     : pitch(team, L);
   const call = safe(() => jiveCall(team), null);
   const callHtml = call ? safe(() => mediaHTML(call, false), '') : '';

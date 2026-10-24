@@ -1,4 +1,4 @@
-/* feed/article.js — the native article reader, #/feed/articles/<id>.
+/* feed/article.js - the native article reader, #/feed/articles/<id>.
    The words come from the article (written with AI in the cloud and checked before it goes out); every number in the
    score headers, star strips and chips is drawn from this app's own data at view time: the real H2H result and the XI's
    points for a recap, the projection engine's predicted score for a preview, xP, bonus, flags and the series.
@@ -12,7 +12,7 @@ import { sideAt, seriesThrough, predictedAt, projAt, flaggedIn } from './showfac
 import { body, mod, retry, KIND, commishFirst, isCommish, maxRedos, review, liveInfo } from './articles.js';
 
 const f1 = v => (Math.round(v * 10) / 10).toFixed(1);
-const DASH = '<i class="arm-d">–</i>';
+const DASH = '<i class="arm-d sc-s" aria-hidden="true"></i>';
 const EXT = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
 /* the review panel's own state: which step is open, the note being typed, busy, the last error */
 export const REV = { id: null, step: '', note: '', busy: false, err: '', focus: false, caret: 0 };
@@ -32,12 +32,12 @@ function playerOf(code, g, sides) {
   const p = UI.player(code); if (p) return { code: String(code), name: p.Player, pos: p.Pos, club: p.Club, team: p.Team || '' };
   const r = (D.gl || []).find(x => String(x.Code) === String(code)); return r ? { code: String(code), name: r.Player, pos: r.Pos, club: r.Club, team: r.Team } : null;
 }
-/* "4–3" with the leader's first name, or level */
+/* "4-3" with the leader's first name, or level */
 function seriesChip(home, away, g) {
   const r = seriesThrough(home, away, g); if (!r) return null;
-  if (!r.home && !r.away && !r.d) return { v: '0–0', who: 'First meeting' };
+  if (!r.home && !r.away && !r.d) return { v: UI.scoreText(0, 0), who: 'First meeting' };
   const lead = r.home > r.away ? home : r.away > r.home ? away : null, hi = Math.max(r.home, r.away), lo = Math.min(r.home, r.away);
-  return { v: hi + '–' + lo, who: (lead ? FIRSTOF(lead) : 'Level') + (r.d ? ' · ' + r.d + ' drawn' : '') };
+  return { v: UI.scoreText(hi, lo), who: (lead ? FIRSTOF(lead) : 'Level') + (r.d ? ' · ' + r.d + ' drawn' : '') };
 }
 
 /* ---------- pieces ---------- */
@@ -45,10 +45,10 @@ function scoreHead(m, g, rec, f) {
   const H = m.home, A = m.away;
   let l, r, tag, dec = false;
   if (rec) { l = scoreFor(f, H); r = scoreFor(f, A); tag = f && fin(f.Finished) ? 'Full time' : 'Result'; }
-  else { const a = predictedAt(H, g), b = predictedAt(A, g); l = a == null ? null : f1(a); r = b == null ? null : f1(b); tag = 'Predicted'; dec = true; }
+  else { const a = predictedAt(H, g), b = predictedAt(A, g); l = a == null ? null : f1(a); r = b == null ? null : f1(b); tag = UI.legendTap('proj', 'Proj', 'ln'); dec = true; }
   const sideHTML = (t, right) => '<div class="arm-s' + (right ? ' r' : '') + '"' + (TEAMS[t] ? ' data-open="manager:' + esc(t) + '" role="button" tabindex="0" aria-label="' + esc(t) + ', manager sheet"' : '') + '>'
     + UI.crest(t, 40) + '<b>' + esc(t) + '</b><span class="sub">' + esc(TEAMS[t] ? FIRSTOF(t) : '') + '</span></div>';
-  const big = l == null || r == null ? '<span class="arm-v n">v</span>' : '<span class="arm-big n' + (dec ? ' dec' : '') + '">' + l + DASH + r + '</span>';
+  const big = l == null || r == null ? '<span class="arm-v n">v</span>' : '<span class="arm-big n' + (dec ? ' dec' : '') + '">' + UI.score(l, r) + '</span>';
   return '<div class="arm-sb">' + (TEAMS[H] ? UI.glow(H, 'left', .42, 200) : '') + (TEAMS[A] ? UI.glow(A, 'right', .3, 200) : '')
     + '<div class="arm-sbk"><span class="wide">' + esc(m.kicker || derbyName(H, A) || 'GW' + g) + '</span><span class="arm-tag' + (rec ? '' : ' pred') + '">' + tag + '</span></div>'
     + '<div class="arm-sbv">' + sideHTML(H) + '<div class="arm-c">' + big + '</div>' + sideHTML(A, true) + '</div></div>';
@@ -58,7 +58,7 @@ function starStrip(m, g, rec, sides) {
   const p = playerOf(st.code, g, sides); if (!p) return '';
   let v = null, unit = '';
   if (rec) { v = p.pts != null ? p.pts : (((D.gwsByGw || {})[g] || {})[String(st.code)] || {}).Pts; unit = v === 1 ? 'PT' : 'PTS'; }
-  else { const e = projAt(st.code, g); v = e == null ? null : f1(e); unit = 'PROJ'; }
+  else { const e = projAt(st.code, g); v = e == null ? null : f1(e); unit = 'Proj'; }
   const meta = [p.pos, p.club, p.team && TEAMS[p.team] ? FIRSTOF(p.team) : ''].filter(Boolean).join(' · ');
   const zero = /zero/i.test(st.label || ''), limbo = /limbo/i.test(st.label || '');
   return '<button class="arm-star' + (zero ? ' zero' : limbo ? ' limbo' : '') + '" data-open="player:' + esc(p.code) + '">' + UI.face(p.code, 56, { bg: 'var(--top)' })
@@ -70,12 +70,12 @@ function chips(m, g, rec, sides, f) {
   const chip = (k, v, who) => '<div class="arm-ch"><span class="k">' + k + '</span><b class="n">' + v + '</b>' + (who ? '<span class="arm-who">' + esc(who) + '</span>' : '') + '</div>';
   if (rec) {
     const [h, a] = sides;
-    if (h && a && h.xp != null && a.xp != null) out.push(chip('xP', f1(h.xp) + DASH + f1(a.xp)));
+    if (h && a && h.xp != null && a.xp != null) out.push(chip(UI.legendTap('proj', 'xP', 'ln'), f1(h.xp) + DASH + f1(a.xp)));
     if (h && a) out.push(chip('Bonus', h.bonus + DASH + a.bonus));
     const s = seriesChip(H, A, g); if (s) out.push(chip('Series', s.v, s.who));
   } else {
     const a = predictedAt(H, g), b = predictedAt(A, g);
-    if (a != null && b != null) { const d = a - b; out.push(chip('Predicted', Math.abs(d) < .05 ? 'Level' : '+' + f1(Math.abs(d)), Math.abs(d) < .05 ? '' : FIRSTOF(d > 0 ? H : A))); }
+    if (a != null && b != null) { const d = a - b; out.push(chip(UI.legendTap('proj', 'Proj', 'ln'), Math.abs(d) < .05 ? 'Level' : '+' + f1(Math.abs(d)), Math.abs(d) < .05 ? '' : FIRSTOF(d > 0 ? H : A))); }
     if (g === D.gw && TEAMS[H] && TEAMS[A]) out.push(chip('Flags', flaggedIn(xiOf(H)).length + DASH + flaggedIn(xiOf(A)).length, 'in the XI'));
     const s = seriesChip(H, A, g - 1); if (s) out.push(chip('Series', s.v, s.who));
   }

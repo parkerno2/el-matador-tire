@@ -11,8 +11,8 @@ function timeline(ph) {
   const cf = M.gwCf(), first = cf[0], last = cf[cf.length - 1];
   const items = [];
   const st = d => !d ? 'nx' : d <= now ? 'dn' : 'nx';
-  if (dl) items.push({ s: st(dl), t: 'Deadline', d: M.tFull(dl), x: dl > now ? '<span data-md-until="' + dl.getTime() + '">in ' + M.until(dl) + '</span>. Lineups lock.' : 'Lineups locked.' });
-  if (k1) items.push({ s: ph === 'locked' ? 'nw' : st(k1), t: 'First kick-off', d: M.tFull(k1), x: esc(M.fxLabel(first)) + (ph === 'locked' ? ' · <span data-md-until="' + k1.getTime() + '">in ' + M.until(k1) + '</span>' : '') });
+  if (dl) items.push({ s: st(dl), t: 'Deadline', d: M.tFull(dl), x: dl > now ? M.countdown(dl, 'Lineups locked.', '. Lineups lock.') : 'Lineups locked.' });
+  if (k1) items.push({ s: ph === 'locked' ? 'nw' : st(k1), t: 'First kick-off', d: M.tFull(k1), x: esc(M.fxLabel(first)) + (ph === 'locked' ? ' · ' + M.countdown(k1, 'under way') : '') });
   if (ph === 'live') { const lv = cf.filter(M.liveFx).length, left = cf.filter(x => !fin(x.Started)).length; items.push({ s: 'nw', t: 'Now', d: lv ? lv + ' live' : 'Between games', x: left + ' game' + (left === 1 ? '' : 's') + ' still to kick off' }); }
   if (kN) items.push({ s: ph === 'prov' || ph === 'ft' ? 'dn' : 'nx', t: 'Last kick-off', d: M.tFull(kN), x: esc(M.fxLabel(last)) });
   items.push({ s: ph === 'ft' ? 'dn' : ph === 'prov' ? 'nw' : 'nx', t: 'Full time, confirmed', d: ph === 'ft' ? 'Done' : ph === 'prov' ? 'Waiting on FPL' : 'After the last match', x: 'FPL adds the official bonus and makes auto-subs final' });
@@ -58,12 +58,12 @@ function ifEnded(ph) {
   const after = order(Object.values(now)), me = UI.you();
   const rows = after.map((r, i) => {
     const was = before.findIndex(x => x.t === r.t), mv = was - i;
-    const move = mv > 0 ? '<span class="md-mv up">' + UI.icon('up', 11, 'currentColor', 3) + mv + '</span>' : mv < 0 ? '<span class="md-mv dn">' + UI.icon('up', 11, 'currentColor', 3) + (-mv) + '</span>' : '<span class="md-mv">–</span>';
-    return '<div class="md-tr' + (r.t === me ? ' me' : '') + '" data-open="manager:' + esc(r.t) + '" role="button" tabindex="0"><span class="n md-tp2">' + (i + 1) + '</span>' + move + UI.crest(r.t, 20) + '<span class="ell md-tn">' + nameHTML(r.t) + '</span><span class="n sub">' + r.w + '–' + r.d + '–' + r.l + '</span><span class="n md-tpf">' + r.pf + '</span><b class="n md-tlp">' + r.lp + '</b></div>';
+    const move = mv > 0 ? '<span class="md-mv up">' + UI.icon('up', 11, 'currentColor', 3) + mv + '</span>' : mv < 0 ? '<span class="md-mv dn">' + UI.icon('up', 11, 'currentColor', 3) + (-mv) + '</span>' : '<span class="md-mv">-</span>';
+    return '<div class="md-tr' + (r.t === me ? ' me' : '') + '" data-open="manager:' + esc(r.t) + '" role="button" tabindex="0"><span class="n md-tp2">' + (i + 1) + '</span>' + move + UI.crest(r.t, 20) + '<span class="ell md-tn">' + nameHTML(r.t) + '</span><span class="n sub">' + UI.rec(r.w, r.d, r.l) + '</span><span class="n md-tpf">' + r.pf + '</span><b class="n md-tlp">' + r.lp + '</b></div>';
   }).join('');
   const mine = me ? after.findIndex(r => r.t === me) : -1, was = me ? before.findIndex(r => r.t === me) : -1;
   const lead = mine >= 0 ? '<div class="md-tlead">You’d be <b>' + ORD(mine + 1) + '</b>' + (mine < was ? ', up ' + (was - mine) : mine > was ? ', down ' + (mine - was) : ', no change') + '.</div>' : '';
-  return UI.sh('If it ended now', { aside: 'live scores held' }) + '<div class="card md-tbl">' + lead + '<div class="md-th"><span>#</span><span></span><span></span><span>Team</span><span>W–D–L</span><span>PF</span><span>Pts</span></div>' + rows
+  return UI.sh('If it ended now', { aside: 'live scores held' }) + '<div class="card md-tbl">' + lead + '<div class="md-th"><span>#</span><span></span><span></span><span>Team</span><span>W-D-L</span><span>PF</span><span>Pts</span></div>' + rows
     + '</div>';
 }
 
@@ -72,7 +72,7 @@ function autoSubs_() {
   const ts = Object.keys(TEAMS).sort((a, b) => (b === me) - (a === me) || a.localeCompare(b)).map(M.team);
   const withSubs = ts.filter(T => T.subs.length), none = ts.filter(T => !T.subs.length);
   return UI.sh('Auto-subs', { aside: 'every team' })
-    + '<div class="card md-asw">' + (withSubs.length ? withSubs.map(T => '<div class="md-ast"><div class="md-asth" data-open="manager:' + esc(T.t) + '" role="button" tabindex="0">' + UI.crest(T.t, 20) + '<b>' + esc(T.t) + '</b>' + (T.t === me ? '<span class="md-you">YOU</span>' : '') + '</div>' + subLines(T, 'locked') + subLines(T, 'likely') + '</div>').join('') : '<div class="pad sub">' + (M.phase() === 'pre' ? 'None expected yet. Until the deadline, likely lineups already leave out players FPL has flagged.' : 'No auto-subs anywhere so far. Every starter has played or is still due to.') + '</div>')
+    + '<div class="card md-asw">' + (withSubs.length ? withSubs.map(T => '<div class="md-ast"><div class="md-asth" data-open="manager:' + esc(T.t) + '" role="button" tabindex="0">' + UI.crest(T.t, 20) + '<b>' + esc(T.t) + '</b>' + (T.t === me ? '<span class="md-you">YOU</span>' : '') + '</div>' + subLines(T, 'locked') + subLines(T, 'likely') + '</div>').join('') : '<div class="pad sub">' + (M.phase() === 'pre' ? 'None before the deadline. The lineups are the XIs as picked, with FPL\u2019s flags marked.' : 'No auto-subs anywhere so far. Every starter has played or is still due to.') + '</div>')
     + (none.length && withSubs.length ? '<div class="md-asn">' + none.map(T => UI.crest(T.t, 16)).join('') + '<span class="sub">No auto-subs: ' + none.map(T => esc(SHORTOF[T.t] || T.t)).join(', ') + '</span></div>' : '') + '</div>';
 }
 
@@ -82,7 +82,7 @@ function provBonus() {
   const blocks = fxs.map(x => {
     const rows = codes.map(c => (D.gwsCur || {})[c]).filter(r => r && (r.Club === x.Home || r.Club === x.Away)).map(r => ({ r, b: pb[r.Code] })).sort((a, b) => b.b - a.b || b.r.BPS - a.r.BPS);
     if (!rows.length) return '';
-    return '<div class="md-pbx"><div class="md-pbh">' + UI.badge(x.Home, 16) + '<b>' + esc(x.Home) + ' ' + num(x['Home goals']) + '–' + num(x['Away goals']) + ' ' + esc(x.Away) + '</b>' + UI.badge(x.Away, 16) + '</div>'
+    return '<div class="md-pbx"><div class="md-pbh">' + UI.badge(x.Home, 16) + '<b>' + esc(x.Home) + ' ' + UI.score(num(x['Home goals']), num(x['Away goals'])) + ' ' + esc(x.Away) + '</b>' + UI.badge(x.Away, 16) + '</div>'
       + rows.map(o => { const ro = (D.ro || []).find(p => String(p.Code) === String(o.r.Code)); const own = ro && TEAMS[ro.Team] ? ro.Team : null;
         return '<div class="md-pbr" data-open="player:' + esc(o.r.Code) + '" role="button" tabindex="0"><span class="pb lv">+' + o.b + '</span>' + UI.face(o.r.Code, 26) + '<span class="ell"><b>' + esc(o.r.Player) + '</b><span class="sub">' + esc(o.r.Club) + ' · ' + o.r.BPS + ' BPS</span></span>' + (own ? UI.crest(own, 18) + '<span class="sub">' + esc(SHORTOF[own] || own) + '</span>' : '<span class="sub">Not owned</span>') + '</div>'; }).join('') + '</div>';
   }).join('');

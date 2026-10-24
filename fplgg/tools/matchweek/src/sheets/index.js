@@ -4,5 +4,6 @@ import manager from './manager.js';
 import identity from './identity.js';
 import search from './search.js';
 import menu from './menu.js';
+import legend from './legend.js';
 import post from '../feed/post-sheet.js';
-export const SHEETS = { player, manager, identity, search, menu, post };
+export const SHEETS = { player, manager, identity, search, menu, legend, post };

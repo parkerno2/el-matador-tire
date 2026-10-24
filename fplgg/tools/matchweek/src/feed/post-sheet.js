@@ -1,10 +1,11 @@
-/* feed/post-sheet.js — a post opened large, with the facts it was built from and where to go next. data-open="post:<id>" */
+/* feed/post-sheet.js - a post opened large, with the facts it was built from and where to go next. data-open="post:<id>" */
 import * as UI from '../ui.js';
 import { allArticles } from './articles.js';
 import { postById, renderPost, restoreCarousels, stopSpeaking } from './index.js';
 import { VOICES } from './voices.js';
 import { shows, mmss } from './facts.js';
 import { esc, short, firstOf } from './util.js';
+import { availChip } from '../pages/avail.js';
 import { REACTS, reactions } from './social.js';
 
 /* the show opened from the feed: watch it all, or jump straight to one matchup */
@@ -28,7 +29,7 @@ export default {
     const teams = (p.teams || []).filter(t => TEAMS[t]).slice(0, 8);
     let extra = '';
     if (p.kind === 'show') extra = showPlayer(p.media.gw);
-    const nb = t => String(t).replace(/(\d+(?:\.\d+)?%?)–(\d+(?:\.\d+)?%?)/g, '<span class="nw">$1–$2</span>');
+    const nb = t => String(t).replace(/(\d+(?:\.\d+)?%?)-(\d+(?:\.\d+)?%?)/g, '<span class="nw">$1-$2</span>');
     const rows = (p.detail || []).map(d => '<div class="ps-r"><span>' + d.k + '</span><b>' + nb(d.v) + '</b></div>').join('');
     const links = (p.links || []).map(l => l.open ? '<button class="row tap ps-l" data-open="' + esc(l.open) + '"><b>' + esc(l.label) + '</b>' + UI.icon('chev', 16, 'var(--tx3)') + '</button>' : '<a class="row tap ps-l" href="' + esc(l.href) + '"><b>' + esc(l.label) + '</b>' + UI.icon('chev', 16, 'var(--tx3)') + '</a>').join('');
     return '<div class="ps">'
@@ -36,7 +37,7 @@ export default {
       + extra
       + (p.article && p.article.length ? UI.sh('The story') + '<div class="card ps-art">' + p.article.map(t => '<p>' + t + '</p>').join('') + '</div>' : '')
       + (rows ? UI.sh('The numbers behind it') + '<div class="card ps-facts">' + rows + (p.facts ? '<div class="foot">Source: ' + esc(p.facts) + '</div>' : '') + '</div>' : '')
-      + (players.length ? UI.sh(players.length === 1 ? 'The player' : 'The players') + '<div class="card">' + players.slice(0, 8).map(q => '<button class="row tap ps-p" data-open="player:' + esc(q.Code) + '">' + UI.face(q, 36) + '<span class="ps-pt"><b>' + esc(q.Player) + '</b><span>' + esc(q.Club) + ' · ' + esc(q.Pos) + (q.Team ? ' · ' + esc(q.Team) : q.Owner && q.Owner !== 'FREE' ? ' · ' + esc(q.Owner) : ' · free agent') + '</span></span>' + UI.statusChip(q) + UI.icon('chev', 16, 'var(--tx4)') + '</button>').join('') + '</div>' : '')
+      + (players.length ? UI.sh(players.length === 1 ? 'The player' : 'The players') + '<div class="card">' + players.slice(0, 8).map(q => '<button class="row tap ps-p" data-open="player:' + esc(q.Code) + '">' + UI.face(q, 36) + '<span class="ps-pt"><b>' + esc(q.Player) + '</b><span>' + esc(q.Club) + ' · ' + esc(q.Pos) + (q.Team ? ' · ' + esc(q.Team) : q.Owner && q.Owner !== 'FREE' ? ' · ' + esc(q.Owner) : ' · free agent') + '</span></span>' + availChip(q) + UI.icon('chev', 16, 'var(--tx4)') + '</button>').join('') + '</div>' : '')
       + (teams.length && teams.length <= 4 ? UI.sh(teams.length === 1 ? 'The club' : 'The clubs') + '<div class="card">' + teams.map(t => '<button class="row tap ps-p" data-open="manager:' + esc(t) + '">' + UI.crest(t, 32) + '<span class="ps-pt"><b>' + esc(t) + '</b><span>' + esc(TEAMS[t].mgr) + '</span></span>' + UI.icon('chev', 16, 'var(--tx4)') + '</button>').join('') + '</div>' : '')
       + (() => { const R = reactions(p.id); if (!R.total) return ''; return UI.sh('Reactions', { aside: R.total + (R.total === 1 ? ' reaction' : ' reactions') }) + '<div class="card ps-rx">' + REACTS.filter(x => R.who[x.k].length).map(x => '<div class="ps-r"><span>' + esc(x.label) + '</span><b class="ps-rxw">' + R.who[x.k].map(t => '<span class="ps-who">' + UI.crest(t, 16) + esc(firstOf(t)) + '</span>').join('') + '</b></div>').join('') + '</div>'; })()
       + (links ? UI.sh('Go to') + '<div class="card">' + links + '</div>' : '')

@@ -1,5 +1,6 @@
 /* My team: small shared pieces (memo, team colour maths, chips, per-player series). Engine globals come from core.js. */
 import * as UI from '../../ui.js';
+import { availOf, isOut, plateOf } from '../avail.js';
 
 export const esc = UI.esc;
 export const BASE = '#0E0A13'; /* the --base token as a hex, for mixing team colours into the dark ground */
@@ -62,10 +63,10 @@ export function apps(code) { /* gameweeks with minutes: the "per game" denominat
 export const seasonPts = p => TEAMS[p.Team] ? seasonTot(p) : num(p['Season pts']);
 export const ppg = p => { const a = apps(p.Code); return a ? seasonPts(p) / a : 0; };
 export const seasonMins = p => { const r = plrRow(p.Code); return r ? num(r.Mins) : Object.values(D.gwsByGw || {}).reduce((s, g) => s + num(((g || {})[String(p.Code)] || {}).Mins), 0); };
-export function flaggedOutP(p) { return flaggedOut(p); }
-/* FPL's stated chance of playing for a doubt, or null when the news gives no percentage */
-export function chanceOf(p) { const m = String((p && p.News) || '').match(/(\d+)% chance/); return m ? +m[1] : null; }
-export const chanceTxt = p => { const c = chanceOf(p); return c === null ? 'doubtful' : c + '%'; };
+export const flaggedOutP = p => isOut(p);
+/* FPL's stated chance of playing for a doubt, or null when the news gives no percentage (avail.js, the one reader of the flags) */
+export const chanceOf = p => availOf(p).chance;
+export const chanceTxt = p => { const c = availOf(p).chance; return c === null ? 'doubtful' : c + '%'; };
 /* the last n gameweeks a player could have scored in (the live one once his club has kicked off) */
 export function lastN(p, n = 5) {
   const code = String(p.Code), out = [];
@@ -80,9 +81,9 @@ export const lastSum = p => lastN(p, 5).reduce((s, x) => s + (x.mins > 0 ? x.pts
 /* points chip (Parker, 10 Oct 2026): green 6 points or more, amber 3 to 5, red 0 to 2, grey for no minutes (the player
    sheet's scale, kit.js ptsCls) */
 export function pc(x, sm) {
-  if (x.pts === null || !(x.mins > 0)) return '<span class="tm-pc dnp' + (sm ? ' sm' : '') + '" title="GW' + x.g + ': did not play">–</span>';
-  const v = x.pts, k = v >= 6 ? 'c3' : v >= 3 ? 'c2' : 'c1';
-  return '<span class="tm-pc ' + k + (x.live ? ' live' : '') + (sm ? ' sm' : '') + '" title="GW' + x.g + ': ' + v + ' pts' + (x.live ? ', live' : '') + '">' + v + '</span>';
+  if (x.pts === null || !(x.mins > 0)) return '<span class="tm-pc dnp' + (sm ? ' sm' : '') + '" title="GW' + x.g + ': did not play">-</span>';
+  const v = x.pts, k = v >= 6 ? 'c3' : v >= 3 ? 'c2' : 'c1', t = UI.minus(v);
+  return '<span class="tm-pc ' + k + (x.live ? ' live' : '') + (sm ? ' sm' : '') + '" title="GW' + x.g + ': ' + t + ' pts' + (x.live ? ', live' : '') + '">' + t + '</span>';
 }
 export function chips(p, n = 5, sm) { const l = lastN(p, n); return l.length ? '<span class="tm-pcs">' + l.map(x => pc(x, sm)).join('') + '</span>' : ''; }
 
@@ -100,7 +101,7 @@ export function gwFix(p) {
   const f = fs[0], home = f.Home === p.Club, opp = home ? f.Away : f.Home;
   const started = fin(f.Started) || fin(f.Finished), done = fin(f.Finished);
   const hg = num(f['Home goals']), ag = num(f['Away goals']);
-  return { f, fs, home, opp, started, done, sc: started ? (home ? hg + '–' + ag : ag + '–' + hg) : '', min: num(f.Mins), dbl: fs.length > 1 };
+  return { f, fs, home, opp, started, done, sc: started ? (home ? UI.score(hg, ag) : UI.score(ag, hg)) : '', min: num(f.Mins), dbl: fs.length > 1 };
 }
 
 /* ---------- league ---------- */
@@ -158,10 +159,10 @@ export function plateDefs() {
 }
 /* a Plate with the auto-sub marks set for the render (the one status badge, UI.plateStatus; marks.titles carries the
    detail for the badge's title: "On for Doku"); mini is the small Plate (UI.plateMini: no overall, the number as text) */
-export function plateMarked(p, w, marks, mini) {
+export function plateMarked(p, w, marks, mini, dnp) {
   const keep = SUBMARK;
-  const opt = { title: ((marks || {}).titles || {})[p.Code] || '' };
-  try { SUBMARK = marks || {}; return mini ? UI.plateMini(p, w, opt) : UI.plate(p, w, opt); } finally { SUBMARK = keep; }
+  const opt = { title: ((marks || {}).titles || {})[p.Code] || '', flag: availOf(p).matters, dnp: !!dnp };
+  try { SUBMARK = marks || {}; const q = plateOf(p); return mini ? UI.plateMini(q, w, opt) : UI.plate(q, w, opt); } finally { SUBMARK = keep; }
 }
 export function subMarks(as) {
   const m = { titles: {} };

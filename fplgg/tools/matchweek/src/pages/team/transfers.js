@@ -1,6 +1,7 @@
 /* My team · Transfers: free agents (search, position, sort) and league activity. Claims are made in FPL Draft. */
 import * as UI from '../../ui.js';
 import { esc, memo, f1, chips, ppg, apps, lastSum, oppChip, POSN, chev, mgrName, dlText, ord } from './bits.js';
+import { availChip, availRing } from '../avail.js';
 
 const DRAFT = 'https://draft.premierleague.com/';
 export const FA = { q: '', pos: 'ALL', sort: 'tot', n: 20, tx: 'all', txAll: false, focus: false };
@@ -25,11 +26,11 @@ export function faRows() {
 function faRow(p) {
   const nf = nextFx(p.Club);
   const a = ppg(p);
-  const val = FA.sort === 'avg' ? '<b class="n">' + (a ? f1(a) : '–') + '</b><span class="sub">a game</span>' : FA.sort === 'form' ? '<b class="n">' + lastSum(p) + '</b><span class="sub">last 5</span>' : '<b class="n">' + num(p['Season pts']) + '</b><span class="sub">pts</span>';
+  const val = FA.sort === 'avg' ? '<b class="n">' + (a ? UI.minus(f1(a)) : '-') + '</b><span class="sub">a game</span>' : FA.sort === 'form' ? '<b class="n">' + UI.minus(lastSum(p)) + '</b><span class="sub">last 5</span>' : '<b class="n">' + UI.minus(num(p['Season pts'])) + '</b><span class="sub">pts</span>';
   return '<div class="row tap tm-far" data-open="player:' + esc(p.Code) + '" role="button" tabindex="0">'
-    + UI.face(p, 40, p.Status === 'd' ? { ring: 'var(--doubt)' } : 'isun'.includes(p.Status || 'a') ? { ring: 'var(--loss)' } : {})
-    + '<div class="tm-sm"><div class="tm-sn"><b class="ell">' + esc(p.Player) + '</b>' + UI.statusChip(p) + '</div>'
-    + '<span class="sub">' + POSN[p.Pos] + ' · ' + esc(clubName(p.Club)) + (FA.sort !== 'tot' ? ' · <span class="n">' + num(p['Season pts']) + '</span> pts' : '') + (FA.sort !== 'avg' && a ? ' · <span class="n">' + f1(a) + '</span> a game' : '') + '</span>'
+    + UI.face(p, 40, availRing(p))
+    + '<div class="tm-sm"><div class="tm-sn"><b class="ell">' + esc(p.Player) + '</b>' + availChip(p) + '</div>'
+    + '<span class="sub">' + POSN[p.Pos] + ' · ' + esc(clubName(p.Club)) + (FA.sort !== 'tot' ? ' · <span class="n">' + UI.minus(num(p['Season pts'])) + '</span> pts' : '') + (FA.sort !== 'avg' && a ? ' · <span class="n">' + UI.minus(f1(a)) + '</span> a game' : '') + '</span>'
     + '<div class="tm-sc">' + chips(p, 5, 1) + (nf ? '<span class="tm-nf"><span class="sub n">GW' + num(nf.GW) + '</span>' + oppChip(p.Club, nf) + '</span>' : '') + '</div></div>'
     + '<div class="tm-spt">' + val + '</div></div>';
 }
@@ -46,7 +47,7 @@ export function faListHTML() {
 function txResult(r) {
   r = String(r || '').trim();
   if (/^[a-z]{1,3}$/.test(r)) r = 'Denied';
-  r = r.replace(/\s*[—–]\s*/g, ', ');
+  r = r.replace(/\s+(?:-|[\u2013\u2014])\s+/g, ', ');   /* prose takes a comma: the tab reader has already made a dash a hyphen ("Denied - outbid" reads "Denied, outbid"); a hyphen inside a word stays */
   const ok = /accept/i.test(r), pend = /pend/i.test(r);
   const m = /^([^(]+)\(([^)]+)\)/.exec(r);
   return { ok, pend, main: (m ? m[1] : r).trim(), why: m ? m[2].trim() : '' };
@@ -58,7 +59,7 @@ function txRow(t, mine) {
     + (tm ? UI.crest(tm, 24) : '<span class="tm-txc"></span>')
     + '<div class="tm-txm"><b class="ell">' + esc(tm ? UI.short(tm) : t.Team || '') + (mine ? ' <span class="chip free">YOU</span>' : '') + '</b>'
     + '<span class="sub">' + esc(t.Type || 'Move') + ' · <span class="' + (R.ok ? 'win-c' : R.pend ? 'doubt-c' : 'loss-c') + '">' + esc(R.main) + '</span>' + (R.why ? ' (' + esc(R.why) + ')' : '') + '</span></div>'
-    + '<div class="tm-txio"><span class="in"><i aria-label="In">IN</i>' + esc(t.In || '–') + '</span><span class="out"><i aria-label="Out">OUT</i>' + esc(t.Out || '–') + '</span></div>'
+    + '<div class="tm-txio"><span class="in"><i aria-label="In">IN</i>' + esc(t.In || '-') + '</span><span class="out"><i aria-label="Out">OUT</i>' + esc(t.Out || '-') + '</span></div>'
     + '</div>';
 }
 function activity(team) {

@@ -1,7 +1,10 @@
 /* My team · Overview: the club header (in head.js), To do from Jive, This gameweek. */
 import * as UI from '../../ui.js';
 import { jiveTodo } from '../../feed/index.js';
-import { esc, safe, memo, chanceOf, curFx, dlText, dayTime, dayDate, f1, mgrName, chev, words, asOf, projOfTeam } from './bits.js';
+import { esc, safe, memo, curFx, dlText, dayTime, dayDate, f1, mgrName, chev, words, asOf, projOfTeam } from './bits.js';
+import { byes, nextMatch } from '../byes.js';
+import * as M from '../matchday/model.js';
+import { availChip, availRing } from '../avail.js';
 
 const DRAFT = 'https://draft.premierleague.com/';
 
@@ -9,10 +12,8 @@ const DRAFT = 'https://draft.premierleague.com/';
 function todoFace(code) {
   const p = UI.player(code) || { Code: code, Player: '' };
   const fa = !p.Team || !TEAMS[p.Team];
-  let chip = '';
-  if (p.Status === 'd') chip = '<span class="chip doubt tm-fchip">' + (chanceOf(p) === null ? 'DOUBT' : chanceOf(p) + '%') + '</span>';
-  else if (p.Status && 'isun'.includes(p.Status)) chip = '<span class="chip out tm-fchip">OUT</span>';
-  else if (fa && (UI.player(code) || {}).Owner === 'FREE') chip = '<span class="chip free tm-fchip">FREE</span>';
+  let chip = availChip(p, 'tm-fchip');
+  if (!chip && fa && (UI.player(code) || {}).Owner === 'FREE') chip = '<span class="chip free tm-fchip">FREE</span>';
   return '<span class="tm-tdf" data-open="player:' + esc(p.Code) + '" aria-label="' + esc(p.Player || 'Player') + '">' + UI.face(p, 40) + chip + '</span>';
 }
 function todoItem(it) {
@@ -50,21 +51,23 @@ function gwState0(team, f) {
     o.st = s.done ? 'ft' : 'prov';
     o.me = home ? s.hs : s.as2; o.them = home ? s.as2 : s.hs;
     o.lab = s.done ? 'final' : 'provisional';
-    o.sub = D.hasXP && num(f.GW) === D.gw ? 'xP ' + f1(teamXP(team)) + '–' + f1(teamXP(opp)) : '';
+    o.sub = D.hasXP && num(f.GW) === D.gw ? 'xP ' + UI.score(f1(teamXP(team)), f1(teamXP(opp))) : '';   /* markup, as in the live branch: never esc() it */
   } else if (s.liveNow && kicked()) {
     o.st = 'live';
+    o.settle = M.settleState(f);   /* 'open' while a game can still change the score; 'bonus' or 'settled' once only bonus or nothing can */
     o.me = home ? s.hs : s.as2; o.them = home ? s.as2 : s.hs;
-    o.lab = 'live';
-    o.sub = D.hasEP ? 'Proj final ' + f1(projOfTeam(team)) + '–' + f1(projOfTeam(opp)) : '';
+    o.lab = o.settle === 'bonus' ? 'Bonus provisional' : o.settle === 'settled' ? 'full time' : 'live';
+    o.sub = D.hasEP ? UI.legendTap('proj', 'Proj final', 'ln') + ' ' + UI.score(f1(projOfTeam(team)), f1(projOfTeam(opp))) : '';
   } else {
     o.st = 'pred';
-    o.me = D.hasEP ? f1(projOfTeam(team)) : '–'; o.them = D.hasEP ? f1(projOfTeam(opp)) : '–';
-    o.lab = D.dlPassed ? 'locked in' : 'predicted';
+    o.me = D.hasEP ? f1(projOfTeam(team)) : '-'; o.them = D.hasEP ? f1(projOfTeam(opp)) : '-';
+    o.lab = D.dlPassed ? 'locked in' : UI.legendTap('proj', 'Proj final', 'ln');   /* markup: the label is a tap to the legend */
     o.sub = '';
   }
   if (o.st === 'pred' || o.st === 'live') {
-    const w = hpWin(f);
-    if (w && !w.done && isFinite(w.h)) { const p = mpxWinPct(w); o.win = { me: home ? p.h : p.a, d: p.d, them: home ? p.a : p.h }; }
+    /* the matchday model's chances: held to 1..99 while anything can change, 100 and 0 with no draw once it cannot */
+    const w = M.winPct(f);
+    if (w && (w.settled || isFinite(w.h))) o.win = { me: home ? w.h : w.a, d: w.d, them: home ? w.a : w.h, settled: w.settled, drawn: w.drawn };
   }
   return o;
 }
@@ -76,7 +79,7 @@ function xiStrip(team, live) {
     let ring = '', cls = '';
     const started = fxStarted(p.Club), done = fxFinished(p.Club);
     if (live && started) { if (done) cls = 'done'; else ring = 'var(--live)'; }
-    else { toPlay++; if (p.Status === 'd') ring = 'var(--doubt)'; else if (flaggedOut(p)) ring = 'var(--loss)'; }
+    else { toPlay++; ring = availRing(p).ring || ''; }
     return UI.face(p, 28, { ring, ringW: 2, cls });
   }).join('');
   const lab = live ? (toPlay ? words(toPlay).replace(/^./, c => c.toUpperCase()) + ' to play' : 'All played') : 'Lineup';
@@ -86,17 +89,19 @@ export function gwBlock(team) {
   const f = curFx(team);
   if (!f) return UI.sh('This gameweek') + UI.empty('No match this gameweek', 'Your next matchup shows here when the fixtures list has one.');
   const o = gwState(team, f), opp = o.opp;
-  const nm = derbyName(f.Home, f.Away), sr = series(team, opp);
+  const nm = derbyName(f.Home, f.Away), sr = M.seriesLine(team, opp);
   const head = (nm ? esc(nm) + ' · GW' + D.gw : 'Gameweek ' + D.gw);
   const live = o.st === 'live';
-  const lab = '<span class="sub tm-lab' + (live ? ' live-c' : '') + '">' + (live ? '<span class="live-dot"><i></i></span>' : '') + esc(o.lab) + '</span>';
+  const pulse = live && o.settle === 'open';   /* the dot and the green score go once nothing but bonus can change */
+  const lab = '<span class="sub tm-lab' + (pulse ? ' live-c' : '') + '">' + (pulse ? '<span class="live-dot"><i></i></span>' : '') + o.lab + '</span>';
   let foot = '';
   if (o.win) {
-    foot = '<div class="tm-wl n"><span class="you-c">' + o.win.me + '%</span>' + UI.wbar(o.win.me / 100, o.win.d / 100, o.win.them / 100, ...UI.pairCols(team, opp)) + '<span class="opp-c">' + o.win.them + '%</span></div>'
-      + '<div class="tm-wlc sub">win chance · draw ' + o.win.d + '%' + (o.sub ? ' · ' + esc(o.sub.replace(/^Proj final/, 'proj final')) : '') + '</div>';
+    const pc = v => v === null ? '' : v + '%', dr = M.drawText(o.win);
+    foot = '<div class="tm-wl n"><span class="you-c">' + pc(o.win.me) + '</span>' + UI.wbar((o.win.me || 0) / 100, (o.win.d || 0) / 100, (o.win.them || 0) / 100, ...UI.pairCols(team, opp)) + '<span class="opp-c">' + pc(o.win.them) + '</span></div>'
+      + '<div class="tm-wlc sub">' + (o.win.drawn ? 'draw 100%' : UI.legendTap('odds', 'win chance', 'ln') + (dr ? ' · draw <span class="n">' + dr + '</span>' : '')) + (o.sub && !o.win.settled ? ' · ' + o.sub : '') + '</div>';
   } else if (o.st === 'ft' || o.st === 'prov') {
     const d = o.me - o.them;
-    foot = '<div class="tm-res"><span class="fm ' + (d > 0 ? 'w' : d < 0 ? 'l' : 'd') + '">' + (d > 0 ? 'W' : d < 0 ? 'L' : 'D') + '</span><span>' + (d > 0 ? 'Won by ' + d : d < 0 ? 'Lost by ' + (-d) : 'Drawn') + (o.st === 'prov' ? ', until FPL confirms' : '') + '</span>' + (o.sub ? '<span class="sub">' + esc(o.sub) + '</span>' : '') + '</div>';
+    foot = '<div class="tm-res"><span class="fm ' + (d > 0 ? 'w' : d < 0 ? 'l' : 'd') + '">' + (d > 0 ? 'W' : d < 0 ? 'L' : 'D') + '</span><span>' + (d > 0 ? 'Won by ' + d : d < 0 ? 'Lost by ' + (-d) : 'Drawn') + (o.st === 'prov' ? ', until FPL confirms' : '') + '</span>' + (o.sub ? '<span class="sub">' + o.sub + '</span>' : '') + '</div>';
   }
   return UI.sh('This gameweek', { more: 'Matchup', href: '#/matchday/matchup' })
     + '<section class="card tm-gw" aria-label="Your matchup this gameweek">'
@@ -105,8 +110,8 @@ export function gwBlock(team) {
     + '<div class="tm-gwt"><span class="wide">' + head + '</span>' + (sr ? '<span class="sub">' + esc(sr) + '</span>' : '') + '</div>'
     + '<div class="tm-gwr">'
     + '<div class="tm-side me">' + UI.crest(team, 40) + '<b>' + esc(UI.short(team)) + '</b>' + lab + '</div>'
-    + '<div class="tm-score n' + (live ? ' live' : '') + '">' + o.me + '<span>–</span>' + o.them + '</div>'
-    + '<button class="tm-side them" data-open="manager:' + esc(opp) + '" aria-label="' + esc(opp) + ', ' + esc(mgrName(opp)) + '">' + UI.crest(opp, 40) + '<b>' + esc(UI.short(opp)) + '</b><span class="sub">' + (fbxRec(opp) ? '<span class="n">' + esc(fbxRec(opp)) + '</span> W\u2013D\u2013L' : esc(mgrName(opp))) + '</span></button>'
+    + '<div class="tm-score n' + (pulse ? ' live' : '') + '">' + UI.score(o.me, o.them, { cls: 'flush' }) + '</div>'
+    + '<button class="tm-side them" data-open="manager:' + esc(opp) + '" aria-label="' + esc(opp) + ', ' + esc(mgrName(opp)) + '">' + UI.crest(opp, 40) + '<b>' + esc(UI.short(opp)) + '</b><span class="sub">' + (fbxRec(opp) ? '<span class="n">' + esc(fbxRec(opp)) + '</span> W-D-L' : esc(mgrName(opp))) + '</span></button>'
     + '</div>' + foot + '</div>'
     + xiStrip(team, live || o.st === 'prov')
     + '</section>';
