@@ -101,6 +101,7 @@ function suggest(team, accent) {
 
 /* ---------- draft state (survives a data refresh while the sheet is open) ---------- */
 let DR = null, CL = { sel: null, err: '', note: '', busy: false, lock: {} }, MSG = null, STATUS_ASKED = false;
+let PR = { armed: null, busy: false, asked: false };   /* the commissioner's PIN reset: the team armed by a first tap, a request under way */
 function swapProfile(team, fields) {
   const orig = PROFILE[team];
   PROFILE[team] = Object.assign({}, orig || {}, fields);
@@ -176,7 +177,11 @@ function mountClaim(el) {
     if (CL.lock[sel] && CL.lock[sel] > Date.now()) return;
     const mode = isClaimed(sel) ? 'login' : 'claim';
     CL.busy = true; CL.err = ''; redrawC();
-    authPost(authBuildReq(mode, { team: sel, pin: v })).then(r => {
+    /* one more try after a time-out (Parker, 4 Nov 2026: CJ's claim stalled): a claim whose answer never came back may have
+       landed, and the server signs a repeat of the same claim in (Code.gs v3.33), so the second answer completes it */
+    const req = authBuildReq(mode, { team: sel, pin: v });
+    const send = again => authPost(req).catch(e => { if (!again && e && e.name === 'AbortError') return send(true); throw e; });
+    send(false).then(r => {
       CL.busy = false;
       if (r && r.ok && r.token) { afterSignIn(el, sel, r.token); return; }
       const code = (r && r.error) || '';
@@ -193,7 +198,7 @@ function mountClaim(el) {
     STATUS_ASKED = true;
     authPost(authBuildReq('status')).then(r => {
       if (!(r && r.ok && Array.isArray(r.claimed))) return;
-      D.claimed = r.claimed;
+      D.claimed = r.claimed; if (typeof r.commish === 'string') D.commish = r.commish;
       const pi = el.querySelector('#id-pin'), v = pi ? pi.value : '', f = pi && document.activeElement === pi;
       redrawC();
       const np = el.querySelector('#id-pin'); if (np && v) { np.value = v; if (f) np.focus({ preventScroll: true }); }
@@ -282,7 +287,18 @@ function editorView(team) {
     + '<div class="id-ph"><span class="id-phi" data-r="photo">' + photoHTML(team, d) + '</span><div><b>Photo</b><div class="id-phb"><button type="button" class="btn ghost" data-pick>Choose photo</button>'
     + '<button type="button" class="id-link sm" data-rmphoto' + (d.photo ? '' : ' hidden') + '>Remove</button></div></div><input type="file" accept="image/*" data-file hidden></div></div>'
     + '<div class="id-save"><div class="id-stat" data-r="status" role="status"></div><button type="button" class="btn block" data-save>Save club identity</button></div>'
+    + pinResetHTML(team)
     + '<div class="id-out"><span class="sub">Signed in on this phone as ' + esc(team) + '.</span><button type="button" class="id-link" data-signout>Sign out</button></div></div>';
+}
+/* the commissioner resets a team's PIN (Code.gs v3.33 resetpin; Parker, 4 Nov 2026, after CJ's claim stalled): every claimed
+   team but his own, a first tap arms the row, a second resets; the team then claims again with a new PIN. Only on the
+   commissioner's phone; the server checks it again */
+function pinResetHTML(team) {
+  if (!D.api || !D.commish || team !== D.commish || !Array.isArray(D.claimed)) return '';
+  const list = D.claimed.filter(t => t !== team && TEAMS[t]);
+  return UI.sh('Team PINs') + '<div class="card id-pins">' + (list.length ? list.map(t => '<div class="id-pinr">' + UI.crest(t, 28) + '<span class="id-pinn"><b>' + esc(t) + '</b><i>' + esc(UI.first(t)) + '</i></span>'
+    + '<button type="button" class="btn ' + (PR.armed === t ? '' : 'ghost ') + 'sm" data-pinreset="' + esc(t) + '"' + (PR.busy ? ' disabled' : '') + '>' + (PR.busy && PR.armed === t ? 'Resetting…' : PR.armed === t ? 'Tap again to reset' : 'Reset PIN') + '</button></div>').join('')
+    : '<div class="sub id-pin0">No other team is claimed.</div>') + '</div>';
 }
 function photoHTML(team, d) { return d.photo ? '<span class="sk-av" style="width:52px;height:52px"><img src="' + esc(d.photo) + '" alt=""></span>' : withProfile(team, profFields(d), () => UI.crest(team, 48)); }
 
@@ -310,6 +326,14 @@ function resizePhoto(file) {
 function mountEditor(el, team) {
   const d = draftFor(team), q = s => el.querySelector(s), root = el.querySelector('.id-wrap');
   if (!root) return;
+  if (D.api && !PR.asked && (D.commish === undefined || !Array.isArray(D.claimed))) {   /* who the commissioner is, and which teams are claimed */
+    PR.asked = true;
+    authPost(authBuildReq('status')).then(r => {
+      if (!(r && r.ok && Array.isArray(r.claimed))) return;
+      D.claimed = r.claimed; if (typeof r.commish === 'string') D.commish = r.commish;
+      if (team === D.commish) redraw(el);
+    }).catch(() => { });
+  }
   const paint = (all) => {
     const set = (k, html) => { const r = q('[data-r="' + k + '"]'); if (r) r.innerHTML = html; };
     set('preview', previewHTML(team, d)); set('shades', shadesHTML(team, d)); set('clash', clashHTML(team, d));
@@ -344,6 +368,21 @@ function mountEditor(el, team) {
     if (e.target.closest('[data-pick]')) { const f = q('[data-file]'); f && f.click(); return; }
     if (e.target.closest('[data-rmphoto]')) { d.photo = ''; paint(); return; }
     if (e.target.closest('[data-save]')) { save(); return; }
+    const pr = e.target.closest('[data-pinreset]');
+    if (pr) {
+      const t = pr.dataset.pinreset;
+      if (PR.busy) return;
+      if (PR.armed !== t) { PR.armed = t; redraw(el); return; }
+      const a = authRead(); if (!a) return;
+      PR.busy = true; redraw(el);
+      authPost(authBuildReq('resetpin', { team: a.team, token: a.token, target: t })).then(r => {
+        PR.busy = false; PR.armed = null;
+        if (r && r.ok) { if (Array.isArray(r.claimed)) D.claimed = r.claimed; UI.toast('PIN reset for ' + t + '. They can claim the team again.'); }
+        else UI.toast(r && r.error === 'commish' ? 'Only the commissioner can reset a PIN.' : r && r.error === 'auth' ? 'Sign in again to reset a PIN.' : 'Couldn’t reset it. Try again.');
+        redraw(el);
+      }).catch(er => { PR.busy = false; PR.armed = null; UI.toast(authErrText(er)); redraw(el); });
+      return;
+    }
     if (e.target.closest('[data-signout]')) {
       AUTH.logout(); DR = null; MSG = null; CL.sel = team;
       window.MW.render({ keepScroll: true }); redraw(el); el.scrollTop = 0; UI.toast('Signed out. This phone still follows ' + team + '.'); return;
