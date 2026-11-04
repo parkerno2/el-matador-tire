@@ -12,7 +12,7 @@ let fails = 0; const check = (l, c, i) => { if (!c) fails++; console.log((c ? 'P
 (async () => {
   await new Promise(r => srv.listen(0, r)); const origin = 'http://127.0.0.1:' + srv.address().port;
   const b = await chromium.launch();
-  const run = async (as, claimed) => {
+  const run = async (as, claimed, delay = {}, noOpen) => {
     const ctx = await b.newContext({ viewport: { width: +(process.env.W || 390), height: 844 } }); const page = await ctx.newPage();
     const posts = []; let C = claimed.slice();
     await page.route(u => /script\.google(usercontent)?\.com\/macros/.test(u.href), async route => {
@@ -23,11 +23,12 @@ let fails = 0; const check = (l, c, i) => { if (!c) fails++; console.log((c ? 'P
       if (body.action === 'status') out = { ok: true, claimed: C, commish: 'Cold Palmers' };
       if (body.action === 'claim') { if (C.includes(body.team)) out = { ok: false, error: 'claimed' }; else { C.push(body.team); out = { ok: true, token: 'tok-' + body.team }; } }
       if (body.action === 'resetpin') { if (body.team !== 'Cold Palmers') out = { ok: false, error: 'commish' }; else { C = C.filter(t => t !== body.target); out = { ok: true, claimed: C }; } }
+      if (delay[body.action]) await new Promise(r => setTimeout(r, delay[body.action]));
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(out) });
     });
     await page.addInitScript(a => { if (a) localStorage.setItem('emt-auth', JSON.stringify({ team: a, token: 'tok-' + a })); }, as);
     await page.goto(origin + '/preview/#/matchday'); await page.waitForSelector('.nav', { timeout: 30000 }); await page.waitForTimeout(2500);
-    await page.evaluate(() => window.MW.openSheet('identity')); await page.waitForTimeout(2500);
+    if (!noOpen) { await page.evaluate(() => window.MW.openSheet('identity')); await page.waitForTimeout(2500); }
     return { page, ctx, posts, C: () => C };
   };
   console.log('--- the commissioner, signed in as Cold Palmers');
@@ -44,6 +45,21 @@ let fails = 0; const check = (l, c, i) => { if (!c) fails++; console.log((c ? 'P
     check('P3 the second tap resets it: resetpin with his team, token and the target', !!sent && sent.team === 'Cold Palmers' && sent.token === 'tok-Cold Palmers' && sent.target === 'The Soaring Gulls', sent);
     const after = await page.evaluate(() => ({ rows: [...document.querySelectorAll('.sheet .id-pinr b')].map(b => b.textContent), toast: (document.querySelector('.toast') || {}).textContent || '' }));
     check('P4 the row is gone and a toast says so', after.rows.join() === 'Trophy Hunters' && /PIN reset for The Soaring Gulls/.test(after.toast), after);
+    await ctx.close(); }
+  console.log('--- the review of 4 Nov 2026: a slow web app');
+  { const { page, ctx } = await run('Cold Palmers', ['Cold Palmers', 'The Soaring Gulls', 'Trophy Hunters'], { status: 2500 }, true);
+    await page.evaluate(() => window.MW.openSheet('identity')); await page.waitForTimeout(600);
+    await page.click('.sheet [data-in="manager"]'); await page.keyboard.type('Par');
+    await page.waitForTimeout(3200); await page.keyboard.type('ker');
+    const st = await page.evaluate(() => { const i = document.querySelector('.sheet [data-in="manager"]'); return { focused: document.activeElement === i, value: i && i.value, pins: !!document.querySelector('.sheet .id-pins') }; });
+    check('P5 the status answer adds Team PINs while he types his display name, and the field keeps its focus and every key', st.focused && /Parker$/.test(st.value || '') && st.pins, st);
+    await ctx.close(); }
+  { const { page, ctx, posts } = await run('Cold Palmers', ['Cold Palmers', 'The Soaring Gulls', 'Trophy Hunters'], { resetpin: 2500 });
+    await page.click('.sheet [data-pinreset="Trophy Hunters"]'); await page.waitForTimeout(200); await page.click('.sheet [data-pinreset="Trophy Hunters"]'); await page.waitForTimeout(200);
+    await page.evaluate(() => window.MW.closeSheet()); await page.waitForTimeout(700);
+    await page.evaluate(() => window.MW.openSheet('identity')); await page.waitForTimeout(3500);
+    const rows = await page.evaluate(() => [...document.querySelectorAll('.sheet .id-pinr')].map(r => ({ t: r.querySelector('b').textContent, btn: r.querySelector('button').textContent, off: r.querySelector('button').disabled })));
+    check('P6 closed and opened again while a reset was under way: once it answers, the sheet on screen drops the team and every button works', posts.filter(p => p.action === 'resetpin').length === 1 && rows.length === 1 && rows[0].t === 'The Soaring Gulls' && rows[0].btn === 'Reset PIN' && !rows[0].off, rows);
     await ctx.close(); }
   console.log('--- another manager, signed in as Trophy Hunters');
   { const { page, ctx } = await run('Trophy Hunters', ['Cold Palmers', 'The Soaring Gulls', 'Trophy Hunters']);

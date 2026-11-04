@@ -79,7 +79,16 @@ r = Hd({ action: 'claim', team: A, pin: '5555' });
 check('R7 the team claims again with a new PIN', r.ok === true && props['EMT_PIN_' + A] === ctx.emtPinHash(A, '5555'), JSON.stringify(r));
 fresh(); ctx.adminResetPin(A);
 check('R8 the editor\'s adminResetPin does the same, on the same lock', !('EMT_PIN_' + A in props) && taken.includes('doc:wait') && taken.includes('doc:release'), taken.join(','));
+const bossTok2 = ctx.emtToken(BOSS, props['EMT_PIN_' + BOSS]);
+r = Hd({ action: 'resetpin', team: BOSS, token: bossTok2, target: BOSS });
+check('R9 the commissioner cannot reset his own PIN from the app (a stolen sign-in cannot take his team): only the editor can', r.ok === false && r.error === 'self' && !!props['EMT_PIN_' + BOSS], JSON.stringify(r));
 scriptHeld = false;
+
+console.log('--- H the health report');
+check('H1 ?health=1 says the PIN code has its own lock (document) when the script is bound to the Sheet', T.get({ health: '1' }).pinLock === 'document');
+docLock = false;
+check('H2 and says script when it falls back to the shared lock', T.get({ health: '1' }).pinLock === 'script');
+docLock = true;
 
 console.log('--- V the version');
 check('V1 the CHANGELOG\'s first version is v3.33 and EMT_VERSION follows it', ctx.emtSelfVersion(src) === 'v3.33' && ctx.EMT_VERSION === 'v3.33');

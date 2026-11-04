@@ -19,12 +19,16 @@ check('W2 a claim or sign-in that timed out is sent once more, the same request,
 check('W3 a claim the server answers claimed still tells the manager to sign in with its PIN', /else if \(code === 'claimed'\) \{ authMarkClaimed\(sel\); CL\.err = 'Already claimed\. Sign in with its PIN, or ask the commissioner to reset it\.'; \}/.test(ID));
 
 console.log('--- R the commissioner\'s PIN reset');
-check('R1 the Team PINs block shows only when the signed-in team is the commissioner the server named', /if \(!D\.api \|\| !D\.commish \|\| team !== D\.commish \|\| !Array\.isArray\(D\.claimed\)\) return '';/.test(ID) && /\+ pinResetHTML\(team\)\n/.test(ID));
+check('R1 the Team PINs block shows only when the signed-in team is the commissioner the server named, in its own node', /if \(!D\.api \|\| !D\.commish \|\| team !== D\.commish \|\| !Array\.isArray\(D\.claimed\)\) return '';/.test(ID) && /\+ '<div data-r="pins">' \+ pinResetHTML\(team\) \+ '<\/div>'\n/.test(ID));
 check('R2 it lists every claimed team but his own', /const list = D\.claimed\.filter\(t => t !== team && TEAMS\[t\]\);/.test(ID));
-check('R3 a first tap arms the row, a second sends resetpin with his team, his token and the target', /if \(PR\.armed !== t\) \{ PR\.armed = t; redraw\(el\); return; \}/.test(ID) && /authPost\(authBuildReq\('resetpin', \{ team: a\.team, token: a\.token, target: t \}\)\)/.test(ID));
+check('R3 a first tap arms the row, a second sends resetpin with his team, his token and the target', /if \(PR\.armed !== t\) \{ PR\.armed = t; paintPins\(team\); return; \}/.test(ID) && /authPost\(authBuildReq\('resetpin', \{ team: a\.team, token: a\.token, target: t \}\)\)/.test(ID));
 check('R4 the status answer names the commissioner (Code.gs) and the app keeps it (claim view and editor)', /if \(action === 'status'\) return \{ ok: true, claimed: emtClaimed\(\), commish: emtCommish\(\) \};/.test(fs.readFileSync(path.join(ROOT, 'Code.gs'), 'utf8')) && (ID.match(/if \(typeof r\.commish === 'string'\) D\.commish = r\.commish;/g) || []).length === 2);
 const CSS = rd('src/css/60-sheets.css');
 check('R5 the rows: the name left-aligned on up to two lines, a button of at least 40 px', /\.id-pinr \.id-pinn\{display:flex;flex-direction:column;align-items:flex-start;/.test(CSS) && /\.id-pinr b\{[^}]*-webkit-line-clamp:2/.test(CSS) && /\.id-pinr \.btn\{[^}]*min-height:40px/.test(CSS));
+const block = ID.slice(ID.indexOf("const pr = e.target.closest('[data-pinreset]');"), ID.indexOf("if (e.target.closest('[data-signout]')) {"));
+check('R7 the reset repaints only the Team PINs block, never the whole sheet (a field being typed in keeps its focus; review of 4 Nov 2026)', /function paintPins\(team\) \{ const h = CUR && CUR\.isConnected \? CUR\.querySelector\('\[data-r="pins"\]'\) : null; if \(h\) h\.innerHTML = pinResetHTML\(team\); \}/.test(ID) && block.length > 0 && !/redraw\(/.test(block) && /if \(team === D\.commish\) paintPins\(team\);/.test(ID));
+check('R8 an answer that arrives after the sheet was closed and opened again paints the sheet on screen (CUR), and closing the sheet disarms a row unless a reset is under way', /mount\(el\) \{ CUR = el; mountAny\(el\); \}/.test(ID) && /unmount\(\) \{ CUR = null; [^}]*if \(!PR\.busy\) PR\.armed = null; \}/.test(ID));
+check('R9 the server refuses the commissioner\'s own team as the target (Code.gs)', /if \(target === team\) return \{ ok: false, error: 'self' \};/.test(fs.readFileSync(path.join(ROOT, 'Code.gs'), 'utf8')));
 check('R6 the browser check exists for the next change', fs.existsSync(path.join(ROOT, 'fplgg', 'tools', 'preview', 'check-claim.js')));
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASS');

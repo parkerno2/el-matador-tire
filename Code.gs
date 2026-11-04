@@ -17,7 +17,9 @@
  *   document lock (emtPinLock), which nothing else takes; a claim of an already claimed team with the same PIN signs in
  *   (the claim whose answer was lost), and any other PIN counts as a wrong try and answers 'claimed', so the 5-try lockout
  *   still guards it; and the commissioner resets a team's PIN from the app (action resetpin, signed in as the commissioner,
- *   with the team to reset), what adminResetPin does in the editor. tests/codegs/v333.js.
+ *   with the team to reset; never his own team, which only the editor resets), what adminResetPin does in the editor.
+ *   status names the commissioner, and ?health=1 pinLock says which lock the PIN code takes ('document', its own, or
+ *   'script' when the script is not bound to the Sheet). tests/codegs/v333.js.
  * v3.32 · 11 Oct 2026
  *   The feed posts are checked before they are kept (P1, the polish pass; Parker, 11 Oct 2026, after the release-readiness
  *   review of the demo's Feed: "Still agreed on the feed too"). The demo showed a voice post cut off mid-word ("Waivers
@@ -1604,6 +1606,8 @@ function emtNoteFail(team) {
    else takes, so a claim never waits behind the data refresh or the AI writer, which hold the script lock for as long as they
    run (CJ's claim stalled on 4 Nov 2026: the phone gave up after 15 s while the claim waited for that lock). Only these write
    EMT_PIN_ and EMT_FAIL_, so they need only each other. The script lock when the script is not bound to a Sheet. */
+/* which lock the PIN code takes, for ?health=1: 'document' (its own) or 'script' (shared with the refresh and the writers) */
+function emtPinLockKind() { try { return LockService.getDocumentLock() ? 'document' : 'script'; } catch (e) { return 'script'; } }
 function emtPinLock() { var l = null; try { l = LockService.getDocumentLock(); } catch (e) { l = null; } return l || LockService.getScriptLock(); }
 function emtVerify(team, token) {      // → pin hash when the token is good, else null
   var ph = emtProps().getProperty('EMT_PIN_' + team);
@@ -1678,6 +1682,7 @@ function emtHandle(req) {
     if (team !== emtCommish()) return { ok: false, error: 'commish' };
     var target = String(req.target || '').trim();
     if (emtTeams().indexOf(target) < 0) return { ok: false, error: 'badteam' };
+    if (target === team) return { ok: false, error: 'self' };          /* his own PIN only from the editor (adminResetPin): a stolen sign-in cannot take the commissioner's team */
     var rl = emtPinLock();
     rl.waitLock(10000);
     try {
@@ -5328,6 +5333,7 @@ function emtHealth() {
     data: emtDataHealth(),                                                          /* v3.17 */
     errors: emtErrorsHealth(),                                                      /* v3.18 */
     potm: emtPotmHealth(),                                                          /* v3.30 */
+    pinLock: emtPinLockKind(),                                                      /* v3.33: 'document' when claims have their own lock */
     articles: { mode: emtArtReview() ? 'review' : 'auto',
       job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
         writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,

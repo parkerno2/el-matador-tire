@@ -102,6 +102,7 @@ function suggest(team, accent) {
 /* ---------- draft state (survives a data refresh while the sheet is open) ---------- */
 let DR = null, CL = { sel: null, err: '', note: '', busy: false, lock: {} }, MSG = null, STATUS_ASKED = false;
 let PR = { armed: null, busy: false, asked: false };   /* the commissioner's PIN reset: the team armed by a first tap, a request under way */
+let CUR = null;   /* the identity sheet on screen now (an answer that arrives after a close and a reopen paints the new one) */
 function swapProfile(team, fields) {
   const orig = PROFILE[team];
   PROFILE[team] = Object.assign({}, orig || {}, fields);
@@ -287,12 +288,14 @@ function editorView(team) {
     + '<div class="id-ph"><span class="id-phi" data-r="photo">' + photoHTML(team, d) + '</span><div><b>Photo</b><div class="id-phb"><button type="button" class="btn ghost" data-pick>Choose photo</button>'
     + '<button type="button" class="id-link sm" data-rmphoto' + (d.photo ? '' : ' hidden') + '>Remove</button></div></div><input type="file" accept="image/*" data-file hidden></div></div>'
     + '<div class="id-save"><div class="id-stat" data-r="status" role="status"></div><button type="button" class="btn block" data-save>Save club identity</button></div>'
-    + pinResetHTML(team)
+    + '<div data-r="pins">' + pinResetHTML(team) + '</div>'
     + '<div class="id-out"><span class="sub">Signed in on this phone as ' + esc(team) + '.</span><button type="button" class="id-link" data-signout>Sign out</button></div></div>';
 }
 /* the commissioner resets a team's PIN (Code.gs v3.33 resetpin; Parker, 4 Nov 2026, after CJ's claim stalled): every claimed
    team but his own, a first tap arms the row, a second resets; the team then claims again with a new PIN. Only on the
    commissioner's phone; the server checks it again */
+/* repaint only the Team PINs block of the sheet on screen, so the rest of the editor (a field being typed in, a save under way) is untouched */
+function paintPins(team) { const h = CUR && CUR.isConnected ? CUR.querySelector('[data-r="pins"]') : null; if (h) h.innerHTML = pinResetHTML(team); }
 function pinResetHTML(team) {
   if (!D.api || !D.commish || team !== D.commish || !Array.isArray(D.claimed)) return '';
   const list = D.claimed.filter(t => t !== team && TEAMS[t]);
@@ -331,7 +334,7 @@ function mountEditor(el, team) {
     authPost(authBuildReq('status')).then(r => {
       if (!(r && r.ok && Array.isArray(r.claimed))) return;
       D.claimed = r.claimed; if (typeof r.commish === 'string') D.commish = r.commish;
-      if (team === D.commish) redraw(el);
+      if (team === D.commish) paintPins(team);
     }).catch(() => { });
   }
   const paint = (all) => {
@@ -372,19 +375,19 @@ function mountEditor(el, team) {
     if (pr) {
       const t = pr.dataset.pinreset;
       if (PR.busy) return;
-      if (PR.armed !== t) { PR.armed = t; redraw(el); return; }
+      if (PR.armed !== t) { PR.armed = t; paintPins(team); return; }
       const a = authRead(); if (!a) return;
-      PR.busy = true; redraw(el);
+      PR.busy = true; paintPins(team);
       authPost(authBuildReq('resetpin', { team: a.team, token: a.token, target: t })).then(r => {
         PR.busy = false; PR.armed = null;
         if (r && r.ok) { if (Array.isArray(r.claimed)) D.claimed = r.claimed; UI.toast('PIN reset for ' + t + '. They can claim the team again.'); }
         else UI.toast(r && r.error === 'commish' ? 'Only the commissioner can reset a PIN.' : r && r.error === 'auth' ? 'Sign in again to reset a PIN.' : 'Couldn’t reset it. Try again.');
-        redraw(el);
-      }).catch(er => { PR.busy = false; PR.armed = null; UI.toast(authErrText(er)); redraw(el); });
+        paintPins(team);
+      }).catch(er => { PR.busy = false; PR.armed = null; UI.toast(authErrText(er)); paintPins(team); });
       return;
     }
     if (e.target.closest('[data-signout]')) {
-      AUTH.logout(); DR = null; MSG = null; CL.sel = team;
+      AUTH.logout(); DR = null; MSG = null; CL.sel = team; if (!PR.busy) PR.armed = null;
       window.MW.render({ keepScroll: true }); redraw(el); el.scrollTop = 0; UI.toast('Signed out. This phone still follows ' + team + '.'); return;
     }
   });
@@ -445,6 +448,6 @@ function mountEditor(el, team) {
 export default {
   cls: 'sk-identity',
   render() { return view(); },
-  mount(el) { mountAny(el); },
-  unmount() { DR = null; MSG = null; CL.err = ''; CL.busy = false; CL.sel = null; },
+  mount(el) { CUR = el; mountAny(el); },
+  unmount() { CUR = null; DR = null; MSG = null; CL.err = ''; CL.busy = false; CL.sel = null; if (!PR.busy) PR.armed = null; },   /* a reset under way stays busy, so a reopened sheet cannot send it twice */
 };
