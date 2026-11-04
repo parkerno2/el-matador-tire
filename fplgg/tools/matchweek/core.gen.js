@@ -927,7 +927,7 @@ function mxKeyMan(team,xi){
 }
 let ARTICLE=null;
 function articleFor(f){if(!ARTICLE)return null;return ARTICLE[f.Home+'|'+f.Away]||ARTICLE[f.Away+'|'+f.Home]||null}
-const AUTH_TIMEOUT=15000,AUTH_PHOTO_MAX=45000,AUTH_PHOTO_PX=256;
+const AUTH_TIMEOUT=40000,AUTH_PHOTO_MAX=45000,AUTH_PHOTO_PX=256;
 function authRead(){try{const j=JSON.parse(localStorage.getItem('emt-auth')||'null');return j&&j.team&&j.token?j:null}catch(e){return null}}
 const AUTH={
   team(){const a=authRead();return a?a.team:null},

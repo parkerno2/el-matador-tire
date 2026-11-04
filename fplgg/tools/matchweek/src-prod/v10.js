@@ -903,7 +903,7 @@ document.body.addEventListener('click',e=>{const b=e.target.closest('[data-mx]')
 /* ===== v10-auth — claim-your-team logins + team profiles. Runs after the app script and v10-delta.js. =====
    Storage: localStorage 'emt-auth' = {team,token} (signed in) · 'emt-myteam' (the app's existing "my team").
    Network: POST JSON as text/plain to D.api only (Apps Script web app), 15s timeout. */
-const AUTH_TIMEOUT=15000,AUTH_PHOTO_MAX=45000,AUTH_PHOTO_PX=256;
+const AUTH_TIMEOUT=40000,AUTH_PHOTO_MAX=45000,AUTH_PHOTO_PX=256;
 function authRead(){try{const j=JSON.parse(localStorage.getItem('emt-auth')||'null');return j&&j.team&&j.token?j:null}catch(e){return null}}
 const AUTH={
   team(){const a=authRead();return a?a.team:null},

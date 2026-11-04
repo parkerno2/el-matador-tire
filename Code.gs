@@ -9,6 +9,17 @@
  *   4. Deploy → New deployment → Web app · Execute as Me · Anyone → paste the URL into Specials as Setting `API URL`
  *
  * CHANGELOG
+ * v3.33 · 4 Nov 2026
+ *   A team claim no longer stalls (Parker, 4 Nov 2026: "CJ wasn't able to claim his team today, he tried and it stalled
+ *   out"). A claim and a sign-in waited up to 10 s for the script lock, which the data refresh and the AI writer hold for as
+ *   long as they run; with a cold start on top the phone gave up after 15 s while the claim could still land, so the team
+ *   showed as claimed and the manager was left without a sign-in. Now: the PIN properties have their own lock, the Sheet's
+ *   document lock (emtPinLock), which nothing else takes; a claim of an already claimed team with the same PIN signs in
+ *   (the claim whose answer was lost), and any other PIN counts as a wrong try and answers 'claimed', so the 5-try lockout
+ *   still guards it; and the commissioner resets a team's PIN from the app (action resetpin, signed in as the commissioner,
+ *   with the team to reset; never his own team, which only the editor resets), what adminResetPin does in the editor.
+ *   status names the commissioner, and ?health=1 pinLock says which lock the PIN code takes ('document', its own, or
+ *   'script' when the script is not bound to the Sheet). tests/codegs/v333.js.
  * v3.32 · 11 Oct 2026
  *   The feed posts are checked before they are kept (P1, the polish pass; Parker, 11 Oct 2026, after the release-readiness
  *   review of the demo's Feed: "Still agreed on the feed too"). The demo showed a voice post cut off mid-word ("Waivers
@@ -1514,6 +1525,7 @@ function logGwHistory(ss, boot, teams, perEntry) {
  * 5 wrong PINs → 10-minute lockout. Changing a PIN invalidates old tokens.
  *
  * COMMISSIONER ESCAPE HATCH — a mate forgot his PIN:
+ *   v3.33: from the app, signed in as the commissioner: Your club > Reset a team's PIN (action resetpin). Or
  *   in the Apps Script editor run  adminResetPin('Team Jacob')  (exact team name) — deletes his PIN + lockout,
  *   his profile row stays, he re-claims from the app with a new PIN.
  */
@@ -1590,6 +1602,13 @@ function emtNoteFail(team) {
   emtProps().setProperty('EMT_FAIL_' + team, JSON.stringify(o));
 }
 
+/* v3.33: the lock for the PIN properties (claim, sign-in, the commissioner's reset): the Sheet's document lock, which nothing
+   else takes, so a claim never waits behind the data refresh or the AI writer, which hold the script lock for as long as they
+   run (CJ's claim stalled on 4 Nov 2026: the phone gave up after 15 s while the claim waited for that lock). Only these write
+   EMT_PIN_ and EMT_FAIL_, so they need only each other. The script lock when the script is not bound to a Sheet. */
+/* which lock the PIN code takes, for ?health=1: 'document' (its own) or 'script' (shared with the refresh and the writers) */
+function emtPinLockKind() { try { return LockService.getDocumentLock() ? 'document' : 'script'; } catch (e) { return 'script'; } }
+function emtPinLock() { var l = null; try { l = LockService.getDocumentLock(); } catch (e) { l = null; } return l || LockService.getScriptLock(); }
 function emtVerify(team, token) {      // → pin hash when the token is good, else null
   var ph = emtProps().getProperty('EMT_PIN_' + team);
   if (!ph || !token) return null;
@@ -1622,35 +1641,56 @@ function emtHandle(req) {
   var team = String(req.team || '').trim();
   var pin = String(req.pin || '');
 
-  if (action === 'status') return { ok: true, claimed: emtClaimed() };
+  if (action === 'status') return { ok: true, claimed: emtClaimed(), commish: emtCommish() };   /* v3.33: commish, for the app's PIN reset */
   if (action === 'refresh') return emtRefresh();
 
   if (action === 'claim' || action === 'login') {
     if (emtTeams().indexOf(team) < 0) return { ok: false, error: 'badteam' };
     if (!/^\d{4}$/.test(pin)) return { ok: false, error: 'badpin' };
-    var lock = LockService.getScriptLock();
+    var lock = emtPinLock();                                                         /* v3.33 */
     lock.waitLock(10000);
     try {
       var key = 'EMT_PIN_' + team;
       var existing = emtProps().getProperty(key);
-      if (action === 'claim') {
-        if (existing) return { ok: false, error: 'claimed' };
+      if (action === 'claim' && !existing) {
         var ph = emtPinHash(team, pin);
         emtProps().setProperty(key, ph);
         emtProps().deleteProperty('EMT_FAIL_' + team);
         return { ok: true, token: emtToken(team, ph) };
       }
       if (!existing) return { ok: false, error: 'unclaimed' };
+      /* v3.33: a claim of a team that is already claimed is a sign-in with that PIN. The same PIN again (a claim that landed
+         while the phone gave up waiting for the answer) signs in; any other PIN is a wrong try and answers 'claimed', so the
+         lockout guards a claim exactly as it guards a sign-in */
       var mins = emtLockedFor(team);
       if (mins) return { ok: false, error: 'locked', retryMin: mins };
       if (emtPinHash(team, pin) !== existing) {
         emtNoteFail(team);
         var m2 = emtLockedFor(team);
-        return m2 ? { ok: false, error: 'locked', retryMin: m2 } : { ok: false, error: 'wrong' };
+        return m2 ? { ok: false, error: 'locked', retryMin: m2 } : { ok: false, error: action === 'claim' ? 'claimed' : 'wrong' };
       }
       emtProps().deleteProperty('EMT_FAIL_' + team);
       return { ok: true, token: emtToken(team, existing) };
     } finally { lock.releaseLock(); }
+  }
+
+  /* v3.33: the commissioner resets a team's PIN from his phone (a mate forgot it, or a claim went wrong): signed in as the
+     commissioner, naming the team to reset; that team claims again with a new PIN, its profile untouched. What
+     adminResetPin does in the editor, without the editor */
+  if (action === 'resetpin') {
+    if (!emtVerify(team, req.token)) return { ok: false, error: 'auth' };
+    if (team !== emtCommish()) return { ok: false, error: 'commish' };
+    var target = String(req.target || '').trim();
+    if (emtTeams().indexOf(target) < 0) return { ok: false, error: 'badteam' };
+    if (target === team) return { ok: false, error: 'self' };          /* his own PIN only from the editor (adminResetPin): a stolen sign-in cannot take the commissioner's team */
+    var rl = emtPinLock();
+    rl.waitLock(10000);
+    try {
+      emtProps().deleteProperty('EMT_PIN_' + target);
+      emtProps().deleteProperty('EMT_FAIL_' + target);
+    } finally { rl.releaseLock(); }
+    Logger.log('PIN + lockout cleared for ' + target + ' by the commissioner (app)');
+    return { ok: true, claimed: emtClaimed() };
   }
 
   if (action === 'save' || action === 'reset') {
@@ -1819,9 +1859,12 @@ function doGet(e) {
 
 /* commissioner: run from the editor with the exact team name, e.g. adminResetPin('Team Jacob') */
 function adminResetPin(team) {
-  var p = emtProps();
-  p.deleteProperty('EMT_PIN_' + team);
-  p.deleteProperty('EMT_FAIL_' + team);
+  var p = emtProps(), lock = emtPinLock();
+  lock.waitLock(10000);
+  try {
+    p.deleteProperty('EMT_PIN_' + team);
+    p.deleteProperty('EMT_FAIL_' + team);
+  } finally { lock.releaseLock(); }
   Logger.log('PIN + lockout cleared for ' + team + ' — they can re-claim from the app.');
 }
 
@@ -3867,7 +3910,7 @@ function emtApiErr(body) {
  *   QUOTA: an idle run reads a few narrow columns. An article takes 2 to 6 batches over an hour or so (one or two
  *   URL fetches a run), about 10 web searches and some 40k tokens at batch prices; v3.13: plus the punch-up batch.
  * ===================================================================================================== */
-var EMT_VERSION = 'v3.32';                  // keep in step with the first CHANGELOG entry (?health reports it)
+var EMT_VERSION = 'v3.33';                  // keep in step with the first CHANGELOG entry (?health reports it)
 var EMT_ART_HEAD = ['Id', 'GW', 'Kind', 'Status', 'Written (UTC)', 'Model', 'Facts received (UTC)', 'Research', 'Article', 'Note', 'Approved (UTC)', 'Log'];
 var EMT_ART_COL = { id: 1, gw: 2, kind: 3, status: 4, written: 5, model: 6, factsAt: 7, research: 8, article: 9, note: 10, approved: 11, log: 12 };
 var EMT_WORK_HEAD = ['Id', 'Key', 'Part', 'Parts', 'Data', 'Saved (UTC)'];
@@ -5290,6 +5333,7 @@ function emtHealth() {
     data: emtDataHealth(),                                                          /* v3.17 */
     errors: emtErrorsHealth(),                                                      /* v3.18 */
     potm: emtPotmHealth(),                                                          /* v3.30 */
+    pinLock: emtPinLockKind(),                                                      /* v3.33: 'document' when claims have their own lock */
     articles: { mode: emtArtReview() ? 'review' : 'auto',
       job: job ? { id: job.id, gw: job.gw, kind: job.kind, phase: job.phase, tries: job.tries || 0, redos: job.redos || 0, model: job.model || '',
         writer: job.writer || '', live: !!job.live, startedAt: emtIso(Number(job.startedAt) || 0), batchAt: emtIso(Number(job.batchAt) || 0) } : null,
